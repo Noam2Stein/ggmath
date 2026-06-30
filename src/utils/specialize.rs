@@ -1,6 +1,6 @@
 use crate::{
-    Affine, Aligned, Alignment, Length, Mask, Matrix, Scalar, SupportedLength, Unaligned, Vector,
-    utils::transmute_generic,
+    Affine, Aligned, Alignment, Length, Mask, Matrix, Quaternion, Scalar, SupportedLength,
+    Unaligned, Vector, utils::transmute_generic,
 };
 
 /// Bypasses a type system limitation to perform specialization.
@@ -76,6 +76,50 @@ macro_rules! specialize {
                 <$T as $Backend<2, $crate::Unaligned>>::$f,
                 <$T as $Backend<3, $crate::Unaligned>>::$f,
                 <$T as $Backend<4, $crate::Unaligned>>::$f,
+            )
+        })($($arg),*)
+    };
+    (<$T:ty as $Backend:ident<$A:tt>>::$f:ident($($arg:expr),*$(,)?)) => {
+        (const {
+            $crate::utils::specialize_helper::<
+                2,
+                $A,
+                $crate::utils::specialize!(@fn($($arg),*)),
+                $crate::utils::specialize!(@fn($($arg),*)),
+                $crate::utils::specialize!(@fn($($arg),*)),
+                $crate::utils::specialize!(@fn($($arg),*)),
+                $crate::utils::specialize!(@fn($($arg),*)),
+                $crate::utils::specialize!(@fn($($arg),*)),
+                $crate::utils::specialize!(@fn($($arg),*)),
+            >(
+                <$T as $Backend<$crate::Aligned>>::$f,
+                <$T as $Backend<$crate::Aligned>>::$f,
+                <$T as $Backend<$crate::Aligned>>::$f,
+                <$T as $Backend<$crate::Unaligned>>::$f,
+                <$T as $Backend<$crate::Unaligned>>::$f,
+                <$T as $Backend<$crate::Unaligned>>::$f,
+            )
+        })($($arg),*)
+    };
+    ($Struct:ident::<$N:tt, $T:ident, $A:tt>::$f:ident($($arg:expr),*$(,)?)) => {
+        (const {
+            $crate::utils::specialize_helper::<
+                $N,
+                $A,
+                $crate::utils::specialize!(@fn($($arg),*)),
+                $crate::utils::specialize!(@fn($($arg),*)),
+                $crate::utils::specialize!(@fn($($arg),*)),
+                $crate::utils::specialize!(@fn($($arg),*)),
+                $crate::utils::specialize!(@fn($($arg),*)),
+                $crate::utils::specialize!(@fn($($arg),*)),
+                $crate::utils::specialize!(@fn($($arg),*)),
+            >(
+                <$Struct::<2, $T, $crate::Aligned>>::$f,
+                <$Struct::<3, $T, $crate::Aligned>>::$f,
+                <$Struct::<4, $T, $crate::Aligned>>::$f,
+                <$Struct::<2, $T, $crate::Unaligned>>::$f,
+                <$Struct::<3, $T, $crate::Unaligned>>::$f,
+                <$Struct::<4, $T, $crate::Unaligned>>::$f,
             )
         })($($arg),*)
     };
@@ -287,6 +331,16 @@ where
 {
 }
 
+// SAFETY: `A == A2` => `Quaternion<T, A> == Quaternion<T, A2>`.
+unsafe impl<T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
+    Specialize<Quaternion<T, A2>, N, N2, A, A2> for Quaternion<T, A>
+where
+    T: Scalar,
+    Length<N>: SupportedLength,
+    Length<N2>: SupportedLength,
+{
+}
+
 // SAFETY: `N == N2`, `A == A2` => `Affine<N, T, A> == Affine<N2, T, A2>`.
 unsafe impl<T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<Affine<N2, T, A2>, N, N2, A, A2> for Affine<N, T, A>
@@ -356,6 +410,24 @@ unsafe impl<T, T2, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
 where
     T: Specialize<T2, N, N2, A, A2>,
     Length<N>: SupportedLength,
+    Length<N2>: SupportedLength,
+{
+}
+
+// SAFETY: `T == T2` => `&[T; N] == &[T2; N]`.
+unsafe impl<
+    'a,
+    T,
+    T2,
+    const N: usize,
+    const N1: usize,
+    const N2: usize,
+    A: Alignment,
+    A2: Alignment,
+> Specialize<&'a [T2; N], N1, N2, A, A2> for &'a [T; N]
+where
+    T: Specialize<T2, N1, N2, A, A2>,
+    Length<N1>: SupportedLength,
     Length<N2>: SupportedLength,
 {
 }

@@ -3,7 +3,10 @@ use wide::{
     u16x8, u16x16, u16x32, u32x4, u32x8, u32x16, u64x2, u64x4, u64x8,
 };
 
-use crate::{Alignment, Length, SupportedLength, Vector, utils::transmute_generic};
+use crate::{
+    Alignment, Length, SupportedLength, Vector,
+    utils::{specialize, transmute_generic},
+};
 
 macro_rules! wide_signed_impl {
     ($Wide:ident, $UnsignedWide:ident) => {
@@ -20,7 +23,7 @@ macro_rules! wide_signed_impl {
             #[inline]
             #[must_use]
             pub fn positive_mask(self) -> Self {
-                self.map($Wide::is_positive)
+                specialize!(Vector::<N, $Wide, A>::positive_mask_backend(self))
             }
 
             /// Returns a vector mask where each element is `true` if the
@@ -32,7 +35,7 @@ macro_rules! wide_signed_impl {
             #[inline]
             #[must_use]
             pub fn negative_mask(self) -> Self {
-                self.map($Wide::is_negative)
+                specialize!(Vector::<N, $Wide, A>::negative_mask_backend(self))
             }
 
             /// Returns the bit patterns of `self` reinterpreted as unsigned
@@ -57,7 +60,7 @@ macro_rules! wide_signed_impl {
             #[inline]
             #[must_use]
             pub fn abs(self) -> Self {
-                self.map($Wide::abs)
+                specialize!(Vector::<N, $Wide, A>::abs_backend(self))
             }
 
             /// Returns the signum of the elements of `self`.
@@ -72,7 +75,96 @@ macro_rules! wide_signed_impl {
             #[inline]
             #[must_use]
             pub fn signum(self) -> Self {
-                self.map($Wide::signum)
+                specialize!(Vector::<N, $Wide, A>::signum_backend(self))
+            }
+        }
+
+        impl<A: Alignment> Vector<2, $Wide, A> {
+            #[inline(always)]
+            fn positive_mask_backend(self) -> Self {
+                Self::new(self.x.is_positive(), self.y.is_positive())
+            }
+
+            #[inline(always)]
+            fn negative_mask_backend(self) -> Self {
+                Self::new(self.x.is_negative(), self.y.is_negative())
+            }
+
+            #[inline(always)]
+            fn abs_backend(self) -> Self {
+                Self::new(self.x.abs(), self.y.abs())
+            }
+
+            #[inline(always)]
+            fn signum_backend(self) -> Self {
+                Self::new(self.x.signum(), self.y.signum())
+            }
+        }
+
+        impl<A: Alignment> Vector<3, $Wide, A> {
+            #[inline(always)]
+            fn positive_mask_backend(self) -> Self {
+                Self::new(
+                    self.x.is_positive(),
+                    self.y.is_positive(),
+                    self.z.is_positive(),
+                )
+            }
+
+            #[inline(always)]
+            fn negative_mask_backend(self) -> Self {
+                Self::new(
+                    self.x.is_negative(),
+                    self.y.is_negative(),
+                    self.z.is_negative(),
+                )
+            }
+
+            #[inline(always)]
+            fn abs_backend(self) -> Self {
+                Self::new(self.x.abs(), self.y.abs(), self.z.abs())
+            }
+
+            #[inline(always)]
+            fn signum_backend(self) -> Self {
+                Self::new(self.x.signum(), self.y.signum(), self.z.signum())
+            }
+        }
+
+        impl<A: Alignment> Vector<4, $Wide, A> {
+            #[inline(always)]
+            fn positive_mask_backend(self) -> Self {
+                Self::new(
+                    self.x.is_positive(),
+                    self.y.is_positive(),
+                    self.z.is_positive(),
+                    self.w.is_positive(),
+                )
+            }
+
+            #[inline(always)]
+            fn negative_mask_backend(self) -> Self {
+                Self::new(
+                    self.x.is_negative(),
+                    self.y.is_negative(),
+                    self.z.is_negative(),
+                    self.w.is_negative(),
+                )
+            }
+
+            #[inline(always)]
+            fn abs_backend(self) -> Self {
+                Self::new(self.x.abs(), self.y.abs(), self.z.abs(), self.w.abs())
+            }
+
+            #[inline(always)]
+            fn signum_backend(self) -> Self {
+                Self::new(
+                    self.x.signum(),
+                    self.y.signum(),
+                    self.z.signum(),
+                    self.w.signum(),
+                )
             }
         }
     };

@@ -1,6 +1,9 @@
 use wide::{f32x4, f32x8, f32x16, f64x2, f64x4, f64x8};
 
-use crate::{Affine, Alignment, EulerRot, Length, Matrix, Quaternion, SupportedLength, Vector};
+use crate::{
+    Affine, Alignment, EulerRot, Length, Matrix, Quaternion, SupportedLength, Vector,
+    utils::specialize,
+};
 
 macro_rules! impl_wide_float {
     ($Wide:ident) => {
@@ -51,19 +54,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn inverse_or(&self, fallback: &Self) -> Self {
-                self.submatrix.generic_inverse(
-                    |determinant, result| {
-                        let fallback_mask = determinant.simd_eq($Wide::ZERO);
-                        let submatrix = Matrix::from_row_fn(|r| {
-                            Vector::from_fn(|c| fallback_mask.blend(fallback[r][c], result[r][c]))
-                        });
-                        let translation = Vector::splat(fallback_mask)
-                            .blend(fallback.translation, -self.translation * submatrix);
-
-                        Self::from_submatrix_translation(submatrix, translation)
-                    },
-                    |_| Ok(()),
-                )
+                specialize!(Affine::<N, $Wide, A>::inverse_or_backend(self, fallback))
             }
 
             /// For each lane, returns the inverse of `self` or the zero
@@ -74,19 +65,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn inverse_or_zero(&self) -> Self {
-                self.submatrix.generic_inverse(
-                    |determinant, result| {
-                        let fallback_mask = determinant.simd_eq($Wide::ZERO);
-                        let submatrix = Matrix::from_row_fn(|r| {
-                            Vector::from_fn(|c| fallback_mask.blend($Wide::ZERO, result[r][c]))
-                        });
-                        let translation = Vector::splat(fallback_mask)
-                            .blend(Vector::ZERO, -self.translation * submatrix);
-
-                        Self::from_submatrix_translation(submatrix, translation)
-                    },
-                    |_| Ok(()),
-                )
+                specialize!(Affine::<N, $Wide, A>::inverse_or_zero_backend(self))
             }
 
             /// Returns `true` if the absolute difference of all elements
@@ -179,6 +158,38 @@ macro_rules! impl_wide_float {
             ) -> (Vector<2, $Wide, A>, $Wide, Vector<2, $Wide, A>) {
                 let (scale, angle) = self.submatrix.to_scale_angle();
                 (scale, angle, self.translation)
+            }
+
+            #[inline(always)]
+            fn inverse_or_backend(&self, fallback: &Self) -> Self {
+                let (submatrix, determinant) = self.submatrix.inverse_and_determinant();
+                let translation = -self.translation * submatrix;
+
+                let fallback_mask = determinant.simd_eq($Wide::ZERO);
+                Self::from_row_array(&[
+                    fallback_mask.blend(fallback.submatrix.x_axis.x, submatrix.x_axis.x),
+                    fallback_mask.blend(fallback.submatrix.x_axis.y, submatrix.x_axis.y),
+                    fallback_mask.blend(fallback.submatrix.y_axis.x, submatrix.y_axis.x),
+                    fallback_mask.blend(fallback.submatrix.y_axis.y, submatrix.y_axis.y),
+                    fallback_mask.blend(fallback.translation.x, translation.x),
+                    fallback_mask.blend(fallback.translation.y, translation.y),
+                ])
+            }
+
+            #[inline(always)]
+            fn inverse_or_zero_backend(&self) -> Self {
+                let (submatrix, determinant) = self.submatrix.inverse_and_determinant();
+                let translation = -self.translation * submatrix;
+
+                let non_fallback_mask = determinant.simd_ne($Wide::ZERO);
+                Self::from_row_array(&[
+                    submatrix.x_axis.x & non_fallback_mask,
+                    submatrix.x_axis.y & non_fallback_mask,
+                    submatrix.y_axis.x & non_fallback_mask,
+                    submatrix.y_axis.y & non_fallback_mask,
+                    translation.x & non_fallback_mask,
+                    translation.y & non_fallback_mask,
+                ])
             }
         }
 
@@ -394,6 +405,112 @@ macro_rules! impl_wide_float {
             ) {
                 let (scale, rotation) = self.submatrix.to_scale_rotation();
                 (scale, rotation, self.translation)
+            }
+
+            #[inline(always)]
+            fn inverse_or_backend(&self, fallback: &Self) -> Self {
+                let (submatrix, determinant) = self.submatrix.inverse_and_determinant();
+                let translation = -self.translation * submatrix;
+
+                let fallback_mask = determinant.simd_eq($Wide::ZERO);
+                Self::from_row_array(&[
+                    fallback_mask.blend(fallback.submatrix.x_axis.x, submatrix.x_axis.x),
+                    fallback_mask.blend(fallback.submatrix.x_axis.y, submatrix.x_axis.y),
+                    fallback_mask.blend(fallback.submatrix.x_axis.z, submatrix.x_axis.z),
+                    fallback_mask.blend(fallback.submatrix.y_axis.x, submatrix.y_axis.x),
+                    fallback_mask.blend(fallback.submatrix.y_axis.y, submatrix.y_axis.y),
+                    fallback_mask.blend(fallback.submatrix.y_axis.z, submatrix.y_axis.z),
+                    fallback_mask.blend(fallback.submatrix.z_axis.x, submatrix.z_axis.x),
+                    fallback_mask.blend(fallback.submatrix.z_axis.y, submatrix.z_axis.y),
+                    fallback_mask.blend(fallback.submatrix.z_axis.z, submatrix.z_axis.z),
+                    fallback_mask.blend(fallback.translation.x, translation.x),
+                    fallback_mask.blend(fallback.translation.y, translation.y),
+                    fallback_mask.blend(fallback.translation.z, translation.z),
+                ])
+            }
+
+            #[inline(always)]
+            fn inverse_or_zero_backend(&self) -> Self {
+                let (submatrix, determinant) = self.submatrix.inverse_and_determinant();
+                let translation = -self.translation * submatrix;
+
+                let non_fallback_mask = determinant.simd_ne($Wide::ZERO);
+                Self::from_row_array(&[
+                    submatrix.x_axis.x & non_fallback_mask,
+                    submatrix.x_axis.y & non_fallback_mask,
+                    submatrix.x_axis.z & non_fallback_mask,
+                    submatrix.y_axis.x & non_fallback_mask,
+                    submatrix.y_axis.y & non_fallback_mask,
+                    submatrix.y_axis.z & non_fallback_mask,
+                    submatrix.z_axis.x & non_fallback_mask,
+                    submatrix.z_axis.y & non_fallback_mask,
+                    submatrix.z_axis.z & non_fallback_mask,
+                    translation.x & non_fallback_mask,
+                    translation.y & non_fallback_mask,
+                    translation.z & non_fallback_mask,
+                ])
+            }
+        }
+
+        impl<A: Alignment> Affine<4, $Wide, A> {
+            #[inline(always)]
+            fn inverse_or_backend(&self, fallback: &Self) -> Self {
+                let (submatrix, determinant) = self.submatrix.inverse_and_determinant();
+                let translation = -self.translation * submatrix;
+
+                let fallback_mask = determinant.simd_eq($Wide::ZERO);
+                Self::from_row_array(&[
+                    fallback_mask.blend(fallback.submatrix.x_axis.x, submatrix.x_axis.x),
+                    fallback_mask.blend(fallback.submatrix.x_axis.y, submatrix.x_axis.y),
+                    fallback_mask.blend(fallback.submatrix.x_axis.z, submatrix.x_axis.z),
+                    fallback_mask.blend(fallback.submatrix.x_axis.w, submatrix.x_axis.w),
+                    fallback_mask.blend(fallback.submatrix.y_axis.x, submatrix.y_axis.x),
+                    fallback_mask.blend(fallback.submatrix.y_axis.y, submatrix.y_axis.y),
+                    fallback_mask.blend(fallback.submatrix.y_axis.z, submatrix.y_axis.z),
+                    fallback_mask.blend(fallback.submatrix.y_axis.w, submatrix.y_axis.w),
+                    fallback_mask.blend(fallback.submatrix.z_axis.x, submatrix.z_axis.x),
+                    fallback_mask.blend(fallback.submatrix.z_axis.y, submatrix.z_axis.y),
+                    fallback_mask.blend(fallback.submatrix.z_axis.z, submatrix.z_axis.z),
+                    fallback_mask.blend(fallback.submatrix.z_axis.w, submatrix.z_axis.w),
+                    fallback_mask.blend(fallback.submatrix.w_axis.x, submatrix.w_axis.x),
+                    fallback_mask.blend(fallback.submatrix.w_axis.y, submatrix.w_axis.y),
+                    fallback_mask.blend(fallback.submatrix.w_axis.z, submatrix.w_axis.z),
+                    fallback_mask.blend(fallback.submatrix.w_axis.w, submatrix.w_axis.w),
+                    fallback_mask.blend(fallback.translation.x, translation.x),
+                    fallback_mask.blend(fallback.translation.y, translation.y),
+                    fallback_mask.blend(fallback.translation.z, translation.z),
+                    fallback_mask.blend(fallback.translation.w, translation.w),
+                ])
+            }
+
+            #[inline(always)]
+            fn inverse_or_zero_backend(&self) -> Self {
+                let (submatrix, determinant) = self.submatrix.inverse_and_determinant();
+                let translation = -self.translation * submatrix;
+
+                let non_fallback_mask = determinant.simd_ne($Wide::ZERO);
+                Self::from_row_array(&[
+                    submatrix.x_axis.x & non_fallback_mask,
+                    submatrix.x_axis.y & non_fallback_mask,
+                    submatrix.x_axis.z & non_fallback_mask,
+                    submatrix.x_axis.w & non_fallback_mask,
+                    submatrix.y_axis.x & non_fallback_mask,
+                    submatrix.y_axis.y & non_fallback_mask,
+                    submatrix.y_axis.z & non_fallback_mask,
+                    submatrix.y_axis.w & non_fallback_mask,
+                    submatrix.z_axis.x & non_fallback_mask,
+                    submatrix.z_axis.y & non_fallback_mask,
+                    submatrix.z_axis.z & non_fallback_mask,
+                    submatrix.z_axis.w & non_fallback_mask,
+                    submatrix.w_axis.x & non_fallback_mask,
+                    submatrix.w_axis.y & non_fallback_mask,
+                    submatrix.w_axis.z & non_fallback_mask,
+                    submatrix.w_axis.w & non_fallback_mask,
+                    translation.x & non_fallback_mask,
+                    translation.y & non_fallback_mask,
+                    translation.z & non_fallback_mask,
+                    translation.w & non_fallback_mask,
+                ])
             }
         }
     };

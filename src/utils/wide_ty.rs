@@ -29,7 +29,7 @@ pub(crate) trait WideTy:
 
     fn blend(self, t: Self, f: Self) -> Self;
 
-    fn to_array(self) -> Self::Array;
+    fn as_array(&self) -> &Self::Array;
 
     fn as_mut_array(&mut self) -> &mut Self::Array;
 }
@@ -80,8 +80,8 @@ macro_rules! impl_wide {
             }
 
             #[inline(always)]
-            fn to_array(self) -> Self::Array {
-                self.to_array()
+            fn as_array(&self) -> &Self::Array {
+                self.as_array()
             }
 
             #[inline(always)]

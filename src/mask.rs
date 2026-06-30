@@ -7,7 +7,8 @@ use core::{
 };
 
 use crate::{
-    Aligned, Alignment, Backend, Length, Scalar, SupportedLength, Unaligned, Vector,
+    Aligned, Alignment, Length, Scalar, SupportedLength, Unaligned, Vector,
+    backend::MaskBackend,
     utils::{specialize, transmute_generic, transmute_mut},
 };
 
@@ -40,14 +41,14 @@ pub struct Mask<const N: usize, T, A: Alignment>(
     #[expect(clippy::type_complexity)]
     pub(crate)  <A as Alignment>::Select<
         <Length<N> as SupportedLength>::Select<
-            <T as Backend<2, Aligned>>::Mask,
-            <T as Backend<3, Aligned>>::Mask,
-            <T as Backend<4, Aligned>>::Mask,
+            <T as MaskBackend<2, Aligned>>::Inner,
+            <T as MaskBackend<3, Aligned>>::Inner,
+            <T as MaskBackend<4, Aligned>>::Inner,
         >,
         <Length<N> as SupportedLength>::Select<
-            <T as Backend<2, Unaligned>>::Mask,
-            <T as Backend<3, Unaligned>>::Mask,
-            <T as Backend<4, Unaligned>>::Mask,
+            <T as MaskBackend<2, Unaligned>>::Inner,
+            <T as MaskBackend<3, Unaligned>>::Inner,
+            <T as MaskBackend<4, Unaligned>>::Inner,
         >,
     >,
 )
@@ -136,7 +137,7 @@ where
     #[inline]
     #[must_use]
     pub fn from_array(array: [bool; N]) -> Self {
-        specialize!(<T as Backend<N, A>>::mask_from_array(array))
+        specialize!(<T as MaskBackend<N, A>>::mask_from_array(array))
     }
 
     /// Creates a vector mask with all elements set to `value`.
@@ -152,7 +153,7 @@ where
     #[inline]
     #[must_use]
     pub fn splat(value: bool) -> Self {
-        specialize!(<T as Backend<N, A>>::mask_splat(value))
+        specialize!(<T as MaskBackend<N, A>>::mask_splat(value))
     }
 
     /// Creates a vector mask by calling function `f` for each element index.
@@ -171,43 +172,31 @@ where
     #[inline]
     #[must_use]
     #[track_caller]
-    pub fn from_fn<F>(f: F) -> Self
+    pub fn from_fn<F>(mut f: F) -> Self
     where
         F: FnMut(usize) -> bool,
     {
-        (const {
-            // SAFETY: All transmutations are between types that are previously
-            // checked to be the same type.
-            unsafe {
-                match (N, A::IS_ALIGNED) {
-                    (2, true) => transmute::<fn(F) -> Mask<2, T, Aligned>, fn(F) -> Mask<N, T, A>>(
-                        <T as Backend<2, Aligned>>::mask_from_fn,
-                    ),
-                    (3, true) => transmute::<fn(F) -> Mask<3, T, Aligned>, fn(F) -> Mask<N, T, A>>(
-                        <T as Backend<3, Aligned>>::mask_from_fn,
-                    ),
-                    (4, true) => transmute::<fn(F) -> Mask<4, T, Aligned>, fn(F) -> Mask<N, T, A>>(
-                        <T as Backend<4, Aligned>>::mask_from_fn,
-                    ),
-                    (2, false) => {
-                        transmute::<fn(F) -> Mask<2, T, Unaligned>, fn(F) -> Mask<N, T, A>>(
-                            <T as Backend<2, Unaligned>>::mask_from_fn,
-                        )
-                    }
-                    (3, false) => {
-                        transmute::<fn(F) -> Mask<3, T, Unaligned>, fn(F) -> Mask<N, T, A>>(
-                            <T as Backend<3, Unaligned>>::mask_from_fn,
-                        )
-                    }
-                    (4, false) => {
-                        transmute::<fn(F) -> Mask<4, T, Unaligned>, fn(F) -> Mask<N, T, A>>(
-                            <T as Backend<4, Unaligned>>::mask_from_fn,
-                        )
-                    }
-                    _ => unreachable!(),
-                }
+        // SAFETY: All transmutations are between a type to itself.
+        unsafe {
+            match N {
+                2 => transmute_generic::<Mask<2, T, A>, Mask<N, T, A>>(Mask::<2, T, A>::new(
+                    f(0),
+                    f(1),
+                )),
+                3 => transmute_generic::<Mask<3, T, A>, Mask<N, T, A>>(Mask::<3, T, A>::new(
+                    f(0),
+                    f(1),
+                    f(2),
+                )),
+                4 => transmute_generic::<Mask<4, T, A>, Mask<N, T, A>>(Mask::<4, T, A>::new(
+                    f(0),
+                    f(1),
+                    f(2),
+                    f(3),
+                )),
+                _ => unreachable!(),
             }
-        })(f)
+        }
     }
 
     /// Conversion between [`Aligned`] and [`Unaligned`] storage.
@@ -295,7 +284,7 @@ where
     #[inline]
     #[must_use]
     pub fn to_array(self) -> [bool; N] {
-        specialize!(<T as Backend<N, A>>::mask_to_array(self))
+        specialize!(<T as MaskBackend<N, A>>::mask_to_array(self))
     }
 
     /// Returns `true` if all elements of `self` are `true`.
@@ -314,7 +303,7 @@ where
     #[inline]
     #[must_use]
     pub fn all(self) -> bool {
-        specialize!(<T as Backend<N, A>>::mask_all(self))
+        specialize!(<T as MaskBackend<N, A>>::mask_all(self))
     }
 
     /// Returns `true` if any element of `self` is `true`.
@@ -333,7 +322,7 @@ where
     #[inline]
     #[must_use]
     pub fn any(self) -> bool {
-        specialize!(<T as Backend<N, A>>::mask_any(self))
+        specialize!(<T as MaskBackend<N, A>>::mask_any(self))
     }
 
     /// Selects between the elements of `if_true` and `if_false` based on the
@@ -354,7 +343,9 @@ where
     #[inline]
     #[must_use]
     pub fn select(self, if_true: Vector<N, T, A>, if_false: Vector<N, T, A>) -> Vector<N, T, A> {
-        specialize!(<T as Backend<N, A>>::mask_select(self, if_true, if_false))
+        specialize!(<T as MaskBackend<N, A>>::mask_select(
+            self, if_true, if_false
+        ))
     }
 
     /// Returns an iterator over the vector mask's elements.
@@ -373,7 +364,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn get(self, index: usize) -> bool {
-        specialize!(<T as Backend<N, A>>::mask_get(self, index))
+        specialize!(<T as MaskBackend<N, A>>::mask_get(self, index))
     }
 
     /// Sets the element at the given index to `value`.
@@ -384,61 +375,40 @@ where
     #[inline]
     #[track_caller]
     pub fn set(&mut self, index: usize, value: bool) {
-        specialize!(<T as Backend<N, A>>::mask_set(self, index, value))
+        specialize!(<T as MaskBackend<N, A>>::mask_set(self, index, value))
     }
 
-    /// Creates a vector mask from its internal representation.
-    ///
-    /// The input type is specified by [`<T as Backend<N, A>>`]. This should
-    /// only be called from the crate defining `T`, else the input type may
-    /// change silently as it is considered an implementation detail.
-    ///
-    /// [`<T as Backend<N, A>>`]: Backend
     #[inline]
     #[must_use]
-    pub const fn from_inner(inner: <T as Backend<N, A>>::Mask) -> Self
+    pub(crate) const fn from_inner(inner: <T as MaskBackend<N, A>>::Inner) -> Self
     where
-        T: Backend<N, A>,
+        T: MaskBackend<N, A>,
     {
         // SAFETY: `Mask<N, T, A>` is a transparent wrapper over
         // `<T as Backend<N, A>>::Mask`.
-        unsafe { transmute_generic::<<T as Backend<N, A>>::Mask, Mask<N, T, A>>(inner) }
+        unsafe { transmute_generic::<<T as MaskBackend<N, A>>::Inner, Mask<N, T, A>>(inner) }
     }
 
-    /// Returns the internal representation of `self`.
-    ///
-    /// The resulting type is specified by [`<T as Backend<N, A>>`]. This should
-    /// only be called from the crate defining `T`, else the resulting type may
-    /// change silently as it is considered an implementation detail.
-    ///
-    /// [`<T as Backend<N, A>>`]: Backend
     #[inline]
     #[must_use]
-    pub const fn inner(self) -> <T as Backend<N, A>>::Mask
+    pub(crate) const fn inner(self) -> <T as MaskBackend<N, A>>::Inner
     where
-        T: Backend<N, A>,
+        T: MaskBackend<N, A>,
     {
         // SAFETY: `Mask<N, T, A>` is a transparent wrapper over
         // `<T as Backend<N, A>>::Mask`.
-        unsafe { transmute_generic::<Mask<N, T, A>, <T as Backend<N, A>>::Mask>(self) }
+        unsafe { transmute_generic::<Mask<N, T, A>, <T as MaskBackend<N, A>>::Inner>(self) }
     }
 
-    /// Returns a mutable reference to the internal representation of `self`.
-    ///
-    /// The resulting type is specified by [`<T as Backend<N, A>>`]. This should
-    /// only be called from the crate defining `T`, else the resulting type may
-    /// change silently as it is considered an implementation detail.
-    ///
-    /// [`<T as Backend<N, A>>`]: Backend
     #[inline]
     #[must_use]
-    pub const fn inner_mut(&mut self) -> &mut <T as Backend<N, A>>::Mask
+    pub(crate) const fn inner_mut(&mut self) -> &mut <T as MaskBackend<N, A>>::Inner
     where
-        T: Backend<N, A>,
+        T: MaskBackend<N, A>,
     {
         // SAFETY: `Mask<N, T, A>` is a transparent wrapper over
         // `<T as Backend<N, A>>::Mask`.
-        unsafe { transmute_mut::<Mask<N, T, A>, <T as Backend<N, A>>::Mask>(self) }
+        unsafe { transmute_mut::<Mask<N, T, A>, <T as MaskBackend<N, A>>::Inner>(self) }
     }
 }
 
@@ -553,13 +523,13 @@ where
 {
     #[inline]
     fn eq(&self, other: &Self) -> bool {
-        specialize!(<T as Backend<N, A>>::mask_eq(self, other))
+        specialize!(<T as MaskBackend<N, A>>::mask_eq(self, other))
     }
 
     #[expect(clippy::partialeq_ne_impl)]
     #[inline]
     fn ne(&self, other: &Self) -> bool {
-        specialize!(<T as Backend<N, A>>::mask_ne(self, other))
+        specialize!(<T as MaskBackend<N, A>>::mask_ne(self, other))
     }
 }
 
@@ -604,7 +574,7 @@ macro_rules! impl_not {
             $(#[$doc])*
             #[inline]
             fn not(self) -> Self::Output {
-                specialize!(<T as Backend<N, A>>::mask_not(self))
+                specialize!(<T as MaskBackend<N, A>>::mask_not(self))
             }
         }
 
@@ -648,7 +618,7 @@ macro_rules! impl_binary_operator {
             $(#[$doc])*
             #[inline]
             fn $op(self, rhs: Self) -> Self::Output {
-                specialize!(<T as Backend<N, A>>::$mask_op(self, rhs))
+                specialize!(<T as MaskBackend<N, A>>::$mask_op(self, rhs))
             }
         }
 

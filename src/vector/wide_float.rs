@@ -1,7 +1,8 @@
 use wide::{f32x4, f32x8, f32x16, f64x2, f64x4, f64x8, u32x4, u32x8, u32x16, u64x2, u64x4, u64x8};
 
 use crate::{
-    Alignment, FloatExt, Length, Quaternion, SupportedLength, Vector, utils::transmute_generic,
+    Alignment, FloatExt, Length, Quaternion, SupportedLength, Vector,
+    utils::{FloatUtils, specialize, transmute_generic},
 };
 
 macro_rules! impl_wide_float {
@@ -48,7 +49,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn nan_mask(self) -> Self {
-                self.map($Wide::is_nan)
+                specialize!(Vector::<N, $Wide, A>::nan_mask_backend(self))
             }
 
             /// For each lane, returns `true` if all elements are neither
@@ -68,7 +69,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn finite_mask(self) -> Self {
-                self.map($Wide::is_finite)
+                specialize!(Vector::<N, $Wide, A>::finite_mask_backend(self))
             }
 
             /// For each lane, returns a vector mask where each element is
@@ -82,7 +83,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn sign_positive_mask(self) -> Self {
-                self.map($Wide::is_sign_positive)
+                specialize!(Vector::<N, $Wide, A>::sign_positive_mask_backend(self))
             }
 
             /// For each lane, returns a vector mask where each element is
@@ -96,7 +97,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn sign_negative_mask(self) -> Self {
-                self.map($Wide::is_sign_negative)
+                specialize!(Vector::<N, $Wide, A>::sign_negative_mask_backend(self))
             }
 
             /// Returns the element-wise reciprocal (inverse) of a vector,
@@ -116,7 +117,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn max(self, other: Self) -> Self {
-                Self::from_fn(|i| self[i].fast_max(other[i]))
+                specialize!(Vector::<N, $Wide, A>::max_backend(self, other))
             }
 
             /// Returns the minimum elements between `self` and `other`.
@@ -128,7 +129,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn min(self, other: Self) -> Self {
-                Self::from_fn(|i| self[i].fast_min(other[i]))
+                specialize!(Vector::<N, $Wide, A>::min_backend(self, other))
             }
 
             /// For each lane, clamps the elements of `self` between the
@@ -155,15 +156,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn max_element(self) -> $Wide {
-                match N {
-                    2 => self[0].fast_max(self[1]),
-                    3 => self[0].fast_max(self[1]).fast_max(self[2]),
-                    4 => self[0]
-                        .fast_max(self[1])
-                        .fast_max(self[2])
-                        .fast_max(self[3]),
-                    _ => unreachable!(),
-                }
+                specialize!(Vector::<N, $Wide, A>::max_element_backend(self))
             }
 
             /// For each lane, returns the minimum between the elements of
@@ -176,15 +169,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn min_element(self) -> $Wide {
-                match N {
-                    2 => self[0].fast_min(self[1]),
-                    3 => self[0].fast_min(self[1]).fast_min(self[2]),
-                    4 => self[0]
-                        .fast_min(self[1])
-                        .fast_min(self[2])
-                        .fast_min(self[3]),
-                    _ => unreachable!(),
-                }
+                specialize!(Vector::<N, $Wide, A>::min_element_backend(self))
             }
 
             /// Returns the absolute values of elements of `self`.
@@ -193,7 +178,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn abs(self) -> Self {
-                self.map($Wide::abs)
+                specialize!(Vector::<N, $Wide, A>::abs_backend(self))
             }
 
             /// Returns the signum of the elements of `self`.
@@ -202,7 +187,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn signum(self) -> Self {
-                self.map($Wide::signum)
+                specialize!(Vector::<N, $Wide, A>::signum_backend(self))
             }
 
             /// Returns a vector with the element magnitudes of `self` and the
@@ -213,7 +198,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn copysign(self, sign: Self) -> Self {
-                Self::from_fn(|i| self[i].copysign(sign[i]))
+                specialize!(Vector::<N, $Wide, A>::copysign_backend(self, sign))
             }
 
             /// Returns the largest integers less than or equal to the elements
@@ -223,7 +208,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn floor(self) -> Self {
-                self.map($Wide::floor)
+                specialize!(Vector::<N, $Wide, A>::floor_backend(self))
             }
 
             /// Returns the smallest integers greater than or equal to the
@@ -233,7 +218,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn ceil(self) -> Self {
-                self.map($Wide::ceil)
+                specialize!(Vector::<N, $Wide, A>::ceil_backend(self))
             }
 
             /// Returns the nearest integers to the elements of `self`.
@@ -242,7 +227,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn round(self) -> Self {
-                self.map($Wide::round)
+                specialize!(Vector::<N, $Wide, A>::round_backend(self))
             }
 
             /// Returns the integer part of the elements of `self`. This means
@@ -252,7 +237,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn trunc(self) -> Self {
-                self.map($Wide::trunc)
+                specialize!(Vector::<N, $Wide, A>::trunc_backend(self))
             }
 
             /// Returns the fractional part of `self`. Equivalent to
@@ -277,7 +262,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn mul_add(self, a: Self, b: Self) -> Self {
-                Self::from_fn(|i| self[i].mul_add(a[i], b[i]))
+                specialize!(Vector::<N, $Wide, A>::mul_add_backend(self, a, b))
             }
 
             /// Calculates Euclidean division for the elements of `self`.
@@ -296,7 +281,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn div_euclid(self, rhs: Self) -> Self {
-                Self::from_fn(|i| self[i].div_euclid(rhs[i]))
+                specialize!(Vector::<N, $Wide, A>::div_euclid_backend(self, rhs))
             }
 
             /// Calculates Euclidean remainder for the elements of `self`.
@@ -315,7 +300,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn rem_euclid(self, rhs: Self) -> Self {
-                Self::from_fn(|i| self[i].rem_euclid(rhs[i]))
+                specialize!(Vector::<N, $Wide, A>::rem_euclid_backend(self, rhs))
             }
 
             /// Computes `x^n` for the elements of `self`.
@@ -328,7 +313,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn powf(self, n: $Wide) -> Self {
-                self.map(|x| x.$powf(n))
+                specialize!(Vector::<N, $Wide, A>::powf_backend(self, n))
             }
 
             /// Returns the square root of the elements of `self`.
@@ -343,7 +328,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn sqrt(self) -> Self {
-                self.map($Wide::sqrt)
+                specialize!(Vector::<N, $Wide, A>::sqrt_backend(self))
             }
 
             /// Computes the exponential function `e^x` for the elements of
@@ -357,7 +342,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn exp(self) -> Self {
-                self.map($Wide::exp)
+                specialize!(Vector::<N, $Wide, A>::exp_backend(self))
             }
 
             /// Computes `2^x` for the elements of `self`.
@@ -370,7 +355,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn exp2(self) -> Self {
-                self.map($Wide::exp2)
+                specialize!(Vector::<N, $Wide, A>::exp2_backend(self))
             }
 
             /// Computes the natural logarithm for the elements of `self`.
@@ -383,7 +368,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn ln(self) -> Self {
-                self.map($Wide::ln)
+                specialize!(Vector::<N, $Wide, A>::ln_backend(self))
             }
 
             /// Computes the base 2 logarithm for the elements of `self`.
@@ -396,7 +381,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn log2(self) -> Self {
-                self.map($Wide::log2)
+                specialize!(Vector::<N, $Wide, A>::log2_backend(self))
             }
 
             /// Computes the sine of the elements of `self`.
@@ -409,7 +394,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn sin(self) -> Self {
-                self.map($Wide::sin)
+                specialize!(Vector::<N, $Wide, A>::sin_backend(self))
             }
 
             /// Computes the cosine of the elements of `self`.
@@ -422,7 +407,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn cos(self) -> Self {
-                self.map($Wide::cos)
+                specialize!(Vector::<N, $Wide, A>::cos_backend(self))
             }
 
             /// Computes the tangent of the elements of `self`.
@@ -435,7 +420,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn tan(self) -> Self {
-                self.map($Wide::tan)
+                specialize!(Vector::<N, $Wide, A>::tan_backend(self))
             }
 
             /// Computes the arcsine of the elements of `self`.
@@ -448,7 +433,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn asin(self) -> Self {
-                self.map($Wide::asin)
+                specialize!(Vector::<N, $Wide, A>::asin_backend(self))
             }
 
             /// Computes the arccosine of the elements of `self`.
@@ -461,7 +446,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn acos(self) -> Self {
-                self.map($Wide::acos)
+                specialize!(Vector::<N, $Wide, A>::acos_backend(self))
             }
 
             /// Computes the arctangent of the elements of `self`.
@@ -474,7 +459,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn atan(self) -> Self {
-                self.map($Wide::atan)
+                specialize!(Vector::<N, $Wide, A>::atan_backend(self))
             }
 
             /// Simultaneously computes the sine and cosine of the elements of
@@ -491,11 +476,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn sin_cos(self) -> (Self, Self) {
-                let array = self.to_array().map($Wide::sin_cos);
-                (
-                    Vector::from_fn(|i| array[i].0),
-                    Vector::from_fn(|i| array[i].1),
-                )
+                specialize!(Vector::<N, $Wide, A>::sin_cos_backend(self))
             }
 
             /// Computes the linear interpolation between `self` and `other`
@@ -549,146 +530,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn slerp(self, other: Self, t: $Wide) -> Self {
-                let self_length = self.length();
-                let other_length = other.length();
-
-                match N {
-                    2 => {
-                        // SAFETY: Because `N = 2`, `Vector<N, $Wide, A> = Vector<2, $Wide, A>`.
-                        let self_ = unsafe {
-                            transmute_generic::<Vector<N, $Wide, A>, Vector<2, $Wide, A>>(self)
-                        };
-                        // SAFETY: Because `N = 2`, `Vector<N, $Wide, A> = Vector<2, $Wide, A>`.
-                        let other = unsafe {
-                            transmute_generic::<Vector<N, $Wide, A>, Vector<2, $Wide, A>>(other)
-                        };
-
-                        let self_normalized = self_ / self_length;
-                        let angle_cos = self_normalized.dot(other) / other_length;
-                        let angle = angle_cos.acos() * self_normalized.wedge(other).signum();
-
-                        let result_length = self_length.lerp(other_length, t);
-                        let result = self_normalized.rotate(angle * t) * result_length;
-
-                        // SAFETY: Because `N = 2`, `Vector<N, $Wide, A> = Vector<2, $Wide, A>`.
-                        unsafe {
-                            transmute_generic::<Vector<2, $Wide, A>, Vector<N, $Wide, A>>(result)
-                        }
-                    }
-                    3 => {
-                        // SAFETY: Because `N = 3`, `Vector<N, $Wide, A> = Vector<3, $Wide, A>`.
-                        let self_ = unsafe {
-                            transmute_generic::<Vector<N, $Wide, A>, Vector<3, $Wide, A>>(self)
-                        };
-                        // SAFETY: Because `N = 3`, `Vector<N, $Wide, A> = Vector<3, $Wide, A>`.
-                        let other = unsafe {
-                            transmute_generic::<Vector<N, $Wide, A>, Vector<3, $Wide, A>>(other)
-                        };
-
-                        // Ported from `https://github.com/bitshifter/glam-rs`.
-
-                        let angle_cos = self_.dot(other) / (self_length * other_length);
-
-                        // If `angle_cos` is close to `1` or `-1` or is NaN the normal
-                        // calculation breaks down.
-                        let result = Vector::<3, $Wide, A>::splat(
-                            angle_cos.abs().simd_lt($Wide::splat(1.0 - 3e-7)),
-                        )
-                        .blend(
-                            {
-                                let angle = angle_cos.acos();
-                                let angle_sin = angle.sin();
-                                let self_factor = (angle * ($Wide::ONE - t)).sin();
-                                let other_factor = (angle * t).sin();
-
-                                let result_length = self_length.lerp(other_length, t);
-
-                                (self_ * (result_length / self_length) * self_factor
-                                    + other * (result_length / other_length) * other_factor)
-                                    / angle_sin
-                            },
-                            Vector::<3, $Wide, A>::splat(angle_cos.is_sign_negative()).blend(
-                                {
-                                    // Vectors are almost parallel in opposing directions.
-
-                                    let axis = self_.any_orthogonal_vector().normalize();
-                                    let rotation = Quaternion::<$Wide, A>::from_axis_angle(
-                                        axis,
-                                        t * $Wide::PI,
-                                    );
-
-                                    let result_length = self_length.lerp(other_length, t);
-                                    self_ * rotation * (result_length / self_length)
-                                },
-                                {
-                                    // Vectors are almost parallel in the same direction.
-                                    self_.lerp(other, t)
-                                },
-                            ),
-                        );
-
-                        // SAFETY: Because `N = 3`, `Vector<N, $Wide, A> = Vector<3, $Wide, A>`.
-                        unsafe {
-                            transmute_generic::<Vector<3, $Wide, A>, Vector<N, $Wide, A>>(result)
-                        }
-                    }
-                    4 => {
-                        // SAFETY: Because `N = 4`, `Vector<N, $Wide, A> = Vector<4, $Wide, A>`.
-                        let self_ = unsafe {
-                            transmute_generic::<Vector<N, $Wide, A>, Vector<4, $Wide, A>>(self)
-                        };
-                        // SAFETY: Because `N = 4`, `Vector<N, $Wide, A> = Vector<4, $Wide, A>`.
-                        let other = unsafe {
-                            transmute_generic::<Vector<N, $Wide, A>, Vector<4, $Wide, A>>(other)
-                        };
-
-                        // Ported from `https://github.com/bitshifter/glam-rs`.
-
-                        let angle_cos = self_.dot(other) / (self_length * other_length);
-
-                        // If `angle_cos` is close to `1` or `-1` or is NaN the normal
-                        // calculation breaks down.
-                        let result = Vector::<4, $Wide, A>::splat(
-                            angle_cos.abs().simd_lt($Wide::splat(1.0 - 3e-7)),
-                        )
-                        .blend(
-                            {
-                                let angle = angle_cos.acos();
-                                let angle_sin = angle.sin();
-                                let t1 = (angle * ($Wide::ONE - t)).sin();
-                                let t2 = (angle * t).sin();
-
-                                let result_length = self_length.lerp(other_length, t);
-
-                                (self_ * (result_length / self_length) * t1
-                                    + other * (result_length / other_length) * t2)
-                                    / angle_sin
-                            },
-                            Vector::<4, $Wide, A>::splat(angle_cos.is_sign_negative()).blend(
-                                {
-                                    // Vectors are almost parallel in opposing directions.
-
-                                    let axis = self_.any_orthogonal_vector().normalize();
-                                    let (sin, cos) = (t * $Wide::PI).sin_cos();
-
-                                    let result_dir = self_ * cos + axis * sin;
-                                    let result_length = self_length.lerp(other_length, t);
-                                    result_dir * (result_length / result_dir.length())
-                                },
-                                {
-                                    // Vectors are almost parallel in the same direction.
-                                    self_.lerp(other, t)
-                                },
-                            ),
-                        );
-
-                        // SAFETY: Because `N = 4`, `Vector<N, $Wide, A> = Vector<4, $Wide, A>`.
-                        unsafe {
-                            transmute_generic::<Vector<4, $Wide, A>, Vector<N, $Wide, A>>(result)
-                        }
-                    }
-                    _ => unreachable!(),
-                }
+                specialize!(Vector::<N, $Wide, A>::slerp_backend(self, other, t))
             }
 
             /// For each lane, rotates `self` towards `target` by at most
@@ -704,132 +546,9 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn rotate_towards(self, target: Self, max_angle: $Wide) -> Self {
-                let self_length = self.length();
-                let target_length = target.length();
-
-                if self == Self::ZERO {
-                    return self;
-                }
-
-                match N {
-                    2 => {
-                        // SAFETY: Because `N = 2`, `Vector<N, $Wide, A> = Vector<2, $Wide, A>`.
-                        let self_ = unsafe {
-                            transmute_generic::<Vector<N, $Wide, A>, Vector<2, $Wide, A>>(self)
-                        };
-                        // SAFETY: Because `N = 2`, `Vector<N, $Wide, A> = Vector<2, $Wide, A>`.
-                        let target = unsafe {
-                            transmute_generic::<Vector<N, $Wide, A>, Vector<2, $Wide, A>>(target)
-                        };
-
-                        let target_angle = (self_.dot(target) / self_length / target_length)
-                            .max(-$Wide::ONE)
-                            .min($Wide::ONE)
-                            .acos();
-                        let angle_sign = self_.wedge(target).signum();
-                        let angle =
-                            max_angle.clamp(target_angle - $Wide::PI, target_angle) * angle_sign;
-
-                        let result = Vector::<2, $Wide, A>::splat(self.simd_eq(Self::ZERO))
-                            .blend(self_, self_.rotate(angle));
-
-                        // SAFETY: Because `N = 2`, `Vector<N, $Wide, A> = Vector<2, $Wide, A>`.
-                        unsafe {
-                            transmute_generic::<Vector<2, $Wide, A>, Vector<N, $Wide, A>>(result)
-                        }
-                    }
-                    3 => {
-                        // SAFETY: Because `N = 3`, `Vector<N, $Wide, A> = Vector<3, $Wide, A>`.
-                        let self_ = unsafe {
-                            transmute_generic::<Vector<N, $Wide, A>, Vector<3, $Wide, A>>(self)
-                        };
-                        // SAFETY: Because `N = 3`, `Vector<N, $Wide, A> = Vector<3, $Wide, A>`.
-                        let target = unsafe {
-                            transmute_generic::<Vector<N, $Wide, A>, Vector<3, $Wide, A>>(target)
-                        };
-
-                        // Ported from `https://github.com/bitshifter/glam-rs`.
-
-                        let target_angle = (self_.dot(target) / (self_length * target_length))
-                            .max(-$Wide::ONE)
-                            .min($Wide::ONE)
-                            .acos();
-                        let angle = max_angle.clamp(target_angle - $Wide::PI, target_angle);
-                        let axis = self_
-                            .cross(target)
-                            .normalize_or(self_.any_orthonormal_vector());
-
-                        let result = Vector::<3, $Wide, A>::splat(self.simd_eq(Self::ZERO)).blend(
-                            self_,
-                            self_ * Quaternion::<$Wide, A>::from_axis_angle(axis, angle),
-                        );
-
-                        // SAFETY: Because `N = 3`, `Vector<N, $Wide, A> = Vector<3, $Wide, A>`.
-                        unsafe {
-                            transmute_generic::<Vector<3, $Wide, A>, Vector<N, $Wide, A>>(result)
-                        }
-                    }
-                    4 => {
-                        // SAFETY: Because `N = 4`, `Vector<N, $Wide, A> = Vector<4, $Wide, A>`.
-                        let self_ = unsafe {
-                            transmute_generic::<Vector<N, $Wide, A>, Vector<4, $Wide, A>>(self)
-                        };
-                        // SAFETY: Because `N = 4`, `Vector<N, T, A> = Vector<4, T, A>`.
-                        let target = unsafe {
-                            transmute_generic::<Vector<N, $Wide, A>, Vector<4, $Wide, A>>(target)
-                        };
-
-                        let target_angle_cos = self_.dot(target) / (self_length * target_length);
-                        let target_angle = target_angle_cos.max(-$Wide::ONE).min($Wide::ONE).acos();
-                        let angle = max_angle.clamp(target_angle - $Wide::PI, target_angle);
-
-                        if angle == $Wide::ZERO {
-                            return self;
-                        }
-
-                        // If `target_angle_cos` is close to `1` or `-1` or is NaN the
-                        // normal calculation breaks down.
-                        let result = Vector::<4, $Wide, A>::splat(
-                            target_angle_cos.abs().simd_le($Wide::splat(1.0 - 3e-7)),
-                        )
-                        .blend(
-                            {
-                                let self_factor = (target_angle - angle).sin();
-                                let target_factor = angle.sin();
-                                let result = self_ * self_factor
-                                    + target * (self_length / target_length) * target_factor;
-
-                                result / result.length() * self_length
-                            },
-                            Vector::<4, $Wide, A>::splat(target_angle_cos.is_sign_negative())
-                                .blend(
-                                    {
-                                        // Vectors are almost parallel in opposing directions.
-
-                                        let axis = self_.any_orthogonal_vector();
-                                        let axis = axis / axis.length();
-                                        let (sin, cos) = angle.sin_cos();
-
-                                        let result_dir = self_ * cos + axis * sin;
-                                        result_dir * (self_length / result_dir.length())
-                                    },
-                                    {
-                                        // Vectors are almost parallel in the same direction.
-                                        target / target_length * self_length
-                                    },
-                                ),
-                        );
-
-                        let result = Vector::<4, $Wide, A>::splat(self.simd_eq(Self::ZERO))
-                            .blend(self_, result);
-
-                        // SAFETY: Because `N = 4`, `Vector<N, $Wide, A> = Vector<4, $Wide, A>`.
-                        unsafe {
-                            transmute_generic::<Vector<4, $Wide, A>, Vector<N, $Wide, A>>(result)
-                        }
-                    }
-                    _ => unreachable!(),
-                }
+                specialize!(Vector::<N, $Wide, A>::rotate_towards_backend(
+                    self, target, max_angle
+                ))
             }
 
             /// Returns the length/magnitude of `self`.
@@ -968,9 +687,7 @@ macro_rules! impl_wide_float {
             #[must_use]
             pub fn angle_between(self, other: Self) -> $Wide {
                 (self.dot(other) / (self.length_squared() * other.length_squared()).sqrt())
-                    .fast_max(-$Wide::ONE)
-                    .fast_min($Wide::ONE)
-                    .acos()
+                    .acos_approx()
             }
 
             /// Returns the vector projection of `self` onto `other`.
@@ -1056,84 +773,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn any_orthogonal_vector(self) -> Self {
-                match N {
-                    2 => {
-                        // SAFETY: Because `N = 2`, `Vector<N, $Wide, A> = Vector<2, $Wide, A>`.
-                        let self_ = unsafe {
-                            transmute_generic::<Vector<N, $Wide, A>, Vector<2, $Wide, A>>(self)
-                        };
-
-                        let result = self_.perp();
-
-                        // SAFETY: Because `N = 2`, `Vector<N, $Wide, A> = Vector<2, $Wide, A>`.
-                        unsafe {
-                            transmute_generic::<Vector<2, $Wide, A>, Vector<N, $Wide, A>>(result)
-                        }
-                    }
-                    3 => {
-                        // SAFETY: Because `N = 3`, `Vector<N, $Wide, A> = Vector<3, $Wide, A>`.
-                        let self_ = unsafe {
-                            transmute_generic::<Vector<N, $Wide, A>, Vector<3, $Wide, A>>(self)
-                        };
-
-                        let result =
-                            Vector::<3, $Wide, A>::splat(self_.x.abs().simd_gt(self_.y.abs()))
-                                .blend(
-                                    Vector::<3, $Wide, A>::new(-self_.z, $Wide::ZERO, self_.x),
-                                    Vector::<3, $Wide, A>::new($Wide::ZERO, self_.z, -self_.y),
-                                );
-
-                        // SAFETY: Because `N = 3`, `Vector<N, $Wide, A> = Vector<3, $Wide, A>`.
-                        unsafe {
-                            transmute_generic::<Vector<3, $Wide, A>, Vector<N, $Wide, A>>(result)
-                        }
-                    }
-                    4 => {
-                        // SAFETY: Because `N = 4`, `Vector<N, $Wide, A> = Vector<4, $Wide, A>`.
-                        let self_ = unsafe {
-                            transmute_generic::<Vector<N, $Wide, A>, Vector<4, $Wide, A>>(self)
-                        };
-
-                        let self_abs = self_.abs();
-                        let result = Vector::<4, $Wide, A>::splat(self_abs.x.simd_gt(self_abs.y))
-                            .blend(
-                                Vector::<4, $Wide, A>::splat(self_abs.x.simd_gt(self_abs.z)).blend(
-                                    Vector::<4, $Wide, A>::new(
-                                        -self_.w,
-                                        $Wide::ZERO,
-                                        $Wide::ZERO,
-                                        self_.x,
-                                    ),
-                                    Vector::<4, $Wide, A>::new(
-                                        $Wide::ZERO,
-                                        $Wide::ZERO,
-                                        -self_.w,
-                                        self_.z,
-                                    ),
-                                ),
-                                Vector::<4, $Wide, A>::splat(self_abs.y.simd_gt(self_abs.z)).blend(
-                                    Vector::<4, $Wide, A>::new(
-                                        $Wide::ZERO,
-                                        -self_.w,
-                                        $Wide::ZERO,
-                                        self_.y,
-                                    ),
-                                    Vector::<4, $Wide, A>::new(
-                                        $Wide::ZERO,
-                                        $Wide::ZERO,
-                                        -self_.w,
-                                        self_.z,
-                                    ),
-                                ),
-                            );
-
-                        // SAFETY: Because `N = 4`, `Vector<N, $Wide, A> = Vector<4, $Wide, A>`.
-                        unsafe {
-                            transmute_generic::<Vector<4, $Wide, A>, Vector<N, $Wide, A>>(result)
-                        }
-                    }
-                    _ => unreachable!(),
-                }
+                specialize!(Vector::<N, $Wide, A>::any_orthogonal_vector_backend(self))
             }
 
             /// For each lane, returns some unit vector that is orthogonal to
@@ -1147,53 +787,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn any_orthonormal_vector(self) -> Self {
-                match N {
-                    2 => {
-                        // SAFETY: Because `N = 2`, `Vector<N, $Wide, A> = Vector<2, $Wide, A>`.
-                        let self_ = unsafe {
-                            transmute_generic::<Vector<N, $Wide, A>, Vector<2, $Wide, A>>(self)
-                        };
-
-                        let result = self_.perp();
-
-                        // SAFETY: Because `N = 2`, `Vector<N, $Wide, A> = Vector<2, $Wide, A>`.
-                        unsafe {
-                            transmute_generic::<Vector<2, $Wide, A>, Vector<N, $Wide, A>>(result)
-                        }
-                    }
-                    3 => {
-                        // SAFETY: Because `N = 3`, `Vector<N, $Wide, A> = Vector<3, $Wide, A>`.
-                        let self_ = unsafe {
-                            transmute_generic::<Vector<N, $Wide, A>, Vector<3, $Wide, A>>(self)
-                        };
-
-                        // Ported from https://github.com/bitshifter/glam-rs.
-                        let sign = self_.z.signum();
-                        let a = -$Wide::ONE / (sign + self_.z);
-                        let b = self_.x * self_.y * a;
-                        let result =
-                            Vector::<3, $Wide, A>::new(b, sign + self_.y * self_.y * a, -self_.y);
-
-                        // SAFETY: Because `N = 3`, `Vector<N, $Wide, A> = Vector<3, $Wide, A>`.
-                        unsafe {
-                            transmute_generic::<Vector<3, $Wide, A>, Vector<N, $Wide, A>>(result)
-                        }
-                    }
-                    4 => {
-                        // SAFETY: Because `N = 4`, `Vector<N, $Wide, A> = Vector<4, $Wide, A>`.
-                        let self_ = unsafe {
-                            transmute_generic::<Vector<N, $Wide, A>, Vector<4, $Wide, A>>(self)
-                        };
-
-                        let result = self_.any_orthogonal_vector().normalize();
-
-                        // SAFETY: Because `N = 4`, `Vector<N, $Wide, A> = Vector<4, $Wide, A>`.
-                        unsafe {
-                            transmute_generic::<Vector<4, $Wide, A>, Vector<N, $Wide, A>>(result)
-                        }
-                    }
-                    _ => unreachable!(),
-                }
+                specialize!(Vector::<N, $Wide, A>::any_orthonormal_vector_backend(self))
             }
 
             /// Returns `true` if the absolute difference of all elements
@@ -1305,6 +899,211 @@ macro_rules! impl_wide_float {
                     self.x * angle_sin + self.y * angle_cos,
                 )
             }
+
+            #[inline(always)]
+            fn nan_mask_backend(self) -> Self {
+                Self::new(self.x.is_nan(), self.y.is_nan())
+            }
+
+            #[inline(always)]
+            fn finite_mask_backend(self) -> Self {
+                Self::new(self.x.is_finite(), self.y.is_finite())
+            }
+
+            #[inline(always)]
+            fn sign_positive_mask_backend(self) -> Self {
+                Self::new(self.x.is_sign_positive(), self.y.is_sign_positive())
+            }
+
+            #[inline(always)]
+            fn sign_negative_mask_backend(self) -> Self {
+                Self::new(self.x.is_sign_negative(), self.y.is_sign_negative())
+            }
+
+            #[inline(always)]
+            fn max_backend(self, other: Self) -> Self {
+                Self::new(self.x.fast_max(other.x), self.y.fast_max(other.y))
+            }
+
+            #[inline(always)]
+            fn min_backend(self, other: Self) -> Self {
+                Self::new(self.x.fast_min(other.x), self.y.fast_min(other.y))
+            }
+
+            #[inline(always)]
+            fn max_element_backend(self) -> $Wide {
+                self.x.fast_max(self.y)
+            }
+
+            #[inline(always)]
+            fn min_element_backend(self) -> $Wide {
+                self.x.fast_min(self.y)
+            }
+
+            #[inline(always)]
+            fn abs_backend(self) -> Self {
+                Self::new(self.x.abs(), self.y.abs())
+            }
+
+            #[inline(always)]
+            fn signum_backend(self) -> Self {
+                Self::new(self.x.signum(), self.y.signum())
+            }
+
+            #[inline(always)]
+            fn copysign_backend(self, sign: Self) -> Self {
+                Self::new(self.x.copysign(sign.x), self.y.copysign(sign.y))
+            }
+
+            #[inline(always)]
+            fn floor_backend(self) -> Self {
+                Self::new(self.x.floor(), self.y.floor())
+            }
+
+            #[inline(always)]
+            fn ceil_backend(self) -> Self {
+                Self::new(self.x.ceil(), self.y.ceil())
+            }
+
+            #[inline(always)]
+            fn round_backend(self) -> Self {
+                Self::new(self.x.round(), self.y.round())
+            }
+
+            #[inline(always)]
+            fn trunc_backend(self) -> Self {
+                Self::new(self.x.trunc(), self.y.trunc())
+            }
+
+            #[inline(always)]
+            fn mul_add_backend(self, a: Self, b: Self) -> Self {
+                Self::new(self.x.mul_add(a.x, b.x), self.y.mul_add(a.y, b.y))
+            }
+
+            #[inline(always)]
+            fn div_euclid_backend(self, rhs: Self) -> Self {
+                Self::new(self.x.div_euclid(rhs.x), self.y.div_euclid(rhs.y))
+            }
+
+            #[inline(always)]
+            fn rem_euclid_backend(self, rhs: Self) -> Self {
+                Self::new(self.x.rem_euclid(rhs.x), self.y.rem_euclid(rhs.y))
+            }
+
+            #[inline(always)]
+            fn powf_backend(self, n: $Wide) -> Self {
+                Self::new(self.x.$powf(n), self.y.$powf(n))
+            }
+
+            #[inline(always)]
+            fn sqrt_backend(self) -> Self {
+                Self::new(self.x.sqrt(), self.y.sqrt())
+            }
+
+            #[inline(always)]
+            fn exp_backend(self) -> Self {
+                Self::new(self.x.exp(), self.y.exp())
+            }
+
+            #[inline(always)]
+            fn exp2_backend(self) -> Self {
+                Self::new(self.x.exp2(), self.y.exp2())
+            }
+
+            #[inline(always)]
+            fn ln_backend(self) -> Self {
+                Self::new(self.x.ln(), self.y.ln())
+            }
+
+            #[inline(always)]
+            fn log2_backend(self) -> Self {
+                Self::new(self.x.log2(), self.y.log2())
+            }
+
+            #[inline(always)]
+            fn sin_backend(self) -> Self {
+                Self::new(self.x.sin(), self.y.sin())
+            }
+
+            #[inline(always)]
+            fn cos_backend(self) -> Self {
+                Self::new(self.x.cos(), self.y.cos())
+            }
+
+            #[inline(always)]
+            fn tan_backend(self) -> Self {
+                Self::new(self.x.tan(), self.y.tan())
+            }
+
+            #[inline(always)]
+            fn asin_backend(self) -> Self {
+                Self::new(self.x.asin(), self.y.asin())
+            }
+
+            #[inline(always)]
+            fn acos_backend(self) -> Self {
+                Self::new(self.x.acos(), self.y.acos())
+            }
+
+            #[inline(always)]
+            fn atan_backend(self) -> Self {
+                Self::new(self.x.atan(), self.y.atan())
+            }
+
+            #[inline(always)]
+            fn sin_cos_backend(self) -> (Self, Self) {
+                let x_sin_cos = self.x.sin_cos();
+                let y_sin_cos = self.y.sin_cos();
+                (
+                    Self::new(x_sin_cos.0, y_sin_cos.0),
+                    Self::new(x_sin_cos.1, y_sin_cos.1),
+                )
+            }
+
+            #[inline(always)]
+            fn slerp_backend(self, other: Self, t: $Wide) -> Self {
+                let self_length = self.length();
+                let other_length = other.length();
+
+                let self_normalized = self / self_length;
+                let angle_cos = self_normalized.dot(other) / other_length;
+                let angle = angle_cos.acos_approx() * self_normalized.wedge(other).signum();
+
+                let result_length = self_length.lerp(other_length, t);
+                self_normalized.rotate(angle * t) * result_length
+            }
+
+            #[inline(always)]
+            fn rotate_towards_backend(self, target: Self, max_angle: $Wide) -> Self {
+                let self_length = self.length();
+                let target_length = target.length();
+
+                if self == Self::ZERO {
+                    return self;
+                }
+
+                let target_angle = (self.dot(target) / self_length / target_length).acos_approx();
+                let angle_sign = self.wedge(target).signum();
+                let angle = max_angle.simd_lt(target_angle - $Wide::PI).blend(
+                    target_angle - $Wide::PI,
+                    max_angle
+                        .simd_gt(target_angle)
+                        .blend(target_angle, max_angle),
+                ) * angle_sign;
+
+                Vector::<2, $Wide, A>::splat(self.simd_eq(Self::ZERO))
+                    .blend(self, self.rotate(angle))
+            }
+
+            #[inline(always)]
+            fn any_orthogonal_vector_backend(self) -> Self {
+                self.perp()
+            }
+
+            #[inline(always)]
+            fn any_orthonormal_vector_backend(self) -> Self {
+                self.perp()
+            }
         }
 
         impl<A: Alignment> Vector<3, $Wide, A> {
@@ -1400,6 +1199,650 @@ macro_rules! impl_wide_float {
                     ),
                     Self::new(b, sign + self.y * self.y * a, -self.y),
                 )
+            }
+
+            #[inline(always)]
+            fn nan_mask_backend(self) -> Self {
+                Self::new(self.x.is_nan(), self.y.is_nan(), self.z.is_nan())
+            }
+
+            #[inline(always)]
+            fn finite_mask_backend(self) -> Self {
+                Self::new(self.x.is_finite(), self.y.is_finite(), self.z.is_finite())
+            }
+
+            #[inline(always)]
+            fn sign_positive_mask_backend(self) -> Self {
+                Self::new(
+                    self.x.is_sign_positive(),
+                    self.y.is_sign_positive(),
+                    self.z.is_sign_positive(),
+                )
+            }
+
+            #[inline(always)]
+            fn sign_negative_mask_backend(self) -> Self {
+                Self::new(
+                    self.x.is_sign_negative(),
+                    self.y.is_sign_negative(),
+                    self.z.is_sign_negative(),
+                )
+            }
+
+            #[inline(always)]
+            fn max_backend(self, other: Self) -> Self {
+                Self::new(
+                    self.x.fast_max(other.x),
+                    self.y.fast_max(other.y),
+                    self.z.fast_max(other.z),
+                )
+            }
+
+            #[inline(always)]
+            fn min_backend(self, other: Self) -> Self {
+                Self::new(
+                    self.x.fast_min(other.x),
+                    self.y.fast_min(other.y),
+                    self.z.fast_min(other.z),
+                )
+            }
+
+            #[inline(always)]
+            fn max_element_backend(self) -> $Wide {
+                self.x.fast_max(self.y).fast_max(self.z)
+            }
+
+            #[inline(always)]
+            fn min_element_backend(self) -> $Wide {
+                self.x.fast_min(self.y).fast_min(self.z)
+            }
+
+            #[inline(always)]
+            fn abs_backend(self) -> Self {
+                Self::new(self.x.abs(), self.y.abs(), self.z.abs())
+            }
+
+            #[inline(always)]
+            fn signum_backend(self) -> Self {
+                Self::new(self.x.signum(), self.y.signum(), self.z.signum())
+            }
+
+            #[inline(always)]
+            fn copysign_backend(self, sign: Self) -> Self {
+                Self::new(
+                    self.x.copysign(sign.x),
+                    self.y.copysign(sign.y),
+                    self.z.copysign(sign.z),
+                )
+            }
+
+            #[inline(always)]
+            fn floor_backend(self) -> Self {
+                Self::new(self.x.floor(), self.y.floor(), self.z.floor())
+            }
+
+            #[inline(always)]
+            fn ceil_backend(self) -> Self {
+                Self::new(self.x.ceil(), self.y.ceil(), self.z.ceil())
+            }
+
+            #[inline(always)]
+            fn round_backend(self) -> Self {
+                Self::new(self.x.round(), self.y.round(), self.z.round())
+            }
+
+            #[inline(always)]
+            fn trunc_backend(self) -> Self {
+                Self::new(self.x.trunc(), self.y.trunc(), self.z.trunc())
+            }
+
+            #[inline(always)]
+            fn mul_add_backend(self, a: Self, b: Self) -> Self {
+                Self::new(
+                    self.x.mul_add(a.x, b.x),
+                    self.y.mul_add(a.y, b.y),
+                    self.z.mul_add(a.z, b.z),
+                )
+            }
+
+            #[inline(always)]
+            fn div_euclid_backend(self, rhs: Self) -> Self {
+                Self::new(
+                    self.x.div_euclid(rhs.x),
+                    self.y.div_euclid(rhs.y),
+                    self.z.div_euclid(rhs.z),
+                )
+            }
+
+            #[inline(always)]
+            fn rem_euclid_backend(self, rhs: Self) -> Self {
+                Self::new(
+                    self.x.rem_euclid(rhs.x),
+                    self.y.rem_euclid(rhs.y),
+                    self.z.rem_euclid(rhs.z),
+                )
+            }
+
+            #[inline(always)]
+            fn powf_backend(self, n: $Wide) -> Self {
+                Self::new(self.x.$powf(n), self.y.$powf(n), self.z.$powf(n))
+            }
+
+            #[inline(always)]
+            fn sqrt_backend(self) -> Self {
+                Self::new(self.x.sqrt(), self.y.sqrt(), self.z.sqrt())
+            }
+
+            #[inline(always)]
+            fn exp_backend(self) -> Self {
+                Self::new(self.x.exp(), self.y.exp(), self.z.exp())
+            }
+
+            #[inline(always)]
+            fn exp2_backend(self) -> Self {
+                Self::new(self.x.exp2(), self.y.exp2(), self.z.exp2())
+            }
+
+            #[inline(always)]
+            fn ln_backend(self) -> Self {
+                Self::new(self.x.ln(), self.y.ln(), self.z.ln())
+            }
+
+            #[inline(always)]
+            fn log2_backend(self) -> Self {
+                Self::new(self.x.log2(), self.y.log2(), self.z.log2())
+            }
+
+            #[inline(always)]
+            fn sin_backend(self) -> Self {
+                Self::new(self.x.sin(), self.y.sin(), self.z.sin())
+            }
+
+            #[inline(always)]
+            fn cos_backend(self) -> Self {
+                Self::new(self.x.cos(), self.y.cos(), self.z.cos())
+            }
+
+            #[inline(always)]
+            fn tan_backend(self) -> Self {
+                Self::new(self.x.tan(), self.y.tan(), self.z.tan())
+            }
+
+            #[inline(always)]
+            fn asin_backend(self) -> Self {
+                Self::new(self.x.asin(), self.y.asin(), self.z.asin())
+            }
+
+            #[inline(always)]
+            fn acos_backend(self) -> Self {
+                Self::new(self.x.acos(), self.y.acos(), self.z.acos())
+            }
+
+            #[inline(always)]
+            fn atan_backend(self) -> Self {
+                Self::new(self.x.atan(), self.y.atan(), self.z.atan())
+            }
+
+            #[inline(always)]
+            fn sin_cos_backend(self) -> (Self, Self) {
+                let x_sin_cos = self.x.sin_cos();
+                let y_sin_cos = self.y.sin_cos();
+                let z_sin_cos = self.z.sin_cos();
+                (
+                    Self::new(x_sin_cos.0, y_sin_cos.0, z_sin_cos.0),
+                    Self::new(x_sin_cos.1, y_sin_cos.1, z_sin_cos.1),
+                )
+            }
+
+            #[inline(always)]
+            fn slerp_backend(self, other: Self, t: $Wide) -> Self {
+                // Ported from `https://github.com/bitshifter/glam-rs`.
+
+                let self_length = self.length();
+                let other_length = other.length();
+
+                let angle_cos = self.dot(other) / (self_length * other_length);
+
+                // If `angle_cos` is close to `1` or `-1` or is NaN the normal
+                // calculation breaks down.
+
+                Self::splat(angle_cos.abs().simd_lt($Wide::splat(1.0 - 3e-7))).blend(
+                    {
+                        let angle = angle_cos.acos_approx();
+                        let angle_sin = angle.sin();
+                        let self_factor = (angle * ($Wide::ONE - t)).sin();
+                        let other_factor = (angle * t).sin();
+
+                        let result_length = self_length.lerp(other_length, t);
+
+                        (self * (result_length / self_length) * self_factor
+                            + other * (result_length / other_length) * other_factor)
+                            / angle_sin
+                    },
+                    Self::splat(angle_cos.is_sign_negative()).blend(
+                        {
+                            // Vectors are almost parallel in opposing directions.
+
+                            let axis = self.any_orthogonal_vector().normalize();
+                            let rotation =
+                                Quaternion::<$Wide, A>::from_axis_angle(axis, t * $Wide::PI);
+
+                            let result_length = self_length.lerp(other_length, t);
+                            self * rotation * (result_length / self_length)
+                        },
+                        {
+                            // Vectors are almost parallel in the same direction.
+                            self.lerp(other, t)
+                        },
+                    ),
+                )
+            }
+
+            #[inline(always)]
+            fn rotate_towards_backend(self, target: Self, max_angle: $Wide) -> Self {
+                // Ported from `https://github.com/bitshifter/glam-rs`.
+
+                let self_length = self.length();
+                let target_length = target.length();
+
+                if self == Self::ZERO {
+                    return self;
+                }
+
+                let target_angle = (self.dot(target) / (self_length * target_length)).acos_approx();
+                let angle = max_angle.simd_lt(target_angle - $Wide::PI).blend(
+                    target_angle - $Wide::PI,
+                    max_angle
+                        .simd_gt(target_angle)
+                        .blend(target_angle, max_angle),
+                );
+                let axis = self
+                    .cross(target)
+                    .normalize_or(self.any_orthonormal_vector());
+
+                Self::splat(self.simd_eq(Self::ZERO)).blend(
+                    self,
+                    self * Quaternion::<$Wide, A>::from_axis_angle(axis, angle),
+                )
+            }
+
+            #[inline(always)]
+            fn any_orthogonal_vector_backend(self) -> Self {
+                Self::splat(self.x.abs().simd_gt(self.y.abs())).blend(
+                    Self::new(-self.z, $Wide::ZERO, self.x),
+                    Self::new($Wide::ZERO, self.z, -self.y),
+                )
+            }
+
+            #[inline(always)]
+            fn any_orthonormal_vector_backend(self) -> Self {
+                // Ported from https://github.com/bitshifter/glam-rs.
+
+                let sign = self.z.signum();
+                let a = -$Wide::ONE / (sign + self.z);
+                let b = self.x * self.y * a;
+                Self::new(b, sign + self.y * self.y * a, -self.y)
+            }
+        }
+
+        impl<A: Alignment> Vector<4, $Wide, A> {
+            #[inline(always)]
+            fn nan_mask_backend(self) -> Self {
+                Self::new(
+                    self.x.is_nan(),
+                    self.y.is_nan(),
+                    self.z.is_nan(),
+                    self.w.is_nan(),
+                )
+            }
+
+            #[inline(always)]
+            fn finite_mask_backend(self) -> Self {
+                Self::new(
+                    self.x.is_finite(),
+                    self.y.is_finite(),
+                    self.z.is_finite(),
+                    self.w.is_finite(),
+                )
+            }
+
+            #[inline(always)]
+            fn sign_positive_mask_backend(self) -> Self {
+                Self::new(
+                    self.x.is_sign_positive(),
+                    self.y.is_sign_positive(),
+                    self.z.is_sign_positive(),
+                    self.w.is_sign_positive(),
+                )
+            }
+
+            #[inline(always)]
+            fn sign_negative_mask_backend(self) -> Self {
+                Self::new(
+                    self.x.is_sign_negative(),
+                    self.y.is_sign_negative(),
+                    self.z.is_sign_negative(),
+                    self.w.is_sign_negative(),
+                )
+            }
+
+            #[inline(always)]
+            fn max_backend(self, other: Self) -> Self {
+                Self::new(
+                    self.x.fast_max(other.x),
+                    self.y.fast_max(other.y),
+                    self.z.fast_max(other.z),
+                    self.w.fast_max(other.w),
+                )
+            }
+
+            #[inline(always)]
+            fn min_backend(self, other: Self) -> Self {
+                Self::new(
+                    self.x.fast_min(other.x),
+                    self.y.fast_min(other.y),
+                    self.z.fast_min(other.z),
+                    self.w.fast_min(other.w),
+                )
+            }
+
+            #[inline(always)]
+            fn max_element_backend(self) -> $Wide {
+                self.x.fast_max(self.y).fast_max(self.z).fast_max(self.w)
+            }
+
+            #[inline(always)]
+            fn min_element_backend(self) -> $Wide {
+                self.x.fast_min(self.y).fast_min(self.z).fast_min(self.w)
+            }
+
+            #[inline(always)]
+            fn abs_backend(self) -> Self {
+                Self::new(self.x.abs(), self.y.abs(), self.z.abs(), self.w.abs())
+            }
+
+            #[inline(always)]
+            fn signum_backend(self) -> Self {
+                Self::new(
+                    self.x.signum(),
+                    self.y.signum(),
+                    self.z.signum(),
+                    self.w.signum(),
+                )
+            }
+
+            #[inline(always)]
+            fn copysign_backend(self, sign: Self) -> Self {
+                Self::new(
+                    self.x.copysign(sign.x),
+                    self.y.copysign(sign.y),
+                    self.z.copysign(sign.z),
+                    self.w.copysign(sign.w),
+                )
+            }
+
+            #[inline(always)]
+            fn floor_backend(self) -> Self {
+                Self::new(
+                    self.x.floor(),
+                    self.y.floor(),
+                    self.z.floor(),
+                    self.w.floor(),
+                )
+            }
+
+            #[inline(always)]
+            fn ceil_backend(self) -> Self {
+                Self::new(self.x.ceil(), self.y.ceil(), self.z.ceil(), self.w.ceil())
+            }
+
+            #[inline(always)]
+            fn round_backend(self) -> Self {
+                Self::new(
+                    self.x.round(),
+                    self.y.round(),
+                    self.z.round(),
+                    self.w.round(),
+                )
+            }
+
+            #[inline(always)]
+            fn trunc_backend(self) -> Self {
+                Self::new(
+                    self.x.trunc(),
+                    self.y.trunc(),
+                    self.z.trunc(),
+                    self.w.trunc(),
+                )
+            }
+
+            #[inline(always)]
+            fn mul_add_backend(self, a: Self, b: Self) -> Self {
+                Self::new(
+                    self.x.mul_add(a.x, b.x),
+                    self.y.mul_add(a.y, b.y),
+                    self.z.mul_add(a.z, b.z),
+                    self.w.mul_add(a.w, b.w),
+                )
+            }
+
+            #[inline(always)]
+            fn div_euclid_backend(self, rhs: Self) -> Self {
+                Self::new(
+                    self.x.div_euclid(rhs.x),
+                    self.y.div_euclid(rhs.y),
+                    self.z.div_euclid(rhs.z),
+                    self.w.div_euclid(rhs.w),
+                )
+            }
+
+            #[inline(always)]
+            fn rem_euclid_backend(self, rhs: Self) -> Self {
+                Self::new(
+                    self.x.rem_euclid(rhs.x),
+                    self.y.rem_euclid(rhs.y),
+                    self.z.rem_euclid(rhs.z),
+                    self.w.rem_euclid(rhs.w),
+                )
+            }
+
+            #[inline(always)]
+            fn powf_backend(self, n: $Wide) -> Self {
+                Self::new(
+                    self.x.$powf(n),
+                    self.y.$powf(n),
+                    self.z.$powf(n),
+                    self.w.$powf(n),
+                )
+            }
+
+            #[inline(always)]
+            fn sqrt_backend(self) -> Self {
+                Self::new(self.x.sqrt(), self.y.sqrt(), self.z.sqrt(), self.w.sqrt())
+            }
+
+            #[inline(always)]
+            fn exp_backend(self) -> Self {
+                Self::new(self.x.exp(), self.y.exp(), self.z.exp(), self.w.exp())
+            }
+
+            #[inline(always)]
+            fn exp2_backend(self) -> Self {
+                Self::new(self.x.exp2(), self.y.exp2(), self.z.exp2(), self.w.exp2())
+            }
+
+            #[inline(always)]
+            fn ln_backend(self) -> Self {
+                Self::new(self.x.ln(), self.y.ln(), self.z.ln(), self.w.ln())
+            }
+
+            #[inline(always)]
+            fn log2_backend(self) -> Self {
+                Self::new(self.x.log2(), self.y.log2(), self.z.log2(), self.w.log2())
+            }
+
+            #[inline(always)]
+            fn sin_backend(self) -> Self {
+                Self::new(self.x.sin(), self.y.sin(), self.z.sin(), self.w.sin())
+            }
+
+            #[inline(always)]
+            fn cos_backend(self) -> Self {
+                Self::new(self.x.cos(), self.y.cos(), self.z.cos(), self.w.cos())
+            }
+
+            #[inline(always)]
+            fn tan_backend(self) -> Self {
+                Self::new(self.x.tan(), self.y.tan(), self.z.tan(), self.w.tan())
+            }
+
+            #[inline(always)]
+            fn asin_backend(self) -> Self {
+                Self::new(self.x.asin(), self.y.asin(), self.z.asin(), self.w.asin())
+            }
+
+            #[inline(always)]
+            fn acos_backend(self) -> Self {
+                Self::new(self.x.acos(), self.y.acos(), self.z.acos(), self.w.acos())
+            }
+
+            #[inline(always)]
+            fn atan_backend(self) -> Self {
+                Self::new(self.x.atan(), self.y.atan(), self.z.atan(), self.w.atan())
+            }
+
+            #[inline(always)]
+            fn sin_cos_backend(self) -> (Self, Self) {
+                let x_sin_cos = self.x.sin_cos();
+                let y_sin_cos = self.y.sin_cos();
+                let z_sin_cos = self.z.sin_cos();
+                let w_sin_cos = self.w.sin_cos();
+                (
+                    Self::new(x_sin_cos.0, y_sin_cos.0, z_sin_cos.0, w_sin_cos.0),
+                    Self::new(x_sin_cos.1, y_sin_cos.1, z_sin_cos.1, w_sin_cos.1),
+                )
+            }
+
+            #[inline(always)]
+            fn slerp_backend(self, other: Self, t: $Wide) -> Self {
+                // Ported from `https://github.com/bitshifter/glam-rs`.
+
+                let self_length = self.length();
+                let other_length = other.length();
+
+                let angle_cos = self.dot(other) / (self_length * other_length);
+
+                // If `angle_cos` is close to `1` or `-1` or is NaN the normal
+                // calculation breaks down.
+                Self::splat(angle_cos.abs().simd_lt($Wide::splat(1.0 - 3e-7))).blend(
+                    {
+                        let angle = angle_cos.acos_approx();
+                        let angle_sin = angle.sin();
+                        let t1 = (angle * ($Wide::ONE - t)).sin();
+                        let t2 = (angle * t).sin();
+
+                        let result_length = self_length.lerp(other_length, t);
+
+                        (self * (result_length / self_length) * t1
+                            + other * (result_length / other_length) * t2)
+                            / angle_sin
+                    },
+                    Self::splat(angle_cos.is_sign_negative()).blend(
+                        {
+                            // Vectors are almost parallel in opposing directions.
+
+                            let axis = self.any_orthogonal_vector().normalize();
+                            let (sin, cos) = (t * $Wide::PI).sin_cos();
+
+                            let result_dir = self * cos + axis * sin;
+                            let result_length = self_length.lerp(other_length, t);
+                            result_dir * (result_length / result_dir.length())
+                        },
+                        {
+                            // Vectors are almost parallel in the same direction.
+                            self.lerp(other, t)
+                        },
+                    ),
+                )
+            }
+
+            #[inline(always)]
+            fn rotate_towards_backend(self, target: Self, max_angle: $Wide) -> Self {
+                // Ported from `https://github.com/bitshifter/glam-rs`.
+
+                let self_length = self.length();
+                let target_length = target.length();
+
+                if self == Self::ZERO {
+                    return self;
+                }
+
+                let target_angle_cos = self.dot(target) / (self_length * target_length);
+                let target_angle = target_angle_cos.acos_approx();
+                let angle = max_angle.simd_lt(target_angle - $Wide::PI).blend(
+                    target_angle - $Wide::PI,
+                    max_angle
+                        .simd_gt(target_angle)
+                        .blend(target_angle, max_angle),
+                );
+
+                if angle == $Wide::ZERO {
+                    return self;
+                }
+
+                // If `target_angle_cos` is close to `1` or `-1` or is NaN the
+                // normal calculation breaks down.
+                let result = Self::splat(target_angle_cos.abs().simd_le($Wide::splat(1.0 - 3e-7)))
+                    .blend(
+                        {
+                            let self_factor = (target_angle - angle).sin();
+                            let target_factor = angle.sin();
+                            let result = self * self_factor
+                                + target * (self_length / target_length) * target_factor;
+
+                            result / result.length() * self_length
+                        },
+                        Self::splat(target_angle_cos.is_sign_negative()).blend(
+                            {
+                                // Vectors are almost parallel in opposing directions.
+
+                                let axis = self.any_orthogonal_vector();
+                                let axis = axis / axis.length();
+                                let (sin, cos) = angle.sin_cos();
+
+                                let result_dir = self * cos + axis * sin;
+                                result_dir * (self_length / result_dir.length())
+                            },
+                            {
+                                // Vectors are almost parallel in the same direction.
+                                target / target_length * self_length
+                            },
+                        ),
+                    );
+
+                Self::splat(self.simd_eq(Self::ZERO) | angle.simd_eq($Wide::ZERO))
+                    .blend(self, result)
+            }
+
+            #[inline(always)]
+            fn any_orthogonal_vector_backend(self) -> Self {
+                let self_abs = self.abs();
+
+                Self::splat(self_abs.x.simd_gt(self_abs.y)).blend(
+                    Self::splat(self_abs.x.simd_gt(self_abs.z)).blend(
+                        Self::new(-self.w, $Wide::ZERO, $Wide::ZERO, self.x),
+                        Self::new($Wide::ZERO, $Wide::ZERO, -self.w, self.z),
+                    ),
+                    Self::splat(self_abs.y.simd_gt(self_abs.z)).blend(
+                        Self::new($Wide::ZERO, -self.w, $Wide::ZERO, self.y),
+                        Self::new($Wide::ZERO, $Wide::ZERO, -self.w, self.z),
+                    ),
+                )
+            }
+
+            #[inline(always)]
+            fn any_orthonormal_vector_backend(self) -> Self {
+                self.any_orthogonal_vector().normalize()
             }
         }
     };
@@ -1900,8 +2343,7 @@ mod tests {
                     & target.is_finite()
                     & vector.length().simd_lt(1e6)
                     & target.length().simd_lt(1e6);
-                let [vector, target] = [vector, target]
-                    .map(|v| Vector::<N, Wide, Unaligned>::splat(condition).blend(v, Vector::ZERO));
+                let [vector, target] = [vector, target].map(|v| v & condition);
 
                 assert_test_eq_or_panic!(
                     vector.rotate_towards(target, max_delta),
@@ -1909,7 +2351,8 @@ mod tests {
                         .lane(lane)
                         .rotate_towards(target.lane(lane), max_delta.to_array()[lane])),
                     abs <= vector.length().max(target.length()) * 1e-3 + 1e-3,
-                    0.0 = -0.0
+                    0.0 = -0.0,
+                    "  vector: {vector:?}\n  target: {target:?}\nmax_delta: {max_delta:?}"
                 );
             }
         });

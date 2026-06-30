@@ -10,8 +10,8 @@ use core::{
 };
 
 use crate::{
-    Aligned, Alignment, Backend, Length, Mask, NegOne, One, Scalar, SupportedLength, Unaligned,
-    Zero,
+    Aligned, Alignment, Length, Mask, NegOne, One, Scalar, SupportedLength, Unaligned, Zero,
+    backend::VectorBackend,
     utils::{Repr2, Repr3, Repr4, specialize, transmute_generic, transmute_mut, transmute_ref},
 };
 
@@ -81,14 +81,14 @@ pub struct Vector<const N: usize, T, A: Alignment>(
     #[expect(clippy::type_complexity)]
     pub(crate)  <A as Alignment>::Select<
         <Length<N> as SupportedLength>::Select<
-            <T as Backend<2, Aligned>>::Vector,
-            <T as Backend<3, Aligned>>::Vector,
-            <T as Backend<4, Aligned>>::Vector,
+            <T as VectorBackend<2, Aligned>>::Inner,
+            <T as VectorBackend<3, Aligned>>::Inner,
+            <T as VectorBackend<4, Aligned>>::Inner,
         >,
         <Length<N> as SupportedLength>::Select<
-            <T as Backend<2, Unaligned>>::Vector,
-            <T as Backend<3, Unaligned>>::Vector,
-            <T as Backend<4, Unaligned>>::Vector,
+            <T as VectorBackend<2, Unaligned>>::Inner,
+            <T as VectorBackend<3, Unaligned>>::Inner,
+            <T as VectorBackend<4, Unaligned>>::Inner,
         >,
     >,
 )
@@ -445,15 +445,25 @@ where
             // they have compatible layouts between alignments.
             2 | 4 => unsafe { transmute_generic::<Vector<N, T, A>, Vector<N, T, A2>>(self) },
 
-            // SAFETY: Because `N == 3`, `Vector<N, T, A2>` and
-            // `Vector<3, T, A2>` are the same type.
-            3 => unsafe {
-                transmute_generic::<Vector<3, T, A2>, Vector<N, T, A2>>(Vector::<3, T, A2>::new(
-                    self.as_array_ref()[0],
-                    self.as_array_ref()[1],
-                    self.as_array_ref()[2],
-                ))
-            },
+            3 => {
+                if const { size_of::<Vector<N, T, A2>>() > size_of::<Vector<N, T, A>>() } {
+                    // SAFETY: Because `N == 3`, `Vector<N, T, A2>` and
+                    // `Vector<3, T, A2>` are the same type.
+                    unsafe {
+                        transmute_generic::<Vector<3, T, A2>, Vector<N, T, A2>>(
+                            Vector::<3, T, A2>::new(
+                                self.as_array_ref()[0],
+                                self.as_array_ref()[1],
+                                self.as_array_ref()[2],
+                            ),
+                        )
+                    }
+                } else {
+                    // SAFETY: The output type contains `[T; 3]` then `Pod`
+                    // padding. The input type also begins with exactly this.
+                    unsafe { *transmute_ref::<Vector<N, T, A>, Vector<N, T, A2>>(&self) }
+                }
+            }
 
             _ => unreachable!(),
         }
@@ -578,7 +588,7 @@ where
     #[inline]
     #[must_use]
     pub fn reverse(self) -> Self {
-        Self::from_fn(|i| self[N - 1 - i])
+        specialize!(Vector::<N, T, A>::reverse_backend(self))
     }
 
     /// Computes the sum of the elements of `self`.
@@ -601,7 +611,7 @@ where
     where
         T: Add<Output = T>,
     {
-        specialize!(<T as Backend<N, A>>::vector_element_sum(self))
+        specialize!(<T as VectorBackend<N, A>>::vector_element_sum(self))
     }
 
     /// Computes the product of the elements of `self`.
@@ -624,7 +634,7 @@ where
     where
         T: Mul<Output = T>,
     {
-        specialize!(<T as Backend<N, A>>::vector_element_product(self))
+        specialize!(<T as VectorBackend<N, A>>::vector_element_product(self))
     }
 
     /// Returns a vector mask where each element is `true` if the corresponding
@@ -647,7 +657,7 @@ where
     where
         T: PartialEq,
     {
-        specialize!(<T as Backend<N, A>>::vector_eq_mask(self, other))
+        specialize!(<T as VectorBackend<N, A>>::vector_eq_mask(self, other))
     }
 
     /// Returns a vector mask where each element is `true` if the corresponding
@@ -670,7 +680,7 @@ where
     where
         T: PartialEq,
     {
-        specialize!(<T as Backend<N, A>>::vector_ne_mask(self, other))
+        specialize!(<T as VectorBackend<N, A>>::vector_ne_mask(self, other))
     }
 
     /// Returns a vector mask where each element is `true` if the corresponding
@@ -693,7 +703,7 @@ where
     where
         T: PartialOrd,
     {
-        specialize!(<T as Backend<N, A>>::vector_lt_mask(self, other))
+        specialize!(<T as VectorBackend<N, A>>::vector_lt_mask(self, other))
     }
 
     /// Returns a vector mask where each element is `true` if the corresponding
@@ -716,7 +726,7 @@ where
     where
         T: PartialOrd,
     {
-        specialize!(<T as Backend<N, A>>::vector_gt_mask(self, other))
+        specialize!(<T as VectorBackend<N, A>>::vector_gt_mask(self, other))
     }
 
     /// Returns a vector mask where each element is `true` if the corresponding
@@ -740,7 +750,7 @@ where
     where
         T: PartialOrd,
     {
-        specialize!(<T as Backend<N, A>>::vector_le_mask(self, other))
+        specialize!(<T as VectorBackend<N, A>>::vector_le_mask(self, other))
     }
 
     /// Returns a vector mask where each element is `true` if the corresponding
@@ -764,7 +774,7 @@ where
     where
         T: PartialOrd,
     {
-        specialize!(<T as Backend<N, A>>::vector_ge_mask(self, other))
+        specialize!(<T as VectorBackend<N, A>>::vector_ge_mask(self, other))
     }
 
     /// Computes the dot product of `self` and `rhs`.
@@ -852,73 +862,64 @@ where
         (self - other).length_squared()
     }
 
-    /// Creates a vector from its internal representation.
-    ///
-    /// The input type is specified by [`<T as Backend<N, A>>`]. This should
-    /// only be called from the crate defining `T`, else the input type may
-    /// change silently as it is considered an implementation detail.
-    ///
-    /// [`<T as Backend<N, A>>`]: Backend
     #[inline]
     #[must_use]
-    pub const fn from_inner(inner: <T as Backend<N, A>>::Vector) -> Self
+    #[allow(
+        dead_code,
+        reason = "this will likely be used for fixed-point numbers (TODO)"
+    )]
+    pub(crate) const fn from_inner(inner: <T as VectorBackend<N, A>>::Inner) -> Self
     where
-        T: Backend<N, A>,
+        T: VectorBackend<N, A>,
     {
         // SAFETY: These always correspond to the same type.
         Self(unsafe {
             transmute_generic::<
-                <T as Backend<N, A>>::Vector,
+                <T as VectorBackend<N, A>>::Inner,
                 <A as Alignment>::Select<
                     <Length<N> as SupportedLength>::Select<
-                        <T as Backend<2, Aligned>>::Vector,
-                        <T as Backend<3, Aligned>>::Vector,
-                        <T as Backend<4, Aligned>>::Vector,
+                        <T as VectorBackend<2, Aligned>>::Inner,
+                        <T as VectorBackend<3, Aligned>>::Inner,
+                        <T as VectorBackend<4, Aligned>>::Inner,
                     >,
                     <Length<N> as SupportedLength>::Select<
-                        <T as Backend<2, Unaligned>>::Vector,
-                        <T as Backend<3, Unaligned>>::Vector,
-                        <T as Backend<4, Unaligned>>::Vector,
+                        <T as VectorBackend<2, Unaligned>>::Inner,
+                        <T as VectorBackend<3, Unaligned>>::Inner,
+                        <T as VectorBackend<4, Unaligned>>::Inner,
                     >,
                 >,
             >(inner)
         })
     }
 
-    /// Returns the internal representation of `self`.
-    ///
-    /// The resulting type is specified by [`<T as Backend<N, A>>`]. This should
-    /// only be called from the crate defining `T`, else the resulting type may
-    /// change silently as it is considered an implementation detail.
-    ///
-    /// [`<T as Backend<N, A>>`]: Backend
     #[inline]
     #[must_use]
-    pub const fn inner(self) -> <T as Backend<N, A>>::Vector
+    #[allow(
+        dead_code,
+        reason = "this will likely be used for fixed-point numbers (TODO)"
+    )]
+    pub(crate) const fn inner(self) -> <T as VectorBackend<N, A>>::Inner
     where
-        T: Backend<N, A>,
+        T: VectorBackend<N, A>,
     {
         // SAFETY: `Vector<N, T, A>` is a transparent wrapper over
-        // `<T as Backend<N, A>>::Vector`.
-        unsafe { transmute_generic::<Vector<N, T, A>, <T as Backend<N, A>>::Vector>(self) }
+        // `<T as VectorBackend<N, A>>::Inner`.
+        unsafe { transmute_generic::<Vector<N, T, A>, <T as VectorBackend<N, A>>::Inner>(self) }
     }
 
-    /// Returns a mutable reference to the internal representation of `self`.
-    ///
-    /// The resulting type is specified by [`<T as Backend<N, A>>`]. This should
-    /// only be called from the crate defining `T`, else the resulting type may
-    /// change silently as it is considered an implementation detail.
-    ///
-    /// [`<T as Backend<N, A>>`]: Backend
     #[inline]
     #[must_use]
-    pub const fn inner_mut(&mut self) -> &mut <T as Backend<N, A>>::Vector
+    #[allow(
+        dead_code,
+        reason = "this will likely be used for fixed-point numbers (TODO)"
+    )]
+    pub(crate) const fn inner_mut(&mut self) -> &mut <T as VectorBackend<N, A>>::Inner
     where
-        T: Backend<N, A>,
+        T: VectorBackend<N, A>,
     {
         // SAFETY: `Vector<N, T, A>` is a transparent wrapper over
-        // `<T as Backend<N, A>>::Vector`.
-        unsafe { transmute_mut::<Vector<N, T, A>, <T as Backend<N, A>>::Vector>(self) }
+        // `<T as VectorBackend<N, A>>::Inner`.
+        unsafe { transmute_mut::<Vector<N, T, A>, <T as VectorBackend<N, A>>::Inner>(self) }
     }
 }
 
@@ -1018,6 +1019,11 @@ where
         T: Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
     {
         self.x * rhs.y - self.y * rhs.x
+    }
+
+    #[inline(always)]
+    fn reverse_backend(self) -> Self {
+        self.yx()
     }
 }
 
@@ -1124,6 +1130,11 @@ where
     {
         (self.zxy() * rhs - self * rhs.zxy()).zxy()
     }
+
+    #[inline(always)]
+    fn reverse_backend(self) -> Self {
+        self.zyx()
+    }
 }
 
 impl<T, A: Alignment> Vector<4, T, A>
@@ -1181,6 +1192,11 @@ where
     #[must_use]
     pub fn truncate(self) -> Vector<3, T, A> {
         self.xyz()
+    }
+
+    #[inline(always)]
+    fn reverse_backend(self) -> Self {
+        self.wzyx()
     }
 }
 
@@ -1405,7 +1421,7 @@ where
 {
     #[inline]
     fn from(value: (T, Vector<2, T, A>)) -> Self {
-        Self::new(value.0, value.1[0], value.1[1])
+        Self::new(value.0, value.1.x, value.1.y)
     }
 }
 
@@ -1415,7 +1431,7 @@ where
 {
     #[inline]
     fn from(value: (Vector<2, T, A>, T)) -> Self {
-        Self::new(value.0[0], value.0[1], value.1)
+        Self::new(value.0.x, value.0.y, value.1)
     }
 }
 
@@ -1435,7 +1451,7 @@ where
 {
     #[inline]
     fn from(value: (T, T, Vector<2, T, A>)) -> Self {
-        Self::new(value.0, value.1, value.2[0], value.2[1])
+        Self::new(value.0, value.1, value.2.x, value.2.y)
     }
 }
 
@@ -1445,7 +1461,7 @@ where
 {
     #[inline]
     fn from(value: (T, Vector<2, T, A>, T)) -> Self {
-        Self::new(value.0, value.1[0], value.1[1], value.2)
+        Self::new(value.0, value.1.x, value.1.y, value.2)
     }
 }
 
@@ -1455,7 +1471,7 @@ where
 {
     #[inline]
     fn from(value: (T, Vector<3, T, A>)) -> Self {
-        Self::new(value.0, value.1[0], value.1[1], value.1[2])
+        Self::new(value.0, value.1.x, value.1.y, value.1.z)
     }
 }
 
@@ -1465,7 +1481,7 @@ where
 {
     #[inline]
     fn from(value: (Vector<2, T, A>, T, T)) -> Self {
-        Self::new(value.0[0], value.0[1], value.1, value.2)
+        Self::new(value.0.x, value.0.y, value.1, value.2)
     }
 }
 
@@ -1475,7 +1491,7 @@ where
 {
     #[inline]
     fn from(value: (Vector<2, T, A>, Vector<2, T, A>)) -> Self {
-        Self::new(value.0[0], value.0[1], value.1[0], value.1[1])
+        Self::new(value.0.x, value.0.y, value.1.x, value.1.y)
     }
 }
 
@@ -1485,7 +1501,7 @@ where
 {
     #[inline]
     fn from(value: (Vector<3, T, A>, T)) -> Self {
-        Self::new(value.0[0], value.0[1], value.0[2], value.1)
+        Self::new(value.0.x, value.0.y, value.0.z, value.1)
     }
 }
 
@@ -1532,13 +1548,13 @@ where
 {
     #[inline]
     fn eq(&self, other: &Self) -> bool {
-        specialize!(<T as Backend<N, A>>::vector_eq(self, other))
+        specialize!(<T as VectorBackend<N, A>>::vector_eq(self, other))
     }
 
     #[expect(clippy::partialeq_ne_impl)]
     #[inline]
     fn ne(&self, other: &Self) -> bool {
-        specialize!(<T as Backend<N, A>>::vector_ne(self, other))
+        specialize!(<T as VectorBackend<N, A>>::vector_ne(self, other))
     }
 }
 
@@ -1584,7 +1600,7 @@ macro_rules! impl_unary_operator {
             #[inline]
             #[track_caller]
             fn $op(self) -> Self::Output {
-                specialize!(<T as Backend<N, A>>::$vector_op(self))
+                specialize!(<T as VectorBackend<N, A>>::$vector_op(self))
             }
         }
 
@@ -1653,7 +1669,7 @@ macro_rules! impl_binary_operator {
             #[inline]
             #[track_caller]
             fn $op(self, rhs: Self) -> Self::Output {
-                specialize!(<T as Backend<N, A>>::$vector_op(self, rhs))
+                specialize!(<T as VectorBackend<N, A>>::$vector_op(self, rhs))
             }
         }
 
@@ -2953,7 +2969,11 @@ mod tests {
 
                 assert_test_eq!(vector.xy().element_product(), x * y);
                 assert_test_eq!(vector.xyz().element_product(), x * y * z);
-                assert_test_eq!(vector.element_product(), x * y * (z * w));
+                assert_test_eq!(
+                    vector.element_product(),
+                    x * y * (z * w),
+                    "  vector: {vector:?}"
+                );
             }
         });
         for_types!(|T: PrimitiveInteger, A| {

@@ -1,4 +1,9 @@
+use core::mem::transmute_copy;
+
 use crate::{Alignment, Scalar, Vector};
+
+// Note: Patterns that are commented out are implemented manually to make
+// optimizations.
 
 impl<T, A: Alignment> Vector<2, T, A>
 where
@@ -6,7 +11,7 @@ where
 {
     declare_swizzle_fns! {
         xx: [x, x],
-        xy: [x, y],
+        // xy: [x, y],
         yx: [y, x],
         yy: [y, y],
     }
@@ -47,8 +52,23 @@ where
     }
 
     declare_with_swizzle_fns! {
-        with_xy: [x, y],
+        // with_xy: [x, y],
         with_yx: [y, x],
+    }
+
+    /// Returns `(self.x, self.y)`.
+    #[inline]
+    #[must_use]
+    pub fn xy(self) -> Vector<2, T, A> {
+        self
+    }
+
+    /// Returns `self` with the elements `x` and `y` replaced by `value.x`
+    /// and `value.y`.
+    #[inline]
+    #[must_use]
+    pub fn with_xy(self, value: Vector<2, T, A>) -> Self {
+        value
     }
 }
 
@@ -58,7 +78,7 @@ where
 {
     declare_swizzle_fns! {
         xx: [x, x],
-        xy: [x, y],
+        // xy: [x, y],
         xz: [x, z],
         yx: [y, x],
         yy: [y, y],
@@ -74,7 +94,7 @@ where
         xxz: [x, x, z],
         xyx: [x, y, x],
         xyy: [x, y, y],
-        xyz: [x, y, z],
+        // xyz: [x, y, z],
         xzx: [x, z, x],
         xzy: [x, z, y],
         xzz: [x, z, z],
@@ -198,12 +218,36 @@ where
     }
 
     declare_with_swizzle_fns! {
-        with_xyz: [x, y, z],
+        // with_xyz: [x, y, z],
         with_xzy: [x, z, y],
         with_yxz: [y, x, z],
         with_yzx: [y, z, x],
         with_zxy: [z, x, y],
         with_zyx: [z, y, x],
+    }
+
+    /// Returns `(self.x, self.y)`.
+    #[inline]
+    #[must_use]
+    pub fn xy(self) -> Vector<2, T, A> {
+        // SAFETY: The output type contains two values of `T`, which the input
+        // type is guaranteed to begin with.
+        unsafe { transmute_copy::<Vector<3, T, A>, Vector<2, T, A>>(&self) }
+    }
+
+    /// Returns `(self.x, self.y, self.z)`.
+    #[inline]
+    #[must_use]
+    pub fn xyz(self) -> Vector<3, T, A> {
+        self
+    }
+
+    /// Returns `self` with the elements `x`, `y` and `z` replaced by `value.x`,
+    /// `value.y` and `value.z`.
+    #[inline]
+    #[must_use]
+    pub fn with_xyz(self, value: Vector<3, T, A>) -> Self {
+        value
     }
 }
 
@@ -213,7 +257,7 @@ where
 {
     declare_swizzle_fns! {
         xx: [x, x],
-        xy: [x, y],
+        // xy: [x, y],
         xz: [x, z],
         xw: [x, w],
         yx: [y, x],
@@ -237,7 +281,7 @@ where
         xxw: [x, x, w],
         xyx: [x, y, x],
         xyy: [x, y, y],
-        xyz: [x, y, z],
+        // xyz: [x, y, z],
         xyw: [x, y, w],
         xzx: [x, z, x],
         xzy: [x, z, y],
@@ -325,7 +369,7 @@ where
         xyzx: [x, y, z, x],
         xyzy: [x, y, z, y],
         xyzz: [x, y, z, z],
-        xyzw: [x, y, z, w],
+        // xyzw: [x, y, z, w],
         xywx: [x, y, w, x],
         xywy: [x, y, w, y],
         xywz: [x, y, w, z],
@@ -606,7 +650,7 @@ where
     }
 
     declare_with_swizzle_fns! {
-        with_xyzw: [x, y, z, w],
+        // with_xyzw: [x, y, z, w],
         with_xywz: [x, y, w, z],
         with_xzyw: [x, z, y, w],
         with_xzwy: [x, z, w, y],
@@ -630,6 +674,39 @@ where
         with_wyzx: [w, y, z, x],
         with_wzxy: [w, z, x, y],
         with_wzyx: [w, z, y, x],
+    }
+
+    /// Returns `(self.x, self.y)`.
+    #[inline]
+    #[must_use]
+    pub fn xy(self) -> Vector<2, T, A> {
+        // SAFETY: The output type contains two values of `T`, which the input
+        // type is guaranteed to begin with.
+        unsafe { transmute_copy::<Vector<4, T, A>, Vector<2, T, A>>(&self) }
+    }
+
+    /// Returns `(self.x, self.y, self.z)`.
+    #[inline]
+    #[must_use]
+    pub fn xyz(self) -> Vector<3, T, A> {
+        // SAFETY: The output type contains three or four values of `T`, which
+        // the input type is guaranteed to begin with.
+        unsafe { transmute_copy::<Vector<4, T, A>, Vector<3, T, A>>(&self) }
+    }
+
+    /// Returns `(self.x, self.y, self.z, self.w)`.
+    #[inline]
+    #[must_use]
+    pub fn xyzw(self) -> Vector<4, T, A> {
+        self
+    }
+
+    /// Returns `self` with the elements `x`, `y`, `z` and `w` replaced by
+    /// `value.x`, `value.y`, `value.z` and `value.w`.
+    #[inline]
+    #[must_use]
+    pub fn with_xyzw(self, value: Vector<4, T, A>) -> Self {
+        value
     }
 }
 

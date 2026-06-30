@@ -53,9 +53,6 @@ pub(crate) trait PrimitiveFloatUtils: Sized {
     fn recip(self) -> Self;
 
     #[cfg(not(feature = "num-primitive"))]
-    fn max(self, other: Self) -> Self;
-
-    #[cfg(not(feature = "num-primitive"))]
     fn min(self, other: Self) -> Self;
 
     #[cfg(not(feature = "num-primitive"))]
@@ -240,12 +237,6 @@ macro_rules! impl_float {
             #[inline(always)]
             fn recip(self) -> Self {
                 self.recip()
-            }
-
-            #[cfg(not(feature = "num-primitive"))]
-            #[inline(always)]
-            fn max(self, other: Self) -> Self {
-                self.max(other)
             }
 
             #[cfg(not(feature = "num-primitive"))]

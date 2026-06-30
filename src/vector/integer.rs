@@ -1,5 +1,5 @@
 use crate::{
-    Alignment, Length, PrimitiveInteger, PrimitiveIntegerBackend, SupportedLength, Vector,
+    Alignment, Length, PrimitiveInteger, SupportedLength, Vector, backend::IntegerVectorBackend,
     utils::specialize,
 };
 
@@ -12,7 +12,7 @@ where
     #[inline]
     #[must_use]
     pub fn checked_add(self, rhs: Self) -> Option<Self> {
-        specialize!(<T as PrimitiveIntegerBackend<N, A>>::vector_checked_add(
+        specialize!(<T as IntegerVectorBackend<N, A>>::vector_checked_add(
             self, rhs
         ))
     }
@@ -21,7 +21,7 @@ where
     #[inline]
     #[must_use]
     pub fn checked_sub(self, rhs: Self) -> Option<Self> {
-        specialize!(<T as PrimitiveIntegerBackend<N, A>>::vector_checked_sub(
+        specialize!(<T as IntegerVectorBackend<N, A>>::vector_checked_sub(
             self, rhs
         ))
     }
@@ -30,7 +30,7 @@ where
     #[inline]
     #[must_use]
     pub fn checked_mul(self, rhs: Self) -> Option<Self> {
-        specialize!(<T as PrimitiveIntegerBackend<N, A>>::vector_checked_mul(
+        specialize!(<T as IntegerVectorBackend<N, A>>::vector_checked_mul(
             self, rhs
         ))
     }
@@ -40,7 +40,7 @@ where
     #[inline]
     #[must_use]
     pub fn checked_div(self, rhs: Self) -> Option<Self> {
-        specialize!(<T as PrimitiveIntegerBackend<N, A>>::vector_checked_div(
+        specialize!(<T as IntegerVectorBackend<N, A>>::vector_checked_div(
             self, rhs
         ))
     }
@@ -50,7 +50,7 @@ where
     #[inline]
     #[must_use]
     pub fn checked_rem(self, rhs: Self) -> Option<Self> {
-        specialize!(<T as PrimitiveIntegerBackend<N, A>>::vector_checked_rem(
+        specialize!(<T as IntegerVectorBackend<N, A>>::vector_checked_rem(
             self, rhs
         ))
     }
@@ -60,7 +60,7 @@ where
     #[inline]
     #[must_use]
     pub fn saturating_add(self, rhs: Self) -> Self {
-        specialize!(<T as PrimitiveIntegerBackend<N, A>>::vector_saturating_add(
+        specialize!(<T as IntegerVectorBackend<N, A>>::vector_saturating_add(
             self, rhs
         ))
     }
@@ -70,7 +70,7 @@ where
     #[inline]
     #[must_use]
     pub fn saturating_sub(self, rhs: Self) -> Self {
-        specialize!(<T as PrimitiveIntegerBackend<N, A>>::vector_saturating_sub(
+        specialize!(<T as IntegerVectorBackend<N, A>>::vector_saturating_sub(
             self, rhs
         ))
     }
@@ -80,7 +80,7 @@ where
     #[inline]
     #[must_use]
     pub fn saturating_mul(self, rhs: Self) -> Self {
-        specialize!(<T as PrimitiveIntegerBackend<N, A>>::vector_saturating_mul(
+        specialize!(<T as IntegerVectorBackend<N, A>>::vector_saturating_mul(
             self, rhs
         ))
     }
@@ -95,7 +95,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn saturating_div(self, rhs: Self) -> Self {
-        specialize!(<T as PrimitiveIntegerBackend<N, A>>::vector_saturating_div(
+        specialize!(<T as IntegerVectorBackend<N, A>>::vector_saturating_div(
             self, rhs
         ))
     }
@@ -104,7 +104,7 @@ where
     #[inline]
     #[must_use]
     pub fn wrapping_add(self, rhs: Self) -> Self {
-        specialize!(<T as PrimitiveIntegerBackend<N, A>>::vector_wrapping_add(
+        specialize!(<T as IntegerVectorBackend<N, A>>::vector_wrapping_add(
             self, rhs
         ))
     }
@@ -113,7 +113,7 @@ where
     #[inline]
     #[must_use]
     pub fn wrapping_sub(self, rhs: Self) -> Self {
-        specialize!(<T as PrimitiveIntegerBackend<N, A>>::vector_wrapping_sub(
+        specialize!(<T as IntegerVectorBackend<N, A>>::vector_wrapping_sub(
             self, rhs
         ))
     }
@@ -122,7 +122,7 @@ where
     #[inline]
     #[must_use]
     pub fn wrapping_mul(self, rhs: Self) -> Self {
-        specialize!(<T as PrimitiveIntegerBackend<N, A>>::vector_wrapping_mul(
+        specialize!(<T as IntegerVectorBackend<N, A>>::vector_wrapping_mul(
             self, rhs
         ))
     }
@@ -136,7 +136,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn wrapping_div(self, rhs: Self) -> Self {
-        specialize!(<T as PrimitiveIntegerBackend<N, A>>::vector_wrapping_div(
+        specialize!(<T as IntegerVectorBackend<N, A>>::vector_wrapping_div(
             self, rhs
         ))
     }
@@ -150,7 +150,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn wrapping_rem(self, rhs: Self) -> Self {
-        specialize!(<T as PrimitiveIntegerBackend<N, A>>::vector_wrapping_rem(
+        specialize!(<T as IntegerVectorBackend<N, A>>::vector_wrapping_rem(
             self, rhs
         ))
     }
@@ -190,9 +190,7 @@ macro_rules! impl_integer {
             #[inline]
             #[must_use]
             pub fn max(self, other: Self) -> Self {
-                specialize!(<$T as PrimitiveIntegerBackend<N, A>>::vector_max(
-                    self, other
-                ))
+                specialize!(<$T as IntegerVectorBackend<N, A>>::vector_max(self, other))
             }
 
             /// Returns the minimum elements between `self` and `other`.
@@ -213,9 +211,7 @@ macro_rules! impl_integer {
             #[inline]
             #[must_use]
             pub fn min(self, other: Self) -> Self {
-                specialize!(<$T as PrimitiveIntegerBackend<N, A>>::vector_min(
-                    self, other
-                ))
+                specialize!(<$T as IntegerVectorBackend<N, A>>::vector_min(self, other))
             }
 
             /// Clamps the elements of `self` between the elements of `min` and
@@ -270,9 +266,7 @@ macro_rules! impl_integer {
             #[inline]
             #[must_use]
             pub fn max_element(self) -> $T {
-                specialize!(<$T as PrimitiveIntegerBackend<N, A>>::vector_max_element(
-                    self
-                ))
+                specialize!(<$T as IntegerVectorBackend<N, A>>::vector_max_element(self))
             }
 
             /// Returns the minimum between the elements of `self`.
@@ -290,9 +284,7 @@ macro_rules! impl_integer {
             #[inline]
             #[must_use]
             pub fn min_element(self) -> $T {
-                specialize!(<$T as PrimitiveIntegerBackend<N, A>>::vector_min_element(
-                    self
-                ))
+                specialize!(<$T as IntegerVectorBackend<N, A>>::vector_min_element(self))
             }
         }
     };

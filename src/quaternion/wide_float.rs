@@ -89,7 +89,7 @@ macro_rules! impl_wide_float {
                 let almost_one = $Wide::ONE - $Wide::splat(2.0) * $Wide::splat($T::EPSILON);
 
                 let dot = from.dot(to);
-                Self::from_vector(Vector::<4, $Wide, A>::splat(dot.simd_gt(almost_one)).blend(
+                Self(Vector::<4, $Wide, A>::splat(dot.simd_gt(almost_one)).blend(
                     {
                         // 0° singularity: from ≈ to.
                         Vector::W
@@ -136,7 +136,7 @@ macro_rules! impl_wide_float {
                 let dot = dot ^ dot_sign;
                 let cross = from.cross(to);
 
-                Quaternion::from_vector(
+                Self(
                     Vector::<4, $Wide, A>::splat(dot.simd_gt(almost_one)).blend(
                         // 0° singularity: from ≈ to.
                         Self::IDENTITY.0,
@@ -201,7 +201,7 @@ macro_rules! impl_wide_float {
                     result[3] = cj * cc + sj * ss;
                 }
 
-                Self::from_vector(result)
+                Self(result)
             }
 
             /// Creates a quaternion from a 3D rotation matrix.
@@ -234,7 +234,7 @@ macro_rules! impl_wide_float {
                 let four_wsq = opm22 + sum10;
                 let inv4w = $Wide::HALF / four_wsq.sqrt();
 
-                Self::from_vector(
+                Self(
                     Vector::<4, $Wide, A>::splat(m22.simd_le($Wide::ZERO)).blend(
                         Vector::<4, $Wide, A>::splat(dif10.simd_le($Wide::ZERO)).blend(
                             Vector::<4, $Wide, A>::new(
@@ -492,7 +492,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn normalize_or(self, fallback: Self) -> Self {
-                Self::from_vector(self.0.normalize_or(fallback.0))
+                Self(self.0.normalize_or(fallback.0))
             }
 
             /// Simultaneously computes [`normalize`] and [`length`].
@@ -504,7 +504,7 @@ macro_rules! impl_wide_float {
             pub fn normalize_and_length(self) -> (Self, $Wide) {
                 let (normalize, length) = self.0.normalize_and_length();
 
-                (Self::from_vector(normalize), length)
+                (Self(normalize), length)
             }
 
             /// For each lane, returns whether the quaternion has the length `1`

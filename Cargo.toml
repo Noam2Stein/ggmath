@@ -2,6 +2,7 @@
 name = "ggmath"
 version = "0.16.7"
 authors = ["Noam Stein <noamsteindev@proton.me>"]
+autobenches = false
 categories = [
     "data-structures",
     "game-development",
@@ -38,7 +39,15 @@ wide = { version = "1.5.0", optional = true, default-features = false }
 [dev-dependencies]
 assert-impl-trait = "1.0.0"
 colored = "3.1.1"
+divan = "0.1.21"
+glam = "0.33.1"
 num-primitive = "0.3.7"
 rand = "0.10.1"
 repetitive = "0.3.2"
 serde_json = "1.0.150"
+
+[[bench]]
+name = "main"
+path = "benches/main.rs"
+harness = false
+required-features = ["wide"]

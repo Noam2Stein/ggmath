@@ -103,8 +103,7 @@ where
             "vectors are not normalized: from_rotation_arc({from:?}, {to:?})"
         );
 
-        let almost_one = T::as_from(1.0) - T::as_from(2.0) * T::EPSILON;
-        let pi = T::as_from(core::f64::consts::PI);
+        let almost_one = T::ONE - T::as_from(2.0) * T::EPSILON;
 
         let dot = from.dot(to);
         if dot > almost_one {
@@ -113,7 +112,7 @@ where
         } else if dot < -almost_one {
             // 180° singularity: from ≈ -to.
             // Half a turn = 𝛕/2 = 180°.
-            Self::from_axis_angle(from.any_orthonormal_vector(), pi)
+            Self::from_axis_angle(from.any_orthonormal_vector(), T::PI)
         } else {
             let cross = from.cross(to);
             Self::from_xyzw(cross.x, cross.y, cross.z, T::ONE + dot).normalize()
@@ -147,7 +146,7 @@ where
             "vectors are not normalized: from_rotation_arc_colinear({from:?}, {to:?})"
         );
 
-        let almost_one = T::as_from(1.0) - T::as_from(2.0) * T::EPSILON;
+        let almost_one = T::ONE - T::as_from(2.0) * T::EPSILON;
 
         let mut dot = from.dot(to);
         if dot.is_sign_negative() {
@@ -218,7 +217,7 @@ where
             result[3] = cj * cc + sj * ss;
         }
 
-        Self::from_vector(result)
+        Self(result)
     }
 
     /// Creates a quaternion from a 3D rotation matrix.
@@ -497,7 +496,7 @@ where
     #[inline]
     #[must_use]
     pub fn is_nan(self) -> bool {
-        self.to_vector().is_nan()
+        self.0.is_nan()
     }
 
     /// Returns `true` if all elements are neither infinite nor NaN.
@@ -520,7 +519,7 @@ where
     #[inline]
     #[must_use]
     pub fn is_finite(self) -> bool {
-        self.to_vector().is_finite()
+        self.0.is_finite()
     }
 
     /// Returns the inverse of the quaternion `self`.
@@ -692,7 +691,7 @@ where
     #[inline]
     #[must_use]
     pub fn length(self) -> T {
-        self.to_vector().length()
+        self.0.length()
     }
 
     /// Returns `self` normalized to length `1`.
@@ -720,7 +719,7 @@ where
         let result = self / self.length();
 
         debug_assert!(
-            result.is_finite() && result != Self::from_vector(Vector::ZERO),
+            result.is_finite() && result != Self(Vector::ZERO),
             "quaternion is zero or non-finite: {self:?}.normalize()"
         );
 
@@ -746,7 +745,7 @@ where
     #[inline]
     #[must_use]
     pub fn try_normalize(self) -> Option<Self> {
-        self.to_vector().try_normalize().map(Self::from_vector)
+        self.0.try_normalize().map(Self)
     }
 
     /// Returns [`normalize`], or `fallback` if `self` is zero or if the result
@@ -769,7 +768,7 @@ where
     #[inline]
     #[must_use]
     pub fn normalize_or(self, fallback: Self) -> Self {
-        Self::from_vector(self.to_vector().normalize_or(fallback.to_vector()))
+        Self(self.0.normalize_or(fallback.0))
     }
 
     /// Simultaneously computes [`normalize`] and [`length`].
@@ -781,7 +780,7 @@ where
     pub fn normalize_and_length(self) -> (Self, T) {
         let (normalize, length) = self.0.normalize_and_length();
 
-        (Self::from_vector(normalize), length)
+        (Self(normalize), length)
     }
 
     /// Returns whether the quaternion has the length `1.0` or not.
@@ -802,7 +801,7 @@ where
     #[inline]
     #[must_use]
     pub fn is_normalized(self) -> bool {
-        self.to_vector().is_normalized()
+        self.0.is_normalized()
     }
 
     /// Returns `true` if the absolute difference of all elements between `self`
@@ -813,8 +812,7 @@ where
     #[inline]
     #[must_use]
     pub fn abs_diff_eq(self, other: Self, max_abs_diff: T) -> bool {
-        self.to_vector()
-            .abs_diff_eq(other.to_vector(), max_abs_diff)
+        self.0.abs_diff_eq(other.0, max_abs_diff)
     }
 }
 

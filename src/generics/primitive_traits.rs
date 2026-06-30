@@ -5,9 +5,9 @@ use core::{
 };
 
 use crate::{
-    Aligned, NegOne, One, PrimitiveFloatBackend, PrimitiveIntegerBackend, PrimitiveSignedBackend,
-    Scalar, Unaligned, Zero,
-    utils::{PrimitiveFloatUtils, PrimitiveIntegerUtils, PrimitiveSignedUtils},
+    Aligned, NegOne, One, Scalar, Unaligned, Zero,
+    backend::{FloatVectorBackend, IntegerVectorBackend, SignedVectorBackend},
+    utils::{FloatUtils, PrimitiveFloatUtils, PrimitiveIntegerUtils, PrimitiveSignedUtils},
 };
 
 /// Trait for all primitive floating-point types.
@@ -53,12 +53,13 @@ pub trait PrimitiveFloat:
     + One
     + NegOne
     + PrimitiveFloatUtils<Bits = <Self as PrimitiveFloat>::Bits>
-    + PrimitiveFloatBackend<2, Aligned>
-    + PrimitiveFloatBackend<3, Aligned>
-    + PrimitiveFloatBackend<4, Aligned>
-    + PrimitiveFloatBackend<2, Unaligned>
-    + PrimitiveFloatBackend<3, Unaligned>
-    + PrimitiveFloatBackend<4, Unaligned>
+    + FloatVectorBackend<2, Aligned>
+    + FloatVectorBackend<3, Aligned>
+    + FloatVectorBackend<4, Aligned>
+    + FloatVectorBackend<2, Unaligned>
+    + FloatVectorBackend<3, Unaligned>
+    + FloatVectorBackend<4, Unaligned>
+    + FloatUtils
     + num_primitive::PrimitiveFloat<Bits = <Self as PrimitiveFloat>::Bits>
 {
     /// The unsigned integer type with equal width.
@@ -118,12 +119,12 @@ pub trait PrimitiveInteger:
     + Zero
     + One
     + PrimitiveIntegerUtils
-    + PrimitiveIntegerBackend<2, Aligned>
-    + PrimitiveIntegerBackend<3, Aligned>
-    + PrimitiveIntegerBackend<4, Aligned>
-    + PrimitiveIntegerBackend<2, Unaligned>
-    + PrimitiveIntegerBackend<3, Unaligned>
-    + PrimitiveIntegerBackend<4, Unaligned>
+    + IntegerVectorBackend<2, Aligned>
+    + IntegerVectorBackend<3, Aligned>
+    + IntegerVectorBackend<4, Aligned>
+    + IntegerVectorBackend<2, Unaligned>
+    + IntegerVectorBackend<3, Unaligned>
+    + IntegerVectorBackend<4, Unaligned>
     + num_primitive::PrimitiveInteger
 {
 }
@@ -161,12 +162,12 @@ pub trait PrimitiveSigned:
     + Neg<Output = Self>
     + NegOne
     + PrimitiveSignedUtils<Unsigned = <Self as PrimitiveSigned>::Unsigned>
-    + PrimitiveSignedBackend<2, Aligned>
-    + PrimitiveSignedBackend<3, Aligned>
-    + PrimitiveSignedBackend<4, Aligned>
-    + PrimitiveSignedBackend<2, Unaligned>
-    + PrimitiveSignedBackend<3, Unaligned>
-    + PrimitiveSignedBackend<4, Unaligned>
+    + SignedVectorBackend<2, Aligned>
+    + SignedVectorBackend<3, Aligned>
+    + SignedVectorBackend<4, Aligned>
+    + SignedVectorBackend<2, Unaligned>
+    + SignedVectorBackend<3, Unaligned>
+    + SignedVectorBackend<4, Unaligned>
     + num_primitive::PrimitiveSigned<Unsigned = <Self as PrimitiveSigned>::Unsigned>
 {
     /// The unsigned integer type with equal width.

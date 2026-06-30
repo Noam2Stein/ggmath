@@ -1,5 +1,6 @@
 use crate::{
-    Alignment, Length, Mask, PrimitiveSigned, PrimitiveSignedBackend, SupportedLength, Vector,
+    Alignment, Length, Mask, PrimitiveSigned, SupportedLength, Vector,
+    backend::SignedVectorBackend,
     utils::{specialize, transmute_generic},
 };
 
@@ -28,9 +29,7 @@ where
     #[inline]
     #[must_use]
     pub fn positive_mask(self) -> Mask<N, T, A> {
-        specialize!(<T as PrimitiveSignedBackend<N, A>>::vector_positive_mask(
-            self
-        ))
+        specialize!(<T as SignedVectorBackend<N, A>>::vector_positive_mask(self))
     }
 
     /// Returns a vector mask where each element is `true` if the corresponding
@@ -51,9 +50,7 @@ where
     #[inline]
     #[must_use]
     pub fn negative_mask(self) -> Mask<N, T, A> {
-        specialize!(<T as PrimitiveSignedBackend<N, A>>::vector_negative_mask(
-            self
-        ))
+        specialize!(<T as SignedVectorBackend<N, A>>::vector_negative_mask(self))
     }
 
     /// Returns the bit patterns of `self` reinterpreted as unsigned integers of
@@ -113,9 +110,7 @@ macro_rules! impl_signed {
                     "cannot negate MIN: {self:?}.abs()"
                 );
 
-                specialize!(<$T as PrimitiveSignedBackend<N, A>>::vector_wrapping_abs(
-                    self
-                ))
+                specialize!(<$T as SignedVectorBackend<N, A>>::vector_wrapping_abs(self))
             }
 
             /// Returns the signum of the elements of `self`.
@@ -139,7 +134,7 @@ macro_rules! impl_signed {
             #[inline]
             #[must_use]
             pub fn signum(self) -> Self {
-                specialize!(<$T as PrimitiveSignedBackend<N, A>>::vector_signum(self))
+                specialize!(<$T as SignedVectorBackend<N, A>>::vector_signum(self))
             }
         }
     };

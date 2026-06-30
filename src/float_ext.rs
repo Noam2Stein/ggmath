@@ -43,7 +43,7 @@ trait Sealed {}
 impl<T: PrimitiveFloat> FloatExt for T {
     #[inline]
     fn lerp(self, other: Self, t: Self) -> Self {
-        self * (T::as_from(1.0) - t) + other * t
+        self * (T::ONE - t) + other * t
     }
 
     #[inline]
