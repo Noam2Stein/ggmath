@@ -1,20 +1,20 @@
 # `ggmath`
 
-A linear algebra library for games and graphics with generic SIMD types.
+A fast linear algebra library for games and graphics.
 
-- Vectors: [`Vec2<T>`], [`Vec3<T>`], [`Vec4<T>`].
-- Square Matrices: [`Mat2<T>`], [`Mat3<T>`], [`Mat4<T>`].
-- Quaternions: [`Quat<T>`].
-- Affine Transforms: [`Affine2<T>`], [`Affine3<T>`].
-- Masks: [`Mask2<T>`], [`Mask3<T>`], [`Mask4<T>`].
+- Vectors: [`Vec2<T>`], [`Vec3<T>`], [`Vec4<T>`]
+- Square Matrices: [`Mat2<T>`], [`Mat3<T>`], [`Mat4<T>`]
+- Quaternions: [`Quat<T>`]
+- Affine Transforms: [`Affine2<T>`], [`Affine3<T>`]
+- Masks: [`Mask2<T>`], [`Mask3<T>`], [`Mask4<T>`]
 
 SIMD variants:
 
-- Vectors: [`Vec2A<T>`], [`Vec3A<T>`], [`Vec4A<T>`].
-- Square Matrices: [`Mat2A<T>`], [`Mat3A<T>`], [`Mat4A<T>`].
-- Quaternions: [`QuatA<T>`].
-- Affine Transforms: [`Affine2A<T>`], [`Affine3A<T>`].
-- Masks: [`Mask2A<T>`], [`Mask3A<T>`], [`Mask4A<T>`].
+- Vectors: [`Vec2A<T>`], [`Vec3A<T>`], [`Vec4A<T>`]
+- Square Matrices: [`Mat2A<T>`], [`Mat3A<T>`], [`Mat4A<T>`]
+- Quaternions: [`QuatA<T>`]
+- Affine Transforms: [`Affine2A<T>`], [`Affine3A<T>`]
+- Masks: [`Mask2A<T>`], [`Mask3A<T>`], [`Mask4A<T>`]
 
 Underlying generic types:
 
@@ -31,7 +31,7 @@ explicit SIMD in function implementations.
 
 SIMD results in faster computations, but can actually hurt performance if the
 bottleneck is memory bandwidth rather than computation throughput. For maximum
-performance, there are both SIMD and non-SIMD types.
+performance, there are both SIMD, non-SIMD and SoA types ([see below](#soa)).
 
 | Type              | [`Vec3<f32>`] | [`Vec3A<f32>`] | [`Mat3<f32>`] | [`Mat3A<f32>`] |
 | ----------------- | ------------- | -------------- | ------------- | -------------- |
@@ -47,101 +47,121 @@ performance, there are both SIMD and non-SIMD types.
 
 > This table is true only for target architectures that have SIMD and are
 > supported. Types incompatible with SIMD use fallback implementations.
-> Currently support is limited to [`f32`] types on x86.
+> Currently support is limited to [`f32`] types on x86 and aarch64.
 
 ## Generics
 
-Because types are generic over `T`, they support non-primitive scalar types.
-Integration with [`fixed`] enables support for fixed-point numbers, and
-integration with [`wide`] enables support for SoA.
+The underlying types are generic over:
 
-When Rust's type system is powerful enough, integration with [`num-primitive`]
-will enable writing math code that is generic over primitive types, for example
-functions generic over `T: PrimitiveFloat` will have access to float-vector
-functionality.
+- `T`: The element type
+- `N`: The dimension
+- `A`: The alignment mode (SIMD or non-SIMD)
 
-Types relative to each other (e.g., `Vec2<T>`, `Vec3<T>`, `Vec4<T>` and
-SIMD variants) are not distinct types, instead they are all type aliases to
-these const-generic structs:
+The traits [`PrimitiveFloat`], [`PrimitiveInteger`], [`PrimitiveSigned`] and
+[`PrimitiveUnsigned`] give generic contexts access to most primitive
+functionality. These traits do not expose functions directly, they only enable
+functionality for vectors, matrices, etc. For complete primitive generics, add
+the [`num-primitive`] crate as an optional dependency.
 
-- `Vector<N, T, A>`.
-- `Matrix<N, T, A>`.
-- `Quaternion<T, A>`.
-- `Affine<N, T, A>`.
-- `Mask<N, T, A>`.
+## Affine transforms
 
-Where:
+An affine transform contains a linear transformation and a translation vector.
+It can represent scale, rotation, shear and translation, but cannot represent
+projections. [`Affine2<T>`] is equivalent to [`Mat3<T>`], and [`Affine3<T>`] is
+equivalent to [`Mat4<T>`].
 
-- `N` is the length (2, 3, or 4).
-- `T` is the scalar type.
-- `A` is either `Aligned` or `Unaligned`.
+Affine transforms take less memory than matrices and perform better for select
+operations (see [benchmark results]).
 
-Const generics eliminate the need for macros, making it easier to implement
-functionality for all lengths (and both alignments). For example, instead of
-defining seperate `Ray2` and `Ray3` types, it is possible to define a single
-`Ray<N, T, A>` type then define type aliases for it.
+| Type              | [`Affine2<f32>`] | [`Mat3<f32>`] | [`Affine2A<f32>`] | [`Mat3A<f32>`] |
+| ----------------- | ---------------- | ------------- | ----------------- | -------------- |
+| Size (bytes)      | 24               | 36            | 32                | 48             |
+| Alignment (bytes) | 4                | 4             | 16                | 16             |
 
-## Math conventions
+| Type              | [`Affine3<f32>`] | [`Mat4<f32>`] | [`Affine3A<f32>`] | [`Mat4A<f32>`] |
+| ----------------- | ---------------- | ------------- | ----------------- | -------------- |
+| Size (bytes)      | 48               | 64            | 64                | 64             |
+| Alignment (bytes) | 4                | 4             | 16                | 16             |
 
-`ggmath` is coordinate-system agnostic, and should work for both right-handed
+> This table is true only for target architectures that have SIMD and are
+> supported.
+
+## Masks
+
+Masks are boolean vectors optimized for specific vector types. For example,
+[`Mask3A<f32>`] performs better than [`Vec3A<bool>`] for operations involving
+[`Vec3A<f32>`].
+
+## SoA
+
+SoA, or Structure of Arrays, refers to math types where each element `T`
+contains multiple values. For example, [`Vec3<f32x4>`] represents four 3D
+vectors, stored in memory as:
+
+`x1, x2, x3, x4, y1, y2, y3, y4, z1, z2, z3, z4`
+
+SoA is faster than standard SIMD. For example, computing the dot product for
+[`Vec3<f32>`] is quite slow because SIMD is not built for horizontal operations,
+while for [`Vec3<f32x4>`] it is much faster because each element is a SIMD
+register and there are no horizontal operations.
+
+However, SoA requires that algorithms are designed to process multiple values at
+the same time, which can be quite challenging. Because of this, it is best to
+only use SoA for performance-critical algorithms.
+
+SoA is supported through an optional dependency for the [`wide`] crate. Almost
+all functionality that exists for standard types also exists for SoA types.
+
+> [The `docs.rs` page] currently doesn't show [`wide`] support. See
+> [this issue](https://github.com/Noam2Stein/ggmath/issues/45).
+
+## Fixed-point numbers
+
+Currently, there is only basic support for fixed-point numbers, through the
+[`fixed`] feature flag which implements [`Scalar`] for [`fixed`] types. See
+[this issue](https://github.com/Noam2Stein/ggmath/issues/46) for better
+fixed-point number support.
+
+## Linear algebra conventions
+
+[`ggmath`] is coordinate-system agnostic, and should work for both right-handed
 and left-handed coordinate systems.
 
-`ggmath` uses left-multiplication, meaning to transform a vector by a matrix (or
-quaternion) you write `vector * matrix` and not `matrix * vector`. This means
-matrices are stored in row-major order.
+[`ggmath`] uses left-multiplication, meaning to transform a vector by a matrix
+(or quaternion) you write `vector * matrix` and not `matrix * vector`. This
+means matrices are stored in row-major order.
 
-Angles are in radians, but can be converted to and from degrees using
-standard-library functions.
+## Why another math crate?
 
-## Development status
+[`ggmath`] exists because existing similar libraries are missing certain
+features:
 
-Feature List:
+- SIMD alignment (e.g., `Vec3` is `__m128`, important for performance)
+- Generics (over primitives or arbitrary types, avoids macros)
+- SoA (niche, but important for game engines)
+- Fixed-point numbers (niche too, but important for game engines that aim to be
+  flexible)
 
-- [x] Vectors
-- [x] Square Matrices
-- [x] Quaternions
-- [x] Affine Transforms
-- [x] Masks
-- [x] Sufficient Float-Vector functionality
-- [x] Sufficient Int-Vector functionality
-- [x] Sufficient Matrix functionality
-- [x] Sufficient Quaternion functionality
-- [x] Sufficient Affine functionality
+Existing similar libraries:
 
-Crate Support:
+- [`glam`]: Supports SIMD alignment, but does not use generics, and as a result
+  SoA and fixed-point numbers are out of scope.
 
-- [x] [`bytemuck`](https://crates.io/crates/bytemuck)
-- [ ] [`fixed`](https://crates.io/crates/fixed) (partially done)
-- [x] [`libm`](https://crates.io/crates/libm)
-- [x] [`mint`](https://crates.io/crates/mint)
-- [x] [`serde`](https://crates.io/crates/serde)
-- [x] [`wide`](https://crates.io/crates/wide)
-- [x] [`rand`](https://crates.io/crates/rand)
+- [`ultraviolet`]: Supports SoA, but does not support SIMD alignment because its
+  types are simple scalar structs. Does not use generics, and as a result
+  fixed-point numbers are probably out of scope.
 
-Performance:
+- [`cgmath`]: Supports generics (could also support SoA and fixed-point numbers)
+  but does not support SIMD alignment, because its types are simple scalar
+  structs.
 
-- [ ] Default vector optimizations
-- [ ] `f32` SSE optimizations
-- [ ] `f64` SSE optimizations
-- [ ] `i32` SSE optimizations
-- [ ] `i64` SSE optimizations
-- [ ] `u32` SSE optimizations
-- [ ] `u64` SSE optimizations
-- [ ] `f32` NEON optimizations
-- [ ] `f64` NEON optimizations
-- [ ] `i32` NEON optimizations
-- [ ] `i64` NEON optimizations
-- [ ] `u32` NEON optimizations
-- [ ] `u64` NEON optimizations
-- [ ] `f32` WASM optimizations
-- [ ] `f64` WASM optimizations
-- [ ] `i32` WASM optimizations
-- [ ] `i64` WASM optimizations
-- [ ] `u32` WASM optimizations
-- [ ] `u64` WASM optimizations
-- [ ] Matrix optimizations
-- [ ] Quaternion optimizations
-- [ ] Affine optimizations
+- [`nalgebra`]: Less graphics oriented and thus has a larger, more complicated
+  API more suitable for general linear algebra.
+
+[`ggmath`] has a design where types are generic over `N` and `T`, but also
+whether SIMD alignment is enabled or disabled, enabling it to support both SIMD
+alignment and generics. Changing existing libraries to use this design would be
+out of scope.
 
 ## Usage
 
@@ -154,31 +174,29 @@ Add this to your Cargo.toml:
 ggmath = "0.16.7"
 ```
 
-For `no_std` support, enable the `libm` feature:
+For [`no_std`] support, enable the [`libm`] feature:
 
 ```toml
 [dependencies]
 ggmath = { version = "0.16.7", features = ["libm"] }
 ```
 
-## Optional features
+## Feature flags
 
-- `bytemuck`: Implements `bytemuck` traits for `ggmath` types.
+- [`bytemuck`]: Implements [`bytemuck`] traits for [`ggmath`] types.
 
-- `fixed`: Implements `Scalar` for fixed-point numbers.
+- [`fixed`]: Implements [`Scalar`] for fixed-point numbers.
 
-- `libm`: Uses `libm` as the backend for float functionality instead of `std`.
-  This makes the crate `no_std`.
+- [`libm`]: Uses [`libm`] instead of [`std`] as the backend for
+  floating-point functions. This makes the crate [`no_std`].
 
-- `mint`: Implements conversions between `ggmath` and `mint` types.
+- [`mint`]: Implements conversions between [`ggmath`] and [`mint`] types.
 
-- `num-primitive`: Adds `num-primitive` traits as super-traits of `ggmath` traits.
+- [`rand`]: Implements [`rand`] traits for [`ggmath`] types.
 
-- `rand`: Implements `rand` traits for `ggmath` types.
+- [`serde`]: Implements [`Serialize`] and [`Deserialize`] for [`ggmath`] types.
 
-- `serde`: Implements `Serialize` and `Deserialize` for `ggmath` types.
-
-- `wide`: Implements functionality for `wide` types.
+- [`wide`]: Implements functionality for SoA types.
 
 ## License
 
@@ -196,8 +214,8 @@ dual licensed as above, without any additional terms or conditions.
 
 ## Attribution
 
-`ggmath` is heavily inspired by [`glam`] and ports most of its code from it, as
-it serves the same purpose as `glam` but with generics.
+[`ggmath`] is heavily inspired by [`glam`] and ports a ton of code from it, as
+it serves the same purpose as [`glam`] but with generics.
 
 [`Vec2<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Vec2.html
 [`Vec3<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Vec3.html
@@ -239,9 +257,43 @@ it serves the same purpose as `glam` but with generics.
 [`Vec4A<f32>`]: https://docs.rs/ggmath/latest/ggmath/type.Vec4A.html
 [`Mat4<f32>`]: https://docs.rs/ggmath/latest/ggmath/type.Mat4.html
 [`Mat4A<f32>`]: https://docs.rs/ggmath/latest/ggmath/type.Mat4A.html
-[`f32`]: https://doc.rust-lang.org/std/primitive.f32.html
+
+[`PrimitiveFloat`]: https://docs.rs/ggmath/latest/ggmath/trait.PrimitiveFloat.html
+[`PrimitiveInteger`]: https://docs.rs/ggmath/latest/ggmath/trait.PrimitiveInteger.html
+[`PrimitiveSigned`]: https://docs.rs/ggmath/latest/ggmath/trait.PrimitiveSigned.html
+[`PrimitiveUnsigned`]: https://docs.rs/ggmath/latest/ggmath/trait.PrimitiveUnsigned.html
+[`num-primitive`]: https://crates.io/crates/num-primitive
+
+[benchmark results]: https://github.com/Noam2Stein/ggmath/blob/main/BENCH_RESULTS.md
+[`Affine2<f32>`]: https://docs.rs/ggmath/latest/ggmath/type.Affine2.html
+[`Affine3<f32>`]: https://docs.rs/ggmath/latest/ggmath/type.Affine3.html
+[`Affine2A<f32>`]: https://docs.rs/ggmath/latest/ggmath/type.Affine2A.html
+[`Affine3A<f32>`]: https://docs.rs/ggmath/latest/ggmath/type.Affine3A.html
+
+[`Mask3A<f32>`]: https://docs.rs/ggmath/latest/ggmath/type.Mask3A.html
+[`Vec3A<bool>`]: https://docs.rs/ggmath/latest/ggmath/type.Vec3A.html
+
+[`Vec3<f32x4>`]: https://docs.rs/ggmath/latest/ggmath/type.Vec3.html
+[`wide`]: https://crates.io/crates/wide
+[The `docs.rs` page]: https://docs.rs/ggmath
+
+[`fixed`]: https://crates.io/crates/fixed
+[`Scalar`]: https://docs.rs/ggmath/latest/ggmath/trait.Scalar.html
+
+[`ggmath`]: https://crates.io/crates/ggmath
 
 [`glam`]: https://crates.io/crates/glam
-[`wide`]: https://crates.io/crates/wide
-[`fixed`]: https://crates.io/crates/fixed
-[`num-primitive`]: https://crates.io/crates/num-primitive
+[`ultraviolet`]: https://crates.io/crates/ultraviolet
+[`cgmath`]: https://crates.io/crates/cgmath
+[`nalgebra`]: https://crates.io/crates/nalgebra
+
+[`no_std`]: https://docs.rust-embedded.org/book/intro/no-std.html
+[`libm`]: https://crates.io/crates/libm
+
+[`bytemuck`]: https://crates.io/crates/bytemuck
+[`std`]: https://doc.rust-lang.org/std
+[`mint`]: https://crates.io/crates/mint
+[`rand`]: https://crates.io/crates/rand
+[`serde`]: https://serde.rs
+[`Serialize`]: https://docs.rs/serde/latest/serde/trait.Serialize.html
+[`Deserialize`]: https://docs.rs/serde/latest/serde/trait.Deserialize.html
