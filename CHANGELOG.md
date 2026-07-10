@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `Matrix::translation`
   - `Mat3::to_scale_angle`
   - `Mat4::to_scale_rotation`
+  - `Affine::from_column_fn`
   - `Affine2::to_scale_angle`
   - `Affine3::to_scale_rotation`
   - `FloatExt::move_towards`
@@ -38,9 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Implementation of common traits for `Alignment` marker types.
 
-- Affine function `from_column_fn`.
-
-- `wide` functions:
+- Functions for all `wide` types:
   - `from_lanes`
   - `from_lane_fn`
   - `to_lanes`
@@ -49,7 +48,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `simd_eq`
   - `simd_ne`
 
-- all remaining `wide` functions.
+- All remaining `wide` functions.
 
 - Support for crate `num-primitive`.
 
@@ -69,31 +68,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed matrix `to_scale_angle_translation` and
   `to_scale_rotation_translation` to be consistent with submatrix functions.
 
-- Changed panic conditions for `look_*` functions.
-
 - Changed conventions from column-major to row-major. This includes function
   renames and trait implementations.
 
 - Removed panics from all `wide` functions.
 
-- Fixed `Vector::angle_between` edge case.
-
 - Made vector functions generic over `N`:
   - `any_orthogonal_vector`
   - `any_orthonormal_vector`
 
-- Removed matrices and affine transforms from `Backend`.
-
 - Removed `ScalarBackend` and added `CustomScalar`.
 
-- Fixed rare panic in quaternion function `from_scaled_axis`.
-
-- Fixed the behavior of quaternion functions `from_rotation_arc` and
-  `from_rotation_arc_colinear` for specific edge case.
-
 - Made `Vector::distance_squared` generic over `T`.
-
-- Removed the `std` feature flag.
 
 - Updated minimum supported Rust version to `1.95.0`.
 
@@ -131,11 +117,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- `NAN` constant for `wide` types was previously incorrect.
+- Fixed rare panic in quaternion function `from_scaled_axis`.
+
+- Fixed the behavior of quaternion functions `from_rotation_arc` and
+  `from_rotation_arc_colinear` for specific edge case.
+
+- Fixed `Vector/Quaternion::angle_between` edge case.
+
+- Corrected value of `NAN` constant for `wide` types was previously incorrect.
 
 - Fixed `Vec4::<{wide-float}>::rotate_towards` edge case.
 
 ### Removed
+
+- The `std` feature flag.
 
 - `Quaternion::canonical`.
 
