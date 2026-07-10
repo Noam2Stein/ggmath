@@ -21,7 +21,7 @@ mod wide_float;
 
 /// An `N`x`N` row-major matrix of type `T`.
 ///
-/// `A` controls SIMD alignment and is either [`Aligned`] or [`Unaligned`]. See
+/// `A` controls SIMD alignment and is either [`Unaligned`] or [`Aligned`]. See
 /// [`Alignment`] for more details.
 ///
 /// Most constructors are dimension specific. See [`from_rows`] for raw
@@ -29,42 +29,33 @@ mod wide_float;
 ///
 /// # Type aliases
 ///
-/// - [`Mat2<T>`] for `Matrix<2, T, Unaligned>`.
-/// - [`Mat3<T>`] for `Matrix<3, T, Unaligned>`.
-/// - [`Mat4<T>`] for `Matrix<4, T, Unaligned>`.
-/// - [`Mat2A<T>`] for `Matrix<2, T, Aligned>`.
-/// - [`Mat3A<T>`] for `Matrix<3, T, Aligned>`.
-/// - [`Mat4A<T>`] for `Matrix<4, T, Aligned>`.
+/// - [`Mat2<T>`] for [`Matrix<2, T, Unaligned>`].
+/// - [`Mat3<T>`] for [`Matrix<3, T, Unaligned>`].
+/// - [`Mat4<T>`] for [`Matrix<4, T, Unaligned>`].
+/// - [`Mat2A<T>`] for [`Matrix<2, T, Aligned>`].
+/// - [`Mat3A<T>`] for [`Matrix<3, T, Aligned>`].
+/// - [`Mat4A<T>`] for [`Matrix<4, T, Aligned>`].
 ///
 /// # Fields
 ///
-/// `x_axis: Vector<N, T, Aligned>` (for lengths `2`, `3`, `4`)
+/// - `x_axis: Vector<N, T, N>` (the first row of the matrix, represents the
+///   result of `+X * matrix`, exists for lengths `2`, `3`, `4`)
 ///
-/// The first row of the matrix.
+/// - `y_axis: Vector<N, T, N>` (the second row of the matrix, represents the
+///   result of `+Y * matrix`, exists for lengths `2`, `3`, `4`)
 ///
-/// This represents the result of multiplying `Vector::X` by the matrix.
+/// - `z_axis: Vector<N, T, N>` (the third row of the matrix, represents the
+///   result of `+Z * matrix`, exists for lengths `3`, `4`)
 ///
-/// `y_axis: Vector<N, T, Aligned>` (for lengths `2`, `3`, `4`)
+/// - `w_axis: Vector<N, T, N>` (the fourth row of the matrix, represents the
+///   result of `+W * matrix`, exists for length `4`)
 ///
-/// The second row of the matrix.
-///
-/// This represents the result of multiplying `Vector::Y` by the matrix.
-///
-/// `z_axis: Vector<N, T, Aligned>` (for lengths `3`, `4`)
-///
-/// The third row of the matrix.
-///
-/// This represents the result of multiplying `Vector::Z` by the matrix.
-///
-/// `w_axis: Vector<N, T, Aligned>` (for lengths `4`)
-///
-/// The fourth row of the matrix.
-///
-/// This represents the result of multiplying `Vector::W` by the matrix.
+/// Note that these fields are only exposed by implementing [`Deref`] and
+/// [`DerefMut`].
 ///
 /// # Memory layout
 ///
-/// `Matrix<N, T, A>` contains `N` consecutive values of [`Vector<N, T, A>`]
+/// [`Matrix<N, T, A>`] contains `N` consecutive values of [`Vector<N, T, A>`]
 /// with no additional padding.
 ///
 /// For `N = 2` this type has the size and alignment of [`Vector<4, T, A>`].
@@ -88,359 +79,181 @@ where
 
 /// A 2x2 row-major matrix.
 ///
-/// Linear transformations including 2D rotation and scale can be created using
-/// functions [`from_diagonal`], [`from_angle`] and [`from_scale_angle`].
-///
-/// The resulting matrices can be used to transform 2D vectors using vector
-/// multiplication.
+/// This matrix can be used for 2D linear transformations (applied using
+/// `vec2 * self`).
 ///
 /// # No SIMD alignment
 ///
-/// `Mat2<T>` does not have SIMD alignment. See [`Mat2A<T>`] for a SIMD variant.
-///
-/// See [`Alignment`] for more details.
+/// [`Mat2<T>`] does not have SIMD alignment, for that use [`Mat2A<T>`].
 ///
 /// # Fields
 ///
-/// `x_axis: Vec2<T>`
+/// - `x_axis: Vec2<T>` (the first row of the matrix, represents the result of
+///   `(1, 0) * self`)
 ///
-/// The first row of the matrix.
+/// - `y_axis: Vec2<T>` (the second row of the matrix, represents the result of
+///   `(0, 1) * self`)
 ///
-/// This represents the result of multiplying `(1, 0)` by the matrix.
-///
-/// `y_axis: Vec2<T>`
-///
-/// The second row of the matrix.
-///
-/// This represents the result of multiplying `(0, 1)` by the matrix.
-///
-/// [`from_diagonal`]: Mat2::from_diagonal
-/// [`from_angle`]: Mat2::from_angle
-/// [`from_scale_angle`]: Mat2::from_scale_angle
-/// [`Alignment`]: crate::Alignment
+/// Note that these fields are only exposed by implementing [`Deref`] and
+/// [`DerefMut`].
 pub type Mat2<T> = Matrix<2, T, Unaligned>;
 
 /// A 3x3 row-major matrix.
 ///
-/// `Mat3` can be used for both 3D linear transformations and 2D affine
-/// transformations. For 2D affine transformations, the [`Affine2`] type
-/// results in better performance for some operations (note that benchmarks are
-/// currently missing).
+/// This matrix can be used for both 3D linear transformations (applied using
+/// `vec3 * self`) and 2D affine transformations (applied using
+/// `self.transform_point(vec2)` and `self.transform_vector(vec2)`).
 ///
-/// Linear transformations including 3D rotation and scale can be created using
-/// functions [`from_diagonal`], [`from_rotation_x`], [`from_rotation_y`],
-/// [`from_rotation_z`], [`from_quat`], [`from_axis_angle`] and [`from_euler`].
-///
-/// The resulting matrices can be used to transform 3D vectors using regular
-/// vector multiplication.
-///
-/// Affine transformations including 2D translation, rotation and scale can be
-/// created using functions [`from_scale`], [`from_translation`],
-/// [`from_submatrix`], [`from_submatrix_translation`], [`from_angle`],
-/// [`from_scale_angle`] and [`from_scale_angle_translation`].
-///
-/// The resulting matrices can be used to transform 2D vectors using
-/// [`transform_point`] and [`transform_vector`].
+/// For 2D affine transformations, consider using the [`Affine2<T>`] type which
+/// takes less memory than [`Mat3<T>`] and performs better for select operations
+/// (see [benchmark results]).
 ///
 /// # No SIMD alignment
 ///
-/// `Mat3<T>` does not have SIMD alignment. See [`Mat3A<T>`] for a SIMD variant.
-///
-/// See [`Alignment`] for more details.
+/// [`Mat3<T>`] does not have SIMD alignment, for that use [`Mat3A<T>`].
 ///
 /// # Fields
 ///
-/// `x_axis: Vec3<T>`
+/// - `x_axis: Vec3<T>` (the first row of the matrix, represents the result of
+///   `(1, 0, 0) * self`)
 ///
-/// The first row of the matrix.
+/// - `y_axis: Vec3<T>` (the second row of the matrix, represents the result of
+///   `(0, 1, 0) * self`)
 ///
-/// This represents the result of multiplying `(1, 0, 0)` by the matrix.
+/// - `z_axis: Vec3<T>` (the third row of the matrix, represents the result of
+///   `(0, 0, 1) * self`)
 ///
-/// `y_axis: Vec3<T>`
+/// Note that these fields are only exposed by implementing [`Deref`] and
+/// [`DerefMut`].
 ///
-/// The second row of the matrix.
-///
-/// This represents the result of multiplying `(0, 1, 0)` by the matrix.
-///
-/// `z_axis: Vec3<T>`
-///
-/// The third row of the matrix.
-///
-/// This represents the result of multiplying `(0, 0, 1)` by the matrix.
-///
-/// [`Affine2`]: crate::Affine2
-/// [`from_diagonal`]: Mat3::from_diagonal
-/// [`from_rotation_x`]: Mat3::from_rotation_x
-/// [`from_rotation_y`]: Mat3::from_rotation_y
-/// [`from_rotation_z`]: Mat3::from_rotation_z
-/// [`from_quat`]: Mat3::from_quat
-/// [`from_axis_angle`]: Mat3::from_axis_angle
-/// [`from_euler`]: Mat3::from_euler
-/// [`from_scale`]: Mat3::from_scale
-/// [`from_translation`]: Mat3::from_translation
-/// [`from_submatrix`]: Mat3::from_submatrix
-/// [`from_submatrix_translation`]: Mat3::from_submatrix_translation
-/// [`from_angle`]: Mat3::from_angle
-/// [`from_scale_angle`]: Mat3::from_scale_angle
-/// [`from_scale_angle_translation`]: Mat3::from_scale_angle_translation
-/// [`transform_point`]: Mat3::transform_point
-/// [`transform_vector`]: Mat3::transform_vector
-/// [`Alignment`]: crate::Alignment
+/// [`Affine2<T>`]: crate::Affine2
+/// [benchmark results]: https://github.com/Noam2Stein/ggmath/blob/main/BENCH_RESULTS.md
 pub type Mat3<T> = Matrix<3, T, Unaligned>;
 
 /// A 4x4 row-major matrix.
 ///
-/// `Mat4` can be used for both linear transformations and perspective
-/// projections. For affine transformations, the [`Affine3`] type results in
-/// better performance for some operations (note that benchmarks are currently
-/// missing).
+/// This matrix can be used for both 3D affine transformations (applied using
+/// `self.transform_point(vec3)` and `self.transform_vector(vec3)`) and 3D
+/// projections (applied using `self.project_point(vec3)`).
 ///
-/// Affine transformations including 3D translation, rotation and scale can be
-/// created using functions such as [`from_scale`], [`from_translation`],
-/// [`from_rotation_x`], [`from_rotation_y`] and [`from_rotation_z`],
-/// [`from_quat`], and [`from_scale_rotation_translation`].
-///
-/// The resulting matrices can be used to transform 3D vectors using
-/// [`transform_point`] and [`transform_vector`].
-///
-/// Left-handed projections can be created using functions such as
-/// [`orthographic_lh`], [`perspective_lh`] and [`perspective_infinite_lh`].
-/// Right-handed projections can be created using functions such as
-/// [`orthographic_rh`], [`perspective_rh`] and [`perspective_infinite_rh`].
-///
-/// The resulting projections can be used to transform 3D vectors as points
-/// using [`project_point`].
+/// For 3D affine transformations, consider using the [`Affine3<T>`] type which
+/// takes less memory than [`Mat4<T>`] and performs better for select operations
+/// (see [benchmark results]).
 ///
 /// # No SIMD alignment
 ///
-/// `Mat4<T>` does not have SIMD alignment. See [`Mat4A<T>`] for a SIMD variant.
-///
-/// See [`Alignment`] for more details.
+/// [`Mat4<T>`] does not have SIMD alignment, for that use [`Mat4A<T>`].
 ///
 /// # Fields
 ///
-/// `x_axis: Vec4<T>`
+/// - `x_axis: Vec4<T>` (the first row of the matrix, represents the result of
+///   `(1, 0, 0, 0) * self`)
 ///
-/// The first row of the matrix.
+/// - `y_axis: Vec4<T>` (the second row of the matrix, represents the result of
+///   `(0, 1, 0, 0) * self`)
 ///
-/// This represents the result of multiplying `(1, 0, 0, 0)` by the matrix.
+/// - `z_axis: Vec4<T>` (the third row of the matrix, represents the result of
+///   `(0, 0, 1, 0) * self`)
 ///
-/// `y_axis: Vec4<T>`
+/// - `w_axis: Vec4<T>` (the fourth row of the matrix, represents the result of
+///   `(0, 0, 0, 1) * self`)
 ///
-/// The second row of the matrix.
+/// Note that these fields are only exposed by implementing [`Deref`] and
+/// [`DerefMut`].
 ///
-/// This represents the result of multiplying `(0, 1, 0, 0)` by the matrix.
-///
-/// `z_axis: Vec4<T>`
-///
-/// The third row of the matrix.
-///
-/// This represents the result of multiplying `(0, 0, 1, 0)` by the matrix.
-///
-/// `w_axis: Vec4<T>`
-///
-/// The fourth row of the matrix.
-///
-/// This represents the result of multiplying `(0, 0, 0, 1)` by the matrix.
-///
-/// [`Affine3`]: crate::Affine3
-/// [`from_scale`]: Mat4::from_scale
-/// [`from_translation`]: Mat4::from_translation
-/// [`from_rotation_x`]: Mat4::from_rotation_x
-/// [`from_rotation_y`]: Mat4::from_rotation_y
-/// [`from_rotation_z`]: Mat4::from_rotation_z
-/// [`from_quat`]: Mat4::from_quat
-/// [`from_scale_rotation_translation`]: Mat4::from_scale_rotation_translation
-/// [`transform_point`]: Mat4::transform_point
-/// [`transform_vector`]: Mat4::transform_vector
-/// [`orthographic_lh`]: Mat4::orthographic_lh
-/// [`perspective_lh`]: Mat4::perspective_lh
-/// [`perspective_infinite_lh`]: Mat4::perspective_infinite_lh
-/// [`orthographic_rh`]: Mat4::orthographic_rh
-/// [`perspective_rh`]: Mat4::perspective_rh
-/// [`perspective_infinite_rh`]: Mat4::perspective_infinite_rh
-/// [`project_point`]: Mat4::project_point
-/// [`Alignment`]: crate::Alignment
+/// [`Affine3<T>`]: crate::Affine3
+/// [benchmark results]: https://github.com/Noam2Stein/ggmath/blob/main/BENCH_RESULTS.md
 pub type Mat4<T> = Matrix<4, T, Unaligned>;
 
 /// A 2x2 row-major matrix.
 ///
-/// Linear transformations including 2D rotation and scale can be created using
-/// functions [`from_diagonal`], [`from_angle`] and [`from_scale_angle`].
-///
-/// The resulting matrices can be used to transform 2D vectors using vector
-/// multiplication.
+/// This matrix can be used for 2D linear transformations (applied using
+/// `vec2 * self`).
 ///
 /// # SIMD alignment
 ///
-/// `Mat2A<T>` has SIMD alignment for appropriate scalar types. See [`Mat2<T>`]
-/// for a non-SIMD variant.
-///
-/// See [`Alignment`] for more details.
+/// For appropriate `T` types, [`Mat2A<T>`] has SIMD alignment. For no SIMD use
+/// [`Mat2<T>`].
 ///
 /// # Fields
 ///
-/// `x_axis: Vec2A<T>`
+/// - `x_axis: Vec2A<T>` (the first row of the matrix, represents the result of
+///   `(1, 0) * self`)
 ///
-/// The first row of the matrix.
+/// - `y_axis: Vec2A<T>` (the second row of the matrix, represents the result of
+///   `(0, 1) * self`)
 ///
-/// This represents the result of multiplying `(1, 0)` by the matrix.
-///
-/// `y_axis: Vec2A<T>`
-///
-/// The second row of the matrix.
-///
-/// This represents the result of multiplying `(0, 1)` by the matrix.
-///
-/// [`from_diagonal`]: Mat2::from_diagonal
-/// [`from_angle`]: Mat2::from_angle
-/// [`from_scale_angle`]: Mat2::from_scale_angle
-/// [`Alignment`]: crate::Alignment
+/// Note that these fields are only exposed by implementing [`Deref`] and
+/// [`DerefMut`].
 pub type Mat2A<T> = Matrix<2, T, Aligned>;
 
 /// A 3x3 row-major matrix.
 ///
-/// `Mat3` can be used for both 3D linear transformations and 2D affine
-/// transformations. For 2D affine transformations, the [`Affine2A`] type
-/// results in better performance for some operations (note that benchmarks are
-/// currently missing).
+/// This matrix can be used for both 3D linear transformations (applied using
+/// `vec3 * self`) and 2D affine transformations (applied using
+/// `self.transform_point(vec2)` and `self.transform_vector(vec2)`).
 ///
-/// Linear transformations including 3D rotation and scale can be created using
-/// functions [`from_diagonal`], [`from_rotation_x`], [`from_rotation_y`],
-/// [`from_rotation_z`], [`from_quat`], [`from_axis_angle`] and [`from_euler`].
-///
-/// The resulting matrices can be used to transform 3D vectors using regular
-/// vector multiplication.
-///
-/// Affine transformations including 2D translation, rotation and scale can be
-/// created using functions [`from_scale`], [`from_translation`],
-/// [`from_submatrix`], [`from_submatrix_translation`], [`from_angle`],
-/// [`from_scale_angle`] and [`from_scale_angle_translation`].
-///
-/// The resulting matrices can be used to transform 2D vectors using
-/// [`transform_point`] and [`transform_vector`].
+/// For 2D affine transformations, consider using the [`Affine2A<T>`] type which
+/// takes less memory than [`Mat3A<T>`] and performs better for select
+/// operations (see [benchmark results]).
 ///
 /// # SIMD alignment
 ///
-/// `Mat3A<T>` has SIMD alignment for appropriate scalar types. See [`Mat3<T>`]
-/// for a non-SIMD variant.
-///
-/// See [`Alignment`] for more details.
+/// For appropriate `T` types, [`Mat3A<T>`] has SIMD alignment. For no SIMD use
+/// [`Mat3<T>`].
 ///
 /// # Fields
 ///
-/// `x_axis: Vec3A<T>`
+/// - `x_axis: Vec3A<T>` (the first row of the matrix, represents the result of
+///   `(1, 0, 0) * self`)
 ///
-/// The first row of the matrix.
+/// - `y_axis: Vec3A<T>` (the second row of the matrix, represents the result of
+///   `(0, 1, 0) * self`)
 ///
-/// This represents the result of multiplying `(1, 0, 0)` by the matrix.
+/// - `z_axis: Vec3A<T>` (the third row of the matrix, represents the result of
+///   `(0, 0, 1) * self`)
 ///
-/// `y_axis: Vec3A<T>`
+/// Note that these fields are only exposed by implementing [`Deref`] and
+/// [`DerefMut`].
 ///
-/// The second row of the matrix.
-///
-/// This represents the result of multiplying `(0, 1, 0)` by the matrix.
-///
-/// `z_axis: Vec3A<T>`
-///
-/// The third row of the matrix.
-///
-/// This represents the result of multiplying `(0, 0, 1)` by the matrix.
-///
-/// [`Affine2A`]: crate::Affine2A
-/// [`from_diagonal`]: Mat3::from_diagonal
-/// [`from_rotation_x`]: Mat3::from_rotation_x
-/// [`from_rotation_y`]: Mat3::from_rotation_y
-/// [`from_rotation_z`]: Mat3::from_rotation_z
-/// [`from_quat`]: Mat3::from_quat
-/// [`from_axis_angle`]: Mat3::from_axis_angle
-/// [`from_euler`]: Mat3::from_euler
-/// [`from_scale`]: Mat3::from_scale
-/// [`from_translation`]: Mat3::from_translation
-/// [`from_submatrix`]: Mat3::from_submatrix
-/// [`from_submatrix_translation`]: Mat3::from_submatrix_translation
-/// [`from_angle`]: Mat3::from_angle
-/// [`from_scale_angle`]: Mat3::from_scale_angle
-/// [`from_scale_angle_translation`]: Mat3::from_scale_angle_translation
-/// [`transform_point`]: Mat3::transform_point
-/// [`transform_vector`]: Mat3::transform_vector
-/// [`Alignment`]: crate::Alignment
+/// [`Affine2A<T>`]: crate::Affine2A
+/// [benchmark results]: https://github.com/Noam2Stein/ggmath/blob/main/BENCH_RESULTS.md
 pub type Mat3A<T> = Matrix<3, T, Aligned>;
 
 /// A 4x4 row-major matrix.
 ///
-/// `Mat4` can be used for both linear transformations and perspective
-/// projections. For affine transformations, the [`Affine3A`] type results in
-/// better performance for some operations (note that benchmarks are currently
-/// missing).
+/// This matrix can be used for both 3D affine transformations (applied using
+/// `self.transform_point(vec3)` and `self.transform_vector(vec3)`) and 3D
+/// projections (applied using `self.project_point(vec3)`).
 ///
-/// Affine transformations including 3D translation, rotation and scale can be
-/// created using functions such as [`from_scale`], [`from_translation`],
-/// [`from_rotation_x`], [`from_rotation_y`] and [`from_rotation_z`],
-/// [`from_quat`], and [`from_scale_rotation_translation`].
-///
-/// The resulting matrices can be used to transform 3D vectors using
-/// [`transform_point`] and [`transform_vector`].
-///
-/// Left-handed projections can be created using functions such as
-/// [`orthographic_lh`], [`perspective_lh`] and [`perspective_infinite_lh`].
-/// Right-handed projections can be created using functions such as
-/// [`orthographic_rh`], [`perspective_rh`] and [`perspective_infinite_rh`].
-///
-/// The resulting projections can be used to transform 3D vectors as points
-/// using [`project_point`].
+/// For 3D affine transformations, consider using the [`Affine3A<T>`] type which
+/// performs better than [`Mat4A`] for select operations (see
+/// [benchmark results]).
 ///
 /// # SIMD alignment
 ///
-/// `Mat4A<T>` has SIMD alignment for appropriate scalar types. See [`Mat4<T>`]
-/// for a non-SIMD variant.
-///
-/// See [`Alignment`] for more details.
+/// For appropriate `T` types, [`Mat4A<T>`] has SIMD alignment. For no SIMD use
+/// [`Mat4<T>`].
 ///
 /// # Fields
 ///
-/// `x_axis: Vec4A<T>`
+/// - `x_axis: Vec4A<T>` (the first row of the matrix, represents the result of
+///   `(1, 0, 0, 0) * self`)
 ///
-/// The first row of the matrix.
+/// - `y_axis: Vec4A<T>` (the second row of the matrix, represents the result of
+///   `(0, 1, 0, 0) * self`)
 ///
-/// This represents the result of multiplying `(1, 0, 0, 0)` by the matrix.
+/// - `z_axis: Vec4A<T>` (the third row of the matrix, represents the result of
+///   `(0, 0, 1, 0) * self`)
 ///
-/// `y_axis: Vec4A<T>`
+/// - `w_axis: Vec4A<T>` (the fourth row of the matrix, represents the result of
+///   `(0, 0, 0, 1) * self`)
 ///
-/// The second row of the matrix.
+/// Note that these fields are only exposed by implementing [`Deref`] and
+/// [`DerefMut`].
 ///
-/// This represents the result of multiplying `(0, 1, 0, 0)` by the matrix.
-///
-/// `z_axis: Vec4A<T>`
-///
-/// The third row of the matrix.
-///
-/// This represents the result of multiplying `(0, 0, 1, 0)` by the matrix.
-///
-/// `w_axis: Vec4A<T>`
-///
-/// The fourth row of the matrix.
-///
-/// This represents the result of multiplying `(0, 0, 0, 1)` by the matrix.
-///
-/// [`Affine3A`]: crate::Affine3A
-/// [`from_scale`]: Mat4::from_scale
-/// [`from_translation`]: Mat4::from_translation
-/// [`from_rotation_x`]: Mat4::from_rotation_x
-/// [`from_rotation_y`]: Mat4::from_rotation_y
-/// [`from_rotation_z`]: Mat4::from_rotation_z
-/// [`from_quat`]: Mat4::from_quat
-/// [`from_scale_rotation_translation`]: Mat4::from_scale_rotation_translation
-/// [`transform_point`]: Mat4::transform_point
-/// [`transform_vector`]: Mat4::transform_vector
-/// [`orthographic_lh`]: Mat4::orthographic_lh
-/// [`perspective_lh`]: Mat4::perspective_lh
-/// [`perspective_infinite_lh`]: Mat4::perspective_infinite_lh
-/// [`orthographic_rh`]: Mat4::orthographic_rh
-/// [`perspective_rh`]: Mat4::perspective_rh
-/// [`perspective_infinite_rh`]: Mat4::perspective_infinite_rh
-/// [`project_point`]: Mat4::project_point
-/// [`Alignment`]: crate::Alignment
+/// [`Affine3A<T>`]: crate::Affine3A
+/// [benchmark results]: https://github.com/Noam2Stein/ggmath/blob/main/BENCH_RESULTS.md
 pub type Mat4A<T> = Matrix<4, T, Aligned>;
 
 impl<const N: usize, T, A: Alignment> Matrix<N, T, A>
