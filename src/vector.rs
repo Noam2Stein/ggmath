@@ -34,44 +34,40 @@ mod wide_unsigned;
 
 /// An `N`-dimensional vector of type `T`.
 ///
-/// `A` controls SIMD alignment and is either [`Aligned`] or [`Unaligned`]. See
+/// `A` controls SIMD alignment and is either [`Unaligned`] or [`Aligned`]. See
 /// [`Alignment`] for more details.
 ///
 /// # Type aliases
 ///
-/// - [`Vec2<T>`] for `Vector<2, T, Unaligned>`.
-/// - [`Vec3<T>`] for `Vector<3, T, Unaligned>`.
-/// - [`Vec4<T>`] for `Vector<4, T, Unaligned>`.
-/// - [`Vec2A<T>`] for `Vector<2, T, Aligned>`.
-/// - [`Vec3A<T>`] for `Vector<3, T, Aligned>`.
-/// - [`Vec4A<T>`] for `Vector<4, T, Aligned>`.
+/// - [`Vec2<T>`] for [`Vector<2, T, Unaligned>`].
+/// - [`Vec3<T>`] for [`Vector<3, T, Unaligned>`].
+/// - [`Vec4<T>`] for [`Vector<4, T, Unaligned>`].
+/// - [`Vec2A<T>`] for [`Vector<2, T, Aligned>`].
+/// - [`Vec3A<T>`] for [`Vector<3, T, Aligned>`].
+/// - [`Vec4A<T>`] for [`Vector<4, T, Aligned>`].
 ///
 /// # Fields
 ///
-/// `x: T` (for lengths `2`, `3`, `4`)
+/// - `x: T` (the first element of the vector, exists for lengths `2`, `3`, `4`)
 ///
-/// The first element of the vector.
+/// - `y: T` (the second element of the vector, exists for lengths `2`, `3`,
+///   `4`)
 ///
-/// `y: T` (for lengths `2`, `3`, `4`)
+/// - `z: T` (the third element of the vector, exists for lengths `3`, `4`)
 ///
-/// The second element of the vector.
+/// - `w: T` (the fourth element of the vector, exists for length `4`)
 ///
-/// `z: T` (for lengths `3`, `4`)
-///
-/// The third element of the vector.
-///
-/// `w: T` (for length `4`)
-///
-/// The fourth element of the vector.
+/// Note that these fields are only exposed by implementing [`Deref`] and
+/// [`DerefMut`].
 ///
 /// # Memory layout
 ///
-/// `Vector<N, T, A>` contains `N` consecutive values of `T` followed by
+/// [`Vector<N, T, A>`] contains `N` consecutive values of `T` followed by
 /// optional padding.
 ///
-/// `Vector<N, T, Unaligned>` has the alignment of `T` and has no padding.
-/// `Vector<N, T, Aligned>` may have higher alignment than `T`. [`Vec2A<T>`] and
-/// [`Vec4A<T>`] have no padding. [`Vec3A<T>`] may have one padding element.
+/// [`Vector<N, T, Unaligned>`] has the alignment of `T` and has no padding.
+/// [`Vector<N, T, Aligned>`] may have higher alignment than `T`. [`Vec2A<T>`]
+/// and [`Vec4A<T>`] have no padding. [`Vec3A<T>`] may have one padding element.
 ///
 /// Padding is fully initialized and accepts all bit patterns. Unless `T`
 /// accepts all bit patterns, it is not sound to assume padding contains valid
@@ -96,157 +92,103 @@ where
     Length<N>: SupportedLength,
     T: Scalar;
 
-/// A 2-dimensional vector.
+/// A 2D vector.
 ///
 /// # No SIMD alignment
 ///
-/// `Vec2<T>` does not have SIMD alignment. See [`Vec2A<T>`] for a SIMD variant.
-///
-/// See [`Alignment`] for more details.
+/// [`Vec2<T>`] does not have SIMD alignment, for that use [`Vec2A<T>`].
 ///
 /// # Fields
 ///
-/// `x: T`
+/// - `x: T` (the first element of the vector)
+/// - `y: T` (the second element of the vector)
 ///
-/// The first element of the vector.
-///
-/// `y: T`
-///
-/// The second element of the vector.
-///
-/// [`Alignment`]: crate::Alignment
+/// Note that these fields are only exposed by implementing [`Deref`] and
+/// [`DerefMut`].
 pub type Vec2<T> = Vector<2, T, Unaligned>;
 
-/// A 3-dimensional vector.
+/// A 3D vector.
 ///
 /// # No SIMD alignment
 ///
-/// `Vec3<T>` does not have SIMD alignment. See [`Vec3A<T>`] for a SIMD variant.
-///
-/// See [`Alignment`] for more details.
+/// [`Vec3<T>`] does not have SIMD alignment, for that use [`Vec3A<T>`].
 ///
 /// # Fields
 ///
-/// `x: T`
+/// - `x: T` (the first element of the vector)
+/// - `y: T` (the second element of the vector)
+/// - `z: T` (the third element of the vector)
 ///
-/// The first element of the vector.
-///
-/// `y: T`
-///
-/// The second element of the vector.
-///
-/// `z: T`
-///
-/// The third element of the vector.
-///
-/// [`Alignment`]: crate::Alignment
+/// Note that these fields are only exposed by implementing [`Deref`] and
+/// [`DerefMut`].
 pub type Vec3<T> = Vector<3, T, Unaligned>;
 
-/// A 4-dimensional vector.
+/// A 4D vector.
 ///
 /// # No SIMD alignment
 ///
-/// `Vec4<T>` does not have SIMD alignment. See [`Vec4A<T>`] for a SIMD variant.
-///
-/// See [`Alignment`] for more details.
+/// [`Vec4<T>`] does not have SIMD alignment, for that use [`Vec4A<T>`].
 ///
 /// # Fields
 ///
-/// `x: T`
+/// - `x: T` (the first element of the vector)
+/// - `y: T` (the second element of the vector)
+/// - `z: T` (the third element of the vector)
+/// - `w: T` (the fourth element of the vector)
 ///
-/// The first element of the vector.
-///
-/// `y: T`
-///
-/// The second element of the vector.
-///
-/// `z: T`
-///
-/// The third element of the vector.
-///
-/// `w: T`
-///
-/// The fourth element of the vector.
-///
-/// [`Alignment`]: crate::Alignment
+/// Note that these fields are only exposed by implementing [`Deref`] and
+/// [`DerefMut`].
 pub type Vec4<T> = Vector<4, T, Unaligned>;
 
-/// A 2-dimensional vector.
+/// A 2D vector.
 ///
 /// # SIMD alignment
 ///
-/// `Vec2A<T>` has SIMD alignment for appropriate scalar types. See [`Vec2<T>`]
-/// for a non-SIMD variant.
-///
-/// See [`Alignment`] for more details.
+/// For appropriate `T` types, [`Vec2A<T>`] has SIMD alignment. For no SIMD use
+/// [`Vec2<T>`].
 ///
 /// # Fields
 ///
-/// `x: T`
+/// - `x: T` (the first element of the vector)
+/// - `y: T` (the second element of the vector)
 ///
-/// The first element of the vector.
-///
-/// `y: T`
-///
-/// The second element of the vector.
-///
-/// [`Alignment`]: crate::Alignment
+/// Note that these fields are only exposed by implementing [`Deref`] and
+/// [`DerefMut`].
 pub type Vec2A<T> = Vector<2, T, Aligned>;
 
-/// A 3-dimensional vector.
+/// A 3D vector.
 ///
 /// # SIMD alignment
 ///
-/// `Vec3A<T>` has SIMD alignment for appropriate scalar types. See [`Vec3<T>`]
-/// for a non-SIMD variant.
-///
-/// See [`Alignment`] for more details.
+/// For appropriate `T` types, [`Vec3A<T>`] has SIMD alignment. For no SIMD use
+/// [`Vec3<T>`].
 ///
 /// # Fields
 ///
-/// `x: T`
+/// - `x: T` (the first element of the vector)
+/// - `y: T` (the second element of the vector)
+/// - `z: T` (the third element of the vector)
 ///
-/// The first element of the vector.
-///
-/// `y: T`
-///
-/// The second element of the vector.
-///
-/// `z: T`
-///
-/// The third element of the vector.
-///
-/// [`Alignment`]: crate::Alignment
+/// Note that these fields are only exposed by implementing [`Deref`] and
+/// [`DerefMut`].
 pub type Vec3A<T> = Vector<3, T, Aligned>;
 
-/// A 4-dimensional vector.
+/// A 4D vector.
 ///
 /// # SIMD alignment
 ///
-/// `Vec4A<T>` has SIMD alignment for appropriate scalar types. See [`Vec4<T>`]
-/// for a non-SIMD variant.
-///
-/// See [`Alignment`] for more details.
+/// For appropriate `T` types, [`Vec4A<T>`] has SIMD alignment. For no SIMD use
+/// [`Vec4<T>`].
 ///
 /// # Fields
 ///
-/// `x: T`
+/// - `x: T` (the first element of the vector)
+/// - `y: T` (the second element of the vector)
+/// - `z: T` (the third element of the vector)
+/// - `w: T` (the fourth element of the vector)
 ///
-/// The first element of the vector.
-///
-/// `y: T`
-///
-/// The second element of the vector.
-///
-/// `z: T`
-///
-/// The third element of the vector.
-///
-/// `w: T`
-///
-/// The fourth element of the vector.
-///
-/// [`Alignment`]: crate::Alignment
+/// Note that these fields are only exposed by implementing [`Deref`] and
+/// [`DerefMut`].
 pub type Vec4A<T> = Vector<4, T, Aligned>;
 
 impl<const N: usize, T, A: Alignment> Vector<N, T, A>
