@@ -190,7 +190,7 @@ dependencies = [
 
 [[package]]
 name = "ggmath"
-version = "0.16.7"
+version = "0.17.0"
 dependencies = [
  "assert-impl-trait",
  "bytemuck",
