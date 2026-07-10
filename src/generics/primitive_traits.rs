@@ -10,7 +10,7 @@ use crate::{
     utils::{FloatUtils, PrimitiveFloatUtils, PrimitiveIntegerUtils, PrimitiveSignedUtils},
 };
 
-/// Trait for all primitive floating-point types.
+/// A trait for all primitive floating-point types.
 ///
 /// Implemented for [`f32`] and [`f64`].
 ///
@@ -66,7 +66,7 @@ pub trait PrimitiveFloat:
     type Bits: PrimitiveUnsigned;
 }
 
-/// Trait for all primitive integer types.
+/// A trait for all primitive integer types.
 ///
 /// Implemented for [`i8`], [`i16`], [`i32`], [`i64`], [`i128`], [`isize`],
 /// [`u8`], [`u16`], [`u32`], [`u64`], [`u128`] and [`usize`].
@@ -129,7 +129,7 @@ pub trait PrimitiveInteger:
 {
 }
 
-/// Trait for all primitive signed integer types.
+/// A trait for all primitive signed integer types.
 ///
 /// Implemented for [`i8`], [`i16`], [`i32`], [`i64`], [`i128`] and [`isize`].
 ///
@@ -174,7 +174,7 @@ pub trait PrimitiveSigned:
     type Unsigned: PrimitiveUnsigned;
 }
 
-/// Trait for all primitive unsigned integer types.
+/// A trait for all primitive unsigned integer types.
 ///
 /// Implemented for [`u8`], [`u16`], [`u32`], [`u64`], [`u128`] and [`usize`].
 ///
