@@ -16,111 +16,79 @@ mod wide;
 #[cfg(feature = "wide")]
 mod wide_float;
 
-/// A quaternion representing an orientation of type `T`.
+/// A quaternion representing a rotation.
 ///
-/// `A` controls SIMD alignment and is either [`Aligned`] or [`Unaligned`]. See
+/// `A` controls SIMD alignment and is either [`Unaligned`] or [`Aligned`]. See
 /// [`Alignment`] for more details.
 ///
-/// This quaternion is intended to be of unit length but may denormalize due to
+/// This quaternion is intended to be normalized, but may denormalize due to
 /// floating point "error creep" which can occur when successive quaternion
 /// operations are applied.
 ///
 /// # Type aliases
 ///
-/// - [`Quat<T>`] for `Quaternion<T, Unaligned>`.
-/// - [`QuatA<T>`] for `Quaternion<T, Aligned>`.
+/// - [`Quat<T>`] for [`Quaternion<T, Unaligned>`].
+/// - [`QuatA<T>`] for [`Quaternion<T, Aligned>`].
 ///
 /// # Fields
 ///
-/// `x: T`
+/// - `x: T` (rotates `+Y` to `+Z`)
+/// - `y: T` (rotates `+Z` to `+X`)
+/// - `z: T` (rotates `+X` to `+Y`)
+/// - `w: T` (the scalar part)
 ///
-/// The first imaginary component of the quaternion.
-///
-/// `y: T`
-///
-/// The second imaginary component of the quaternion.
-///
-/// `z: T`
-///
-/// The third imaginary component of the quaternion.
-///
-/// `w: T`
-///
-/// The real part of the quaternion.
+/// Note that these fields are only exposed by implementing [`Deref`] and
+/// [`DerefMut`].
 ///
 /// # Memory layout
 ///
-/// `Quaternion<T, A>` is a transparent wrapper around `Vector<4, T, A>`.
+/// [`Quaternion<T, A>`] is a transparent wrapper around [`Vector<4, T, A>`].
 #[repr(transparent)]
 pub struct Quaternion<T, A: Alignment>(pub(crate) Vector<4, T, A>)
 where
     T: Scalar;
 
-/// A quaternion representing an orientation.
+/// A quaternion representing a rotation.
 ///
-/// This quaternion is intended to be of unit length but may denormalize due to
+/// This quaternion is intended to be normalized, but may denormalize due to
 /// floating point "error creep" which can occur when successive quaternion
 /// operations are applied.
 ///
 /// # No SIMD alignment
 ///
-/// `Quat<T>` does not have SIMD alignment. See [`QuatA<T>`] for a SIMD variant.
-///
-/// See [`Alignment`] for more details.
+/// [`Quat<T>`] does not have SIMD alignment, for that use [`QuatA<T>`].
 ///
 /// # Fields
 ///
-/// `x: T`
+/// - `x: T` (rotates `+Y` to `+Z`)
+/// - `y: T` (rotates `+Z` to `+X`)
+/// - `z: T` (rotates `+X` to `+Y`)
+/// - `w: T` (the scalar part)
 ///
-/// The first imaginary component of the quaternion.
-///
-/// `y: T`
-///
-/// The second imaginary component of the quaternion.
-///
-/// `z: T`
-///
-/// The third imaginary component of the quaternion.
-///
-/// `w: T`
-///
-/// The real part of the quaternion.
-///
-/// [`Alignment`]: crate::Alignment
+/// Note that these fields are only exposed by implementing [`Deref`] and
+/// [`DerefMut`].
 pub type Quat<T> = Quaternion<T, Unaligned>;
 
-/// A quaternion representing an orientation.
+/// A quaternion representing a rotation.
 ///
-/// This quaternion is intended to be of unit length but may denormalize due to
+/// This quaternion is intended to be normalized, but may denormalize due to
 /// floating point "error creep" which can occur when successive quaternion
 /// operations are applied.
 ///
 /// # SIMD alignment
 ///
-/// `QuatA<T>` has SIMD alignment for appropriate scalar types. See [`Quat<T>`]
-/// for a non-SIMD variant.
-///
-/// See [`Alignment`] for more details.
+/// For appropriate `T` types, [`QuatA<T>`] has SIMD alignment. For no SIMD use
+/// [`Quat<T>`].
 ///
 /// # Fields
 ///
-/// `x: T`
+/// - `x: T` (rotates `+Y` to `+Z`)
+/// - `y: T` (rotates `+Z` to `+X`)
+/// - `z: T` (rotates `+X` to `+Y`)
+/// - `w: T` (the scalar part)
 ///
-/// The first imaginary component of the quaternion.
-///
-/// `y: T`
-///
-/// The second imaginary component of the quaternion.
-///
-/// `z: T`
-///
-/// The third imaginary component of the quaternion.
-///
-/// `w: T`
-///
-/// The real part of the quaternion.
-///
-/// [`Alignment`]: crate::Alignment
+/// Note that these fields are only exposed by implementing [`Deref`] and
+/// [`DerefMut`].
 pub type QuatA<T> = Quaternion<T, Aligned>;
 
 impl<T, A: Alignment> Quaternion<T, A>
