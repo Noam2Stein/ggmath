@@ -576,7 +576,9 @@ where
 mod tests {
     use crate::{
         Affine, Affine2, EulerRot, Matrix, Quaternion, Vec2, Vector,
-        utils::{assert_debug_panic, assert_panic_test_eq, assert_test_eq, for_types, random_iter},
+        test_utils::{
+            assert_debug_panic, assert_panic_test_eq, assert_test_eq, for_types, random_iter,
+        },
     };
 
     #[test]

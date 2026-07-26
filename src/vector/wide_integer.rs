@@ -321,7 +321,7 @@ mod tests {
 
     use crate::{
         Unaligned, Vector,
-        utils::{assert_panic_test_eq, assert_test_eq_or_panic, for_types, random_iter},
+        test_utils::{assert_panic_test_eq, assert_test_eq_or_panic, for_types, random_iter},
     };
 
     #[test]

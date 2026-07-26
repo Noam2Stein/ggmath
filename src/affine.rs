@@ -1166,7 +1166,7 @@ mod tests {
 
     use crate::{
         Affine, Aligned, Mask, Matrix, Unaligned, Vector,
-        utils::{assert_panic, assert_test_eq, for_types, random_iter},
+        test_utils::{assert_panic, assert_test_eq, for_types, random_iter},
     };
 
     #[test]

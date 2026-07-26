@@ -348,7 +348,7 @@ mod tests {
 
     use crate::{
         Mat2A, Matrix, Unaligned,
-        utils::{assert_panic, assert_test_eq, for_types, random_iter},
+        test_utils::{assert_panic, assert_test_eq, for_types, random_iter},
     };
 
     #[test]

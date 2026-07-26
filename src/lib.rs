@@ -253,3 +253,6 @@ mod quaternion;
 mod third_party;
 mod utils;
 mod vector;
+
+#[cfg(test)]
+mod test_utils;

@@ -70,7 +70,7 @@ where
 mod tests {
     use rand::{RngExt, SeedableRng, rngs::StdRng};
 
-    use crate::{Affine, Mask, Matrix, Quaternion, Vector, utils::for_types};
+    use crate::{Affine, Mask, Matrix, Quaternion, Vector, test_utils::for_types};
 
     #[test]
     fn test_vector() {

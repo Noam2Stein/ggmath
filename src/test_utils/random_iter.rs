@@ -314,7 +314,7 @@ mod wide {
         u32x16, u64x2, u64x4, u64x8,
     };
 
-    use crate::utils::{Category, Input, Random};
+    use crate::test_utils::{Category, Input, Random};
 
     macro_rules! wide_impl_random {
         ($T:ident, $LANES:literal, $Wide:ident) => {

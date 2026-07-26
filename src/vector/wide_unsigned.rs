@@ -45,7 +45,7 @@ mod tests {
 
     use crate::{
         Unaligned, Vector,
-        utils::{for_types, random_iter},
+        test_utils::{for_types, random_iter},
     };
 
     #[test]

@@ -849,7 +849,7 @@ mod tests {
 
     use repetitive::repetitive;
 
-    use crate::{Vector, utils::for_types};
+    use crate::{Vector, test_utils::for_types};
 
     #[test]
     fn test_swizzle_2() {

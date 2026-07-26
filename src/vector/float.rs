@@ -2015,7 +2015,7 @@ mod tests {
     use crate::utils::PrimitiveFloatUtils;
     use crate::{
         FloatExt, Mask, Vec2A, Vec3A, Vector,
-        utils::{
+        test_utils::{
             assert_debug_panic, assert_panic_test_eq, assert_test_eq, assert_test_eq_or_panic,
             for_types, random_iter,
         },

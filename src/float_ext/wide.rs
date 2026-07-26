@@ -41,7 +41,7 @@ mod tests {
 
     use crate::{
         FloatExt,
-        utils::{assert_test_eq, random_iter},
+        test_utils::{assert_test_eq, random_iter},
     };
 
     #[test]

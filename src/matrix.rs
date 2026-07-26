@@ -2596,7 +2596,7 @@ mod tests {
 
     use crate::{
         Affine, Aligned, Mask, Mat2A, Mat3A, Mat4A, Matrix, Unaligned, Vec2A, Vec3A, Vec4A, Vector,
-        utils::{assert_panic, assert_test_eq, for_types, random_iter},
+        test_utils::{assert_panic, assert_test_eq, for_types, random_iter},
     };
 
     #[test]

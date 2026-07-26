@@ -269,7 +269,10 @@ mod wide {
 
     #[cfg(test)]
     mod tests {
-        use crate::utils::{FloatUtils, assert_test_eq, for_types, random_iter};
+        use crate::{
+            test_utils::{assert_test_eq, for_types, random_iter},
+            utils::FloatUtils,
+        };
 
         #[test]
         fn test_acos_approx() {
@@ -296,7 +299,10 @@ mod wide {
 
 #[cfg(test)]
 mod tests {
-    use crate::utils::{FloatUtils, assert_test_eq, for_types, random_iter};
+    use crate::{
+        test_utils::{assert_test_eq, for_types, random_iter},
+        utils::FloatUtils,
+    };
 
     #[test]
     fn test_acos_approx() {

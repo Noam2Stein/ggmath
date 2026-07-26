@@ -528,7 +528,7 @@ mod tests {
 
     use crate::{
         Affine, Affine2, Affine3, EulerRot, Mat3, Matrix, Quat, Unaligned, Vec2, Vec3, Vector,
-        utils::{assert_test_eq, assert_test_eq_or_panic, for_types, random_iter},
+        test_utils::{assert_test_eq, assert_test_eq_or_panic, for_types, random_iter},
     };
 
     #[test]

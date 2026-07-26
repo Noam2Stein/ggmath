@@ -718,7 +718,7 @@ mod tests {
 
     use crate::{
         Aligned, Matrix, Quaternion, Unaligned, Vector,
-        utils::{assert_test_eq, for_types, random_iter},
+        test_utils::{assert_test_eq, for_types, random_iter},
     };
 
     #[test]

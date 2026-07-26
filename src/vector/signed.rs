@@ -150,7 +150,7 @@ impl_signed!(isize);
 mod tests {
     use crate::{
         Mask, Vec3A, Vector,
-        utils::{assert_panic_test_eq, for_types, random_iter},
+        test_utils::{assert_panic_test_eq, for_types, random_iter},
     };
 
     #[test]

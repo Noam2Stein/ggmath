@@ -30,49 +30,49 @@ use crate::{
 ///   represent the same rotation.
 macro_rules! test_eq {
     ($actual:expr, $expected:expr $(,)?) => {
-        crate::utils::test_eq_helper(&$actual, &$expected, false, false, false)
+        crate::test_utils::test_eq_helper(&$actual, &$expected, false, false, false)
     };
     ($actual:expr, $expected:expr, 0.0 = -0.0 $(,)?) => {
-        crate::utils::test_eq_helper(&$actual, &$expected, true, false, false)
+        crate::test_utils::test_eq_helper(&$actual, &$expected, true, false, false)
     };
     ($actual:expr, $expected:expr, INFINITY = NAN $(,)?) => {
-        crate::utils::test_eq_helper(&$actual, &$expected, false, true, false)
+        crate::test_utils::test_eq_helper(&$actual, &$expected, false, true, false)
     };
     ($actual:expr, $expected:expr, 0.0 = -0.0, INFINITY = NAN $(,)?) => {
-        crate::utils::test_eq_helper(&$actual, &$expected, true, true, false)
+        crate::test_utils::test_eq_helper(&$actual, &$expected, true, true, false)
     };
     ($actual:expr, $expected:expr, quat = -quat $(,)?) => {
-        crate::utils::test_eq_helper(&$actual, &$expected, false, false, true)
+        crate::test_utils::test_eq_helper(&$actual, &$expected, false, false, true)
     };
     ($actual:expr, $expected:expr, 0.0 = -0.0, quat = -quat $(,)?) => {
-        crate::utils::test_eq_helper(&$actual, &$expected, true, false, true)
+        crate::test_utils::test_eq_helper(&$actual, &$expected, true, false, true)
     };
     ($actual:expr, $expected:expr, INFINITY = NAN, quat = -quat $(,)?) => {
-        crate::utils::test_eq_helper(&$actual, &$expected, false, true, true)
+        crate::test_utils::test_eq_helper(&$actual, &$expected, false, true, true)
     };
     ($actual:expr, $expected:expr, 0.0 = -0.0, INFINITY = NAN, quat = -quat $(,)?) => {
-        crate::utils::test_eq_helper(&$actual, &$expected, true, true, true)
+        crate::test_utils::test_eq_helper(&$actual, &$expected, true, true, true)
     };
     ($actual:expr, $expected:expr, abs <= $tol:expr $(,)?) => {
-        crate::utils::test_eq_abs_helper(&$actual, &$expected, &$tol, false, false, false)
+        crate::test_utils::test_eq_abs_helper(&$actual, &$expected, &$tol, false, false, false)
     };
     ($actual:expr, $expected:expr, abs <= $tol:expr, 0.0 = -0.0 $(,)?) => {
-        crate::utils::test_eq_abs_helper(&$actual, &$expected, &$tol, true, false, false)
+        crate::test_utils::test_eq_abs_helper(&$actual, &$expected, &$tol, true, false, false)
     };
     ($actual:expr, $expected:expr, abs <= $tol:expr, INFINITY = NAN $(,)?) => {
-        crate::utils::test_eq_abs_helper(&$actual, &$expected, &$tol, false, true, false)
+        crate::test_utils::test_eq_abs_helper(&$actual, &$expected, &$tol, false, true, false)
     };
     ($actual:expr, $expected:expr, abs <= $tol:expr, 0.0 = -0.0, INFINITY = NAN $(,)?) => {
-        crate::utils::test_eq_abs_helper(&$actual, &$expected, &$tol, true, true, false)
+        crate::test_utils::test_eq_abs_helper(&$actual, &$expected, &$tol, true, true, false)
     };
     ($actual:expr, $expected:expr, abs <= $tol:expr, quat = -quat $(,)?) => {
-        crate::utils::test_eq_abs_helper(&$actual, &$expected, &$tol, false, false, true)
+        crate::test_utils::test_eq_abs_helper(&$actual, &$expected, &$tol, false, false, true)
     };
     ($actual:expr, $expected:expr, abs <= $tol:expr, 0.0 = -0.0, quat = -quat $(,)?) => {
-        crate::utils::test_eq_abs_helper(&$actual, &$expected, &$tol, true, false, true)
+        crate::test_utils::test_eq_abs_helper(&$actual, &$expected, &$tol, true, false, true)
     };
     ($actual:expr, $expected:expr, abs <= $tol:expr, INFINITY = NAN, quat = -quat $(,)?) => {
-        crate::utils::test_eq_abs_helper(&$actual, &$expected, &$tol, false, true, true)
+        crate::test_utils::test_eq_abs_helper(&$actual, &$expected, &$tol, false, true, true)
     };
     (
         $actual:expr,
@@ -83,7 +83,7 @@ macro_rules! test_eq {
         quat = -quat
         $(,)?
     ) => {
-        crate::utils::test_eq_abs_helper(&$actual, &$expected, &$tol, true, true, true)
+        crate::test_utils::test_eq_abs_helper(&$actual, &$expected, &$tol, true, true, true)
     };
 }
 pub(crate) use test_eq;
@@ -108,31 +108,31 @@ pub(crate) use test_eq;
 ///   represent the same rotation.
 macro_rules! assert_test_eq {
     ($actual:expr, $expected:expr $(,)?) => {
-        crate::utils::assert_test_eq_helper(&$actual, &$expected, false, false, false, "")
+        crate::test_utils::assert_test_eq_helper(&$actual, &$expected, false, false, false, "")
     };
     ($actual:expr, $expected:expr, 0.0 = -0.0 $(,)?) => {
-        crate::utils::assert_test_eq_helper(&$actual, &$expected, true, false, false, "")
+        crate::test_utils::assert_test_eq_helper(&$actual, &$expected, true, false, false, "")
     };
     ($actual:expr, $expected:expr, INFINITY = NAN $(,)?) => {
-        crate::utils::assert_test_eq_helper(&$actual, &$expected, false, true, false, "")
+        crate::test_utils::assert_test_eq_helper(&$actual, &$expected, false, true, false, "")
     };
     ($actual:expr, $expected:expr, 0.0 = -0.0, INFINITY = NAN $(,)?) => {
-        crate::utils::assert_test_eq_helper(&$actual, &$expected, true, true, false, "")
+        crate::test_utils::assert_test_eq_helper(&$actual, &$expected, true, true, false, "")
     };
     ($actual:expr, $expected:expr, quat = -quat $(,)?) => {
-        crate::utils::assert_test_eq_helper(&$actual, &$expected, false, false, true, "")
+        crate::test_utils::assert_test_eq_helper(&$actual, &$expected, false, false, true, "")
     };
     ($actual:expr, $expected:expr, 0.0 = -0.0, quat = -quat $(,)?) => {
-        crate::utils::assert_test_eq_helper(&$actual, &$expected, true, false, true, "")
+        crate::test_utils::assert_test_eq_helper(&$actual, &$expected, true, false, true, "")
     };
     ($actual:expr, $expected:expr, INFINITY = NAN, quat = -quat $(,)?) => {
-        crate::utils::assert_test_eq_helper(&$actual, &$expected, false, true, true, "")
+        crate::test_utils::assert_test_eq_helper(&$actual, &$expected, false, true, true, "")
     };
     ($actual:expr, $expected:expr, 0.0 = -0.0, INFINITY = NAN, quat = -quat $(,)?) => {
-        crate::utils::assert_test_eq_helper(&$actual, &$expected, true, true, true, "")
+        crate::test_utils::assert_test_eq_helper(&$actual, &$expected, true, true, true, "")
     };
     ($actual:expr, $expected:expr, abs <= $tol:expr $(,)?) => {
-        crate::utils::assert_test_eq_abs_helper(
+        crate::test_utils::assert_test_eq_abs_helper(
             &$actual,
             &$expected,
             &$tol,
@@ -143,22 +143,22 @@ macro_rules! assert_test_eq {
         )
     };
     ($actual:expr, $expected:expr, abs <= $tol:expr, 0.0 = -0.0 $(,)?) => {
-        crate::utils::assert_test_eq_abs_helper(&$actual, &$expected, &$tol, true, false, false, "")
+        crate::test_utils::assert_test_eq_abs_helper(&$actual, &$expected, &$tol, true, false, false, "")
     };
     ($actual:expr, $expected:expr, abs <= $tol:expr, INFINITY = NAN $(,)?) => {
-        crate::utils::assert_test_eq_abs_helper(&$actual, &$expected, &$tol, false, true, false, "")
+        crate::test_utils::assert_test_eq_abs_helper(&$actual, &$expected, &$tol, false, true, false, "")
     };
     ($actual:expr, $expected:expr, abs <= $tol:expr, 0.0 = -0.0, INFINITY = NAN $(,)?) => {
-        crate::utils::assert_test_eq_abs_helper(&$actual, &$expected, &$tol, true, true, false, "")
+        crate::test_utils::assert_test_eq_abs_helper(&$actual, &$expected, &$tol, true, true, false, "")
     };
     ($actual:expr, $expected:expr, abs <= $tol:expr, quat = -quat $(,)?) => {
-        crate::utils::assert_test_eq_abs_helper(&$actual, &$expected, &$tol, false, false, true, "")
+        crate::test_utils::assert_test_eq_abs_helper(&$actual, &$expected, &$tol, false, false, true, "")
     };
     ($actual:expr, $expected:expr, abs <= $tol:expr, 0.0 = -0.0, quat = -quat $(,)?) => {
-        crate::utils::assert_test_eq_abs_helper(&$actual, &$expected, &$tol, true, false, true, "")
+        crate::test_utils::assert_test_eq_abs_helper(&$actual, &$expected, &$tol, true, false, true, "")
     };
     ($actual:expr, $expected:expr, abs <= $tol:expr, INFINITY = NAN, quat = -quat $(,)?) => {
-        crate::utils::assert_test_eq_abs_helper(&$actual, &$expected, &$tol, false, true, true, "")
+        crate::test_utils::assert_test_eq_abs_helper(&$actual, &$expected, &$tol, false, true, true, "")
     };
     (
         $actual:expr,
@@ -169,7 +169,7 @@ macro_rules! assert_test_eq {
         quat = -quat
         $(,)?
     ) => {
-        crate::utils::assert_test_eq_abs_helper(
+        crate::test_utils::assert_test_eq_abs_helper(
             &$actual,
             &$expected,
             &$tol,
@@ -188,7 +188,7 @@ macro_rules! assert_test_eq {
         quat = -quat,
         $($message:tt)+
     ) => {
-        crate::utils::assert_test_eq_abs_helper(
+        crate::test_utils::assert_test_eq_abs_helper(
             &$actual,
             &$expected,
             &$tol,
@@ -206,7 +206,7 @@ macro_rules! assert_test_eq {
         quat = -quat,
         $($message:tt)+
     ) => {
-        crate::utils::assert_test_eq_abs_helper(
+        crate::test_utils::assert_test_eq_abs_helper(
             &$actual,
             &$expected,
             &$tol,
@@ -224,7 +224,7 @@ macro_rules! assert_test_eq {
         quat = -quat,
         $($message:tt)+
     ) => {
-        crate::utils::assert_test_eq_abs_helper(
+        crate::test_utils::assert_test_eq_abs_helper(
             &$actual,
             &$expected,
             &$tol,
@@ -235,7 +235,7 @@ macro_rules! assert_test_eq {
         )
     };
     ($actual:expr, $expected:expr, abs <= $tol:expr, quat = -quat, $($message:tt)+) => {
-        crate::utils::assert_test_eq_abs_helper(
+        crate::test_utils::assert_test_eq_abs_helper(
             &$actual,
             &$expected,
             &$tol,
@@ -253,7 +253,7 @@ macro_rules! assert_test_eq {
         INFINITY = NAN,
         $($message:tt)+
     ) => {
-        crate::utils::assert_test_eq_abs_helper(
+        crate::test_utils::assert_test_eq_abs_helper(
             &$actual,
             &$expected,
             &$tol,
@@ -264,7 +264,7 @@ macro_rules! assert_test_eq {
         )
     };
     ($actual:expr, $expected:expr, abs <= $tol:expr, INFINITY = NAN, $($message:tt)+) => {
-        crate::utils::assert_test_eq_abs_helper(
+        crate::test_utils::assert_test_eq_abs_helper(
             &$actual,
             &$expected,
             &$tol,
@@ -275,7 +275,7 @@ macro_rules! assert_test_eq {
         )
     };
     ($actual:expr, $expected:expr, abs <= $tol:expr, 0.0 = -0.0, $($message:tt)+) => {
-        crate::utils::assert_test_eq_abs_helper(
+        crate::test_utils::assert_test_eq_abs_helper(
             &$actual,
             &$expected,
             &$tol,
@@ -286,7 +286,7 @@ macro_rules! assert_test_eq {
         )
     };
     ($actual:expr, $expected:expr, abs <= $tol:expr, $($message:tt)+) => {
-        crate::utils::assert_test_eq_abs_helper(
+        crate::test_utils::assert_test_eq_abs_helper(
             &$actual,
             &$expected,
             &$tol,
@@ -297,7 +297,7 @@ macro_rules! assert_test_eq {
         )
     };
     ($actual:expr, $expected:expr, 0.0 = -0.0, INFINITY = NAN, quat = -quat, $($message:tt)+) => {
-        crate::utils::assert_test_eq_helper(
+        crate::test_utils::assert_test_eq_helper(
             &$actual,
             &$expected,
             true,
@@ -307,7 +307,7 @@ macro_rules! assert_test_eq {
         )
     };
     ($actual:expr, $expected:expr, INFINITY = NAN, quat = -quat, $($message:tt)+) => {
-        crate::utils::assert_test_eq_helper(
+        crate::test_utils::assert_test_eq_helper(
             &$actual,
             &$expected,
             false,
@@ -317,7 +317,7 @@ macro_rules! assert_test_eq {
         )
     };
     ($actual:expr, $expected:expr, 0.0 = -0.0, quat = -quat, $($message:tt)+) => {
-        crate::utils::assert_test_eq_helper(
+        crate::test_utils::assert_test_eq_helper(
             &$actual,
             &$expected,
             true,
@@ -327,7 +327,7 @@ macro_rules! assert_test_eq {
         )
     };
     ($actual:expr, $expected:expr, quat = -quat, $($message:tt)+) => {
-        crate::utils::assert_test_eq_helper(
+        crate::test_utils::assert_test_eq_helper(
             &$actual,
             &$expected,
             false,
@@ -337,7 +337,7 @@ macro_rules! assert_test_eq {
         )
     };
     ($actual:expr, $expected:expr, 0.0 = -0.0, INFINITY = NAN, $($message:tt)+) => {
-        crate::utils::assert_test_eq_helper(
+        crate::test_utils::assert_test_eq_helper(
             &$actual,
             &$expected,
             true,
@@ -347,7 +347,7 @@ macro_rules! assert_test_eq {
         )
     };
     ($actual:expr, $expected:expr, INFINITY = NAN, $($message:tt)+) => {
-        crate::utils::assert_test_eq_helper(
+        crate::test_utils::assert_test_eq_helper(
             &$actual,
             &$expected,
             false,
@@ -357,7 +357,7 @@ macro_rules! assert_test_eq {
         )
     };
     ($actual:expr, $expected:expr, 0.0 = -0.0, $($message:tt)+) => {
-        crate::utils::assert_test_eq_helper(
+        crate::test_utils::assert_test_eq_helper(
             &$actual,
             &$expected,
             true,
@@ -367,7 +367,7 @@ macro_rules! assert_test_eq {
         )
     };
     ($actual:expr, $expected:expr, $($message:tt)+) => {
-        crate::utils::assert_test_eq_helper(
+        crate::test_utils::assert_test_eq_helper(
             &$actual,
             &$expected,
             false,
@@ -1101,7 +1101,7 @@ where
 mod wide {
     use wide::{f32x4, f32x8, f32x16, f64x2, f64x4, f64x8, i32x4};
 
-    use crate::utils::test_eq::{TestEq, TestEqAbs};
+    use crate::test_utils::test_eq::{TestEq, TestEqAbs};
 
     macro_rules! wide_float_impl {
         ($Wide:ident, $T:ident, $LANES:literal) => {
