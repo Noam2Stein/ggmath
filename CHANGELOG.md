@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.17.1] - 2026-07-26
+
 ### Changed
 
 - Renamed conversion functions:
@@ -694,7 +696,8 @@ functionality can start being added.
 
 This version completely rewrote the crate.
 
-[unreleased]: https://github.com/Noam2Stein/ggmath/compare/v0.17.0...HEAD
+[unreleased]: https://github.com/Noam2Stein/ggmath/compare/v0.17.1...HEAD
+[0.17.1]: https://github.com/Noam2Stein/ggmath/compare/v0.17.0...v0.17.1
 [0.17.0]: https://github.com/Noam2Stein/ggmath/compare/v0.16.7...v0.17.0
 [0.16.7]: https://github.com/Noam2Stein/ggmath/compare/v0.16.6...v0.16.7
 [0.16.6]: https://github.com/Noam2Stein/ggmath/compare/v0.16.5...v0.16.6
