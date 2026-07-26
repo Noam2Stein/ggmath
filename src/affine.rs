@@ -1444,7 +1444,7 @@ mod tests {
     }
 
     #[test]
-    fn test_as_rows_mut() {
+    fn test_as_mut_rows() {
         for_types!(|T: PrimitiveNumber, A| {
             let mut rows = std::array::from_fn(|r| Vector::from_fn(|c| T::as_from(r * 2 + c)));
             assert_eq!(Affine::<2, T, A>::from_rows(&rows).as_mut_rows(), &mut rows);

@@ -2815,7 +2815,7 @@ mod tests {
     }
 
     #[test]
-    fn test_as_array_ref() {
+    fn test_as_array() {
         for_types!(|N, T: PrimitiveNumber, A| {
             let array = std::array::from_fn(|i| T::as_from(i + 1));
 
@@ -2824,7 +2824,7 @@ mod tests {
     }
 
     #[test]
-    fn test_as_array_mut() {
+    fn test_as_mut_array() {
         for_types!(|N, T: PrimitiveNumber, A| {
             let mut array = std::array::from_fn(|i| T::as_from(i + 1));
 

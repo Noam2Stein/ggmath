@@ -819,7 +819,7 @@ mod tests {
     }
 
     #[test]
-    fn test_as_array_ref() {
+    fn test_as_array() {
         for_types!(|T: PrimitiveNumber, A| {
             let [x, y, z, w] = std::array::from_fn(|i| T::as_from(i + 1));
 
@@ -831,7 +831,7 @@ mod tests {
     }
 
     #[test]
-    fn test_as_array_mut() {
+    fn test_as_mut_array() {
         for_types!(|T: PrimitiveNumber, A| {
             let [x, y, z, w] = std::array::from_fn(|i| T::as_from(i + 1));
 
@@ -855,7 +855,7 @@ mod tests {
     }
 
     #[test]
-    fn test_as_vector_ref() {
+    fn test_as_vector() {
         for_types!(|T: PrimitiveNumber, A| {
             let [x, y, z, w] = std::array::from_fn(|i| T::as_from(i + 1));
 
@@ -867,7 +867,7 @@ mod tests {
     }
 
     #[test]
-    fn test_as_vector_mut() {
+    fn test_as_mut_vector() {
         for_types!(|T: PrimitiveNumber, A| {
             let [x, y, z, w] = std::array::from_fn(|i| T::as_from(i + 1));
 

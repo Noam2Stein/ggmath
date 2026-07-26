@@ -2774,7 +2774,7 @@ mod tests {
     }
 
     #[test]
-    fn test_as_rows_mut() {
+    fn test_as_mut_rows() {
         for_types!(|N, T: PrimitiveNumber, A| {
             let mut rows = std::array::from_fn(|r| Vector::from_fn(|c| T::as_from(r * N + c)));
 
