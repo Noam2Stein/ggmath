@@ -230,26 +230,31 @@
 
 pub use crate::{
     affine::{Affine, Affine2, Affine2A, Affine3, Affine3A},
+    alignment::{Aligned, Alignment, Unaligned},
+    constants::{NegOne, One, Zero},
     euler_rot::EulerRot,
     float_ext::FloatExt,
-    generics::{
-        Aligned, Alignment, CustomScalar, Length, NegOne, One, PrimitiveFloat, PrimitiveInteger,
-        PrimitiveSigned, PrimitiveUnsigned, Scalar, SupportedLength, Unaligned, Zero,
-    },
+    length::{Length, SupportedLength},
     mask::{Mask, Mask2, Mask2A, Mask3, Mask3A, Mask4, Mask4A},
     matrix::{Mat2, Mat2A, Mat3, Mat3A, Mat4, Mat4A, Matrix},
+    primitive_traits::{PrimitiveFloat, PrimitiveInteger, PrimitiveSigned, PrimitiveUnsigned},
     quaternion::{Quat, QuatA, Quaternion},
+    scalar::{CustomScalar, Scalar},
     vector::{Vec2, Vec2A, Vec3, Vec3A, Vec4, Vec4A, Vector},
 };
 
 mod affine;
+mod alignment;
 mod backend;
+mod constants;
 mod euler_rot;
 mod float_ext;
-mod generics;
+mod length;
 mod mask;
 mod matrix;
+mod primitive_traits;
 mod quaternion;
+mod scalar;
 mod third_party;
 mod utils;
 mod vector;
