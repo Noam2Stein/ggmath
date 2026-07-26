@@ -804,6 +804,30 @@ where
         (self - other).length_squared()
     }
 
+    /// Returns a reference to the vector's elements.
+    ///
+    /// This function has been renamed to [`as_array`].
+    ///
+    /// [`as_array`]: Self::as_array
+    #[inline]
+    #[must_use]
+    #[deprecated(since = "0.17.1", note = "renamed to `as_array`")]
+    pub const fn as_array_ref(&self) -> &[T; N] {
+        self.as_array()
+    }
+
+    /// Returns a mutable reference to the vector's elements.
+    ///
+    /// This function has been renamed to [`as_mut_array`].
+    ///
+    /// [`as_mut_array`]: Self::as_mut_array
+    #[inline]
+    #[must_use]
+    #[deprecated(since = "0.17.1", note = "renamed to `as_mut_array`")]
+    pub const fn as_array_mut(&mut self) -> &mut [T; N] {
+        self.as_mut_array()
+    }
+
     #[inline]
     #[must_use]
     #[allow(

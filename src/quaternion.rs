@@ -323,6 +323,59 @@ where
     {
         self.0.length_squared()
     }
+
+    /// Returns a reference to the quaternion's elements.
+    ///
+    /// This function has been renamed to [`as_array`].
+    ///
+    /// [`as_array`]: Self::as_array
+    #[inline]
+    #[must_use]
+    #[deprecated(since = "0.17.1", note = "renamed to `as_array`")]
+    pub const fn as_array_ref(&self) -> &[T; 4] {
+        self.as_array()
+    }
+
+    /// Returns a mutable reference to the quaternion's elements.
+    ///
+    /// This function has been renamed to [`as_mut_array`].
+    ///
+    /// [`as_mut_array`]: Self::as_mut_array
+    #[inline]
+    #[must_use]
+    #[deprecated(since = "0.17.1", note = "renamed to `as_mut_array`")]
+    pub const fn as_array_mut(&mut self) -> &mut [T; 4] {
+        self.as_mut_array()
+    }
+
+    /// Returns a reference to the quaternion `self` as a 4-dimensional vector.
+    ///
+    /// `x`, `y` and `z` are the imaginary parts and `w` is the real part.
+    ///
+    /// This function has been renamed to [`as_vector`].
+    ///
+    /// [`as_vector`]: Self::as_vector
+    #[inline]
+    #[must_use]
+    #[deprecated(since = "0.17.1", note = "renamed to `as_vector`")]
+    pub const fn as_vector_ref(&self) -> &Vector<4, T, A> {
+        self.as_vector()
+    }
+
+    /// Returns a mutable reference to the quaternion `self` as a 4-dimensional
+    /// vector.
+    ///
+    /// `x`, `y` and `z` are the imaginary parts and `w` is the real part.
+    ///
+    /// This function has been renamed to [`as_mut_vector`].
+    ///
+    /// [`as_mut_vector`]: Self::as_mut_vector
+    #[inline]
+    #[must_use]
+    #[deprecated(since = "0.17.1", note = "renamed to `as_mut_vector`")]
+    pub const fn as_vector_mut(&mut self) -> &mut Vector<4, T, A> {
+        self.as_mut_vector()
+    }
 }
 
 impl<T, A: Alignment> Clone for Quaternion<T, A>

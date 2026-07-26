@@ -764,6 +764,18 @@ where
     {
         specialize!(Matrix::<N, T, A>::determinant_backend(self))
     }
+
+    /// Returns a mutable reference to the matrix's rows.
+    ///
+    /// This function has been renamed to [`as_mut_rows`].
+    ///
+    /// [`as_mut_rows`]: Self::as_mut_rows
+    #[inline]
+    #[must_use]
+    #[deprecated(since = "0.17.1", note = "renamed to `as_mut_rows`")]
+    pub const fn as_rows_mut(&mut self) -> &mut [Vector<N, T, A>; N] {
+        self.as_mut_rows()
+    }
 }
 
 impl<T, A: Alignment> Matrix<2, T, A>
