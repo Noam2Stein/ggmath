@@ -394,9 +394,9 @@ where
                     unsafe {
                         transmute_generic::<Vector<3, T, A2>, Vector<N, T, A2>>(
                             Vector::<3, T, A2>::new(
-                                self.as_array_ref()[0],
-                                self.as_array_ref()[1],
-                                self.as_array_ref()[2],
+                                self.as_array()[0],
+                                self.as_array()[1],
+                                self.as_array()[2],
                             ),
                         )
                     }
@@ -453,13 +453,13 @@ where
     #[inline]
     #[must_use]
     pub const fn to_array(self) -> [T; N] {
-        *self.as_array_ref()
+        *self.as_array()
     }
 
     /// Returns a reference to the vector's elements.
     #[inline]
     #[must_use]
-    pub const fn as_array_ref(&self) -> &[T; N] {
+    pub const fn as_array(&self) -> &[T; N] {
         // SAFETY: `Vector<N, T, A>` is guaranteed to begin with `N` consecutive
         // values of `T`.
         unsafe { transmute_ref::<Vector<N, T, A>, [T; N]>(self) }
@@ -468,7 +468,7 @@ where
     /// Returns a mutable reference to the vector's elements.
     #[inline]
     #[must_use]
-    pub const fn as_array_mut(&mut self) -> &mut [T; N] {
+    pub const fn as_mut_array(&mut self) -> &mut [T; N] {
         // SAFETY: `Vector<N, T, A>` is guaranteed to begin with `N` consecutive
         // values of `T`.
         unsafe { transmute_mut::<Vector<N, T, A>, [T; N]>(self) }
@@ -485,7 +485,7 @@ where
     #[inline]
     #[must_use = "iterators are lazy and do nothing unless consumed"]
     pub fn iter_mut(&mut self) -> core::slice::IterMut<'_, T> {
-        self.as_array_mut().iter_mut()
+        self.as_mut_array().iter_mut()
     }
 
     /// Returns a vector of the same length as `self`, with function `f` applied
@@ -802,6 +802,30 @@ where
         T: Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
     {
         (self - other).length_squared()
+    }
+
+    /// Returns a reference to the vector's elements.
+    ///
+    /// This function has been renamed to [`as_array`].
+    ///
+    /// [`as_array`]: Self::as_array
+    #[inline]
+    #[must_use]
+    #[deprecated(since = "0.17.1", note = "renamed to `as_array`")]
+    pub const fn as_array_ref(&self) -> &[T; N] {
+        self.as_array()
+    }
+
+    /// Returns a mutable reference to the vector's elements.
+    ///
+    /// This function has been renamed to [`as_mut_array`].
+    ///
+    /// [`as_mut_array`]: Self::as_mut_array
+    #[inline]
+    #[must_use]
+    #[deprecated(since = "0.17.1", note = "renamed to `as_mut_array`")]
+    pub const fn as_array_mut(&mut self) -> &mut [T; N] {
+        self.as_mut_array()
     }
 
     #[inline]
@@ -1169,7 +1193,7 @@ where
 
     #[inline]
     fn index(&self, index: usize) -> &Self::Output {
-        self.as_array_ref().index(index)
+        self.as_array().index(index)
     }
 }
 
@@ -1180,7 +1204,7 @@ where
 {
     #[inline]
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
-        self.as_array_mut().index_mut(index)
+        self.as_mut_array().index_mut(index)
     }
 }
 
@@ -1514,7 +1538,7 @@ where
 {
     #[inline]
     fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
-        self.as_array_ref().hash(state);
+        self.as_array().hash(state);
     }
 }
 
@@ -2791,21 +2815,21 @@ mod tests {
     }
 
     #[test]
-    fn test_as_array_ref() {
+    fn test_as_array() {
         for_types!(|N, T: PrimitiveNumber, A| {
             let array = std::array::from_fn(|i| T::as_from(i + 1));
 
-            assert_eq!(Vector::<N, T, A>::from_array(array).as_array_ref(), &array);
+            assert_eq!(Vector::<N, T, A>::from_array(array).as_array(), &array);
         });
     }
 
     #[test]
-    fn test_as_array_mut() {
+    fn test_as_mut_array() {
         for_types!(|N, T: PrimitiveNumber, A| {
             let mut array = std::array::from_fn(|i| T::as_from(i + 1));
 
             assert_eq!(
-                Vector::<N, T, A>::from_array(array).as_array_mut(),
+                Vector::<N, T, A>::from_array(array).as_mut_array(),
                 &mut array
             );
         });

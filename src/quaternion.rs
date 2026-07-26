@@ -229,8 +229,8 @@ where
     /// last element `w` is the real part.
     #[inline]
     #[must_use]
-    pub const fn as_array_ref(&self) -> &[T; 4] {
-        self.0.as_array_ref()
+    pub const fn as_array(&self) -> &[T; 4] {
+        self.0.as_array()
     }
 
     /// Returns a mutable reference to the quaternion's elements.
@@ -239,8 +239,8 @@ where
     /// last element `w` is the real part.
     #[inline]
     #[must_use]
-    pub const fn as_array_mut(&mut self) -> &mut [T; 4] {
-        self.0.as_array_mut()
+    pub const fn as_mut_array(&mut self) -> &mut [T; 4] {
+        self.0.as_mut_array()
     }
 
     /// Converts the quaternion `self` to a 4-dimensional vector.
@@ -257,7 +257,7 @@ where
     /// `x`, `y` and `z` are the imaginary parts and `w` is the real part.
     #[inline]
     #[must_use]
-    pub const fn as_vector_ref(&self) -> &Vector<4, T, A> {
+    pub const fn as_vector(&self) -> &Vector<4, T, A> {
         &self.0
     }
 
@@ -267,7 +267,7 @@ where
     /// `x`, `y` and `z` are the imaginary parts and `w` is the real part.
     #[inline]
     #[must_use]
-    pub const fn as_vector_mut(&mut self) -> &mut Vector<4, T, A> {
+    pub const fn as_mut_vector(&mut self) -> &mut Vector<4, T, A> {
         &mut self.0
     }
 
@@ -322,6 +322,59 @@ where
         T: Add<Output = T> + Mul<Output = T>,
     {
         self.0.length_squared()
+    }
+
+    /// Returns a reference to the quaternion's elements.
+    ///
+    /// This function has been renamed to [`as_array`].
+    ///
+    /// [`as_array`]: Self::as_array
+    #[inline]
+    #[must_use]
+    #[deprecated(since = "0.17.1", note = "renamed to `as_array`")]
+    pub const fn as_array_ref(&self) -> &[T; 4] {
+        self.as_array()
+    }
+
+    /// Returns a mutable reference to the quaternion's elements.
+    ///
+    /// This function has been renamed to [`as_mut_array`].
+    ///
+    /// [`as_mut_array`]: Self::as_mut_array
+    #[inline]
+    #[must_use]
+    #[deprecated(since = "0.17.1", note = "renamed to `as_mut_array`")]
+    pub const fn as_array_mut(&mut self) -> &mut [T; 4] {
+        self.as_mut_array()
+    }
+
+    /// Returns a reference to the quaternion `self` as a 4-dimensional vector.
+    ///
+    /// `x`, `y` and `z` are the imaginary parts and `w` is the real part.
+    ///
+    /// This function has been renamed to [`as_vector`].
+    ///
+    /// [`as_vector`]: Self::as_vector
+    #[inline]
+    #[must_use]
+    #[deprecated(since = "0.17.1", note = "renamed to `as_vector`")]
+    pub const fn as_vector_ref(&self) -> &Vector<4, T, A> {
+        self.as_vector()
+    }
+
+    /// Returns a mutable reference to the quaternion `self` as a 4-dimensional
+    /// vector.
+    ///
+    /// `x`, `y` and `z` are the imaginary parts and `w` is the real part.
+    ///
+    /// This function has been renamed to [`as_mut_vector`].
+    ///
+    /// [`as_mut_vector`]: Self::as_mut_vector
+    #[inline]
+    #[must_use]
+    #[deprecated(since = "0.17.1", note = "renamed to `as_mut_vector`")]
+    pub const fn as_vector_mut(&mut self) -> &mut Vector<4, T, A> {
+        self.as_mut_vector()
     }
 }
 
@@ -425,7 +478,7 @@ where
 {
     #[inline]
     fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
-        self.as_array_ref().hash(state);
+        self.as_array().hash(state);
     }
 }
 
@@ -766,24 +819,24 @@ mod tests {
     }
 
     #[test]
-    fn test_as_array_ref() {
+    fn test_as_array() {
         for_types!(|T: PrimitiveNumber, A| {
             let [x, y, z, w] = std::array::from_fn(|i| T::as_from(i + 1));
 
             assert_eq!(
-                Quaternion::<T, A>::from_xyzw(x, y, z, w).as_array_ref(),
+                Quaternion::<T, A>::from_xyzw(x, y, z, w).as_array(),
                 &[x, y, z, w]
             );
         });
     }
 
     #[test]
-    fn test_as_array_mut() {
+    fn test_as_mut_array() {
         for_types!(|T: PrimitiveNumber, A| {
             let [x, y, z, w] = std::array::from_fn(|i| T::as_from(i + 1));
 
             assert_eq!(
-                Quaternion::<T, A>::from_xyzw(x, y, z, w).as_array_mut(),
+                Quaternion::<T, A>::from_xyzw(x, y, z, w).as_mut_array(),
                 &mut [x, y, z, w]
             );
         });
@@ -802,24 +855,24 @@ mod tests {
     }
 
     #[test]
-    fn test_as_vector_ref() {
+    fn test_as_vector() {
         for_types!(|T: PrimitiveNumber, A| {
             let [x, y, z, w] = std::array::from_fn(|i| T::as_from(i + 1));
 
             assert_eq!(
-                Quaternion::<T, A>::from_xyzw(x, y, z, w).as_vector_ref(),
+                Quaternion::<T, A>::from_xyzw(x, y, z, w).as_vector(),
                 &Vector::<4, T, A>::new(x, y, z, w)
             );
         });
     }
 
     #[test]
-    fn test_as_vector_mut() {
+    fn test_as_mut_vector() {
         for_types!(|T: PrimitiveNumber, A| {
             let [x, y, z, w] = std::array::from_fn(|i| T::as_from(i + 1));
 
             assert_eq!(
-                Quaternion::<T, A>::from_xyzw(x, y, z, w).as_vector_mut(),
+                Quaternion::<T, A>::from_xyzw(x, y, z, w).as_mut_vector(),
                 &mut Vector::<4, T, A>::new(x, y, z, w)
             );
         });

@@ -407,11 +407,23 @@ where
     /// Returns a mutable reference to the affine transform's rows.
     #[inline]
     #[must_use]
-    pub const fn as_rows_mut(&mut self) -> &mut [Vector<2, T, A>; 3] {
+    pub const fn as_mut_rows(&mut self) -> &mut [Vector<2, T, A>; 3] {
         // SAFETY: `Affine<2, T, A>` is guaranteed to begin with
         // `Matrix<2, T, A>` (two vectors) then `Vector<2, T, A>`, which is 3
         // vectors in total.
         unsafe { transmute_mut::<Affine<2, T, A>, [Vector<2, T, A>; 3]>(self) }
+    }
+
+    /// Returns a mutable reference to the affine transform's rows.
+    ///
+    /// This function has been renamed to [`as_mut_rows`].
+    ///
+    /// [`as_mut_rows`]: Self::as_mut_rows
+    #[inline]
+    #[must_use]
+    #[deprecated(since = "0.17.1", note = "renamed to `as_mut_rows`")]
+    pub const fn as_rows_mut(&mut self) -> &mut [Vector<2, T, A>; 3] {
+        self.as_mut_rows()
     }
 }
 
@@ -504,11 +516,23 @@ where
     /// Returns a mutable reference to the affine transform's rows.
     #[inline]
     #[must_use]
-    pub const fn as_rows_mut(&mut self) -> &mut [Vector<3, T, A>; 4] {
+    pub const fn as_mut_rows(&mut self) -> &mut [Vector<3, T, A>; 4] {
         // SAFETY: `Affine<3, T, A>` is guaranteed to begin with
         // `Matrix<3, T, A>` (three vectors) then `Vector<3, T, A>`, which is 4
         // vectors in total.
         unsafe { transmute_mut::<Affine<3, T, A>, [Vector<3, T, A>; 4]>(self) }
+    }
+
+    /// Returns a mutable reference to the affine transform's rows.
+    ///
+    /// This function has been renamed to [`as_mut_rows`].
+    ///
+    /// [`as_mut_rows`]: Self::as_mut_rows
+    #[inline]
+    #[must_use]
+    #[deprecated(since = "0.17.1", note = "renamed to `as_mut_rows`")]
+    pub const fn as_rows_mut(&mut self) -> &mut [Vector<3, T, A>; 4] {
+        self.as_mut_rows()
     }
 }
 
@@ -568,11 +592,23 @@ where
     /// Returns a mutable reference to the affine transform's rows.
     #[inline]
     #[must_use]
-    pub const fn as_rows_mut(&mut self) -> &mut [Vector<4, T, A>; 5] {
+    pub const fn as_mut_rows(&mut self) -> &mut [Vector<4, T, A>; 5] {
         // SAFETY: `Affine<4, T, A>` is guaranteed to begin with
         // `Matrix<4, T, A>` (four vectors) then `Vector<4, T, A>`, which is 5
         // vectors in total.
         unsafe { transmute_mut::<Affine<4, T, A>, [Vector<4, T, A>; 5]>(self) }
+    }
+
+    /// Returns a mutable reference to the affine transform's rows.
+    ///
+    /// This function has been renamed to [`as_mut_rows`].
+    ///
+    /// [`as_mut_rows`]: Self::as_mut_rows
+    #[inline]
+    #[must_use]
+    #[deprecated(since = "0.17.1", note = "renamed to `as_mut_rows`")]
+    pub const fn as_rows_mut(&mut self) -> &mut [Vector<4, T, A>; 5] {
+        self.as_mut_rows()
     }
 }
 
@@ -1408,16 +1444,16 @@ mod tests {
     }
 
     #[test]
-    fn test_as_rows_mut() {
+    fn test_as_mut_rows() {
         for_types!(|T: PrimitiveNumber, A| {
             let mut rows = std::array::from_fn(|r| Vector::from_fn(|c| T::as_from(r * 2 + c)));
-            assert_eq!(Affine::<2, T, A>::from_rows(&rows).as_rows_mut(), &mut rows);
+            assert_eq!(Affine::<2, T, A>::from_rows(&rows).as_mut_rows(), &mut rows);
 
             let mut rows = std::array::from_fn(|r| Vector::from_fn(|c| T::as_from(r * 3 + c)));
-            assert_eq!(Affine::<3, T, A>::from_rows(&rows).as_rows_mut(), &mut rows);
+            assert_eq!(Affine::<3, T, A>::from_rows(&rows).as_mut_rows(), &mut rows);
 
             let mut rows = std::array::from_fn(|r| Vector::from_fn(|c| T::as_from(r * 4 + c)));
-            assert_eq!(Affine::<4, T, A>::from_rows(&rows).as_rows_mut(), &mut rows);
+            assert_eq!(Affine::<4, T, A>::from_rows(&rows).as_mut_rows(), &mut rows);
         });
     }
 
