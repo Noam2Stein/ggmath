@@ -825,7 +825,7 @@ mod tests {
     use crate::utils::PrimitiveFloatUtils;
     use crate::{
         EulerRot, FloatExt, Matrix, QuatA, Quaternion, Vector,
-        utils::{
+        test_utils::{
             assert_debug_panic, assert_panic_test_eq, assert_test_eq, for_types, random_iter,
             test_eq,
         },

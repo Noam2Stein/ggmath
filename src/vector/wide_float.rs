@@ -1862,7 +1862,7 @@ mod tests {
 
     use crate::{
         Unaligned, Vec2, Vec3, Vec3A, Vec4, Vector,
-        utils::{assert_test_eq, assert_test_eq_or_panic, for_types, random_iter},
+        test_utils::{assert_test_eq, assert_test_eq_or_panic, for_types, random_iter},
     };
 
     #[test]

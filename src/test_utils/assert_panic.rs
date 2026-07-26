@@ -11,7 +11,7 @@ use colored::Colorize;
 /// Asserts that the given expression panics.
 macro_rules! assert_panic {
     ($expr:expr $(,)?) => {
-        crate::utils::assert_panic_helper(|| {
+        crate::test_utils::assert_panic_helper(|| {
             let _ = $expr;
         })
     };
@@ -24,7 +24,7 @@ pub(crate) use assert_panic;
 #[cfg(debug_assertions)]
 macro_rules! assert_debug_panic {
     ($expr:expr $(,)?) => {
-        crate::utils::assert_panic_helper(|| {
+        crate::test_utils::assert_panic_helper(|| {
             let _ = $expr;
         })
     };
@@ -46,10 +46,10 @@ pub(crate) use assert_debug_panic;
 /// [`test_eq`]: crate::utils::test_eq
 macro_rules! assert_panic_test_eq {
     ($actual:expr, $expected:expr $(, $($arg:tt)*)?) => {
-        crate::utils::assert_panic_test_eq_helper(
+        crate::test_utils::assert_panic_test_eq_helper(
             || $actual,
             || $expected,
-            |left, right| crate::utils::assert_test_eq!(left, right $(, $($arg)*)?),
+            |left, right| crate::test_utils::assert_test_eq!(left, right $(, $($arg)*)?),
         )
     };
 }
@@ -69,9 +69,9 @@ macro_rules! assert_test_eq_or_panic {
         #[allow(unused_variables)]
         let actual = $actual;
         if let Ok(expected) = std::panic::catch_unwind(|| $expected) {
-            crate::utils::assert_test_eq!(actual, expected $(, $($arg)*)?);
+            crate::test_utils::assert_test_eq!(actual, expected $(, $($arg)*)?);
         } else {
-            crate::utils::println_panic_expected();
+            crate::test_utils::println_panic_expected();
         }
     }};
 }

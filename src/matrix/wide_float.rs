@@ -1923,7 +1923,7 @@ impl_wide_float!(f64x8, f64);
 mod tests {
     use crate::{
         EulerRot, Mat2, Mat3, Mat4, Matrix, Quat, Unaligned, Vec2, Vec3, Vec4, Vector,
-        utils::{assert_test_eq, assert_test_eq_or_panic, for_types, random_iter},
+        test_utils::{assert_test_eq, assert_test_eq_or_panic, for_types, random_iter},
     };
 
     #[test]

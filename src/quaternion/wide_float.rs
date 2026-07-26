@@ -545,7 +545,7 @@ mod tests {
 
     use crate::{
         EulerRot, Mat3, Quat, Vec3,
-        utils::{assert_test_eq, assert_test_eq_or_panic, for_types, random_iter},
+        test_utils::{assert_test_eq, assert_test_eq_or_panic, for_types, random_iter},
     };
 
     #[test]

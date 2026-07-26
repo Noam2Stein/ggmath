@@ -33,7 +33,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::{Vec3A, utils::for_types};
+    use crate::{Vec3A, test_utils::for_types};
 
     #[test]
     fn test_cast_signed() {

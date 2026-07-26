@@ -1003,7 +1003,8 @@ mod tests {
 
     use crate::{
         Aligned, Mask, Mask2, Mask3, Mask4, Unaligned, Vector,
-        utils::{Repr2, Repr3, Repr4, assert_panic, for_types, random_iter},
+        test_utils::{assert_panic, for_types, random_iter},
+        utils::{Repr2, Repr3, Repr4},
     };
 
     #[test]

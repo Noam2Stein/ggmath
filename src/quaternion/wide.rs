@@ -194,7 +194,7 @@ mod tests {
 
     use crate::{
         Quat, QuatA, Vec4,
-        utils::{assert_panic, assert_test_eq, for_types, random_iter},
+        test_utils::{assert_panic, assert_test_eq, for_types, random_iter},
     };
 
     #[test]

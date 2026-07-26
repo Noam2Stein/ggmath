@@ -158,7 +158,7 @@ mod tests {
 
     use crate::{
         Vector,
-        utils::{for_types, random_iter},
+        test_utils::{for_types, random_iter},
     };
 
     #[test]

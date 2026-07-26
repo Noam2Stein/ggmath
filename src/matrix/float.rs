@@ -2326,7 +2326,9 @@ where
 mod tests {
     use crate::{
         EulerRot, FloatExt, Mat3A, Mat4A, Matrix, Quaternion, Vec2A, Vec3A, Vec4A, Vector,
-        utils::{assert_debug_panic, assert_panic_test_eq, assert_test_eq, for_types, random_iter},
+        test_utils::{
+            assert_debug_panic, assert_panic_test_eq, assert_test_eq, for_types, random_iter,
+        },
     };
 
     #[test]
