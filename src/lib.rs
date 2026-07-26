@@ -228,6 +228,20 @@
 #![forbid(missing_docs)]
 #![cfg_attr(feature = "libm", no_std)]
 
+pub use crate::{
+    affine::{Affine, Affine2, Affine2A, Affine3, Affine3A},
+    euler_rot::EulerRot,
+    float_ext::FloatExt,
+    generics::{
+        Aligned, Alignment, CustomScalar, Length, NegOne, One, PrimitiveFloat, PrimitiveInteger,
+        PrimitiveSigned, PrimitiveUnsigned, Scalar, SupportedLength, Unaligned, Zero,
+    },
+    mask::{Mask, Mask2, Mask2A, Mask3, Mask3A, Mask4, Mask4A},
+    matrix::{Mat2, Mat2A, Mat3, Mat3A, Mat4, Mat4A, Matrix},
+    quaternion::{Quat, QuatA, Quaternion},
+    vector::{Vec2, Vec2A, Vec3, Vec3A, Vec4, Vec4A, Vector},
+};
+
 mod affine;
 mod backend;
 mod euler_rot;
@@ -236,15 +250,6 @@ mod generics;
 mod mask;
 mod matrix;
 mod quaternion;
-mod vector;
-pub use affine::*;
-pub use euler_rot::*;
-pub use float_ext::*;
-pub use generics::*;
-pub use mask::*;
-pub use matrix::*;
-pub use quaternion::*;
-pub use vector::*;
-
 mod third_party;
 mod utils;
+mod vector;
