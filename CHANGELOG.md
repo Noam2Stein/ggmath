@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Renamed conversion functions:
+  - `as_array_ref` to `as_array`
+  - `as_array_mut` to `as_mut_array`
+  - `as_rows_mut` to `as_mut_rows`
+  - `as_vector_ref` to `as_vector`
+  - `as_vector_mut` to `as_mut_vector`
+
 ## [0.17.0] - 2026-07-10
 
 ### Added

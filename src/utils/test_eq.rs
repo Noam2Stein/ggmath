@@ -884,8 +884,8 @@ where
         quat_eq_neg_quat: bool,
     ) -> bool {
         let eq = TestEq::eq(
-            self.as_vector_ref(),
-            expected.as_vector_ref(),
+            self.as_vector(),
+            expected.as_vector(),
             zero_eq_neg_zero,
             infinity_eq_nan,
             quat_eq_neg_quat,
@@ -893,8 +893,8 @@ where
 
         if quat_eq_neg_quat {
             eq || TestEq::eq(
-                self.as_vector_ref(),
-                (-*expected).as_vector_ref(),
+                self.as_vector(),
+                (-*expected).as_vector(),
                 zero_eq_neg_zero,
                 infinity_eq_nan,
                 quat_eq_neg_quat,
@@ -918,9 +918,9 @@ where
         quat_eq_neg_quat: bool,
     ) -> bool {
         let eq = Vector::<4, T, A>::eq(
-            self.as_vector_ref(),
-            expected.as_vector_ref(),
-            tol.as_vector_ref(),
+            self.as_vector(),
+            expected.as_vector(),
+            tol.as_vector(),
             zero_eq_neg_zero,
             infinity_eq_nan,
             quat_eq_neg_quat,
@@ -928,9 +928,9 @@ where
 
         if quat_eq_neg_quat {
             eq || Vector::<4, T, A>::eq(
-                self.as_vector_ref(),
-                (-*expected).as_vector_ref(),
-                tol.as_vector_ref(),
+                self.as_vector(),
+                (-*expected).as_vector(),
+                tol.as_vector(),
                 zero_eq_neg_zero,
                 infinity_eq_nan,
                 quat_eq_neg_quat,
@@ -954,8 +954,8 @@ where
         quat_eq_neg_quat: bool,
     ) -> bool {
         let eq = Vector::<4, T, A>::eq(
-            self.as_vector_ref(),
-            expected.as_vector_ref(),
+            self.as_vector(),
+            expected.as_vector(),
             tol,
             zero_eq_neg_zero,
             infinity_eq_nan,
@@ -964,8 +964,8 @@ where
 
         if quat_eq_neg_quat {
             eq || Vector::<4, T, A>::eq(
-                self.as_vector_ref(),
-                (-*expected).as_vector_ref(),
+                self.as_vector(),
+                (-*expected).as_vector(),
                 tol,
                 zero_eq_neg_zero,
                 infinity_eq_nan,
@@ -990,8 +990,8 @@ where
         quat_eq_neg_quat: bool,
     ) -> bool {
         let eq = Vector::<4, T, A>::eq(
-            self.as_vector_ref(),
-            expected.as_vector_ref(),
+            self.as_vector(),
+            expected.as_vector(),
             tol,
             zero_eq_neg_zero,
             infinity_eq_nan,
@@ -1000,8 +1000,8 @@ where
 
         if quat_eq_neg_quat {
             eq || Vector::<4, T, A>::eq(
-                self.as_vector_ref(),
-                (-*expected).as_vector_ref(),
+                self.as_vector(),
+                (-*expected).as_vector(),
                 tol,
                 zero_eq_neg_zero,
                 infinity_eq_nan,

@@ -353,8 +353,8 @@ where
             2 => unsafe {
                 transmute_generic::<Matrix<2, T, A>, Matrix<N, T, A>>(Matrix::<2, T, A>::from_rows(
                     &[
-                        Vector::<2, T, A>::new(diagonal.as_array_ref()[0], T::ZERO),
-                        Vector::<2, T, A>::new(T::ZERO, diagonal.as_array_ref()[1]),
+                        Vector::<2, T, A>::new(diagonal.as_array()[0], T::ZERO),
+                        Vector::<2, T, A>::new(T::ZERO, diagonal.as_array()[1]),
                     ],
                 ))
             },
@@ -364,9 +364,9 @@ where
             3 => unsafe {
                 transmute_generic::<Matrix<3, T, A>, Matrix<N, T, A>>(Matrix::<3, T, A>::from_rows(
                     &[
-                        Vector::<3, T, A>::new(diagonal.as_array_ref()[0], T::ZERO, T::ZERO),
-                        Vector::<3, T, A>::new(T::ZERO, diagonal.as_array_ref()[1], T::ZERO),
-                        Vector::<3, T, A>::new(T::ZERO, T::ZERO, diagonal.as_array_ref()[2]),
+                        Vector::<3, T, A>::new(diagonal.as_array()[0], T::ZERO, T::ZERO),
+                        Vector::<3, T, A>::new(T::ZERO, diagonal.as_array()[1], T::ZERO),
+                        Vector::<3, T, A>::new(T::ZERO, T::ZERO, diagonal.as_array()[2]),
                     ],
                 ))
             },
@@ -376,30 +376,10 @@ where
             4 => unsafe {
                 transmute_generic::<Matrix<4, T, A>, Matrix<N, T, A>>(Matrix::<4, T, A>::from_rows(
                     &[
-                        Vector::<4, T, A>::new(
-                            diagonal.as_array_ref()[0],
-                            T::ZERO,
-                            T::ZERO,
-                            T::ZERO,
-                        ),
-                        Vector::<4, T, A>::new(
-                            T::ZERO,
-                            diagonal.as_array_ref()[1],
-                            T::ZERO,
-                            T::ZERO,
-                        ),
-                        Vector::<4, T, A>::new(
-                            T::ZERO,
-                            T::ZERO,
-                            diagonal.as_array_ref()[2],
-                            T::ZERO,
-                        ),
-                        Vector::<4, T, A>::new(
-                            T::ZERO,
-                            T::ZERO,
-                            T::ZERO,
-                            diagonal.as_array_ref()[3],
-                        ),
+                        Vector::<4, T, A>::new(diagonal.as_array()[0], T::ZERO, T::ZERO, T::ZERO),
+                        Vector::<4, T, A>::new(T::ZERO, diagonal.as_array()[1], T::ZERO, T::ZERO),
+                        Vector::<4, T, A>::new(T::ZERO, T::ZERO, diagonal.as_array()[2], T::ZERO),
+                        Vector::<4, T, A>::new(T::ZERO, T::ZERO, T::ZERO, diagonal.as_array()[3]),
                     ],
                 ))
             },
@@ -512,7 +492,7 @@ where
     /// Returns a mutable reference to the matrix's rows.
     #[inline]
     #[must_use]
-    pub const fn as_rows_mut(&mut self) -> &mut [Vector<N, T, A>; N] {
+    pub const fn as_mut_rows(&mut self) -> &mut [Vector<N, T, A>; N] {
         // SAFETY: `Matrix<N, T, A>` is guaranteed to begin with `N` consecutive
         // values of `Vector<N, T, A>`.
         unsafe { transmute_mut::<Matrix<N, T, A>, [Vector<N, T, A>; N]>(self) }
@@ -553,8 +533,8 @@ where
             2 => unsafe {
                 let matrix = transmute_ref::<Matrix<N, T, A>, Matrix<2, T, A>>(self);
                 transmute_generic::<Vector<2, T, A>, Vector<N, T, A>>(Vector::<2, T, A>::new(
-                    matrix.as_rows()[0].as_array_ref()[index],
-                    matrix.as_rows()[1].as_array_ref()[index],
+                    matrix.as_rows()[0].as_array()[index],
+                    matrix.as_rows()[1].as_array()[index],
                 ))
             },
 
@@ -564,9 +544,9 @@ where
             3 => unsafe {
                 let matrix = transmute_ref::<Matrix<N, T, A>, Matrix<3, T, A>>(self);
                 transmute_generic::<Vector<3, T, A>, Vector<N, T, A>>(Vector::<3, T, A>::new(
-                    matrix.as_rows()[0].as_array_ref()[index],
-                    matrix.as_rows()[1].as_array_ref()[index],
-                    matrix.as_rows()[2].as_array_ref()[index],
+                    matrix.as_rows()[0].as_array()[index],
+                    matrix.as_rows()[1].as_array()[index],
+                    matrix.as_rows()[2].as_array()[index],
                 ))
             },
 
@@ -576,10 +556,10 @@ where
             4 => unsafe {
                 let matrix = transmute_ref::<Matrix<N, T, A>, Matrix<4, T, A>>(self);
                 transmute_generic::<Vector<4, T, A>, Vector<N, T, A>>(Vector::<4, T, A>::new(
-                    matrix.as_rows()[0].as_array_ref()[index],
-                    matrix.as_rows()[1].as_array_ref()[index],
-                    matrix.as_rows()[2].as_array_ref()[index],
-                    matrix.as_rows()[3].as_array_ref()[index],
+                    matrix.as_rows()[0].as_array()[index],
+                    matrix.as_rows()[1].as_array()[index],
+                    matrix.as_rows()[2].as_array()[index],
+                    matrix.as_rows()[3].as_array()[index],
                 ))
             },
 
@@ -619,27 +599,27 @@ where
             // are the same type.
             2 => unsafe {
                 let matrix = transmute_mut::<Matrix<N, T, A>, Matrix<2, T, A>>(self);
-                matrix.as_rows_mut()[0].as_array_mut()[index] = value.as_array_ref()[0];
-                matrix.as_rows_mut()[1].as_array_mut()[index] = value.as_array_ref()[1];
+                matrix.as_mut_rows()[0].as_mut_array()[index] = value.as_array()[0];
+                matrix.as_mut_rows()[1].as_mut_array()[index] = value.as_array()[1];
             },
 
             // SAFETY: Because `N == 3`, `Matrix<N, T, A>` and `Matrix<3, T, A>`
             // are the same type.
             3 => unsafe {
                 let matrix = transmute_mut::<Matrix<N, T, A>, Matrix<3, T, A>>(self);
-                matrix.as_rows_mut()[0].as_array_mut()[index] = value.as_array_ref()[0];
-                matrix.as_rows_mut()[1].as_array_mut()[index] = value.as_array_ref()[1];
-                matrix.as_rows_mut()[2].as_array_mut()[index] = value.as_array_ref()[2];
+                matrix.as_mut_rows()[0].as_mut_array()[index] = value.as_array()[0];
+                matrix.as_mut_rows()[1].as_mut_array()[index] = value.as_array()[1];
+                matrix.as_mut_rows()[2].as_mut_array()[index] = value.as_array()[2];
             },
 
             // SAFETY: Because `N == 4`, `Matrix<N, T, A>` and `Matrix<4, T, A>`
             // are the same type.
             4 => unsafe {
                 let matrix = transmute_mut::<Matrix<N, T, A>, Matrix<4, T, A>>(self);
-                matrix.as_rows_mut()[0].as_array_mut()[index] = value.as_array_ref()[0];
-                matrix.as_rows_mut()[1].as_array_mut()[index] = value.as_array_ref()[1];
-                matrix.as_rows_mut()[2].as_array_mut()[index] = value.as_array_ref()[2];
-                matrix.as_rows_mut()[3].as_array_mut()[index] = value.as_array_ref()[3];
+                matrix.as_mut_rows()[0].as_mut_array()[index] = value.as_array()[0];
+                matrix.as_mut_rows()[1].as_mut_array()[index] = value.as_array()[1];
+                matrix.as_mut_rows()[2].as_mut_array()[index] = value.as_array()[2];
+                matrix.as_mut_rows()[3].as_mut_array()[index] = value.as_array()[3];
             },
 
             _ => unreachable!(),
@@ -715,8 +695,8 @@ where
             // are the same type.
             2 => unsafe {
                 transmute_generic::<Vector<2, T, A>, Vector<N, T, A>>(Vector::<2, T, A>::new(
-                    self.as_rows()[0].as_array_ref()[0],
-                    self.as_rows()[1].as_array_ref()[1],
+                    self.as_rows()[0].as_array()[0],
+                    self.as_rows()[1].as_array()[1],
                 ))
             },
 
@@ -724,9 +704,9 @@ where
             // are the same type.
             3 => unsafe {
                 transmute_generic::<Vector<3, T, A>, Vector<N, T, A>>(Vector::<3, T, A>::new(
-                    self.as_rows()[0].as_array_ref()[0],
-                    self.as_rows()[1].as_array_ref()[1],
-                    self.as_rows()[2].as_array_ref()[2],
+                    self.as_rows()[0].as_array()[0],
+                    self.as_rows()[1].as_array()[1],
+                    self.as_rows()[2].as_array()[2],
                 ))
             },
 
@@ -734,10 +714,10 @@ where
             // are the same type.
             4 => unsafe {
                 transmute_generic::<Vector<4, T, A>, Vector<N, T, A>>(Vector::<4, T, A>::new(
-                    self.as_rows()[0].as_array_ref()[0],
-                    self.as_rows()[1].as_array_ref()[1],
-                    self.as_rows()[2].as_array_ref()[2],
-                    self.as_rows()[3].as_array_ref()[3],
+                    self.as_rows()[0].as_array()[0],
+                    self.as_rows()[1].as_array()[1],
+                    self.as_rows()[2].as_array()[2],
+                    self.as_rows()[3].as_array()[3],
                 ))
             },
 
@@ -880,8 +860,8 @@ where
         T: Zero + One,
     {
         Self::from_rows(&[
-            Vector::<3, T, A>::new(scale.as_array_ref()[0], T::ZERO, T::ZERO),
-            Vector::<3, T, A>::new(T::ZERO, scale.as_array_ref()[1], T::ZERO),
+            Vector::<3, T, A>::new(scale.as_array()[0], T::ZERO, T::ZERO),
+            Vector::<3, T, A>::new(T::ZERO, scale.as_array()[1], T::ZERO),
             Vector::<3, T, A>::Z,
         ])
     }
@@ -902,11 +882,7 @@ where
         Self::from_rows(&[
             Vector::<3, T, A>::X,
             Vector::<3, T, A>::Y,
-            Vector::<3, T, A>::new(
-                translation.as_array_ref()[0],
-                translation.as_array_ref()[1],
-                T::ONE,
-            ),
+            Vector::<3, T, A>::new(translation.as_array()[0], translation.as_array()[1], T::ONE),
         ])
     }
 
@@ -925,13 +901,13 @@ where
     {
         Self::from_rows(&[
             Vector::<3, T, A>::new(
-                submatrix.as_rows()[0].as_array_ref()[0],
-                submatrix.as_rows()[0].as_array_ref()[1],
+                submatrix.as_rows()[0].as_array()[0],
+                submatrix.as_rows()[0].as_array()[1],
                 T::ZERO,
             ),
             Vector::<3, T, A>::new(
-                submatrix.as_rows()[1].as_array_ref()[0],
-                submatrix.as_rows()[1].as_array_ref()[1],
+                submatrix.as_rows()[1].as_array()[0],
+                submatrix.as_rows()[1].as_array()[1],
                 T::ZERO,
             ),
             Vector::<3, T, A>::Z,
@@ -957,20 +933,16 @@ where
     {
         Self::from_rows(&[
             Vector::<3, T, A>::new(
-                submatrix.as_rows()[0].as_array_ref()[0],
-                submatrix.as_rows()[0].as_array_ref()[1],
+                submatrix.as_rows()[0].as_array()[0],
+                submatrix.as_rows()[0].as_array()[1],
                 T::ZERO,
             ),
             Vector::<3, T, A>::new(
-                submatrix.as_rows()[1].as_array_ref()[0],
-                submatrix.as_rows()[1].as_array_ref()[1],
+                submatrix.as_rows()[1].as_array()[0],
+                submatrix.as_rows()[1].as_array()[1],
                 T::ZERO,
             ),
-            Vector::<3, T, A>::new(
-                translation.as_array_ref()[0],
-                translation.as_array_ref()[1],
-                T::ONE,
-            ),
+            Vector::<3, T, A>::new(translation.as_array()[0], translation.as_array()[1], T::ONE),
         ])
     }
 
@@ -1023,12 +995,12 @@ where
     pub const fn submatrix(&self) -> Matrix<2, T, A> {
         Matrix::from_rows(&[
             Vector::<2, T, A>::new(
-                self.as_rows()[0].as_array_ref()[0],
-                self.as_rows()[0].as_array_ref()[1],
+                self.as_rows()[0].as_array()[0],
+                self.as_rows()[0].as_array()[1],
             ),
             Vector::<2, T, A>::new(
-                self.as_rows()[1].as_array_ref()[0],
-                self.as_rows()[1].as_array_ref()[1],
+                self.as_rows()[1].as_array()[0],
+                self.as_rows()[1].as_array()[1],
             ),
         ])
     }
@@ -1160,9 +1132,9 @@ where
         T: Zero + One,
     {
         Self::from_rows(&[
-            Vector::<4, T, A>::new(scale.as_array_ref()[0], T::ZERO, T::ZERO, T::ZERO),
-            Vector::<4, T, A>::new(T::ZERO, scale.as_array_ref()[1], T::ZERO, T::ZERO),
-            Vector::<4, T, A>::new(T::ZERO, T::ZERO, scale.as_array_ref()[2], T::ZERO),
+            Vector::<4, T, A>::new(scale.as_array()[0], T::ZERO, T::ZERO, T::ZERO),
+            Vector::<4, T, A>::new(T::ZERO, scale.as_array()[1], T::ZERO, T::ZERO),
+            Vector::<4, T, A>::new(T::ZERO, T::ZERO, scale.as_array()[2], T::ZERO),
             Vector::<4, T, A>::W,
         ])
     }
@@ -1185,9 +1157,9 @@ where
             Vector::<4, T, A>::Y,
             Vector::<4, T, A>::Z,
             Vector::<4, T, A>::new(
-                translation.as_array_ref()[0],
-                translation.as_array_ref()[1],
-                translation.as_array_ref()[2],
+                translation.as_array()[0],
+                translation.as_array()[1],
+                translation.as_array()[2],
                 T::ONE,
             ),
         ])
@@ -1208,21 +1180,21 @@ where
     {
         Self::from_rows(&[
             Vector::<4, T, A>::new(
-                submatrix.as_rows()[0].as_array_ref()[0],
-                submatrix.as_rows()[0].as_array_ref()[1],
-                submatrix.as_rows()[0].as_array_ref()[2],
+                submatrix.as_rows()[0].as_array()[0],
+                submatrix.as_rows()[0].as_array()[1],
+                submatrix.as_rows()[0].as_array()[2],
                 T::ZERO,
             ),
             Vector::<4, T, A>::new(
-                submatrix.as_rows()[1].as_array_ref()[0],
-                submatrix.as_rows()[1].as_array_ref()[1],
-                submatrix.as_rows()[1].as_array_ref()[2],
+                submatrix.as_rows()[1].as_array()[0],
+                submatrix.as_rows()[1].as_array()[1],
+                submatrix.as_rows()[1].as_array()[2],
                 T::ZERO,
             ),
             Vector::<4, T, A>::new(
-                submatrix.as_rows()[2].as_array_ref()[0],
-                submatrix.as_rows()[2].as_array_ref()[1],
-                submatrix.as_rows()[2].as_array_ref()[2],
+                submatrix.as_rows()[2].as_array()[0],
+                submatrix.as_rows()[2].as_array()[1],
+                submatrix.as_rows()[2].as_array()[2],
                 T::ZERO,
             ),
             Vector::<4, T, A>::W,
@@ -1248,27 +1220,27 @@ where
     {
         Self::from_rows(&[
             Vector::<4, T, A>::new(
-                submatrix.as_rows()[0].as_array_ref()[0],
-                submatrix.as_rows()[0].as_array_ref()[1],
-                submatrix.as_rows()[0].as_array_ref()[2],
+                submatrix.as_rows()[0].as_array()[0],
+                submatrix.as_rows()[0].as_array()[1],
+                submatrix.as_rows()[0].as_array()[2],
                 T::ZERO,
             ),
             Vector::<4, T, A>::new(
-                submatrix.as_rows()[1].as_array_ref()[0],
-                submatrix.as_rows()[1].as_array_ref()[1],
-                submatrix.as_rows()[1].as_array_ref()[2],
+                submatrix.as_rows()[1].as_array()[0],
+                submatrix.as_rows()[1].as_array()[1],
+                submatrix.as_rows()[1].as_array()[2],
                 T::ZERO,
             ),
             Vector::<4, T, A>::new(
-                submatrix.as_rows()[2].as_array_ref()[0],
-                submatrix.as_rows()[2].as_array_ref()[1],
-                submatrix.as_rows()[2].as_array_ref()[2],
+                submatrix.as_rows()[2].as_array()[0],
+                submatrix.as_rows()[2].as_array()[1],
+                submatrix.as_rows()[2].as_array()[2],
                 T::ZERO,
             ),
             Vector::<4, T, A>::new(
-                translation.as_array_ref()[0],
-                translation.as_array_ref()[1],
-                translation.as_array_ref()[2],
+                translation.as_array()[0],
+                translation.as_array()[1],
+                translation.as_array()[2],
                 T::ONE,
             ),
         ])
@@ -1336,19 +1308,19 @@ where
     pub const fn submatrix(&self) -> Matrix<3, T, A> {
         Matrix::from_rows(&[
             Vector::<3, T, A>::new(
-                self.as_rows()[0].as_array_ref()[0],
-                self.as_rows()[0].as_array_ref()[1],
-                self.as_rows()[0].as_array_ref()[2],
+                self.as_rows()[0].as_array()[0],
+                self.as_rows()[0].as_array()[1],
+                self.as_rows()[0].as_array()[2],
             ),
             Vector::<3, T, A>::new(
-                self.as_rows()[1].as_array_ref()[0],
-                self.as_rows()[1].as_array_ref()[1],
-                self.as_rows()[1].as_array_ref()[2],
+                self.as_rows()[1].as_array()[0],
+                self.as_rows()[1].as_array()[1],
+                self.as_rows()[1].as_array()[2],
             ),
             Vector::<3, T, A>::new(
-                self.as_rows()[2].as_array_ref()[0],
-                self.as_rows()[2].as_array_ref()[1],
-                self.as_rows()[2].as_array_ref()[2],
+                self.as_rows()[2].as_array()[0],
+                self.as_rows()[2].as_array()[1],
+                self.as_rows()[2].as_array()[2],
             ),
         ])
     }
@@ -1571,7 +1543,7 @@ where
     #[inline]
     #[track_caller]
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
-        &mut self.as_rows_mut()[index]
+        &mut self.as_mut_rows()[index]
     }
 }
 
@@ -2794,7 +2766,7 @@ mod tests {
         for_types!(|N, T: PrimitiveNumber, A| {
             let mut rows = std::array::from_fn(|r| Vector::from_fn(|c| T::as_from(r * N + c)));
 
-            assert_eq!(Matrix::<N, T, A>::from_rows(&rows).as_rows_mut(), &mut rows);
+            assert_eq!(Matrix::<N, T, A>::from_rows(&rows).as_mut_rows(), &mut rows);
         });
     }
 
@@ -3343,7 +3315,7 @@ mod tests {
                 Matrix::<N, T, A>::from_row_fn(|r| Vector::from_fn(|c| T::as_from(r * N + c)));
 
             for i in 0..N {
-                assert_eq!(&mut matrix.clone()[i], &mut matrix.as_rows_mut()[i]);
+                assert_eq!(&mut matrix.clone()[i], &mut matrix.as_mut_rows()[i]);
             }
             assert_panic!(matrix[N]);
             assert_panic!(matrix[N + 1]);
