@@ -66,25 +66,39 @@ functionality. These traits do not expose functions directly, they only enable
 functionality for vectors, matrices, etc. For complete primitive generics, add
 the [`num-primitive`] crate as an optional dependency.
 
-## Affine transforms
+## Affine and Projective Transforms
 
-An affine transform contains a linear transformation and a translation vector.
-It can represent scale, rotation, shear and translation, but cannot represent
-projections. [`Affine2<T>`] is equivalent to [`Mat3<T>`], and [`Affine3<T>`] is
-equivalent to [`Mat4<T>`].
+Unlike many graphics math libraries, [`ggmath`] does not use [`Mat4`] to
+represent every kind of 3D transformation, nor [`Mat3`] for every kind of 2D
+transformation. Instead, there are three kinds of transform types, so that
+common transformations can use more efficient representations:
 
-Affine transforms take less memory than matrices and perform better for select
-operations (see [benchmark results]).
+- Matrix types represent linear transformations. They can represent scale,
+  rotation and shear, but not translation. Use these when translation is not
+  needed.
 
-| Type              | [`Affine2<f32>`] | [`Mat3<f32>`] | [`Affine2A<f32>`] | [`Mat3A<f32>`] |
-| ----------------- | ---------------- | ------------- | ----------------- | -------------- |
-| Size (bytes)      | 24               | 36            | 32                | 48             |
-| Alignment (bytes) | 4                | 4             | 16                | 16             |
+- Affine transforms are represented by a matrix and a translation vector. They
+  can represent any linear transformation, plus translation. Use these for the
+  transform of objects and cameras.
 
-| Type              | [`Affine3<f32>`] | [`Mat4<f32>`] | [`Affine3A<f32>`] | [`Mat4A<f32>`] |
-| ----------------- | ---------------- | ------------- | ----------------- | -------------- |
-| Size (bytes)      | 48               | 64            | 64                | 64             |
-| Alignment (bytes) | 4                | 4             | 16                | 16             |
+- Projective transforms are represented by homogeneous matrices (e.g., [`Proj3`]
+  represented by [`Mat4`], and [`Proj2`] represented by [`Mat3`]). They can
+  represent any affine transformation, plus perspective projection. Use these
+  when projection is needed.
+
+You should generally pick the smallest type that satisfies your requirements.
+Linear transforms (matrices) are more efficient than affine transforms, which
+are more efficient than projective transforms. See [benchmark results].
+
+| Type              | [`Mat2<f32>`] | [`Affine2<f32>`] | [`Proj2<f32>`] | [`Mat2A<f32>`] | [`Affine2A<f32>`] | [`Proj2A<f32>`] |
+| ----------------- | ------------- | ---------------- | -------------- | -------------- | ----------------- | --------------- |
+| Size (bytes)      | 16            | 24               | 36             | 16             | 32                | 48              |
+| Alignment (bytes) | 4             | 4                | 4              | 16             | 16                | 16              |
+
+| Type              | [`Mat3<f32>`] | [`Affine3<f32>`] | [`Proj3<f32>`] | [`Mat3A<f32>`] | [`Affine3A<f32>`] | [`Proj3A<f32>`] |
+| ----------------- | ------------- | ---------------- | -------------- | -------------- | ----------------- | --------------- |
+| Size (bytes)      | 36            | 48               | 64             | 48             | 64                | 64              |
+| Alignment (bytes) | 4             | 4                | 4              | 16             | 16                | 16              |
 
 > This table is true only for target architectures that have SIMD and are
 > supported.
@@ -131,8 +145,8 @@ fixed-point number support.
 and left-handed coordinate systems.
 
 [`ggmath`] uses left-multiplication, meaning to transform a vector by a matrix
-(or quaternion) you write `vector * matrix` and not `matrix * vector`. This
-means matrices are stored in row-major order.
+(or any other transformation) you write `vector * matrix` and not
+`matrix * vector`. This means matrices are stored in row-major order.
 
 ## Why another math crate?
 
@@ -272,11 +286,21 @@ it serves the same purpose as [`glam`] but with generics.
 [`PrimitiveUnsigned`]: https://docs.rs/ggmath/latest/ggmath/trait.PrimitiveUnsigned.html
 [`num-primitive`]: https://crates.io/crates/num-primitive
 
+[`Mat4`]: https://docs.rs/ggmath/latest/ggmath/type.Mat4.html
+[`Mat3`]: https://docs.rs/ggmath/latest/ggmath/type.Mat3.html
+[`Proj3`]: https://docs.rs/ggmath/latest/ggmath/type.Proj3.html
+[`Proj2`]: https://docs.rs/ggmath/latest/ggmath/type.Proj2.html
 [benchmark results]: https://github.com/Noam2Stein/ggmath/blob/main/BENCH_RESULTS.md
+[`Mat2<f32>`]: https://docs.rs/ggmath/latest/ggmath/type.Mat2.html
 [`Affine2<f32>`]: https://docs.rs/ggmath/latest/ggmath/type.Affine2.html
-[`Affine3<f32>`]: https://docs.rs/ggmath/latest/ggmath/type.Affine3.html
+[`Proj2<f32>`]: https://docs.rs/ggmath/latest/ggmath/type.Proj2.html
+[`Mat2A<f32>`]: https://docs.rs/ggmath/latest/ggmath/type.Mat2A.html
 [`Affine2A<f32>`]: https://docs.rs/ggmath/latest/ggmath/type.Affine2A.html
+[`Proj2A<f32>`]: https://docs.rs/ggmath/latest/ggmath/type.Proj2A.html
+[`Affine3<f32>`]: https://docs.rs/ggmath/latest/ggmath/type.Affine3.html
+[`Proj3<f32>`]: https://docs.rs/ggmath/latest/ggmath/type.Proj3.html
 [`Affine3A<f32>`]: https://docs.rs/ggmath/latest/ggmath/type.Affine3A.html
+[`Proj3A<f32>`]: https://docs.rs/ggmath/latest/ggmath/type.Proj3A.html
 
 [`Mask3A<f32>`]: https://docs.rs/ggmath/latest/ggmath/type.Mask3A.html
 [`Vec3A<bool>`]: https://docs.rs/ggmath/latest/ggmath/type.Vec3A.html
