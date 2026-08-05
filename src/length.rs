@@ -18,6 +18,14 @@ pub trait SupportedLength: Sealed {
     type Select<T2: Copy, T3: Copy, T4: Copy>: Copy;
 }
 
+/// An internal trait similar to [`SupportedLength`] that only accepts 2 and 3.
+///
+/// This is intentionally hidden from the public API.
+pub(crate) trait TwoOrThree: SupportedLength {
+    #[doc(hidden)]
+    type Select<T2: Copy, T3: Copy>: Copy;
+}
+
 trait Sealed {}
 
 impl SupportedLength for Length<2> {
@@ -30,6 +38,14 @@ impl SupportedLength for Length<3> {
 
 impl SupportedLength for Length<4> {
     type Select<T2: Copy, T3: Copy, T4: Copy> = T4;
+}
+
+impl TwoOrThree for Length<2> {
+    type Select<T2: Copy, T3: Copy> = T2;
+}
+
+impl TwoOrThree for Length<3> {
+    type Select<T2: Copy, T3: Copy> = T3;
 }
 
 impl Sealed for Length<2> {}
