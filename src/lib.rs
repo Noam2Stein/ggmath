@@ -4,6 +4,7 @@
 //! - Square Matrices: [`Mat2<T>`], [`Mat3<T>`], [`Mat4<T>`]
 //! - Quaternions: [`Quat<T>`]
 //! - Affine Transforms: [`Affine2<T>`], [`Affine3<T>`]
+//! - Projective Transforms: [`Proj2<T>`], [`Proj3<T>`]
 //! - Masks: [`Mask2<T>`], [`Mask3<T>`], [`Mask4<T>`]
 //!
 //! SIMD variants:
@@ -12,6 +13,7 @@
 //! - Square Matrices: [`Mat2A<T>`], [`Mat3A<T>`], [`Mat4A<T>`]
 //! - Quaternions: [`QuatA<T>`]
 //! - Affine Transforms: [`Affine2A<T>`], [`Affine3A<T>`]
+//! - Projective Transforms: [`Proj2A<T>`], [`Proj3A<T>`]
 //! - Masks: [`Mask2A<T>`], [`Mask3A<T>`], [`Mask4A<T>`]
 //!
 //! Underlying generic types:
@@ -20,6 +22,7 @@
 //! - [`Matrix<N, T, A>`]
 //! - [`Quaternion<T, A>`]
 //! - [`Affine<N, T, A>`]
+//! - [`Projective<N, T, A>`]
 //! - [`Mask<N, T, A>`]
 //!
 //! # SIMD
@@ -238,6 +241,7 @@ pub use crate::{
     mask::{Mask, Mask2, Mask2A, Mask3, Mask3A, Mask4, Mask4A},
     matrix::{Mat2, Mat2A, Mat3, Mat3A, Mat4, Mat4A, Matrix},
     primitive_traits::{PrimitiveFloat, PrimitiveInteger, PrimitiveSigned, PrimitiveUnsigned},
+    projective::{Proj2, Proj2A, Proj3, Proj3A, Projective},
     quaternion::{Quat, QuatA, Quaternion},
     scalar::{CustomScalar, Scalar},
     vector::{Vec2, Vec2A, Vec3, Vec3A, Vec4, Vec4A, Vector},
@@ -253,6 +257,7 @@ mod length;
 mod mask;
 mod matrix;
 mod primitive_traits;
+mod projective;
 mod quaternion;
 mod scalar;
 mod third_party;
