@@ -1,6 +1,6 @@
 use crate::{
-    Affine, Aligned, Alignment, Length, Mask, Matrix, Quaternion, Scalar, SupportedLength,
-    Unaligned, Vector, utils::transmute_generic,
+    Affine, Aligned, Alignment, Length, Mask, Matrix, Projective, Quaternion, Scalar,
+    SupportedLength, Unaligned, Vector, length::TwoOrThree, utils::transmute_generic,
 };
 
 /// Bypasses a type system limitation to perform specialization.
@@ -140,6 +140,48 @@ macro_rules! specialize {
 
 pub(crate) use specialize;
 
+/// A variant of [`specialize`] that only includes lengths 2 and 3, without 4.
+macro_rules! specialize_23 {
+    (<$T:ty as $Backend:ident<$N:tt, $A:tt>>::$f:ident($($arg:expr),*$(,)?)) => {
+        (const {
+            $crate::utils::specialize_23_helper::<
+                $N,
+                $A,
+                $crate::utils::specialize!(@fn($($arg),*)),
+                $crate::utils::specialize!(@fn($($arg),*)),
+                $crate::utils::specialize!(@fn($($arg),*)),
+                $crate::utils::specialize!(@fn($($arg),*)),
+                $crate::utils::specialize!(@fn($($arg),*)),
+            >(
+                <$T as $Backend<2, $crate::Aligned>>::$f,
+                <$T as $Backend<3, $crate::Aligned>>::$f,
+                <$T as $Backend<2, $crate::Unaligned>>::$f,
+                <$T as $Backend<3, $crate::Unaligned>>::$f,
+            )
+        })($($arg),*)
+    };
+    ($Struct:ident::<$N:tt, $T:ident, $A:tt>::$f:ident($($arg:expr),*$(,)?)) => {
+        (const {
+            $crate::utils::specialize_23_helper::<
+                $N,
+                $A,
+                $crate::utils::specialize!(@fn($($arg),*)),
+                $crate::utils::specialize!(@fn($($arg),*)),
+                $crate::utils::specialize!(@fn($($arg),*)),
+                $crate::utils::specialize!(@fn($($arg),*)),
+                $crate::utils::specialize!(@fn($($arg),*)),
+            >(
+                <$Struct::<2, $T, $crate::Aligned>>::$f,
+                <$Struct::<3, $T, $crate::Aligned>>::$f,
+                <$Struct::<2, $T, $crate::Unaligned>>::$f,
+                <$Struct::<3, $T, $crate::Unaligned>>::$f,
+            )
+        })($($arg),*)
+    };
+}
+
+pub(crate) use specialize_23;
+
 /// Performs the unsafe transmution for [`specialize`].
 ///
 /// The macro call:
@@ -240,6 +282,51 @@ where
     }
 }
 
+/// A variant of [`specialize_helper`] that only allows lengths 2 and 3,
+/// without 4.
+#[expect(private_bounds)]
+pub const fn specialize_23_helper<const N: usize, A: Alignment, F2, F3, F2U, F3U, F>(
+    f2: F2,
+    f3: F3,
+    f2u: F2U,
+    f3u: F3U,
+) -> F
+where
+    Length<N>: TwoOrThree,
+    F2: Specialize<F, 2, N, Aligned, A> + Copy,
+    F3: Specialize<F, 3, N, Aligned, A> + Copy,
+    F2U: Specialize<F, 2, N, Unaligned, A> + Copy,
+    F3U: Specialize<F, 3, N, Unaligned, A> + Copy,
+{
+    match (N, A::IS_ALIGNED) {
+        // SAFETY: `T2` is guaranteed to be the same type as `T` as long as `N`
+        // is `2` and `A` is `Aligned`. `N` was just checked to be `2` and `A`
+        // is guaranteed to be `Aligned` because `A::IS_ALIGNED` is true, and so
+        // `T2` and `T` are the same type.
+        (2, true) => unsafe { transmute_generic::<F2, F>(f2) },
+
+        // SAFETY: `T3` is guaranteed to be the same type as `T` as long as `N`
+        // is `3` and `A` is `Aligned`. `N` was just checked to be `3` and `A`
+        // is guaranteed to be `Aligned` because `A::IS_ALIGNED` is true, and so
+        // `T3` and `T` are the same type.
+        (3, true) => unsafe { transmute_generic::<F3, F>(f3) },
+
+        // SAFETY: `T2U` is guaranteed to be the same type as `T` as long as `N`
+        // is `2` and `A` is `Unaligned`. `N` was just checked to be `2` and `A`
+        // is guaranteed to be `Unaligned` because `A::IS_ALIGNED` is false, and
+        // so `T2U` and `T` are the same type.
+        (2, false) => unsafe { transmute_generic::<F2U, F>(f2u) },
+
+        // SAFETY: `T3U` is guaranteed to be the same type as `T` as long as `N`
+        // is `3` and `A` is `Unaligned`. `N` was just checked to be `3` and `A`
+        // is guaranteed to be `Unaligned` because `A::IS_ALIGNED` is false, and
+        // so `T3U` and `T` are the same type.
+        (3, false) => unsafe { transmute_generic::<F3U, F>(f3u) },
+
+        _ => unreachable!(),
+    }
+}
+
 /// Staticly guarantees the soundness of [`specialize_helper`].
 ///
 /// This trait is implemented when `Self` and `T2` are the same type assuming
@@ -250,20 +337,13 @@ where
 /// If `N == N2` and `A == A2`, `Self == T2` must be correct. An incorrect
 /// implementation would make it possible to transmute between incompatible
 /// types, causing undefined behaviour.
-unsafe trait Specialize<T2, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
-where
-    Length<N>: SupportedLength,
-    Length<N2>: SupportedLength,
-{
-}
+unsafe trait Specialize<T2, const N: usize, const N2: usize, A: Alignment, A2: Alignment> {}
 
 // SAFETY: `T == T` regardless of `N` and `A`.
 unsafe impl<T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<T, N, N2, A, A2> for T
 where
     T: Scalar,
-    Length<N>: SupportedLength,
-    Length<N2>: SupportedLength,
 {
 }
 
@@ -370,6 +450,36 @@ where
     T: Scalar,
     Length<N>: SupportedLength,
     Length<N2>: SupportedLength,
+{
+}
+
+// SAFETY: `N == N2`, `A == A2` => `Projective<N, T, A> == Projective<N2, T, A2>`
+unsafe impl<T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
+    Specialize<Projective<N2, T, A2>, N, N2, A, A2> for Projective<N, T, A>
+where
+    T: Scalar,
+    Length<N>: TwoOrThree,
+    Length<N2>: TwoOrThree,
+{
+}
+
+// SAFETY: `N == N2`, `A == A2` => `&'a Projective<N, T, A> == &'a Projective<N2, T, A2>`
+unsafe impl<'a, T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
+    Specialize<&'a Projective<N2, T, A2>, N, N2, A, A2> for &'a Projective<N, T, A>
+where
+    T: Scalar,
+    Length<N>: TwoOrThree,
+    Length<N2>: TwoOrThree,
+{
+}
+
+// SAFETY: `N == N2`, `A == A2` => `&'a Projective<N, T, A> == &'a Projective<N2, T, A2>`
+unsafe impl<'a, T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
+    Specialize<&'a mut Projective<N2, T, A2>, N, N2, A, A2> for &'a mut Projective<N, T, A>
+where
+    T: Scalar,
+    Length<N>: TwoOrThree,
+    Length<N2>: TwoOrThree,
 {
 }
 
