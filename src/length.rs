@@ -18,6 +18,8 @@ pub trait SupportedLength: Sealed {
     type Select<T2: Copy, T3: Copy, T4: Copy>: Copy;
 }
 
+trait Sealed {}
+
 impl SupportedLength for Length<2> {
     type Select<T2: Copy, T3: Copy, T4: Copy> = T2;
 }
@@ -29,8 +31,6 @@ impl SupportedLength for Length<3> {
 impl SupportedLength for Length<4> {
     type Select<T2: Copy, T3: Copy, T4: Copy> = T4;
 }
-
-trait Sealed {}
 
 impl Sealed for Length<2> {}
 impl Sealed for Length<3> {}
