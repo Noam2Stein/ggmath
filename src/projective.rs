@@ -1,7 +1,7 @@
 use crate::{
-    Aligned, Alignment, Length, Matrix, Scalar, Unaligned, Vector,
+    Aligned, Alignment, Length, Matrix, One, Scalar, Unaligned, Vector, Zero,
     length::TwoOrThree,
-    utils::{transmute_generic, transmute_ref},
+    utils::{specialize_23, transmute_generic, transmute_ref},
 };
 
 /// An `N`-dimensional projective transform represented by a homogeneous matrix.
@@ -42,6 +42,77 @@ where
     Length<N>: TwoOrThree,
     T: Scalar,
 {
+    /// Creates a transform from a non-uniform `scale`.
+    #[inline]
+    #[must_use]
+    pub fn from_scale(scale: Vector<N, T, A>) -> Self
+    where
+        T: Zero + One,
+    {
+        specialize_23!(Projective::<N, T, A>::from_scale_backend(scale))
+    }
+
+    /// Creates a transform from a translation vector.
+    #[inline]
+    #[must_use]
+    pub fn from_translation(translation: Vector<N, T, A>) -> Self
+    where
+        T: Zero + One,
+    {
+        specialize_23!(Projective::<N, T, A>::from_translation_backend(translation))
+    }
+
+    /// Creates a transform from a non-uniform scale and a translation vector.
+    #[inline]
+    #[must_use]
+    pub fn from_scale_translation(scale: Vector<N, T, A>, translation: Vector<N, T, A>) -> Self
+    where
+        T: Zero + One,
+    {
+        specialize_23!(Projective::<N, T, A>::from_scale_translation_backend(
+            scale,
+            translation
+        ))
+    }
+
+    /// Creates a projective transform from a smaller matrix representing a
+    /// linear transformation.
+    #[inline]
+    #[must_use]
+    pub fn from_matrix(matrix: Matrix<N, T, A>) -> Self
+    where
+        T: Zero + One,
+    {
+        specialize_23!(Projective::<N, T, A>::from_matrix_backend(matrix))
+    }
+
+    /// Creates a projective transform from a smaller matrix representing a
+    /// linear transformation, and a translation vector.
+    #[inline]
+    #[must_use]
+    pub fn from_matrix_translation(matrix: Matrix<N, T, A>, translation: Vector<N, T, A>) -> Self
+    where
+        T: Zero + One,
+    {
+        specialize_23!(Projective::<N, T, A>::from_matrix_translation_backend(
+            matrix,
+            translation
+        ))
+    }
+
+    /// Returns the linear transformation part of `self`, ignoring the last row
+    /// and column.
+    ///
+    /// This returns a smaller matrix. To get the full homogeneous matrix
+    /// representing `self`, use [`as_homogeneous`].
+    ///
+    /// [`as_homogeneous`]: Self::as_homogeneous
+    #[inline]
+    #[must_use]
+    pub fn matrix(&self) -> Matrix<N, T, A> {
+        specialize_23!(Projective::<N, T, A>::matrix_backend(self))
+    }
+
     /// Conversion between [`Aligned`] and [`Unaligned`] storage.
     ///
     /// See [`align`] and [`unalign`] for scenarios where the output alignment
@@ -238,6 +309,70 @@ where
     pub const fn set_column(&mut self, index: usize, value: Vector<3, T, A>) {
         self.0.set_column(index, value);
     }
+
+    #[inline]
+    fn from_scale_backend(scale: Vector<2, T, A>) -> Self
+    where
+        T: Zero + One,
+    {
+        Self(Matrix::from_diagonal(scale.to_homogeneous()))
+    }
+
+    #[inline]
+    fn from_translation_backend(translation: Vector<2, T, A>) -> Self
+    where
+        T: Zero + One,
+    {
+        Self::from_rows(&[
+            Vector::<3, T, A>::X,
+            Vector::<3, T, A>::Y,
+            translation.to_homogeneous(),
+        ])
+    }
+
+    #[inline]
+    fn from_scale_translation_backend(scale: Vector<2, T, A>, translation: Vector<2, T, A>) -> Self
+    where
+        T: Zero + One,
+    {
+        Self::from_rows(&[
+            Vector::<3, T, A>::new(scale.x, T::ZERO, T::ZERO),
+            Vector::<3, T, A>::new(T::ZERO, scale.y, T::ZERO),
+            translation.to_homogeneous(),
+        ])
+    }
+
+    #[inline]
+    fn from_matrix_backend(matrix: Matrix<2, T, A>) -> Self
+    where
+        T: Zero + One,
+    {
+        Self::from_rows(&[
+            matrix.x_axis.extend(T::ZERO),
+            matrix.y_axis.extend(T::ZERO),
+            Vector::<3, T, A>::new(T::ZERO, T::ZERO, T::ONE),
+        ])
+    }
+
+    #[inline]
+    fn from_matrix_translation_backend(
+        matrix: Matrix<2, T, A>,
+        translation: Vector<2, T, A>,
+    ) -> Self
+    where
+        T: Zero + One,
+    {
+        Self::from_rows(&[
+            matrix.x_axis.extend(T::ZERO),
+            matrix.y_axis.extend(T::ZERO),
+            translation.to_homogeneous(),
+        ])
+    }
+
+    #[inline]
+    fn matrix_backend(&self) -> Matrix<2, T, A> {
+        self.0.submatrix()
+    }
 }
 
 impl<T, A: Alignment> Projective<3, T, A>
@@ -375,6 +510,74 @@ where
     #[track_caller]
     pub const fn set_column(&mut self, index: usize, value: Vector<4, T, A>) {
         self.0.set_column(index, value);
+    }
+
+    #[inline]
+    fn from_scale_backend(scale: Vector<3, T, A>) -> Self
+    where
+        T: Zero + One,
+    {
+        Self(Matrix::from_diagonal(scale.to_homogeneous()))
+    }
+
+    #[inline]
+    fn from_translation_backend(translation: Vector<3, T, A>) -> Self
+    where
+        T: Zero + One,
+    {
+        Self::from_rows(&[
+            Vector::<4, T, A>::X,
+            Vector::<4, T, A>::Y,
+            Vector::<4, T, A>::Z,
+            translation.to_homogeneous(),
+        ])
+    }
+
+    #[inline]
+    fn from_scale_translation_backend(scale: Vector<3, T, A>, translation: Vector<3, T, A>) -> Self
+    where
+        T: Zero + One,
+    {
+        Self::from_rows(&[
+            Vector::<4, T, A>::new(scale.x, T::ZERO, T::ZERO, T::ZERO),
+            Vector::<4, T, A>::new(T::ZERO, scale.y, T::ZERO, T::ZERO),
+            Vector::<4, T, A>::new(T::ZERO, T::ZERO, scale.z, T::ZERO),
+            translation.to_homogeneous(),
+        ])
+    }
+
+    #[inline]
+    fn from_matrix_backend(matrix: Matrix<3, T, A>) -> Self
+    where
+        T: Zero + One,
+    {
+        Self::from_rows(&[
+            matrix.x_axis.extend(T::ZERO),
+            matrix.y_axis.extend(T::ZERO),
+            matrix.z_axis.extend(T::ZERO),
+            Vector::<4, T, A>::new(T::ZERO, T::ZERO, T::ZERO, T::ONE),
+        ])
+    }
+
+    #[inline]
+    fn from_matrix_translation_backend(
+        matrix: Matrix<3, T, A>,
+        translation: Vector<3, T, A>,
+    ) -> Self
+    where
+        T: Zero + One,
+    {
+        Self::from_rows(&[
+            matrix.x_axis.extend(T::ZERO),
+            matrix.y_axis.extend(T::ZERO),
+            matrix.z_axis.extend(T::ZERO),
+            translation.to_homogeneous(),
+        ])
+    }
+
+    #[inline]
+    fn matrix_backend(&self) -> Matrix<3, T, A> {
+        self.0.submatrix()
     }
 }
 
