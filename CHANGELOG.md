@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `to_homogeneous` and `from_homogeneous` for 2D vectors
+
+### Fixed
+
+- Added missing `#[inline]` and `#[must_use]` attributes for
+  `Vector::from_homogeneous`
+
 ## [0.17.1] - 2026-07-26
 
 ### Changed

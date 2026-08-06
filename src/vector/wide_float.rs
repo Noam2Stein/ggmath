@@ -841,6 +841,16 @@ macro_rules! impl_wide_float {
         }
 
         impl<A: Alignment> Vector<2, $Wide, A> {
+            /// For each lane, creates a 2D vector from homogeneous coordinates
+            /// by performing perspective divide.
+            ///
+            /// Equivalent to `homogeneous.xy / homogeneous.z`.
+            #[inline]
+            #[must_use]
+            pub fn from_homogeneous(homogeneous: Vector<3, $Wide, A>) -> Self {
+                homogeneous.xy() / homogeneous.z
+            }
+
             /// For each lane, returns the angle (in radians) that rotates
             /// `self` to `other` in the range `-π..=+π`.
             ///
@@ -1111,6 +1121,8 @@ macro_rules! impl_wide_float {
             /// by performing perspective divide.
             ///
             /// Equivalent to `homogeneous.xyz / homogeneous.w`.
+            #[inline]
+            #[must_use]
             pub fn from_homogeneous(homogeneous: Vector<4, $Wide, A>) -> Self {
                 homogeneous.xyz() / homogeneous.w
             }
@@ -2720,10 +2732,15 @@ mod tests {
     #[test]
     fn test_from_homogeneous() {
         for_types!(|Wide: WideFloat| {
-            for homogeneous in random_iter::<Vec4<Wide>>() {
+            for vector4 in random_iter::<Vec4<Wide>>() {
+                let vector3 = vector4.xyz();
                 assert_test_eq!(
-                    Vec3::<Wide>::from_homogeneous(homogeneous),
-                    Vec3::from_lane_fn(|lane| Vec3::<T>::from_homogeneous(homogeneous.lane(lane)))
+                    Vec2::<Wide>::from_homogeneous(vector3),
+                    Vec2::from_lane_fn(|lane| Vec2::<T>::from_homogeneous(vector3.lane(lane)))
+                );
+                assert_test_eq!(
+                    Vec3::<Wide>::from_homogeneous(vector4),
+                    Vec3::from_lane_fn(|lane| Vec3::<T>::from_homogeneous(vector4.lane(lane)))
                 );
             }
         });
