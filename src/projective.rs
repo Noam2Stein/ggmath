@@ -1,4 +1,8 @@
-use crate::{Aligned, Alignment, Length, Matrix, Scalar, Unaligned, Vector, length::TwoOrThree};
+use crate::{
+    Aligned, Alignment, Length, Matrix, Scalar, Unaligned, Vector,
+    length::TwoOrThree,
+    utils::{transmute_generic, transmute_ref},
+};
 
 /// An `N`-dimensional projective transform represented by a homogeneous matrix.
 ///
@@ -31,6 +35,72 @@ pub type Proj2A<T> = Projective<2, T, Aligned>;
 ///
 /// TODO
 pub type Proj3A<T> = Projective<3, T, Aligned>;
+
+#[expect(private_bounds)]
+impl<const N: usize, T, A: Alignment> Projective<N, T, A>
+where
+    Length<N>: TwoOrThree,
+    T: Scalar,
+{
+    /// Conversion between [`Aligned`] and [`Unaligned`] storage.
+    ///
+    /// See [`align`] and [`unalign`] for scenarios where the output alignment
+    /// is known.
+    ///
+    /// See [`Alignment`] for more details.
+    ///
+    /// [`align`]: Self::align
+    /// [`unalign`]: Self::unalign
+    #[inline]
+    #[must_use]
+    pub const fn to_alignment<A2: Alignment>(&self) -> Projective<N, T, A2> {
+        match (N, A2::IS_ALIGNED == A::IS_ALIGNED) {
+            // SAFETY: If `A` is `A2`, the types of the transmute are the same
+            // and make it safe. Otherwhise, matrices with length `4` are
+            // guaranteed to be made out of `N * N` consecutive values of `T`
+            // with no padding. Meaning they have compatible layouts between
+            // alignments.
+            (3, _) | (_, true) => unsafe {
+                transmute_generic::<Projective<N, T, A>, Projective<N, T, A2>>(*self)
+            },
+
+            // SAFETY: Because `N == 2`, `Projective<N, T, A>` and
+            // `Projective<2, T, A>` are the same type, and
+            // `Projective<N, T, A2>` and `Projective<2, T, A2>` are the same
+            // type.
+            (2, false) => unsafe {
+                let proj = transmute_ref::<Projective<N, T, A>, Projective<2, T, A>>(self);
+                transmute_generic::<Projective<2, T, A2>, Projective<N, T, A2>>(Projective::<
+                    2,
+                    T,
+                    A2,
+                >(
+                    proj.0.to_alignment(),
+                ))
+            },
+
+            _ => unreachable!(),
+        }
+    }
+
+    /// Conversion to [`Aligned`] storage.
+    ///
+    /// See [`Alignment`] for more information.
+    #[inline]
+    #[must_use]
+    pub const fn align(&self) -> Projective<N, T, Aligned> {
+        self.to_alignment()
+    }
+
+    /// Conversion to [`Unaligned`] storage.
+    ///
+    /// See [`Alignment`] for more information.
+    #[inline]
+    #[must_use]
+    pub const fn unalign(&self) -> Projective<N, T, Unaligned> {
+        self.to_alignment()
+    }
+}
 
 impl<T, A: Alignment> Projective<2, T, A>
 where
