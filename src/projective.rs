@@ -31,3 +31,21 @@ pub type Proj2A<T> = Projective<2, T, Aligned>;
 ///
 /// TODO
 pub type Proj3A<T> = Projective<3, T, Aligned>;
+
+impl<const N: usize, T, A: Alignment> Clone for Projective<N, T, A>
+where
+    Length<N>: TwoOrThree,
+    T: Scalar,
+{
+    #[inline]
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+
+impl<const N: usize, T, A: Alignment> Copy for Projective<N, T, A>
+where
+    Length<N>: TwoOrThree,
+    T: Scalar,
+{
+}
