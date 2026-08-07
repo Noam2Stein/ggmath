@@ -373,6 +373,14 @@ where
     fn matrix_backend(&self) -> Matrix<2, T, A> {
         self.0.submatrix()
     }
+
+    #[inline]
+    fn eq_backend(&self, other: &Self) -> bool
+    where
+        T: PartialEq,
+    {
+        self.0 == other.0
+    }
 }
 
 impl<T, A: Alignment> Projective<3, T, A>
@@ -579,6 +587,14 @@ where
     fn matrix_backend(&self) -> Matrix<3, T, A> {
         self.0.submatrix()
     }
+
+    #[inline]
+    fn eq_backend(&self, other: &Self) -> bool
+    where
+        T: PartialEq,
+    {
+        self.0 == other.0
+    }
 }
 
 impl<const N: usize, T, A: Alignment> Clone for Projective<N, T, A>
@@ -596,5 +612,23 @@ impl<const N: usize, T, A: Alignment> Copy for Projective<N, T, A>
 where
     Length<N>: TwoOrThree,
     T: Scalar,
+{
+}
+
+impl<const N: usize, T, A: Alignment> PartialEq for Projective<N, T, A>
+where
+    Length<N>: TwoOrThree,
+    T: Scalar + PartialEq,
+{
+    #[inline]
+    fn eq(&self, other: &Self) -> bool {
+        specialize_23!(Projective::<N, T, A>::eq_backend(self, other))
+    }
+}
+
+impl<const N: usize, T, A: Alignment> Eq for Projective<N, T, A>
+where
+    Length<N>: TwoOrThree,
+    T: Scalar + Eq,
 {
 }
