@@ -211,6 +211,26 @@ where
         specialize_23!(Projective::<N, T, A>::matrix_backend(self))
     }
 
+    /// Returns the translation of a projective transform.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Proj2, Vec2, Vec3};
+    /// #
+    /// let proj = Proj2::from_rows(&[
+    ///     Vec3::new(1, 0, 0),
+    ///     Vec3::new(0, 1, 0),
+    ///     Vec3::new(6, 8, 1),
+    /// ]);
+    /// assert_eq!(proj.translation(), Vec2::new(6, 8));
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn translation(&self) -> Vector<N, T, A> {
+        specialize_23!(Projective::<N, T, A>::translation_backend(self))
+    }
+
     /// Conversion between [`Aligned`] and [`Unaligned`] storage.
     ///
     /// See [`align`] and [`unalign`] for scenarios where the output alignment
@@ -485,6 +505,11 @@ where
     }
 
     #[inline]
+    fn translation_backend(&self) -> Vector<2, T, A> {
+        self.0.z_axis.truncate()
+    }
+
+    #[inline]
     fn eq_backend(&self, other: &Self) -> bool
     where
         T: PartialEq,
@@ -709,6 +734,11 @@ where
     #[inline]
     fn matrix_backend(&self) -> Matrix<3, T, A> {
         self.0.submatrix()
+    }
+
+    #[inline]
+    fn translation_backend(&self) -> Vector<3, T, A> {
+        self.0.w_axis.truncate()
     }
 
     #[inline]
