@@ -1,9 +1,9 @@
-use core::ops::{Index, IndexMut};
+use core::ops::{Deref, DerefMut, Index, IndexMut};
 
 use crate::{
     Affine, Aligned, Alignment, Length, Matrix, One, Scalar, Unaligned, Vector, Zero,
     length::TwoOrThree,
-    utils::{specialize_23, transmute_generic, transmute_ref},
+    utils::{specialize_23, transmute_generic, transmute_mut, transmute_ref},
 };
 
 /// An `N`-dimensional projective transform represented by a homogeneous matrix.
@@ -835,6 +835,109 @@ where
     #[track_caller]
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         &mut self.as_mut_rows()[index]
+    }
+}
+
+#[doc(hidden)]
+#[repr(C)]
+pub struct Proj2Fields<T, A: Alignment>
+where
+    T: Scalar,
+{
+    /// The first row of the transform.
+    ///
+    /// This is a vector3, since projective transforms are represented by
+    /// homogeneous matrices.
+    pub x_axis: Vector<3, T, A>,
+    /// The second row of the transform.
+    ///
+    /// This is a vector3, since projective transforms are represented by
+    /// homogeneous matrices.
+    pub y_axis: Vector<3, T, A>,
+    /// The third row of the transform.
+    ///
+    /// This is a vector3, since projective transforms are represented by
+    /// homogeneous matrices.
+    pub z_axis: Vector<3, T, A>,
+}
+
+impl<T, A: Alignment> Deref for Projective<2, T, A>
+where
+    T: Scalar,
+{
+    type Target = Proj2Fields<T, A>;
+
+    #[inline]
+    fn deref(&self) -> &Self::Target {
+        // SAFETY: `Matrix<3, T, A>` is guaranteed to begin with 3 consecutive
+        // values of `Vector<3, T, A>`.
+        unsafe { transmute_ref::<Matrix<3, T, A>, Proj2Fields<T, A>>(&self.0) }
+    }
+}
+
+impl<T, A: Alignment> DerefMut for Projective<2, T, A>
+where
+    T: Scalar,
+{
+    #[inline]
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        // SAFETY: `Matrix<3, T, A>` is guaranteed to begin with 3 consecutive
+        // values of `Vector<3, T, A>`.
+        unsafe { transmute_mut::<Matrix<3, T, A>, Proj2Fields<T, A>>(&mut self.0) }
+    }
+}
+
+#[doc(hidden)]
+#[repr(C)]
+pub struct Proj3Fields<T, A: Alignment>
+where
+    T: Scalar,
+{
+    /// The first row of the transform.
+    ///
+    /// This is a vector4, since projective transforms are represented by
+    /// homogeneous matrices.
+    pub x_axis: Vector<4, T, A>,
+    /// The second row of the transform.
+    ///
+    /// This is a vector4, since projective transforms are represented by
+    /// homogeneous matrices.
+    pub y_axis: Vector<4, T, A>,
+    /// The third row of the transform.
+    ///
+    /// This is a vector4, since projective transforms are represented by
+    /// homogeneous matrices.
+    pub z_axis: Vector<4, T, A>,
+    /// The fourth row of the transform.
+    ///
+    /// This is a vector4, since projective transforms are represented by
+    /// homogeneous matrices.
+    pub w_axis: Vector<4, T, A>,
+}
+
+impl<T, A: Alignment> Deref for Projective<3, T, A>
+where
+    T: Scalar,
+{
+    type Target = Proj3Fields<T, A>;
+
+    #[inline]
+    fn deref(&self) -> &Self::Target {
+        // SAFETY: `Matrix<4, T, A>` is guaranteed to begin with 4 consecutive
+        // values of `Vector<4, T, A>`.
+        unsafe { transmute_ref::<Matrix<4, T, A>, Proj3Fields<T, A>>(&self.0) }
+    }
+}
+
+impl<T, A: Alignment> DerefMut for Projective<3, T, A>
+where
+    T: Scalar,
+{
+    #[inline]
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        // SAFETY: `Matrix<4, T, A>` is guaranteed to begin with 4 consecutive
+        // values of `Vector<4, T, A>`.
+        unsafe { transmute_mut::<Matrix<4, T, A>, Proj3Fields<T, A>>(&mut self.0) }
     }
 }
 
