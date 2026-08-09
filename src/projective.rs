@@ -40,6 +40,73 @@ pub type Proj3A<T> = Projective<3, T, Aligned>;
 impl<const N: usize, T, A: Alignment> Projective<N, T, A>
 where
     Length<N>: TwoOrThree,
+    T: Scalar + Zero,
+{
+    /// A projective transform with all elements set to `0`.
+    ///
+    /// This transforms all vectors to the zero vector. See [`IDENTITY`] for a
+    /// transform that keeps all vectors unchanged.
+    ///
+    /// [`IDENTITY`]: Self::IDENTITY
+    pub const ZERO: Self = Self::ZERO_IMPL;
+
+    /// The implementation of [`Self::ZERO`].
+    ///
+    /// Because of type system limitations, this implementation looks crazy. Use
+    /// a separate constant so that IDEs do not show the implementation.
+    const ZERO_IMPL: Self = match N {
+        // SAFETY: We are transmuting a type to itself
+        2 => unsafe {
+            transmute_generic::<Projective<2, T, A>, Projective<N, T, A>>(Projective::<2, T, A>(
+                Matrix::<3, T, A>::ZERO,
+            ))
+        },
+        // SAFETY: We are transmuting a type to itself
+        3 => unsafe {
+            transmute_generic::<Projective<3, T, A>, Projective<N, T, A>>(Projective::<3, T, A>(
+                Matrix::<4, T, A>::ZERO,
+            ))
+        },
+        _ => unreachable!(),
+    };
+}
+
+#[expect(private_bounds)]
+impl<const N: usize, T, A: Alignment> Projective<N, T, A>
+where
+    Length<N>: TwoOrThree,
+    T: Scalar + Zero + One,
+{
+    /// A projective transform that keeps all vectors unchanged.
+    ///
+    /// Diagonal elements are `1` and the rest are `0`.
+    pub const IDENTITY: Self = Self::IDENTITY_IMPL;
+
+    /// The implementation of [`Self::IDENTITY`].
+    ///
+    /// Because of type system limitations, this implementation looks crazy. Use
+    /// a separate constant so that IDEs do not show the implementation.
+    const IDENTITY_IMPL: Self = match N {
+        // SAFETY: We are transmuting a type to itself
+        2 => unsafe {
+            transmute_generic::<Projective<2, T, A>, Projective<N, T, A>>(Projective::<2, T, A>(
+                Matrix::<3, T, A>::IDENTITY,
+            ))
+        },
+        // SAFETY: We are transmuting a type to itself
+        3 => unsafe {
+            transmute_generic::<Projective<3, T, A>, Projective<N, T, A>>(Projective::<3, T, A>(
+                Matrix::<4, T, A>::IDENTITY,
+            ))
+        },
+        _ => unreachable!(),
+    };
+}
+
+#[expect(private_bounds)]
+impl<const N: usize, T, A: Alignment> Projective<N, T, A>
+where
+    Length<N>: TwoOrThree,
     T: Scalar,
 {
     /// Creates a transform from a non-uniform `scale`.
