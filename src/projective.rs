@@ -1,3 +1,5 @@
+use core::ops::{Index, IndexMut};
+
 use crate::{
     Affine, Aligned, Alignment, Length, Matrix, One, Scalar, Unaligned, Vector, Zero,
     length::TwoOrThree,
@@ -766,6 +768,74 @@ where
     Length<N>: TwoOrThree,
     T: Scalar,
 {
+}
+
+impl<T, A: Alignment> Index<usize> for Projective<2, T, A>
+where
+    T: Scalar,
+{
+    type Output = Vector<3, T, A>;
+
+    /// Returns the row at the given index.
+    ///
+    /// # Panics
+    ///
+    /// Panics if index is greater than or equal to `N + 1`.
+    #[inline]
+    #[track_caller]
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.as_rows()[index]
+    }
+}
+
+impl<T, A: Alignment> Index<usize> for Projective<3, T, A>
+where
+    T: Scalar,
+{
+    type Output = Vector<4, T, A>;
+
+    /// Returns the row at the given index.
+    ///
+    /// # Panics
+    ///
+    /// Panics if index is greater than or equal to `N + 1`.
+    #[inline]
+    #[track_caller]
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.as_rows()[index]
+    }
+}
+
+impl<T, A: Alignment> IndexMut<usize> for Projective<2, T, A>
+where
+    T: Scalar,
+{
+    /// Returns a mutable reference to the row at the given index.
+    ///
+    /// # Panics
+    ///
+    /// Panics if index is greater than or equal to `N + 1`.
+    #[inline]
+    #[track_caller]
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        &mut self.as_mut_rows()[index]
+    }
+}
+
+impl<T, A: Alignment> IndexMut<usize> for Projective<3, T, A>
+where
+    T: Scalar,
+{
+    /// Returns a mutable reference to the row at the given index.
+    ///
+    /// # Panics
+    ///
+    /// Panics if index is greater than or equal to `N + 1`.
+    #[inline]
+    #[track_caller]
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        &mut self.as_mut_rows()[index]
+    }
 }
 
 impl<const N: usize, T, A: Alignment> PartialEq for Projective<N, T, A>
