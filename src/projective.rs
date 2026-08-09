@@ -1,5 +1,5 @@
 use crate::{
-    Aligned, Alignment, Length, Matrix, One, Scalar, Unaligned, Vector, Zero,
+    Affine, Aligned, Alignment, Length, Matrix, One, Scalar, Unaligned, Vector, Zero,
     length::TwoOrThree,
     utils::{specialize_23, transmute_generic, transmute_ref},
 };
@@ -165,6 +165,37 @@ where
             matrix,
             translation
         ))
+    }
+
+    /// Creates a projective transform from an affine transform.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Affine2, Proj2, Vec2, Vec3};
+    /// #
+    /// let affine = Affine2::from_rows(&[
+    ///     Vec2::new(1.0, 2.0),
+    ///     Vec2::new(3.0, 4.0),
+    ///     Vec2::new(5.0, 6.0),
+    /// ]);
+    ///
+    /// assert_eq!(
+    ///     Proj2::from_affine(&affine),
+    ///     Proj2::from_rows(&[
+    ///         Vec3::new(1.0, 2.0, 0.0),
+    ///         Vec3::new(3.0, 4.0, 0.0),
+    ///         Vec3::new(5.0, 6.0, 1.0),
+    ///     ]),
+    /// );
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn from_affine(affine: &Affine<N, T, A>) -> Self
+    where
+        T: Zero + One,
+    {
+        specialize_23!(Projective::<N, T, A>::from_affine_backend(affine))
     }
 
     /// Returns the linear transformation part of `self`, ignoring the last row
@@ -437,6 +468,18 @@ where
     }
 
     #[inline]
+    fn from_affine_backend(affine: &Affine<2, T, A>) -> Self
+    where
+        T: Zero + One,
+    {
+        Self::from_rows(&[
+            affine.submatrix.x_axis.extend(T::ZERO),
+            affine.submatrix.y_axis.extend(T::ZERO),
+            affine.translation.to_homogeneous(),
+        ])
+    }
+
+    #[inline]
     fn matrix_backend(&self) -> Matrix<2, T, A> {
         self.0.submatrix()
     }
@@ -647,6 +690,19 @@ where
             matrix.y_axis.extend(T::ZERO),
             matrix.z_axis.extend(T::ZERO),
             translation.to_homogeneous(),
+        ])
+    }
+
+    #[inline]
+    fn from_affine_backend(affine: &Affine<3, T, A>) -> Self
+    where
+        T: Zero + One,
+    {
+        Self::from_rows(&[
+            affine.submatrix.x_axis.extend(T::ZERO),
+            affine.submatrix.y_axis.extend(T::ZERO),
+            affine.submatrix.z_axis.extend(T::ZERO),
+            affine.translation.to_homogeneous(),
         ])
     }
 
