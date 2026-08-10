@@ -1,4 +1,7 @@
-use core::ops::{Deref, DerefMut, Index, IndexMut};
+use core::{
+    fmt::{Debug, Display},
+    ops::{Deref, DerefMut, Index, IndexMut},
+};
 
 use crate::{
     Affine, Aligned, Alignment, Length, Matrix, One, Scalar, Unaligned, Vector, Zero,
@@ -512,6 +515,22 @@ where
     }
 
     #[inline]
+    fn debug_backend(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+    where
+        T: Debug,
+    {
+        write!(f, "{:?}", self.as_homogeneous())
+    }
+
+    #[inline]
+    fn display_backend(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+    where
+        T: Display,
+    {
+        write!(f, "{}", self.as_homogeneous())
+    }
+
+    #[inline]
     fn eq_backend(&self, other: &Self) -> bool
     where
         T: PartialEq,
@@ -744,6 +763,22 @@ where
     }
 
     #[inline]
+    fn debug_backend(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+    where
+        T: Debug,
+    {
+        write!(f, "{:?}", self.as_homogeneous())
+    }
+
+    #[inline]
+    fn display_backend(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+    where
+        T: Display,
+    {
+        write!(f, "{}", self.as_homogeneous())
+    }
+
+    #[inline]
     fn eq_backend(&self, other: &Self) -> bool
     where
         T: PartialEq,
@@ -938,6 +973,28 @@ where
         // SAFETY: `Matrix<4, T, A>` is guaranteed to begin with 4 consecutive
         // values of `Vector<4, T, A>`.
         unsafe { transmute_mut::<Matrix<4, T, A>, Proj3Fields<T, A>>(&mut self.0) }
+    }
+}
+
+impl<const N: usize, T, A: Alignment> Debug for Projective<N, T, A>
+where
+    Length<N>: TwoOrThree,
+    T: Scalar + Debug,
+{
+    #[inline]
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        specialize_23!(Projective::<N, T, A>::debug_backend(self, f))
+    }
+}
+
+impl<const N: usize, T, A: Alignment> Display for Projective<N, T, A>
+where
+    Length<N>: TwoOrThree,
+    T: Scalar + Display,
+{
+    #[inline]
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        specialize_23!(Projective::<N, T, A>::display_backend(self, f))
     }
 }
 

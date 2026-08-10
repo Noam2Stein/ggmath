@@ -347,6 +347,19 @@ where
 {
 }
 
+// SAFETY: `T == T` regardless of `N` and `A`.
+unsafe impl<'a, 'b, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
+    Specialize<&'a mut core::fmt::Formatter<'b>, N, N2, A, A2>
+    for &'a mut core::fmt::Formatter<'b>
+{
+}
+
+// SAFETY: `T == T` regardless of `N` and `A`.
+unsafe impl<const N: usize, const N2: usize, A: Alignment, A2: Alignment>
+    Specialize<core::fmt::Result, N, N2, A, A2> for core::fmt::Result
+{
+}
+
 // SAFETY: `N == N2`, `A == A2` => `Vector<N, T, A> == Vector<N2, T, A2>`.
 unsafe impl<T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<Vector<N2, T, A2>, N, N2, A, A2> for Vector<N, T, A>
