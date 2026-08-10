@@ -1,5 +1,6 @@
 use core::{
     fmt::{Debug, Display},
+    hash::Hash,
     ops::{Deref, DerefMut, Index, IndexMut},
 };
 
@@ -537,6 +538,14 @@ where
     {
         self.0 == other.0
     }
+
+    #[inline]
+    fn hash_backend<H: core::hash::Hasher>(&self, (state,): (&mut H,))
+    where
+        T: Hash,
+    {
+        self.0.hash(state);
+    }
 }
 
 impl<T, A: Alignment> Projective<3, T, A>
@@ -785,6 +794,14 @@ where
     {
         self.0 == other.0
     }
+
+    #[inline]
+    fn hash_backend<H: core::hash::Hasher>(&self, (state,): (&mut H,))
+    where
+        T: Hash,
+    {
+        self.0.hash(state);
+    }
 }
 
 impl<const N: usize, T, A: Alignment> Clone for Projective<N, T, A>
@@ -1014,4 +1031,15 @@ where
     Length<N>: TwoOrThree,
     T: Scalar + Eq,
 {
+}
+
+impl<const N: usize, T, A: Alignment> Hash for Projective<N, T, A>
+where
+    Length<N>: TwoOrThree,
+    T: Scalar + Hash,
+{
+    #[inline]
+    fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
+        specialize_23!(Projective::<N, T, A>::hash_backend(self, (state,)))
+    }
 }
