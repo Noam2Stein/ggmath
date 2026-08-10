@@ -1,7 +1,7 @@
 use core::{
     fmt::{Debug, Display},
     hash::Hash,
-    ops::{Deref, DerefMut, Index, IndexMut},
+    ops::{Add, Deref, DerefMut, Index, IndexMut, Mul},
 };
 
 use crate::{
@@ -549,6 +549,15 @@ where
     {
         self.0.hash(state);
     }
+
+    #[inline]
+    #[track_caller]
+    fn mul_backend(&self, rhs: &Self) -> Self
+    where
+        T: Add<Output = T> + Mul<Output = T>,
+    {
+        Self(self.0 * rhs.0)
+    }
 }
 
 impl<T, A: Alignment> Projective<3, T, A>
@@ -805,6 +814,15 @@ where
     {
         self.0.hash(state);
     }
+
+    #[inline]
+    #[track_caller]
+    fn mul_backend(&self, rhs: &Self) -> Self
+    where
+        T: Add<Output = T> + Mul<Output = T>,
+    {
+        Self(self.0 * rhs.0)
+    }
 }
 
 impl<const N: usize, T, A: Alignment> Clone for Projective<N, T, A>
@@ -1060,3 +1078,79 @@ where
         Self::IDENTITY
     }
 }
+
+macro_rules! impl_mul {
+    ($(#[$doc:meta])*) => {
+        impl<const N: usize, T, A: Alignment> Mul for Projective<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Add<Output = T> + Mul<Output = T>,
+        {
+            type Output = Self;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: Self) -> Self::Output {
+                &self * &rhs
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Mul<&Projective<N, T, A>> for Projective<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Add<Output = T> + Mul<Output = T>,
+        {
+            type Output = Self;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: &Projective<N, T, A>) -> Self::Output {
+                &self * rhs
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Mul<Projective<N, T, A>> for &Projective<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Add<Output = T> + Mul<Output = T>,
+        {
+            type Output = Projective<N, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: Projective<N, T, A>) -> Self::Output {
+                self * &rhs
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Mul<&Projective<N, T, A>> for &Projective<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Add<Output = T> + Mul<Output = T>,
+        {
+            type Output = Projective<N, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: &Projective<N, T, A>) -> Self::Output {
+                specialize_23!(Projective::<N, T, A>::mul_backend(self, rhs))
+            }
+        }
+    };
+}
+impl_mul!(
+    /// Projective transform multiplication.
+    ///
+    /// The resulting transform is equivalent to first applying the left
+    /// transform, then the right transform.
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is cross-platform deterministic and
+    /// fully consistent with scalar addition and multiplication, including
+    /// floating-point precision and integer panics.
+);
