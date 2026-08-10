@@ -1,7 +1,7 @@
 use core::{
     fmt::{Debug, Display},
     hash::Hash,
-    ops::{Add, Deref, DerefMut, Index, IndexMut, Mul},
+    ops::{Add, Deref, DerefMut, Index, IndexMut, Mul, MulAssign},
 };
 
 use crate::{
@@ -1138,6 +1138,32 @@ macro_rules! impl_mul {
             #[track_caller]
             fn mul(self, rhs: &Projective<N, T, A>) -> Self::Output {
                 specialize_23!(Projective::<N, T, A>::mul_backend(self, rhs))
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> MulAssign for Projective<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Add<Output = T> + Mul<Output = T>,
+        {
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul_assign(&mut self, rhs: Self) {
+                *self = &*self * &rhs;
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> MulAssign<&Projective<N, T, A>> for Projective<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Add<Output = T> + Mul<Output = T>,
+        {
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul_assign(&mut self, rhs: &Projective<N, T, A>) {
+                *self = &*self * rhs;
             }
         }
     };
