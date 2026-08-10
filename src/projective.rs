@@ -2,6 +2,7 @@ use core::{
     fmt::{Debug, Display},
     hash::Hash,
     ops::{Add, Deref, DerefMut, Index, IndexMut, Mul, MulAssign},
+    panic::{RefUnwindSafe, UnwindSafe},
 };
 
 use crate::{
@@ -1180,3 +1181,42 @@ impl_mul!(
     /// fully consistent with scalar addition and multiplication, including
     /// floating-point precision and integer panics.
 );
+
+// SAFETY: Projective is equivalent to values of `T` mixed with padding.
+// Because `T` is `Send` and padding is `Send`, projective is too.
+unsafe impl<const N: usize, T, A: Alignment> Send for Projective<N, T, A>
+where
+    Length<N>: TwoOrThree,
+    T: Scalar + Send,
+{
+}
+
+// SAFETY: Projective is equivalent to values of `T` mixed with padding.
+// Because `T` is `Sync` and padding is `Sync`, the projective is too.
+unsafe impl<const N: usize, T, A: Alignment> Sync for Projective<N, T, A>
+where
+    Length<N>: TwoOrThree,
+    T: Scalar + Sync,
+{
+}
+
+impl<const N: usize, T, A: Alignment> Unpin for Projective<N, T, A>
+where
+    Length<N>: TwoOrThree,
+    T: Scalar + Unpin,
+{
+}
+
+impl<const N: usize, T, A: Alignment> UnwindSafe for Projective<N, T, A>
+where
+    Length<N>: TwoOrThree,
+    T: Scalar + UnwindSafe,
+{
+}
+
+impl<const N: usize, T, A: Alignment> RefUnwindSafe for Projective<N, T, A>
+where
+    Length<N>: TwoOrThree,
+    T: Scalar + RefUnwindSafe,
+{
+}
