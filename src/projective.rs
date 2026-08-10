@@ -1043,3 +1043,17 @@ where
         specialize_23!(Projective::<N, T, A>::hash_backend(self, (state,)))
     }
 }
+
+impl<const N: usize, T, A: Alignment> Default for Projective<N, T, A>
+where
+    Length<N>: TwoOrThree,
+    T: Scalar + Zero + One,
+{
+    /// Returns [`IDENTITY`].
+    ///
+    /// [`IDENTITY`]: Self::IDENTITY
+    #[inline]
+    fn default() -> Self {
+        Self::IDENTITY
+    }
+}
