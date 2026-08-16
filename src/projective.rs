@@ -11,6 +11,8 @@ use crate::{
     utils::{specialize_23, transmute_generic, transmute_mut, transmute_ref},
 };
 
+mod float;
+
 /// An `N`-dimensional projective transform represented by a homogeneous matrix.
 ///
 /// TODO
@@ -156,7 +158,7 @@ where
     /// linear transformation.
     #[inline]
     #[must_use]
-    pub fn from_matrix(matrix: Matrix<N, T, A>) -> Self
+    pub fn from_matrix(matrix: &Matrix<N, T, A>) -> Self
     where
         T: Zero + One,
     {
@@ -471,7 +473,7 @@ where
     }
 
     #[inline]
-    fn from_matrix_backend(matrix: Matrix<2, T, A>) -> Self
+    fn from_matrix_backend(matrix: &Matrix<2, T, A>) -> Self
     where
         T: Zero + One,
     {
@@ -733,7 +735,7 @@ where
     }
 
     #[inline]
-    fn from_matrix_backend(matrix: Matrix<3, T, A>) -> Self
+    fn from_matrix_backend(matrix: &Matrix<3, T, A>) -> Self
     where
         T: Zero + One,
     {
