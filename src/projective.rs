@@ -513,7 +513,7 @@ where
 
     #[inline]
     fn matrix_backend(&self) -> Matrix<2, T, A> {
-        self.0.submatrix()
+        Matrix::<2, T, A>::from_homogeneous(&self.0)
     }
 
     #[inline]
@@ -778,7 +778,7 @@ where
 
     #[inline]
     fn matrix_backend(&self) -> Matrix<3, T, A> {
-        self.0.submatrix()
+        Matrix::<3, T, A>::from_homogeneous(&self.0)
     }
 
     #[inline]
