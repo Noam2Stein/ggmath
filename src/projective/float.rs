@@ -121,6 +121,61 @@ where
         specialize_23!(Projective::<N, T, A>::inverse_or_zero_backend(self))
     }
 
+    /// Transforms the given vector as a point.
+    ///
+    /// Equivalent to `(point, 1) * self` but is faster.
+    ///
+    /// `self` must contain a valid affine transform, meaning the third column
+    /// must be `(0, 0, 1)`.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if the third column of `self` is not `(0, 0, 1)`.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn transform_point(&self, point: Vector<N, T, A>) -> Vector<N, T, A> {
+        specialize_23!(Projective::<N, T, A>::transform_point_backend(self, point))
+    }
+
+    /// Transforms the given 2D vector without applying translation.
+    ///
+    /// Equivalent to `(vector, 0) * self` but is faster.
+    ///
+    /// `self` must contain a valid affine transform, meaning the third column
+    /// must be `(0, 0, 1)`.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if the third column of `self` is not `(0, 0, 1)`.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn transform_vector(&self, vector: Vector<N, T, A>) -> Vector<N, T, A> {
+        specialize_23!(Projective::<N, T, A>::transform_vector_backend(
+            self, vector
+        ))
+    }
+
+    /// Transforms the given 3D vector as a point, applying perspective
+    /// projection.
+    ///
+    /// Equivalent to:
+    ///
+    /// ```ignore
+    /// let result = matrix * (point, 1);
+    /// result.xyz / result.w
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn project_point(&self, point: Vector<N, T, A>) -> Vector<N, T, A> {
+        specialize_23!(Projective::<N, T, A>::project_point_backend(self, point))
+    }
+
     /// Returns `true` if the absolute difference of all elements between `self`
     /// and `other` is less than or equal to `max_abs_diff`.
     ///
@@ -266,56 +321,6 @@ where
         (scale, angle, self.translation())
     }
 
-    /// Transforms the given 2D vector as a point.
-    ///
-    /// Equivalent to `(point, 1) * self` but is faster.
-    ///
-    /// `self` must contain a valid affine transform, meaning the third column
-    /// must be `(0, 0, 1)`.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if the third column of `self` is not `(0, 0, 1)`.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn transform_point(&self, point: Vector<2, T, A>) -> Vector<2, T, A> {
-        debug_assert!(
-            self.column(2)
-                .abs_diff_eq(Vector::<3, T, A>::Z, T::as_from(1e-6)),
-            "matrix contains projection (which transform_point does not handle)"
-        );
-
-        self.x_axis.xy() * point.x + self.y_axis.xy() * point.y + self.z_axis.xy()
-    }
-
-    /// Transforms the given 2D vector without applying translation.
-    ///
-    /// Equivalent to `(vector, 0) * self` but is faster.
-    ///
-    /// `self` must contain a valid affine transform, meaning the third column
-    /// must be `(0, 0, 1)`.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if the third column of `self` is not `(0, 0, 1)`.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn transform_vector(&self, vector: Vector<2, T, A>) -> Vector<2, T, A> {
-        debug_assert!(
-            self.column(2)
-                .abs_diff_eq(Vector::<3, T, A>::Z, T::as_from(1e-6)),
-            "matrix contains projection (which transform_vector does not handle)"
-        );
-
-        self.x_axis.xy() * vector.x + self.y_axis.xy() * vector.y
-    }
-
     #[inline(always)]
     fn is_nan_backend(&self) -> bool {
         self.x_axis.is_nan() || self.y_axis.is_nan() || self.z_axis.is_nan()
@@ -344,6 +349,37 @@ where
     #[inline(always)]
     fn inverse_or_zero_backend(&self) -> Self {
         Self(self.0.inverse_or_zero())
+    }
+
+    #[inline(always)]
+    #[track_caller]
+    fn transform_point_backend(&self, point: Vector<2, T, A>) -> Vector<2, T, A> {
+        debug_assert!(
+            self.column(2)
+                .abs_diff_eq(Vector::<3, T, A>::Z, T::as_from(1e-6)),
+            "matrix contains projection (which transform_point does not handle)"
+        );
+
+        self.x_axis.xy() * point.x + self.y_axis.xy() * point.y + self.z_axis.xy()
+    }
+
+    #[inline(always)]
+    #[track_caller]
+    fn transform_vector_backend(&self, vector: Vector<2, T, A>) -> Vector<2, T, A> {
+        debug_assert!(
+            self.column(2)
+                .abs_diff_eq(Vector::<3, T, A>::Z, T::as_from(1e-6)),
+            "matrix contains projection (which transform_vector does not handle)"
+        );
+
+        self.x_axis.xy() * vector.x + self.y_axis.xy() * vector.y
+    }
+
+    #[inline(always)]
+    fn project_point_backend(&self, point: Vector<2, T, A>) -> Vector<2, T, A> {
+        let result = self.x_axis * point.x + self.y_axis * point.y + self.z_axis;
+
+        (result / result.z).truncate()
     }
 
     #[inline(always)]
@@ -1397,78 +1433,6 @@ where
         (scale, rotation, self.translation())
     }
 
-    /// Transforms the given 3D vector as a point.
-    ///
-    /// Equivalent to `(point, 1) * self` but is faster. This does not perform a
-    /// perspective divide.
-    ///
-    /// `self` must contain a valid affine transform, meaning the fourth column
-    /// must be `(0, 0, 0, 1)`.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if the fourth column of `self` is not `(0, 0, 0, 1)`.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn transform_point(&self, point: Vector<3, T, A>) -> Vector<3, T, A> {
-        debug_assert!(
-            self.column(3)
-                .abs_diff_eq(Vector::<4, T, A>::W, T::as_from(1e-6)),
-            "matrix contains projection (which transform_point does not handle)"
-        );
-
-        self.x_axis.xyz() * point.x
-            + self.y_axis.xyz() * point.y
-            + self.z_axis.xyz() * point.z
-            + self.w_axis.xyz()
-    }
-
-    /// Transforms the given 3D vector without applying translation.
-    ///
-    /// Equivalent to `(vector, 0) * self` but is faster.
-    ///
-    /// `self` must contain a valid affine transform, meaning the fourth column
-    /// must be `(0, 0, 0, 1)`.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if the fourth column of `self` is not `(0, 0, 0, 1)`.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn transform_vector(&self, vector: Vector<3, T, A>) -> Vector<3, T, A> {
-        debug_assert!(
-            self.column(3)
-                .abs_diff_eq(Vector::<4, T, A>::W, T::as_from(1e-6)),
-            "matrix contains projection (which transform_vector does not handle)"
-        );
-
-        self.x_axis.xyz() * vector.x + self.y_axis.xyz() * vector.y + self.z_axis.xyz() * vector.z
-    }
-
-    /// Transforms the given 3D vector as a point, applying perspective
-    /// projection.
-    ///
-    /// Equivalent to:
-    ///
-    /// ```ignore
-    /// let result = matrix * (point, 1);
-    /// result.xyz / result.w
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn project_point(&self, point: Vector<3, T, A>) -> Vector<3, T, A> {
-        let result =
-            self.x_axis * point.x + self.y_axis * point.y + self.z_axis * point.z + self.w_axis;
-
-        (result / result.w).xyz()
-    }
-
     #[inline(always)]
     fn is_nan_backend(&self) -> bool {
         self.x_axis.is_nan() || self.y_axis.is_nan() || self.z_axis.is_nan() || self.w_axis.is_nan()
@@ -1500,6 +1464,41 @@ where
     #[inline(always)]
     fn inverse_or_zero_backend(&self) -> Self {
         Self(self.0.inverse_or_zero())
+    }
+
+    #[inline(always)]
+    #[track_caller]
+    fn transform_point_backend(&self, point: Vector<3, T, A>) -> Vector<3, T, A> {
+        debug_assert!(
+            self.column(3)
+                .abs_diff_eq(Vector::<4, T, A>::W, T::as_from(1e-6)),
+            "matrix contains projection (which transform_point does not handle)"
+        );
+
+        self.x_axis.xyz() * point.x
+            + self.y_axis.xyz() * point.y
+            + self.z_axis.xyz() * point.z
+            + self.w_axis.xyz()
+    }
+
+    #[inline(always)]
+    #[track_caller]
+    fn transform_vector_backend(&self, vector: Vector<3, T, A>) -> Vector<3, T, A> {
+        debug_assert!(
+            self.column(3)
+                .abs_diff_eq(Vector::<4, T, A>::W, T::as_from(1e-6)),
+            "matrix contains projection (which transform_vector does not handle)"
+        );
+
+        self.x_axis.xyz() * vector.x + self.y_axis.xyz() * vector.y + self.z_axis.xyz() * vector.z
+    }
+
+    #[inline(always)]
+    fn project_point_backend(&self, point: Vector<3, T, A>) -> Vector<3, T, A> {
+        let result =
+            self.x_axis * point.x + self.y_axis * point.y + self.z_axis * point.z + self.w_axis;
+
+        (result / result.w).truncate()
     }
 
     #[inline(always)]
