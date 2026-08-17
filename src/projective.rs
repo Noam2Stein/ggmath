@@ -1063,6 +1063,125 @@ where
     }
 }
 
+macro_rules! impl_vector_mul {
+    ($(#[$doc:meta])*) => {
+        impl<T, A: Alignment> Mul<Projective<2, T, A>> for Vector<3, T, A>
+        where
+            T: Scalar + Add<Output = T> + Mul<Output = T>,
+        {
+            type Output = Self;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: Projective<2, T, A>) -> Self::Output {
+                self * &rhs.0
+            }
+        }
+
+        impl<T, A: Alignment> Mul<Projective<3, T, A>> for Vector<4, T, A>
+        where
+            T: Scalar + Add<Output = T> + Mul<Output = T>,
+        {
+            type Output = Self;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: Projective<3, T, A>) -> Self::Output {
+                self * &rhs.0
+            }
+        }
+
+        impl<T, A: Alignment> Mul<&Projective<2, T, A>> for Vector<3, T, A>
+        where
+            T: Scalar + Add<Output = T> + Mul<Output = T>,
+        {
+            type Output = Self;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: &Projective<2, T, A>) -> Self::Output {
+                self * &rhs.0
+            }
+        }
+
+        impl<T, A: Alignment> Mul<&Projective<3, T, A>> for Vector<4, T, A>
+        where
+            T: Scalar + Add<Output = T> + Mul<Output = T>,
+        {
+            type Output = Self;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: &Projective<3, T, A>) -> Self::Output {
+                self * &rhs.0
+            }
+        }
+
+        impl<T, A: Alignment> Mul<Projective<2, T, A>> for &Vector<3, T, A>
+        where
+            T: Scalar + Add<Output = T> + Mul<Output = T>,
+        {
+            type Output = Vector<3, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: Projective<2, T, A>) -> Self::Output {
+                *self * &rhs.0
+            }
+        }
+
+        impl<T, A: Alignment> Mul<Projective<3, T, A>> for &Vector<4, T, A>
+        where
+            T: Scalar + Add<Output = T> + Mul<Output = T>,
+        {
+            type Output = Vector<4, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: Projective<3, T, A>) -> Self::Output {
+                *self * &rhs.0
+            }
+        }
+
+        impl<T, A: Alignment> Mul<&Projective<2, T, A>> for &Vector<3, T, A>
+        where
+            T: Scalar + Add<Output = T> + Mul<Output = T>,
+        {
+            type Output = Vector<3, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: &Projective<2, T, A>) -> Self::Output {
+                *self * &rhs.0
+            }
+        }
+
+        impl<T, A: Alignment> Mul<&Projective<3, T, A>> for &Vector<4, T, A>
+        where
+            T: Scalar + Add<Output = T> + Mul<Output = T>,
+        {
+            type Output = Vector<4, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: &Projective<3, T, A>) -> Self::Output {
+                *self * &rhs.0
+            }
+        }
+    };
+}
+impl_vector_mul!(
+    /// TODO
+);
+
 macro_rules! impl_mul {
     ($(#[$doc:meta])*) => {
         impl<const N: usize, T, A: Alignment> Mul for Projective<N, T, A>
