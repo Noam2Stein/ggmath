@@ -1039,10 +1039,12 @@ macro_rules! impl_mul_projective {
     };
 }
 impl_mul_projective!(
-    /// Affine-transform matrix multiplication.
+    /// Affine-transform projective-transform multiplication, resulting in a
+    /// projective transform.
     ///
     /// Because vectors are treated as row matrices, multiplication first
-    /// applies the left-hand side transform, then the right-hand side matrix.
+    /// applies the left-hand side transform, then the right-hand side
+    /// transform.
     ///
     /// # Consistency
     ///
@@ -1115,10 +1117,12 @@ macro_rules! impl_projective_mul {
     };
 }
 impl_projective_mul!(
-    /// Matrix affine transform multiplication.
+    /// Projective-transform affine-transform multiplication, resulting in a
+    /// projective transform.
     ///
     /// Because vectors are treated as row matrices, multiplication first
-    /// applies the left-hand side matrix, then the right-hand side transform.
+    /// applies the left-hand side transform, then the right-hand side
+    /// transform.
     ///
     /// # Consistency
     ///
@@ -1200,11 +1204,12 @@ macro_rules! impl_projective_mul_assign {
     };
 }
 impl_projective_mul_assign!(
-    /// Matrix affine-transform multiplication.
+    /// Projective-transform affine-transform multiplication, then assigned to
+    /// the projective transform.
     ///
-    /// Because vectors are treated as row matrices, affine transform
-    /// multiplication first applies the left-hand side matrix, then the
-    /// right-hand side transform.
+    /// Because vectors are treated as row matrices, multiplication first
+    /// applies the left-hand side transform, then the right-hand side
+    /// transform.
     ///
     /// # Consistency
     ///
