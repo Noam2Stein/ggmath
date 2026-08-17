@@ -300,7 +300,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn to_scale_angle(&self) -> (Vector<2, T, A>, T) {
-        self.matrix().to_scale_angle()
+        Matrix::from_projective(self).to_scale_angle()
     }
 
     /// Returns the `scale`, `angle` and `translation` of `self`.
@@ -1391,7 +1391,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn to_euler(&self, order: EulerRot) -> (T, T, T) {
-        self.matrix().to_euler(order)
+        Matrix::from_projective(self).to_euler(order)
     }
 
     /// Returns the `scale` and `rotation` of `self`.
@@ -1410,7 +1410,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn to_scale_rotation(&self) -> (Vector<3, T, A>, Quaternion<T, A>) {
-        self.matrix().to_scale_rotation()
+        Matrix::from_projective(self).to_scale_rotation()
     }
 
     /// Returns the `scale`, `rotation` and `translation` of `self`.

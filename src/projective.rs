@@ -210,19 +210,6 @@ where
         specialize_23!(Projective::<N, T, A>::from_affine_backend(affine))
     }
 
-    /// Returns the linear transformation part of `self`, ignoring the last row
-    /// and column.
-    ///
-    /// This returns a smaller matrix. To get the full homogeneous matrix
-    /// representing `self`, use [`as_homogeneous`].
-    ///
-    /// [`as_homogeneous`]: Self::as_homogeneous
-    #[inline]
-    #[must_use]
-    pub fn matrix(&self) -> Matrix<N, T, A> {
-        specialize_23!(Projective::<N, T, A>::matrix_backend(self))
-    }
-
     /// Returns the translation of a projective transform.
     ///
     /// # Examples
@@ -512,11 +499,6 @@ where
     }
 
     #[inline]
-    fn matrix_backend(&self) -> Matrix<2, T, A> {
-        Matrix::<2, T, A>::from_homogeneous(&self.0)
-    }
-
-    #[inline]
     fn translation_backend(&self) -> Vector<2, T, A> {
         self.0.z_axis.truncate()
     }
@@ -774,11 +756,6 @@ where
             affine.submatrix.z_axis.extend(T::ZERO),
             affine.translation.to_homogeneous(),
         ])
-    }
-
-    #[inline]
-    fn matrix_backend(&self) -> Matrix<3, T, A> {
-        Matrix::<3, T, A>::from_homogeneous(&self.0)
     }
 
     #[inline]

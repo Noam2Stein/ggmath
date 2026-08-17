@@ -9,8 +9,11 @@ use core::{
 };
 
 use crate::{
-    Aligned, Alignment, Length, One, Scalar, SupportedLength, Unaligned, Vector, Zero,
-    utils::{Repr3, Repr4, specialize, transmute_generic, transmute_mut, transmute_ref},
+    Aligned, Alignment, Length, One, Projective, Scalar, SupportedLength, Unaligned, Vector, Zero,
+    length::TwoOrThree,
+    utils::{
+        Repr3, Repr4, specialize, specialize_23, transmute_generic, transmute_mut, transmute_ref,
+    },
 };
 
 mod float;
@@ -765,6 +768,17 @@ where
         specialize!(Matrix::<N, T, A>::determinant_backend(self))
     }
 
+    /// TODO
+    #[inline]
+    #[must_use]
+    #[expect(private_bounds)]
+    pub fn from_projective(projective: &Projective<N, T, A>) -> Self
+    where
+        Length<N>: TwoOrThree,
+    {
+        specialize_23!(Matrix::<N, T, A>::from_projective_backend(projective))
+    }
+
     /// Returns a mutable reference to the matrix's rows.
     ///
     /// This function has been renamed to [`as_mut_rows`].
@@ -858,6 +872,11 @@ where
         T: Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
     {
         self.x_axis.x * self.y_axis.y - self.x_axis.y * self.y_axis.x
+    }
+
+    #[inline(always)]
+    fn from_projective_backend(projective: &Projective<2, T, A>) -> Self {
+        Self::from_rows(&[projective.x_axis.truncate(), projective.y_axis.truncate()])
     }
 }
 
@@ -982,6 +1001,15 @@ where
         T: Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
     {
         self.x_axis.cross(self.y_axis).dot(self.z_axis)
+    }
+
+    #[inline(always)]
+    fn from_projective_backend(projective: &Projective<3, T, A>) -> Self {
+        Self::from_rows(&[
+            projective.x_axis.truncate(),
+            projective.y_axis.truncate(),
+            projective.z_axis.truncate(),
+        ])
     }
 }
 
