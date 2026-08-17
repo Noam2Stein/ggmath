@@ -7,9 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+This version changes the set of types provided by the library. This is a big
+breaking change, so expect existing code to fail compilation. These changes aim
+to simplify the API, see
+[this issue](https://github.com/Noam2Stein/ggmath/issues/52).
+
+If you use `Mat4` for 3D projections, or `Mat3` for 2D projections, you should
+switch to the new `Proj3` and `Proj2` types. From now on, normal matrices are
+only used for linear transformations in `N` dimensions, and not projective
+transformations in `N-1` dimensions.
+
+From now on, there should be way less breaking changes. Future breaking changes
+will most likely consist of minor function renames, optimizations that are
+slightly breaking, and simplifying the API when new Rust features are
+stabilized, which should not affect most users.
+
 ### Added
 
+- `Projective<N, T, A>` type with `Proj2<T>`, `Proj3<T>`, `Proj2A<T>` and
+  `Proj3A<T>` type aliases
+
+- `to_homogeneous` and `from_homogeneous` functions for matrices and affine
+  transforms
+
 - `to_homogeneous` and `from_homogeneous` for 2D vectors
+
+### Removed
+
+- `Mat4` functions for 3D transformations, and `Mat3` functions for 2D
+  transformations. These have been moved to the new `Proj3` and `Proj2` types
 
 ### Fixed
 
