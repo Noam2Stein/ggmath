@@ -14,13 +14,13 @@ macro_rules! impl_wide_float {
             Length<N>: TwoOrThree,
         {
             /// A matrix with all elements set to NaN (Not a Number).
-            pub const NAN: Self = Self::NAN_IMPL;
+            pub const NAN: Self = Self::NAN_INTERNAL_IMPL;
 
             /// The implementation of [`Self::NAN`].
             ///
             /// Because of type system limitations, this implementation looks crazy. Use
             /// a separate constant so that IDEs do not show the implementation.
-            const NAN_IMPL: Self = match N {
+            const NAN_INTERNAL_IMPL: Self = match N {
                 // SAFETY: We are transmuting a type to itself
                 2 => unsafe {
                     transmute_generic::<Projective<2, $Wide, A>, Projective<N, $Wide, A>>(
@@ -58,6 +58,8 @@ macro_rules! impl_wide_float {
             /// Returns the inverse of `self`.
             ///
             /// If `self` is not invertable the result is unspecified.
+            ///
+            /// This computes the inverse of the inner homogeneous matrix.
             #[must_use]
             pub fn inverse(&self) -> Self {
                 specialize_23!(Projective::<N, $Wide, A>::inverse_backend(self))
@@ -71,6 +73,8 @@ macro_rules! impl_wide_float {
             ///
             /// The fallback is only applied for invalid lanes. Other lanes are
             /// not affected.
+            ///
+            /// This computes the inverse of the inner homogeneous matrix.
             #[must_use]
             pub fn inverse_or(&self, fallback: &Self) -> Self {
                 specialize_23!(Projective::<N, $Wide, A>::inverse_or_backend(
@@ -78,22 +82,24 @@ macro_rules! impl_wide_float {
                 ))
             }
 
-            /// Returns the inverse of `self` or the zero matrix if `self` is
+            /// Returns the inverse of `self` or the zero transform if `self` is
             /// not invertable.
             ///
             /// The fallback is only applied for invalid lanes. Other lanes are
             /// not affected.
+            ///
+            /// This computes the inverse of the inner homogeneous matrix.
             #[must_use]
             pub fn inverse_or_zero(&self) -> Self {
                 specialize_23!(Projective::<N, $Wide, A>::inverse_or_zero_backend(self))
             }
 
-            /// Transforms the given 2D vector as a point.
+            /// Transforms the given vector as a point.
             ///
             /// Equivalent to `(point, 1) * self` but is faster.
             ///
-            /// `self` must contain a valid affine transform, meaning the third column
-            /// must be `(0, 0, 1)`.
+            /// This function assumes `self` contains an affine transformation, with no
+            /// projections, meaning the last column must be `(0, 0, ..., 1)`.
             #[inline]
             #[must_use]
             pub fn transform_point(&self, point: Vector<N, $Wide, A>) -> Vector<N, $Wide, A> {
@@ -102,12 +108,12 @@ macro_rules! impl_wide_float {
                 ))
             }
 
-            /// Transforms the given 2D vector without applying translation.
+            /// Transforms the given vector without applying translation.
             ///
             /// Equivalent to `(vector, 0) * self` but is faster.
             ///
-            /// `self` must contain a valid affine transform, meaning the third column
-            /// must be `(0, 0, 1)`.
+            /// This function assumes `self` contains an affine transformation, with no
+            /// projections, meaning the last column must be `(0, 0, ..., 1)`.
             #[inline]
             #[must_use]
             pub fn transform_vector(&self, vector: Vector<N, $Wide, A>) -> Vector<N, $Wide, A> {
@@ -116,15 +122,7 @@ macro_rules! impl_wide_float {
                 ))
             }
 
-            /// Transforms the given 3D vector as a point, applying perspective
-            /// projection.
-            ///
-            /// Equivalent to:
-            ///
-            /// ```ignore
-            /// let result = matrix * (point, 1);
-            /// result.xyz / result.w
-            /// ```
+            /// Transforms the given vector as a point, applying perspective divide.
             #[inline]
             #[must_use]
             pub fn project_point(&self, point: Vector<N, $Wide, A>) -> Vector<N, $Wide, A> {
@@ -137,7 +135,7 @@ macro_rules! impl_wide_float {
             /// between `self` and `other` is less than or equal to
             /// `max_abs_diff` for all lanes.
             ///
-            /// This can be used to compare two matrices that should be equal,
+            /// This can be used to compare two transforms that should be equal,
             /// but may have a slight difference due to operations having
             /// rounding errors.
             #[inline]
@@ -152,16 +150,10 @@ macro_rules! impl_wide_float {
         }
 
         impl<A: Alignment> Projective<2, $Wide, A> {
-            /// Creates an affine transformation matrix containing a rotation of
+            /// Creates a 2D projective transform containing a rotation of
             /// `angle` (in radians).
             ///
             /// This rotates `+X` to `+Y`.
-            ///
-            /// The resulting matrix can be used to transform 2D points and
-            /// vectors. See [`transform_point`] and [`transform_vector`].
-            ///
-            /// [`transform_point`]: Self::transform_point
-            /// [`transform_vector`]: Self::transform_vector
             #[inline]
             #[must_use]
             pub fn from_angle(angle: $Wide) -> Self {
@@ -173,16 +165,10 @@ macro_rules! impl_wide_float {
                 ])
             }
 
-            /// Creates an affine transformation matrix containing the
-            /// non-uniform `scale` and a rotation of `angle` (in radians).
+            /// Creates a 2D projective transform containing a non-uniform
+            /// `scale` and a rotation of `angle` (in radians).
             ///
             /// This rotates `+X` to `+Y`.
-            ///
-            /// The resulting matrix can be used to transform 2D points and
-            /// vectors. See [`transform_point`] and [`transform_vector`].
-            ///
-            /// [`transform_point`]: Self::transform_point
-            /// [`transform_vector`]: Self::transform_vector
             #[inline]
             #[must_use]
             pub fn from_scale_angle(scale: Vector<2, $Wide, A>, angle: $Wide) -> Self {
@@ -194,16 +180,10 @@ macro_rules! impl_wide_float {
                 ])
             }
 
-            /// Creates an affine transformation matrix containing a rotation of
+            /// Creates a 2D projective transform containing a rotation of
             /// `angle` (in radians) and `translation`.
             ///
             /// This rotates `+X` to `+Y`.
-            ///
-            /// The resulting matrix can be used to transform 2D points and
-            /// vectors. See [`transform_point`] and [`transform_vector`].
-            ///
-            /// [`transform_point`]: Self::transform_point
-            /// [`transform_vector`]: Self::transform_vector
             #[inline]
             #[must_use]
             pub fn from_angle_translation(angle: $Wide, translation: Vector<2, $Wide, A>) -> Self {
@@ -215,17 +195,10 @@ macro_rules! impl_wide_float {
                 ])
             }
 
-            /// Creates an affine transformation matrix containing the
-            /// non-uniform `scale`, a rotation of `angle` (in radians) and
-            /// `translation`.
+            /// Creates a 2D projective transform containing a non-uniform
+            /// `scale`, a rotation of `angle` (in radians) and `translation`.
             ///
             /// This rotates `+X` to `+Y`.
-            ///
-            /// The resulting matrix can be used to transform 2D points and
-            /// vectors. See [`transform_point`] and [`transform_vector`].
-            ///
-            /// [`transform_point`]: Self::transform_point
-            /// [`transform_vector`]: Self::transform_vector
             #[inline]
             #[must_use]
             pub fn from_scale_angle_translation(
@@ -241,23 +214,22 @@ macro_rules! impl_wide_float {
                 ])
             }
 
-            /// For each lane, returns the `scale` and `angle` of `self`.
+            /// Returns the `scale` and `angle` of `self`.
             ///
-            /// `self` must contain a valid affine transformation without
-            /// shearing. Otherwise the result is unspecified.
+            /// This function assumes `self` contains an affine transformation
+            /// with no shearing.
             ///
-            /// `self` can contain translation which is ignored.
+            /// `self` can contain translation, which is ignored.
             #[inline]
             #[must_use]
             pub fn to_scale_angle(&self) -> (Vector<2, $Wide, A>, $Wide) {
                 Matrix::from_projective(self).to_scale_angle()
             }
 
-            /// For each lane, returns the `scale`, `angle` and `translation` of
-            /// `self`.
+            /// Returns the `scale`, `angle` and `translation` of `self`.
             ///
-            /// `self` must contain a valid affine transformation without
-            /// shearing. Otherwise the result is unspecified.
+            /// This function assumes `self` contains an affine transformation
+            /// with no shearing.
             #[inline]
             #[must_use]
             pub fn to_scale_angle_translation(
@@ -318,16 +290,10 @@ macro_rules! impl_wide_float {
         }
 
         impl<A: Alignment> Projective<3, $Wide, A> {
-            /// Creates an affine transformation matrix containing a 3D rotation
-            /// from `angle` (in radians) around the x axis.
+            /// Creates a 3D projective transform containing a rotation from
+            /// `angle` (in radians) around the x axis.
             ///
             /// This rotates `+Y` to `+Z`.
-            ///
-            /// The resulting matrix can be used to transform 3D points and
-            /// vectors. See [`transform_point`] and [`transform_vector`].
-            ///
-            /// [`transform_point`]: Self::transform_point
-            /// [`transform_vector`]: Self::transform_vector
             #[inline]
             #[must_use]
             pub fn from_rotation_x(angle: $Wide) -> Self {
@@ -340,16 +306,10 @@ macro_rules! impl_wide_float {
                 ])
             }
 
-            /// Creates an affine transformation matrix containing a 3D rotation
-            /// from `angle` (in radians) around the y axis.
+            /// Creates a 3D projective transform containing a rotation from
+            /// `angle` (in radians) around the y axis.
             ///
             /// This rotates `+Z` to `+X`.
-            ///
-            /// The resulting matrix can be used to transform 3D points and
-            /// vectors. See [`transform_point`] and [`transform_vector`].
-            ///
-            /// [`transform_point`]: Self::transform_point
-            /// [`transform_vector`]: Self::transform_vector
             #[inline]
             #[must_use]
             pub fn from_rotation_y(angle: $Wide) -> Self {
@@ -362,16 +322,10 @@ macro_rules! impl_wide_float {
                 ])
             }
 
-            /// Creates an affine transformation matrix containing a 3D rotation
-            /// from `angle` (in radians) around the z axis.
+            /// Creates a 3D projective transform containing a rotation from
+            /// `angle` (in radians) around the z axis.
             ///
             /// This rotates `+X` to `+Y`.
-            ///
-            /// The resulting matrix can be used to transform 3D points and
-            /// vectors. See [`transform_point`] and [`transform_vector`].
-            ///
-            /// [`transform_point`]: Self::transform_point
-            /// [`transform_vector`]: Self::transform_vector
             #[inline]
             #[must_use]
             pub fn from_rotation_z(angle: $Wide) -> Self {
@@ -421,14 +375,8 @@ macro_rules! impl_wide_float {
                 ]
             }
 
-            /// Creates an affine transformation matrix containing a 3D rotation
-            /// from a quaternion.
-            ///
-            /// The resulting matrix can be used to transform 3D points and
-            /// vectors. See [`transform_point`] and [`transform_vector`].
-            ///
-            /// [`transform_point`]: Self::transform_point
-            /// [`transform_vector`]: Self::transform_vector
+            /// Creates a 3D projective transform containing a rotation from a
+            /// quaternion.
             #[inline]
             #[must_use]
             pub fn from_quat(quat: Quaternion<$Wide, A>) -> Self {
@@ -436,16 +384,10 @@ macro_rules! impl_wide_float {
                 Self::from_rows(&[x_axis, y_axis, z_axis, Vector::W])
             }
 
-            /// Creates an affine transformation matrix containing a rotation
-            /// from a rotation `axis` and `angle` (in radians).
+            /// Creates a 3D projective transform containing a rotation from a
+            /// rotation `axis` and `angle` (in radians).
             ///
             /// `axis` must be normalized. Otherwise the result is unspecified.
-            ///
-            /// The resulting matrix can be used to transform 3D points and
-            /// vectors. See [`transform_point`] and [`transform_vector`].
-            ///
-            /// [`transform_point`]: Self::transform_point
-            /// [`transform_vector`]: Self::transform_vector
             #[inline]
             #[must_use]
             pub fn from_axis_angle(axis: Vector<3, $Wide, A>, angle: $Wide) -> Self {
@@ -481,28 +423,16 @@ macro_rules! impl_wide_float {
                 ])
             }
 
-            /// Creates an affine transformation matrix containing a rotation
-            /// from an Euler rotation order/sequence and angles (in radians).
-            ///
-            /// The resulting matrix can be used to transform 3D points and
-            /// vectors. See [`transform_point`] and [`transform_vector`].
-            ///
-            /// [`transform_point`]: Self::transform_point
-            /// [`transform_vector`]: Self::transform_vector
+            /// Creates a 3D projective transform containing a rotation from an
+            /// Euler rotation order/sequence and angles (in radians).
             #[inline]
             #[must_use]
             pub fn from_euler(order: EulerRot, a: $Wide, b: $Wide, c: $Wide) -> Self {
                 Self::from_matrix(&Matrix::<3, $Wide, A>::from_euler(order, a, b, c))
             }
 
-            /// Creates an affine transformation matrix containing a non-uniform
+            /// Creates a 3D projective transform containing a non-uniform
             /// `scale` and a 3D `rotation`.
-            ///
-            /// The resulting matrix can be used to transform 3D points and
-            /// vectors. See [`transform_point`] and [`transform_vector`].
-            ///
-            /// [`transform_point`]: Self::transform_point
-            /// [`transform_vector`]: Self::transform_vector
             #[inline]
             #[must_use]
             pub fn from_scale_rotation(
@@ -518,14 +448,8 @@ macro_rules! impl_wide_float {
                 ])
             }
 
-            /// Creates an affine transformation matrix containing a 3D
-            /// `rotation` and `translation`.
-            ///
-            /// The resulting matrix can be used to transform 3D points and
-            /// vectors. See [`transform_point`] and [`transform_vector`].
-            ///
-            /// [`transform_point`]: Self::transform_point
-            /// [`transform_vector`]: Self::transform_vector
+            /// Creates a 3D projective transform containing a 3D `rotation` and
+            /// `translation`.
             #[inline]
             #[must_use]
             pub fn from_rotation_translation(
@@ -546,14 +470,8 @@ macro_rules! impl_wide_float {
                 ])
             }
 
-            /// Creates an affine transformation matrix containing the
-            /// non-uniform `scale`, a 3D `rotation` and `translation`.
-            ///
-            /// The resulting matrix can be used to transform 3D points and
-            /// vectors. See [`transform_point`] and [`transform_vector`].
-            ///
-            /// [`transform_point`]: Self::transform_point
-            /// [`transform_vector`]: Self::transform_vector
+            /// Creates a 3D projective transform containing a non-uniform
+            /// `scale`, a 3D `rotation` and `translation`.
             #[inline]
             #[must_use]
             pub fn from_scale_rotation_translation(
@@ -575,17 +493,11 @@ macro_rules! impl_wide_float {
                 ])
             }
 
-            /// Creates a left-handed view matrix from a camera position, a
+            /// Creates a left-handed view transform from a camera position, a
             /// facing direction and an up direction.
             ///
             /// For a view coordinate system with `+X=right`, `+Y=up` and
             /// `+Z=forward`.
-            ///
-            /// The resulting matrix can be used to transform 3D points and
-            /// vectors. See [`transform_point`] and [`transform_vector`].
-            ///
-            /// [`transform_point`]: Self::transform_point
-            /// [`transform_vector`]: Self::transform_vector
             #[inline]
             #[must_use]
             pub fn look_to_lh(
@@ -610,17 +522,11 @@ macro_rules! impl_wide_float {
                 ])
             }
 
-            /// Creates a right-handed view matrix from a camera position, a
+            /// Creates a right-handed view transform from a camera position, a
             /// facing direction and an up direction.
             ///
             /// For a view coordinate system with `+X=right`, `+Y=up` and
             /// `+Z=back`.
-            ///
-            /// The resulting matrix can be used to transform 3D points and
-            /// vectors. See [`transform_point`] and [`transform_vector`].
-            ///
-            /// [`transform_point`]: Self::transform_point
-            /// [`transform_vector`]: Self::transform_vector
             #[inline]
             #[must_use]
             pub fn look_to_rh(
@@ -645,17 +551,11 @@ macro_rules! impl_wide_float {
                 ])
             }
 
-            /// Creates a left-handed view matrix from a camera position, a
+            /// Creates a left-handed view transform from a camera position, a
             /// focal point and an up direction.
             ///
             /// For a view coordinate system with `+X=right`, `+Y=up` and
             /// `+Z=forward`.
-            ///
-            /// The resulting matrix can be used to transform 3D points and
-            /// vectors. See [`transform_point`] and [`transform_vector`].
-            ///
-            /// [`transform_point`]: Self::transform_point
-            /// [`transform_vector`]: Self::transform_vector
             #[inline]
             #[must_use]
             pub fn look_at_lh(
@@ -666,17 +566,11 @@ macro_rules! impl_wide_float {
                 Self::look_to_lh(eye, (center - eye).normalize(), up)
             }
 
-            /// Creates a right-handed view matrix from a camera position, a
+            /// Creates a right-handed view transform from a camera position, a
             /// focal point and an up direction.
             ///
             /// For a view coordinate system with `+X=right`, `+Y=up` and
             /// `+Z=back`.
-            ///
-            /// The resulting matrix can be used to transform 3D points and
-            /// vectors. See [`transform_point`] and [`transform_vector`].
-            ///
-            /// [`transform_point`]: Self::transform_point
-            /// [`transform_vector`]: Self::transform_vector
             #[inline]
             #[must_use]
             pub fn look_at_rh(
@@ -687,7 +581,7 @@ macro_rules! impl_wide_float {
                 Self::look_to_rh(eye, (center - eye).normalize(), up)
             }
 
-            /// Creates a left-handed perspective projection matrix with `0..1`
+            /// Creates a left-handed perspective projection with `0..1`
             /// depth range.
             ///
             /// Useful to map the standard left-handed coordinate system into
@@ -723,16 +617,11 @@ macro_rules! impl_wide_float {
                 ])
             }
 
-            /// Creates a right-handed perspective projection matrix with `0..1`
-            /// depth range.
+            /// Creates a right-handed perspective projection with `0..1` depth
+            /// range.
             ///
             /// Useful to map the standard right-handed coordinate system into
             /// what WebGPU/Metal/Direct3D expect.
-            ///
-            /// The resulting matrix can be used to transform 3D points using
-            /// [`project_point`].
-            ///
-            /// [`project_point`]: Self::project_point
             #[inline]
             #[must_use]
             pub fn perspective_rh(
@@ -764,16 +653,12 @@ macro_rules! impl_wide_float {
                 ])
             }
 
-            /// Creates a right-handed perspective projection matrix with
-            /// `-1..1` depth range.
+            /// Creates a right-handed perspective projection with `-1..1` depth
+            /// range.
             ///
             /// Equivalent to the OpenGL [`gluPerspective`] function.
             ///
-            /// The resulting matrix can be used to transform 3D points using
-            /// [`project_point`].
-            ///
             /// [`gluPerspective`]: https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/gluPerspective.xml
-            /// [`project_point`]: Self::project_point
             #[inline]
             #[must_use]
             pub fn perspective_rh_gl(
@@ -805,18 +690,13 @@ macro_rules! impl_wide_float {
                 ])
             }
 
-            /// Creates an infinite left-handed perspective projection matrix
-            /// with `0..1` depth range.
+            /// Creates an infinite left-handed perspective projection with
+            /// `0..1` depth range.
             ///
             /// Equivalent to `perspective_lh`, but with an infinite value for
             /// `far_plane`. The result is that points near `near_plane` have
             /// depth `0`, and as they move towards infinity the depth
             /// approaches `1`.
-            ///
-            /// The resulting matrix can be used to transform 3D points using
-            /// [`project_point`].
-            ///
-            /// [`project_point`]: Self::project_point
             #[inline]
             #[must_use]
             pub fn perspective_infinite_lh(
@@ -836,18 +716,13 @@ macro_rules! impl_wide_float {
                 ])
             }
 
-            /// Creates an infinite right-handed perspective projection matrix
-            /// with `0..1` depth range.
+            /// Creates an infinite right-handed perspective projection with
+            /// `0..1` depth range.
             ///
             /// Equivalent to `perspective_rh`, but with an infinite value for
             /// `far_plane`. The result is that points near `near_plane` have
             /// depth `0`, and as they move towards infinity the depth
             /// approaches `1`.
-            ///
-            /// The resulting matrix can be used to transform 3D points using
-            /// [`project_point`].
-            ///
-            /// [`project_point`]: Self::project_point
             #[inline]
             #[must_use]
             pub fn perspective_infinite_rh(
@@ -867,16 +742,11 @@ macro_rules! impl_wide_float {
                 ])
             }
 
-            /// Creates an infinite left-handed perspective projection matrix
-            /// with reversed `0..1` depth range.
+            /// Creates an infinite left-handed perspective projection with
+            /// reversed `0..1` depth range.
             ///
             /// Equivalent to `perspective_infinite_lh`, but maps points at
             /// `near_plane` to depth `1` and points at infinity to depth `0`.
-            ///
-            /// The resulting matrix can be used to transform 3D points using
-            /// [`project_point`].
-            ///
-            /// [`project_point`]: Self::project_point
             #[inline]
             #[must_use]
             pub fn perspective_infinite_reverse_lh(
@@ -896,16 +766,11 @@ macro_rules! impl_wide_float {
                 ])
             }
 
-            /// Creates an infinite right-handed perspective projection matrix
-            /// with reversed `0..1` depth range.
+            /// Creates an infinite right-handed perspective projection with
+            /// reversed `0..1` depth range.
             ///
             /// Equivalent to `perspective_infinite_rh`, but maps points at
             /// `near_plane` to depth `1` and points at infinity to depth `0`.
-            ///
-            /// The resulting matrix can be used to transform 3D points using
-            /// [`project_point`].
-            ///
-            /// [`project_point`]: Self::project_point
             #[inline]
             #[must_use]
             pub fn perspective_infinite_reverse_rh(
@@ -925,13 +790,8 @@ macro_rules! impl_wide_float {
                 ])
             }
 
-            /// Creates a left-handed perspective projection matrix with `0..1`
-            /// depth range.
-            ///
-            /// The resulting matrix can be used to transform 3D points using
-            /// [`project_point`].
-            ///
-            /// [`project_point`]: Self::project_point
+            /// Creates a left-handed perspective projection with `0..1` depth
+            /// range.
             #[inline]
             #[must_use]
             pub fn frustum_lh(
@@ -969,13 +829,8 @@ macro_rules! impl_wide_float {
                 ])
             }
 
-            /// Creates a right-handed perspective projection matrix with `0..1`
-            /// depth range.
-            ///
-            /// The resulting matrix can be used to transform 3D points using
-            /// [`project_point`].
-            ///
-            /// [`project_point`]: Self::project_point
+            /// Creates a right-handed perspective projection with `0..1` depth
+            /// range.
             #[inline]
             #[must_use]
             pub fn frustum_rh(
@@ -1013,16 +868,12 @@ macro_rules! impl_wide_float {
                 ])
             }
 
-            /// Creates a right-handed perspective projection matrix with
-            /// `-1..1` depth range.
+            /// Creates a right-handed perspective projection with `-1..1` depth
+            /// range.
             ///
             /// Equivalent to the OpenGL [`glFrustum`] function.
             ///
-            /// The resulting matrix can be used to transform 3D points using
-            /// [`project_point`].
-            ///
             /// [`glFrustum`]: https://registry.khronos.org/OpenGL-Refpages/gl2.1/xhtml/glFrustum.xml
-            /// [`project_point`]: Self::project_point
             #[inline]
             #[must_use]
             pub fn frustum_rh_gl(
@@ -1060,16 +911,11 @@ macro_rules! impl_wide_float {
                 ])
             }
 
-            /// Creates a left-handed orthographic projection matrix with `0..1`
-            /// depth range.
+            /// Creates a left-handed orthographic projection with `0..1` depth
+            /// range.
             ///
             /// Useful to map a left-handed coordinate system into what
             /// WebGPU/Metal/Direct3D expect.
-            ///
-            /// The resulting matrix can be used to transform 3D points using
-            /// [`project_point`].
-            ///
-            /// [`project_point`]: Self::project_point
             #[inline]
             #[must_use]
             pub fn orthographic_lh(
@@ -1107,16 +953,11 @@ macro_rules! impl_wide_float {
                 ])
             }
 
-            /// Creates a right-handed orthographic projection matrix with
-            /// `0..1` depth range.
+            /// Creates a right-handed orthographic projection with `0..1` depth
+            /// range.
             ///
             /// Useful to map a right-handed coordinate system into what
             /// WebGPU/Metal/Direct3D expect.
-            ///
-            /// The resulting matrix can be used to transform 3D points using
-            /// [`project_point`].
-            ///
-            /// [`project_point`]: Self::project_point
             #[inline]
             #[must_use]
             pub fn orthographic_rh(
@@ -1159,16 +1000,12 @@ macro_rules! impl_wide_float {
                 ])
             }
 
-            /// Creates a right-handed orthographic projection matrix with
-            /// `-1..1` depth range.
+            /// Creates a right-handed orthographic projection with `-1..1`
+            /// depth range.
             ///
             /// Equivalent to the OpenGL [`glOrtho`] function.
             ///
-            /// The resulting matrix can be used to transform 3D points using
-            /// [`project_point`].
-            ///
             /// [`glOrtho`]: https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glOrtho.xml
-            /// [`project_point`]: Self::project_point
             #[inline]
             #[must_use]
             pub fn orthographic_rh_gl(
@@ -1202,8 +1039,9 @@ macro_rules! impl_wide_float {
             /// Returns the Euler angles forming `self` for the given Euler
             /// rotation order/sequence.
             ///
-            /// The upper 3x3 matrix must not contain any non-rotation
-            /// transformations. Otherwise the result is unspecified.
+            /// The upper-left 3x3 matrix of `self` must not contain any
+            /// non-rotation transformations. Otherwise the result is
+            /// unspecified.
             #[inline]
             #[must_use]
             pub fn to_euler(&self, order: EulerRot) -> ($Wide, $Wide, $Wide) {
@@ -1212,10 +1050,9 @@ macro_rules! impl_wide_float {
 
             /// For each lane, returns the `scale` and `rotation` of `self`.
             ///
-            /// `self` must contain a valid affine transformation. Otherwise the
-            /// result is unspecified.
-            ///
-            /// `self` can contain translation which is ignored.
+            /// This function assumes `self` contains an affine transform with
+            /// no shear or projections. `self` can contain translation which is
+            /// ignored.
             #[inline]
             #[must_use]
             pub fn to_scale_rotation(&self) -> (Vector<3, $Wide, A>, Quaternion<$Wide, A>) {
@@ -1225,8 +1062,8 @@ macro_rules! impl_wide_float {
             /// For each lane, returns the `scale`, `rotation` and `translation`
             /// of `self`.
             ///
-            /// `self` must contain a valid affine transformation. Otherwise the
-            /// result is unspecified.
+            /// This function assumes `self` contains an affine transform with
+            /// no shear or projections.
             #[inline]
             #[must_use]
             pub fn to_scale_rotation_translation(
