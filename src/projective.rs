@@ -12,6 +12,10 @@ use crate::{
 };
 
 mod float;
+#[cfg(feature = "wide")]
+mod wide;
+#[cfg(feature = "wide")]
+mod wide_float;
 
 /// An `N`-dimensional projective transform represented by a homogeneous matrix.
 ///
