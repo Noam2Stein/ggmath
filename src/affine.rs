@@ -196,7 +196,31 @@ where
         }
     }
 
-    /// TODO
+    /// Creates an affine transform from a projective transform, discarding the
+    /// last column.
+    ///
+    /// The removed column is completely ignored, without checking for identity.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Affine2, Proj2, Vec2, Vec3};
+    /// #
+    /// let projective = Proj2::from_rows(&[
+    ///     Vec3::new(00, 01, 02),
+    ///     Vec3::new(10, 11, 12),
+    ///     Vec3::new(20, 21, 22),
+    /// ]);
+    ///
+    /// assert_eq!(
+    ///     Affine2::from_projective(projective),
+    ///     Affine2::from_rows(&[
+    ///         Vec2::new(00, 01),
+    ///         Vec2::new(10, 11),
+    ///         Vec2::new(20, 21),
+    ///     ]),
+    /// );
+    /// ```
     #[inline]
     #[must_use]
     #[expect(private_bounds)]
