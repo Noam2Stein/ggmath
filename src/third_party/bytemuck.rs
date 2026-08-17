@@ -1,6 +1,9 @@
 use bytemuck::{NoUninit, Pod, Zeroable};
 
-use crate::{Affine, Alignment, Length, Mask, Matrix, Quaternion, Scalar, SupportedLength, Vector};
+use crate::{
+    Affine, Alignment, Length, Mask, Matrix, Projective, Quaternion, Scalar, SupportedLength,
+    Vector, length::TwoOrThree,
+};
 
 // SAFETY: Vectors are equivalent to structs where all fields are `Pod`. The
 // `[T; N]` part is `Pod` because `T` is `Pod`, and the padding is guaranteed
@@ -43,12 +46,6 @@ where
 {
 }
 
-// SAFETY: `Vector<4, T, A>` implements `Pod` when `T` does.
-unsafe impl<T, A: Alignment> Pod for Quaternion<T, A> where T: Scalar + Pod {}
-
-// SAFETY: `Vector<4, T, A>` implements `Zeroable` when `T` does.
-unsafe impl<T, A: Alignment> Zeroable for Quaternion<T, A> where T: Scalar + Zeroable {}
-
 // SAFETY: Affines are equivalent to structs where all fields are `Pod`. The
 // `Matrix<N, T, A>` part is `Pod`, the `Vector<N, T, A>` part is `Pod`, and
 // padding bytes are initialized and accept all bit-patterns.
@@ -68,6 +65,30 @@ where
     T: Scalar + Zeroable,
 {
 }
+
+// SAFETY: Projective is a simple wrapper over `Matrix`, which also implements
+// this trait.
+unsafe impl<const N: usize, T, A: Alignment> Pod for Projective<N, T, A>
+where
+    Length<N>: TwoOrThree,
+    T: Scalar + Pod,
+{
+}
+
+// SAFETY: Projective is a simple wrapper over `Matrix`, which also implements
+// this trait.
+unsafe impl<const N: usize, T, A: Alignment> Zeroable for Projective<N, T, A>
+where
+    Length<N>: TwoOrThree,
+    T: Scalar + Zeroable,
+{
+}
+
+// SAFETY: `Vector<4, T, A>` implements `Pod` when `T` does.
+unsafe impl<T, A: Alignment> Pod for Quaternion<T, A> where T: Scalar + Pod {}
+
+// SAFETY: `Vector<4, T, A>` implements `Zeroable` when `T` does.
+unsafe impl<T, A: Alignment> Zeroable for Quaternion<T, A> where T: Scalar + Zeroable {}
 
 // SAFETY: Masks are guaranteed to have no uninitialized bytes, and accept the
 // zero bit-pattern, meaning they are inhabited.
