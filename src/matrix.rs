@@ -391,6 +391,35 @@ where
         }
     }
 
+    /// Creates a matrix with the diagonal set to `diagonal` and all other
+    /// elements set to `0`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Mat4, Vec4};
+    /// #
+    /// let matrix = Mat4::from_diagonal(Vec4::new(2, 2, 2, 1));
+    ///
+    /// assert_eq!(matrix[0], Vec4::new(2, 0, 0, 0));
+    /// assert_eq!(matrix[1], Vec4::new(0, 2, 0, 0));
+    /// assert_eq!(matrix[2], Vec4::new(0, 0, 2, 0));
+    /// assert_eq!(matrix[3], Vec4::new(0, 0, 0, 1));
+    ///
+    /// assert_eq!(matrix.column(0), Vec4::new(2, 0, 0, 0));
+    /// assert_eq!(matrix.column(1), Vec4::new(0, 2, 0, 0));
+    /// assert_eq!(matrix.column(2), Vec4::new(0, 0, 2, 0));
+    /// assert_eq!(matrix.column(3), Vec4::new(0, 0, 0, 1));
+    /// ```
+    #[inline]
+    #[must_use]
+    pub const fn from_scale(scale: Vector<N, T, A>) -> Self
+    where
+        T: Zero,
+    {
+        Self::from_diagonal(scale)
+    }
+
     /// Conversion between [`Aligned`] and [`Unaligned`] storage.
     ///
     /// See [`align`] and [`unalign`] for scenarios where the output alignment
@@ -731,16 +760,16 @@ where
     /// Returns a matrix that first applies scaling vector `scale` then applies
     /// `self`.
     ///
-    /// Equivalent to `Matrix::from_diagonal(scale) * self` but is faster. This
+    /// Equivalent to `Matrix::from_scale(scale) * self` but is faster. This
     /// may be inconsistent for NaNs and `-0.0`.
     #[inline]
     #[must_use]
     #[track_caller]
-    pub fn prepend_diagonal(&self, scale: Vector<N, T, A>) -> Self
+    pub fn prepend_scale(&self, scale: Vector<N, T, A>) -> Self
     where
         T: Mul<Output = T>,
     {
-        specialize!(Matrix::<N, T, A>::prepend_diagonal_backend(self, scale))
+        specialize!(Matrix::<N, T, A>::prepend_scale_backend(self, scale))
     }
 
     /// Returns the determinant of `self`.
@@ -858,7 +887,7 @@ where
 
     #[track_caller]
     #[inline(always)]
-    fn prepend_diagonal_backend(&self, scale: Vector<2, T, A>) -> Self
+    fn prepend_scale_backend(&self, scale: Vector<2, T, A>) -> Self
     where
         T: Mul<Output = T>,
     {
@@ -983,7 +1012,7 @@ where
 
     #[track_caller]
     #[inline(always)]
-    fn prepend_diagonal_backend(&self, scale: Vector<3, T, A>) -> Self
+    fn prepend_scale_backend(&self, scale: Vector<3, T, A>) -> Self
     where
         T: Mul<Output = T>,
     {
@@ -1094,7 +1123,7 @@ where
 
     #[track_caller]
     #[inline(always)]
-    fn prepend_diagonal_backend(&self, scale: Vector<4, T, A>) -> Self
+    fn prepend_scale_backend(&self, scale: Vector<4, T, A>) -> Self
     where
         T: Mul<Output = T>,
     {
