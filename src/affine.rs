@@ -387,6 +387,77 @@ where
         unsafe { transmute_mut::<Affine<2, T, A>, [Vector<2, T, A>; 3]>(self) }
     }
 
+    /// Creates an `N+1`x`N+1` homogeneous transformation matrix from an
+    /// `N+1`x`N` affine transform.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Affine2, Mat3, Vec2, Vec3};
+    /// #
+    /// let affine = Affine2::from_rows(&[
+    ///     Vec2::new(2, 3),
+    ///     Vec2::new(4, 5),
+    ///     Vec2::new(6, 7),
+    /// ]);
+    ///
+    /// assert_eq!(
+    ///     affine.to_homogeneous(),
+    ///     Mat3::from_rows([
+    ///         Vec3::new(2, 3, 0),
+    ///         Vec3::new(4, 5, 0),
+    ///         Vec3::new(6, 7, 1),
+    ///     ]),
+    /// );
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn to_homogeneous(&self) -> Matrix<3, T, A>
+    where
+        T: Zero + One,
+    {
+        Matrix::from_rows(&[
+            self.matrix.x_axis.extend(T::ZERO),
+            self.matrix.y_axis.extend(T::ZERO),
+            self.translation.to_homogeneous(),
+        ])
+    }
+
+    /// Takes the `N+1`x`N` affine transform part of an `N+1`x`N+1` homogeneous
+    /// transformation matrix, discarding the last column.
+    ///
+    /// The removed column is completely ignored, without checking for identity.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Affine2, Mat3, Vec2, Vec3};
+    /// #
+    /// let homogeneous = Mat3::from_rows(&[
+    ///     Vec3::new(00, 01, 02),
+    ///     Vec3::new(10, 11, 12),
+    ///     Vec3::new(20, 21, 22),
+    /// ]);
+    ///
+    /// assert_eq!(
+    ///     Affine2::from_homogeneous(homogeneous),
+    ///     Affine2::from_rows(&[
+    ///         Vec2::new(00, 01),
+    ///         Vec2::new(10, 11),
+    ///         Vec2::new(20, 21),
+    ///     ]),
+    /// );
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn from_homogeneous(homogeneous: &Matrix<3, T, A>) -> Self {
+        Self::from_rows(&[
+            homogeneous.x_axis.truncate(),
+            homogeneous.y_axis.truncate(),
+            homogeneous.z_axis.truncate(),
+        ])
+    }
+
     /// Returns a mutable reference to the affine transform's rows.
     ///
     /// This function has been renamed to [`as_mut_rows`].
@@ -469,6 +540,79 @@ where
         // `Matrix<3, T, A>` (three vectors) then `Vector<3, T, A>`, which is 4
         // vectors in total.
         unsafe { transmute_mut::<Affine<3, T, A>, [Vector<3, T, A>; 4]>(self) }
+    }
+
+    /// Creates an `N+1`x`N+1` homogeneous transformation matrix from an
+    /// `N+1`x`N` affine transform.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Affine2, Mat3, Vec2, Vec3};
+    /// #
+    /// let affine = Affine2::from_rows(&[
+    ///     Vec2::new(2, 3),
+    ///     Vec2::new(4, 5),
+    ///     Vec2::new(6, 7),
+    /// ]);
+    ///
+    /// assert_eq!(
+    ///     affine.to_homogeneous(),
+    ///     Mat3::from_rows([
+    ///         Vec3::new(2, 3, 0),
+    ///         Vec3::new(4, 5, 0),
+    ///         Vec3::new(6, 7, 1),
+    ///     ]),
+    /// );
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn to_homogeneous(&self) -> Matrix<4, T, A>
+    where
+        T: Zero + One,
+    {
+        Matrix::from_rows(&[
+            self.matrix.x_axis.extend(T::ZERO),
+            self.matrix.y_axis.extend(T::ZERO),
+            self.matrix.z_axis.extend(T::ZERO),
+            self.translation.to_homogeneous(),
+        ])
+    }
+
+    /// Takes the `N+1`x`N` affine transform part of an `N+1`x`N+1` homogeneous
+    /// transformation matrix, discarding the last column.
+    ///
+    /// The removed column is completely ignored, without checking for identity.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Affine2, Mat3, Vec2, Vec3};
+    /// #
+    /// let homogeneous = Mat3::from_rows(&[
+    ///     Vec3::new(00, 01, 02),
+    ///     Vec3::new(10, 11, 12),
+    ///     Vec3::new(20, 21, 22),
+    /// ]);
+    ///
+    /// assert_eq!(
+    ///     Affine2::from_homogeneous(homogeneous),
+    ///     Affine2::from_rows(&[
+    ///         Vec2::new(00, 01),
+    ///         Vec2::new(10, 11),
+    ///         Vec2::new(20, 21),
+    ///     ]),
+    /// );
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn from_homogeneous(homogeneous: &Matrix<4, T, A>) -> Self {
+        Self::from_rows(&[
+            homogeneous.x_axis.truncate(),
+            homogeneous.y_axis.truncate(),
+            homogeneous.z_axis.truncate(),
+            homogeneous.w_axis.truncate(),
+        ])
     }
 
     /// Returns a mutable reference to the affine transform's rows.
