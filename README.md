@@ -70,25 +70,26 @@ the [`num-primitive`] crate as an optional dependency.
 
 Unlike many graphics math libraries, [`ggmath`] does not use [`Mat4`] to
 represent every kind of 3D transformation, nor [`Mat3`] for every kind of 2D
-transformation. Instead, there are three kinds of transform types, so that
-common transformations can use more efficient representations:
+transformation. Instead, there are three kinds of transforms, so that common
+transformations can use more efficient representations:
 
-- Matrix types represent linear transformations. They can represent scale,
+- [`Matrix`] types represent linear transformations. They can represent scale,
   rotation and shear, but not translation. Use these when translation is not
   needed.
 
-- Affine transforms are represented by a matrix and a translation vector. They
-  can represent any linear transformation, plus translation. Use these for the
-  transform of objects and cameras.
+- [`Affine`] types contain a matrix and a translation vector. They can represent
+  any linear transformation, plus translation. Use these for the transform of
+  objects and cameras.
 
-- Projective transforms are represented by homogeneous matrices (e.g., [`Proj3`]
-  represented by [`Mat4`], and [`Proj2`] represented by [`Mat3`]). They can
-  represent any affine transformation, plus perspective projection. Use these
-  when projection is needed.
+- [`Projective`] types are represented by homogeneous matrices (e.g., [`Proj3`]
+  is represented by [`Mat4`], and [`Proj2`] is represented by [`Mat3`]). They
+  can represent any affine transformation, plus perspective projection. Use
+  these for projections and arguments to shaders.
 
-You should generally pick the smallest type that satisfies your requirements.
-Linear transforms (matrices) are more efficient than affine transforms, which
-are more efficient than projective transforms. See [benchmark results].
+For performance, you should pick the smallest type that satisfies your
+requirements. Linear transforms (matrices) are more efficient than affine
+transforms, which are more efficient than projective transforms. See
+[benchmark results].
 
 | Type              | [`Mat2<f32>`] | [`Affine2<f32>`] | [`Proj2<f32>`] | [`Mat2A<f32>`] | [`Affine2A<f32>`] | [`Proj2A<f32>`] |
 | ----------------- | ------------- | ---------------- | -------------- | -------------- | ----------------- | --------------- |
@@ -288,6 +289,9 @@ it serves the same purpose as [`glam`] but with generics.
 
 [`Mat4`]: https://docs.rs/ggmath/latest/ggmath/type.Mat4.html
 [`Mat3`]: https://docs.rs/ggmath/latest/ggmath/type.Mat3.html
+[`Matrix`]: https://docs.rs/ggmath/latest/ggmath/struct.Matrix.html
+[`Affine`]: https://docs.rs/ggmath/latest/ggmath/struct.Affine.html
+[`Projective`]: https://docs.rs/ggmath/latest/ggmath/struct.Projective.html
 [`Proj3`]: https://docs.rs/ggmath/latest/ggmath/type.Proj3.html
 [`Proj2`]: https://docs.rs/ggmath/latest/ggmath/type.Proj2.html
 [benchmark results]: https://github.com/Noam2Stein/ggmath/blob/main/BENCH_RESULTS.md
