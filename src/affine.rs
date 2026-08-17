@@ -839,6 +839,158 @@ impl_mul!(
     /// floating-point precision and integer panics.
 );
 
+macro_rules! impl_mul_projective {
+    ($(#[$doc:meta])*) => {
+        impl<const N: usize, T, A: Alignment> Mul<Projective<N, T, A>> for Affine<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Add<Output = T> + Mul<Output = T> + Zero + One,
+        {
+            type Output = Projective<N, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: Projective<N, T, A>) -> Self::Output {
+                &Projective::from_affine(&self) * &rhs
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Mul<&Projective<N, T, A>> for Affine<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Add<Output = T> + Mul<Output = T> + Zero + One,
+        {
+            type Output = Projective<N, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: &Projective<N, T, A>) -> Self::Output {
+                &Projective::from_affine(&self) * rhs
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Mul<Projective<N, T, A>> for &Affine<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Add<Output = T> + Mul<Output = T> + Zero + One,
+        {
+            type Output = Projective<N, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: Projective<N, T, A>) -> Self::Output {
+                &Projective::from_affine(self) * &rhs
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Mul<&Projective<N, T, A>> for &Affine<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Add<Output = T> + Mul<Output = T> + Zero + One,
+        {
+            type Output = Projective<N, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: &Projective<N, T, A>) -> Self::Output {
+                &Projective::from_affine(self) * rhs
+            }
+        }
+    };
+}
+impl_mul_projective!(
+    /// Affine-transform matrix multiplication.
+    ///
+    /// Because vectors are treated as row matrices, multiplication first
+    /// applies the left-hand side transform, then the right-hand side matrix.
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is cross-platform deterministic and
+    /// fully consistent with scalar addition and multiplication, including
+    /// floating-point precision and integer panics.
+);
+
+macro_rules! impl_projective_mul {
+    ($(#[$doc:meta])*) => {
+        impl<const N: usize, T, A: Alignment> Mul<Affine<N, T, A>> for Projective<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Add<Output = T> + Mul<Output = T> + Zero + One,
+        {
+            type Output = Self;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: Affine<N, T, A>) -> Self::Output {
+                &self * &Projective::from_affine(&rhs)
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Mul<&Affine<N, T, A>> for Projective<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Add<Output = T> + Mul<Output = T> + Zero + One,
+        {
+            type Output = Self;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: &Affine<N, T, A>) -> Self::Output {
+                &self * &Projective::from_affine(rhs)
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Mul<Affine<N, T, A>> for &Projective<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Add<Output = T> + Mul<Output = T> + Zero + One,
+        {
+            type Output = Projective<N, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: Affine<N, T, A>) -> Self::Output {
+                self * &Projective::from_affine(&rhs)
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Mul<&Affine<N, T, A>> for &Projective<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Add<Output = T> + Mul<Output = T> + Zero + One,
+        {
+            type Output = Projective<N, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: &Affine<N, T, A>) -> Self::Output {
+                self * &Projective::from_affine(rhs)
+            }
+        }
+    };
+}
+impl_projective_mul!(
+    /// Matrix affine transform multiplication.
+    ///
+    /// Because vectors are treated as row matrices, multiplication first
+    /// applies the left-hand side matrix, then the right-hand side transform.
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is cross-platform deterministic and
+    /// fully consistent with scalar addition and multiplication, including
+    /// floating-point precision and integer panics.
+);
+
 macro_rules! impl_mul_assign {
     ($(#[$doc:meta])*) => {
         impl<const N: usize, T, A: Alignment> MulAssign for Affine<N, T, A>
@@ -873,6 +1025,49 @@ impl_mul_assign!(
     ///
     /// Because vectors are treated as row matrices, affine transform
     /// multiplication first applies the left-hand side transform, then the
+    /// right-hand side transform.
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is cross-platform deterministic and
+    /// fully consistent with scalar addition and multiplication, including
+    /// floating-point precision and integer panics.
+);
+
+macro_rules! impl_projective_mul_assign {
+    ($(#[$doc:meta])*) => {
+        impl<const N: usize, T, A: Alignment> MulAssign<Affine<N, T, A>> for Projective<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Add<Output = T> + Mul<Output = T> + Zero + One,
+        {
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul_assign(&mut self, rhs: Affine<N, T, A>) {
+                *self = &*self * &rhs
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> MulAssign<&Affine<N, T, A>> for Projective<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Add<Output = T> + Mul<Output = T> + Zero + One,
+        {
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul_assign(&mut self, rhs: &Affine<N, T, A>) {
+                *self = &*self * rhs
+            }
+        }
+    };
+}
+impl_projective_mul_assign!(
+    /// Matrix affine-transform multiplication.
+    ///
+    /// Because vectors are treated as row matrices, affine transform
+    /// multiplication first applies the left-hand side matrix, then the
     /// right-hand side transform.
     ///
     /// # Consistency
