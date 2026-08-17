@@ -27,8 +27,11 @@ mod wide_float;
 /// `A` controls SIMD alignment and is either [`Unaligned`] or [`Aligned`]. See
 /// [`Alignment`] for more details.
 ///
-/// Most constructors are dimension specific. See [`from_rows`] for raw
-/// construction.
+/// This represents an `N`-dimensional linear transformation, applied using
+/// `vector_n * self`.
+///
+/// If you need translation, use [`Affine`]. If you need projections, use
+/// [`Projective`].
 ///
 /// # Type aliases
 ///
@@ -66,7 +69,7 @@ mod wide_float;
 /// For `N = 3` and `N = 4` this type has the size and alignment of
 /// `[Vector<N, T, A>; N]`.
 ///
-/// [`from_rows`]: Self::from_rows
+/// [`Affine`]: crate::Affine
 #[repr(transparent)]
 pub struct Matrix<const N: usize, T, A: Alignment>(
     #[expect(clippy::type_complexity)]
@@ -82,8 +85,10 @@ where
 
 /// A 2x2 row-major matrix.
 ///
-/// This matrix can be used for 2D linear transformations (applied using
-/// `vec2 * self`).
+/// This represents a 2D linear transformation, applied using `vec2 * self`.
+///
+/// If you need translation, use [`Affine2`]. If you need 2D projections, use
+/// [`Proj2`].
 ///
 /// # No SIMD alignment
 ///
@@ -99,17 +104,21 @@ where
 ///
 /// Note that these fields are only exposed by implementing [`Deref`] and
 /// [`DerefMut`].
+///
+/// [`Affine2`]: crate::Affine2
+/// [`Proj2`]: crate::Proj2
 pub type Mat2<T> = Matrix<2, T, Unaligned>;
 
 /// A 3x3 row-major matrix.
 ///
-/// This matrix can be used for both 3D linear transformations (applied using
-/// `vec3 * self`) and 2D affine transformations (applied using
-/// `self.transform_point(vec2)` and `self.transform_vector(vec2)`).
+/// This represents a 3D linear transformation, applied using `vec3 * self`.
 ///
-/// For 2D affine transformations, consider using the [`Affine2<T>`] type which
-/// takes less memory than [`Mat3<T>`] and performs better for select operations
-/// (see [benchmark results]).
+/// If you need translation, use [`Affine3`]. If you need projections, use
+/// [`Proj3`].
+///
+/// Unlike many other libraries, here [`Mat3`] is not used for 2D affine and
+/// projective transformations. For that use the [`Affine2`] and [`Proj2`]
+/// types.
 ///
 /// # No SIMD alignment
 ///
@@ -129,19 +138,22 @@ pub type Mat2<T> = Matrix<2, T, Unaligned>;
 /// Note that these fields are only exposed by implementing [`Deref`] and
 /// [`DerefMut`].
 ///
-/// [`Affine2<T>`]: crate::Affine2
+/// [`Affine3`]: crate::Affine3
+/// [`Proj3`]: crate::Proj3
+/// [`Affine2`]: crate::Affine2
+/// [`Proj2`]: crate::Proj2
 /// [benchmark results]: https://github.com/Noam2Stein/ggmath/blob/main/BENCH_RESULTS.md
 pub type Mat3<T> = Matrix<3, T, Unaligned>;
 
 /// A 4x4 row-major matrix.
 ///
-/// This matrix can be used for both 3D affine transformations (applied using
-/// `self.transform_point(vec3)` and `self.transform_vector(vec3)`) and 3D
-/// projections (applied using `self.project_point(vec3)`).
+/// Unlike many other libraries, here [`Mat4`] is not used for 3D affine and
+/// projective transformations. For that use the [`Affine3`] and [`Proj3`]
+/// types.
 ///
-/// For 3D affine transformations, consider using the [`Affine3<T>`] type which
-/// takes less memory than [`Mat4<T>`] and performs better for select operations
-/// (see [benchmark results]).
+/// This represents a 4D linear transformation, applied using `vec4 * self`.
+/// Even though this type does not have many use cases, it is still useful for
+/// raw matrix operations and interop with other libraries.
 ///
 /// # No SIMD alignment
 ///
@@ -164,14 +176,17 @@ pub type Mat3<T> = Matrix<3, T, Unaligned>;
 /// Note that these fields are only exposed by implementing [`Deref`] and
 /// [`DerefMut`].
 ///
-/// [`Affine3<T>`]: crate::Affine3
+/// [`Affine3`]: crate::Affine3
+/// [`Proj3`]: crate::Proj3
 /// [benchmark results]: https://github.com/Noam2Stein/ggmath/blob/main/BENCH_RESULTS.md
 pub type Mat4<T> = Matrix<4, T, Unaligned>;
 
 /// A 2x2 row-major matrix.
 ///
-/// This matrix can be used for 2D linear transformations (applied using
-/// `vec2 * self`).
+/// This represents a 2D linear transformation, applied using `vec2 * self`.
+///
+/// If you need translation, use [`Affine2A`]. If you need 2D projections, use
+/// [`Proj2A`].
 ///
 /// # SIMD alignment
 ///
@@ -188,17 +203,21 @@ pub type Mat4<T> = Matrix<4, T, Unaligned>;
 ///
 /// Note that these fields are only exposed by implementing [`Deref`] and
 /// [`DerefMut`].
+///
+/// [`Affine2A`]: crate::Affine2A
+/// [`Proj2A`]: crate::Proj2A
 pub type Mat2A<T> = Matrix<2, T, Aligned>;
 
 /// A 3x3 row-major matrix.
 ///
-/// This matrix can be used for both 3D linear transformations (applied using
-/// `vec3 * self`) and 2D affine transformations (applied using
-/// `self.transform_point(vec2)` and `self.transform_vector(vec2)`).
+/// This represents a 3D linear transformation, applied using `vec3 * self`.
 ///
-/// For 2D affine transformations, consider using the [`Affine2A<T>`] type which
-/// takes less memory than [`Mat3A<T>`] and performs better for select
-/// operations (see [benchmark results]).
+/// If you need translation, use [`Affine3A`]. If you need projections, use
+/// [`Proj3A`].
+///
+/// Unlike many other libraries, here [`Mat3A`] is not used for 2D affine and
+/// projective transformations. For that use the [`Affine2A`] and [`Proj2A`]
+/// types.
 ///
 /// # SIMD alignment
 ///
@@ -219,19 +238,22 @@ pub type Mat2A<T> = Matrix<2, T, Aligned>;
 /// Note that these fields are only exposed by implementing [`Deref`] and
 /// [`DerefMut`].
 ///
-/// [`Affine2A<T>`]: crate::Affine2A
+/// [`Affine3A`]: crate::Affine3A
+/// [`Proj3A`]: crate::Proj3A
+/// [`Affine2A`]: crate::Affine2A
+/// [`Proj2A`]: crate::Proj2A
 /// [benchmark results]: https://github.com/Noam2Stein/ggmath/blob/main/BENCH_RESULTS.md
 pub type Mat3A<T> = Matrix<3, T, Aligned>;
 
 /// A 4x4 row-major matrix.
 ///
-/// This matrix can be used for both 3D affine transformations (applied using
-/// `self.transform_point(vec3)` and `self.transform_vector(vec3)`) and 3D
-/// projections (applied using `self.project_point(vec3)`).
+/// Unlike many other libraries, here [`Mat4A`] is not used for 3D affine and
+/// projective transformations. For that use the [`Affine3A`] and [`Proj3A`]
+/// types.
 ///
-/// For 3D affine transformations, consider using the [`Affine3A<T>`] type which
-/// performs better than [`Mat4A`] for select operations (see
-/// [benchmark results]).
+/// This represents a 4D linear transformation, applied using `vec4 * self`.
+/// Even though this type does not have many use cases, it is still useful for
+/// raw matrix operations and interop with other libraries.
 ///
 /// # SIMD alignment
 ///
@@ -255,7 +277,8 @@ pub type Mat3A<T> = Matrix<3, T, Aligned>;
 /// Note that these fields are only exposed by implementing [`Deref`] and
 /// [`DerefMut`].
 ///
-/// [`Affine3A<T>`]: crate::Affine3A
+/// [`Affine3A`]: crate::Affine3A
+/// [`Proj3A`]: crate::Proj3A
 /// [benchmark results]: https://github.com/Noam2Stein/ggmath/blob/main/BENCH_RESULTS.md
 pub type Mat4A<T> = Matrix<4, T, Aligned>;
 
