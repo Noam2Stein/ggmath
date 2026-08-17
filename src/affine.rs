@@ -5,8 +5,10 @@ use core::{
 };
 
 use crate::{
-    Aligned, Alignment, Length, Matrix, One, Scalar, SupportedLength, Unaligned, Vector, Zero,
-    utils::{transmute_mut, transmute_ref},
+    Aligned, Alignment, Length, Matrix, One, Projective, Scalar, SupportedLength, Unaligned,
+    Vector, Zero,
+    length::TwoOrThree,
+    utils::{specialize_23, transmute_mut, transmute_ref},
 };
 
 mod float;
@@ -226,6 +228,17 @@ where
         }
     }
 
+    /// TODO
+    #[inline]
+    #[must_use]
+    #[expect(private_bounds)]
+    pub fn from_projective(projective: &Projective<N, T, A>) -> Self
+    where
+        Length<N>: TwoOrThree,
+    {
+        specialize_23!(Affine::<N, T, A>::from_projective_backend(projective))
+    }
+
     /// Conversion between [`Aligned`] and [`Unaligned`] storage.
     ///
     /// See [`align`] and [`unalign`] for scenarios where the output alignment
@@ -365,35 +378,6 @@ where
         ])
     }
 
-    /// Creates an affine transform from an affine transformation matrix,
-    /// discarding the last column.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::{Affine2, Mat3, Vec2, Vec3};
-    /// #
-    /// let matrix = Mat3::from_rows(&[
-    ///     Vec3::new(1.0, 2.0, 0.0),
-    ///     Vec3::new(3.0, 4.0, 0.0),
-    ///     Vec3::new(5.0, 6.0, 1.0),
-    /// ]);
-    ///
-    /// assert_eq!(
-    ///     Affine2::from_matrix(matrix),
-    ///     Affine2::from_rows(&[
-    ///         Vec2::new(1.0, 2.0),
-    ///         Vec2::new(3.0, 4.0),
-    ///         Vec2::new(5.0, 6.0),
-    ///     ]),
-    /// );
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn from_matrix(matrix: Matrix<3, T, A>) -> Self {
-        Self::from_rows(&[matrix[0].xy(), matrix[1].xy(), matrix[2].xy()])
-    }
-
     /// Returns a reference to the affine transform's rows.
     #[inline]
     #[must_use]
@@ -424,6 +408,15 @@ where
     #[deprecated(since = "0.17.1", note = "renamed to `as_mut_rows`")]
     pub const fn as_rows_mut(&mut self) -> &mut [Vector<2, T, A>; 3] {
         self.as_mut_rows()
+    }
+
+    #[inline]
+    fn from_projective_backend(projective: &Projective<2, T, A>) -> Self {
+        Self::from_rows(&[
+            projective[0].truncate(),
+            projective[1].truncate(),
+            projective[2].truncate(),
+        ])
     }
 }
 
@@ -469,40 +462,6 @@ where
         ])
     }
 
-    /// Creates an affine transform from an affine transformation matrix,
-    /// discarding the last column.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::{Affine2, Mat3, Vec2, Vec3};
-    /// #
-    /// let matrix = Mat3::from_rows(&[
-    ///     Vec3::new(1.0, 2.0, 0.0),
-    ///     Vec3::new(3.0, 4.0, 0.0),
-    ///     Vec3::new(5.0, 6.0, 1.0),
-    /// ]);
-    ///
-    /// assert_eq!(
-    ///     Affine2::from_matrix(matrix),
-    ///     Affine2::from_rows(&[
-    ///         Vec2::new(1.0, 2.0),
-    ///         Vec2::new(3.0, 4.0),
-    ///         Vec2::new(5.0, 6.0),
-    ///     ]),
-    /// );
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn from_matrix(matrix: Matrix<4, T, A>) -> Self {
-        Self::from_rows(&[
-            matrix[0].xyz(),
-            matrix[1].xyz(),
-            matrix[2].xyz(),
-            matrix[3].xyz(),
-        ])
-    }
-
     /// Returns a reference to the affine transform's rows.
     #[inline]
     #[must_use]
@@ -533,6 +492,16 @@ where
     #[deprecated(since = "0.17.1", note = "renamed to `as_mut_rows`")]
     pub const fn as_rows_mut(&mut self) -> &mut [Vector<3, T, A>; 4] {
         self.as_mut_rows()
+    }
+
+    #[inline]
+    fn from_projective_backend(projective: &Projective<3, T, A>) -> Self {
+        Self::from_rows(&[
+            projective[0].truncate(),
+            projective[1].truncate(),
+            projective[2].truncate(),
+            projective[3].truncate(),
+        ])
     }
 }
 
