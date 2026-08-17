@@ -414,26 +414,26 @@ where
         }
     }
 
-    /// Creates a matrix with the diagonal set to `diagonal` and all other
-    /// elements set to `0`.
+    /// Creates a matrix from a non-uniform scale.
+    ///
+    /// This is identical to [`from_diagonal`]. Use whichever function that
+    /// makes your intentions clearer.
     ///
     /// # Examples
     ///
     /// ```
-    /// # use ggmath::{Mat4, Vec4};
+    /// # use ggmath::{Mat3, Vec3};
     /// #
-    /// let matrix = Mat4::from_diagonal(Vec4::new(2, 2, 2, 1));
+    /// let matrix = Mat3::from_scale(Vec3::new(1, 2, 3));
     ///
-    /// assert_eq!(matrix[0], Vec4::new(2, 0, 0, 0));
-    /// assert_eq!(matrix[1], Vec4::new(0, 2, 0, 0));
-    /// assert_eq!(matrix[2], Vec4::new(0, 0, 2, 0));
-    /// assert_eq!(matrix[3], Vec4::new(0, 0, 0, 1));
+    /// assert_eq!(matrix[0], Vec3::new(1, 0, 0));
+    /// assert_eq!(matrix[1], Vec3::new(0, 2, 0));
+    /// assert_eq!(matrix[2], Vec3::new(0, 0, 3));
     ///
-    /// assert_eq!(matrix.column(0), Vec4::new(2, 0, 0, 0));
-    /// assert_eq!(matrix.column(1), Vec4::new(0, 2, 0, 0));
-    /// assert_eq!(matrix.column(2), Vec4::new(0, 0, 2, 0));
-    /// assert_eq!(matrix.column(3), Vec4::new(0, 0, 0, 1));
+    /// assert_eq!(Vec3::splat(2) * matrix, Vec3::new(2, 4, 6));
     /// ```
+    ///
+    /// [`from_diagonal`]: Self::from_diagonal
     #[inline]
     #[must_use]
     pub const fn from_scale(scale: Vector<N, T, A>) -> Self
@@ -805,11 +805,11 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use ggmath::{Mat3, Vec2};
+    /// # use ggmath::{Mat3, Vec3};
     /// #
-    /// let matrix = Mat3::from_scale(Vec2::new(2, 2));
+    /// let matrix = Mat3::from_scale(Vec3::splat(2));
     ///
-    /// assert_eq!(matrix.determinant(), 4);
+    /// assert_eq!(matrix.determinant(), 8);
     /// ```
     #[must_use]
     #[track_caller]
@@ -820,7 +820,31 @@ where
         specialize!(Matrix::<N, T, A>::determinant_backend(self))
     }
 
-    /// TODO
+    /// Returns the linear transformation part of a projective transform,
+    /// removing the last row and column.
+    ///
+    /// The removed row and column are completely ignored, without checking for
+    /// identity.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Mat2, Proj2, Vec2, Vec3};
+    /// #
+    /// let projective = Proj2::from_rows(&[
+    ///     Vec3::new(00, 01, 02),
+    ///     Vec3::new(10, 11, 12),
+    ///     Vec3::new(20, 21, 22),
+    /// ]);
+    ///
+    /// assert_eq!(
+    ///     Mat2::from_projective(projective),
+    ///     Mat2::from_rows(&[
+    ///         Vec2::new(00, 01),
+    ///         Vec2::new(10, 11),
+    ///     ]),
+    /// );
+    /// ```
     #[inline]
     #[must_use]
     #[expect(private_bounds)]
@@ -867,13 +891,28 @@ where
         ])
     }
 
-    /// Creates an affine transformation matrix from the given 2x2 matrix.
+    /// Creates an `N+1`x`N+1` homogeneous transformation matrix from an `N`x`N`
+    /// linear transformation matrix.
     ///
-    /// The resulting matrix can be used to transform 2D points and vectors. See
-    /// [`transform_point`] and [`transform_vector`].
+    /// # Examples
     ///
-    /// [`transform_point`]: Self::transform_point
-    /// [`transform_vector`]: Self::transform_vector
+    /// ```
+    /// # use ggmath::{Mat2, Mat3, Vec2, Vec3};
+    /// #
+    /// let matrix = Mat2::from_rows(&[
+    ///     Vec2::new(2, 3),
+    ///     Vec2::new(4, 5),
+    /// ]);
+    ///
+    /// assert_eq!(
+    ///     matrix.to_homogeneous(),
+    ///     Mat3::from_rows([
+    ///         Vec3::new(2, 3, 0),
+    ///         Vec3::new(4, 5, 0),
+    ///         Vec3::new(0, 0, 1),
+    ///     ]),
+    /// );
+    /// ```
     #[inline]
     #[must_use]
     pub fn to_homogeneous(&self) -> Matrix<3, T, A>
@@ -887,7 +926,31 @@ where
         ])
     }
 
-    /// Returns a 2x2 matrix discarding the third row and column.
+    /// Takes the `N`x`N` linear transformation part of an `N+1`x`N+1`
+    /// homogeneous transformation matrix, discarding the last row and column.
+    ///
+    /// The removed row and column are completely ignored, without checking for
+    /// identity.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Mat2, Mat3, Vec2, Vec3};
+    /// #
+    /// let homogeneous = Mat3::from_rows(&[
+    ///     Vec3::new(00, 01, 02),
+    ///     Vec3::new(10, 11, 12),
+    ///     Vec3::new(20, 21, 22),
+    /// ]);
+    ///
+    /// assert_eq!(
+    ///     Mat2::from_homogeneous(homogeneous),
+    ///     Mat2::from_rows(&[
+    ///         Vec2::new(00, 01),
+    ///         Vec2::new(10, 11),
+    ///     ]),
+    /// );
+    /// ```
     #[inline]
     #[must_use]
     pub fn from_homogeneous(homogeneous: &Matrix<3, T, A>) -> Self {
@@ -956,13 +1019,28 @@ where
         ])
     }
 
-    /// Creates an affine transformation matrix from the given 3x3 matrix.
+    /// Creates an `N+1`x`N+1` homogeneous transformation matrix from an `N`x`N`
+    /// linear transformation matrix.
     ///
-    /// The resulting matrix can be used to transform 3D points and vectors. See
-    /// [`transform_point`] and [`transform_vector`].
+    /// # Examples
     ///
-    /// [`transform_point`]: Self::transform_point
-    /// [`transform_vector`]: Self::transform_vector
+    /// ```
+    /// # use ggmath::{Mat2, Mat3, Vec2, Vec3};
+    /// #
+    /// let matrix = Mat2::from_rows(&[
+    ///     Vec2::new(2, 3),
+    ///     Vec2::new(4, 5),
+    /// ]);
+    ///
+    /// assert_eq!(
+    ///     matrix.to_homogeneous(),
+    ///     Mat3::from_rows([
+    ///         Vec3::new(2, 3, 0),
+    ///         Vec3::new(4, 5, 0),
+    ///         Vec3::new(0, 0, 1),
+    ///     ]),
+    /// );
+    /// ```
     #[inline]
     #[must_use]
     pub fn to_homogeneous(&self) -> Matrix<4, T, A>
@@ -977,7 +1055,31 @@ where
         ])
     }
 
-    /// Returns a 2x2 matrix discarding the third row and column.
+    /// Takes the `N`x`N` linear transformation part of an `N+1`x`N+1`
+    /// homogeneous transformation matrix, discarding the last row and column.
+    ///
+    /// The removed row and column are completely ignored, without checking for
+    /// identity.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Mat2, Mat3, Vec2, Vec3};
+    /// #
+    /// let homogeneous = Mat3::from_rows(&[
+    ///     Vec3::new(00, 01, 02),
+    ///     Vec3::new(10, 11, 12),
+    ///     Vec3::new(20, 21, 22),
+    /// ]);
+    ///
+    /// assert_eq!(
+    ///     Mat2::from_homogeneous(homogeneous),
+    ///     Mat2::from_rows(&[
+    ///         Vec2::new(00, 01),
+    ///         Vec2::new(10, 11),
+    ///     ]),
+    /// );
+    /// ```
     #[inline]
     #[must_use]
     pub fn from_homogeneous(homogeneous: &Matrix<4, T, A>) -> Self {
