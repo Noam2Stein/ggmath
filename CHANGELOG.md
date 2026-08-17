@@ -27,15 +27,20 @@ stabilized, which should not affect most users.
 - `Projective<N, T, A>` type with `Proj2<T>`, `Proj3<T>`, `Proj2A<T>` and
   `Proj3A<T>` type aliases
 
-- `to_homogeneous` and `from_homogeneous` functions for matrices and affine
-  transforms
-
 - `to_homogeneous` and `from_homogeneous` for 2D vectors
 
-### Removed
+### Changed
 
 - `Mat4` functions for 3D transformations, and `Mat3` functions for 2D
-  transformations. These have been moved to the new `Proj3` and `Proj2` types
+  transformations. These have been removed and moved into the new `Proj3` and
+  `Proj2` types
+
+- Most functions for converting between transform types. The function you
+  want has most likely been renamed into one of these new functions:
+  - `to/from_matrix`
+  - `to/from_affine`
+  - `to/from_projective`
+  - `to/from_homogeneous`
 
 ### Fixed
 
