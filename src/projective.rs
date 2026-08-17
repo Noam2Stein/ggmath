@@ -150,13 +150,13 @@ where
     /// transform that keeps all vectors unchanged.
     ///
     /// [`IDENTITY`]: Self::IDENTITY
-    pub const ZERO: Self = Self::ZERO_IMPL;
+    pub const ZERO: Self = Self::ZERO_INTERNAL_IMPL;
 
-    /// The implementation of [`Self::ZERO`].
+    /// The internal implementation of [`Self::ZERO`].
     ///
     /// Because of type system limitations, this implementation looks crazy. Use
     /// a separate constant so that IDEs do not show the implementation.
-    const ZERO_IMPL: Self = match N {
+    const ZERO_INTERNAL_IMPL: Self = match N {
         // SAFETY: We are transmuting a type to itself
         2 => unsafe {
             transmute_generic::<Projective<2, T, A>, Projective<N, T, A>>(Projective::<2, T, A>(
@@ -182,13 +182,13 @@ where
     /// A projective transform that keeps all vectors unchanged.
     ///
     /// Diagonal elements are `1` and the rest are `0`.
-    pub const IDENTITY: Self = Self::IDENTITY_IMPL;
+    pub const IDENTITY: Self = Self::IDENTITY_INTERNAL_IMPL;
 
     /// The implementation of [`Self::IDENTITY`].
     ///
     /// Because of type system limitations, this implementation looks crazy. Use
     /// a separate constant so that IDEs do not show the implementation.
-    const IDENTITY_IMPL: Self = match N {
+    const IDENTITY_INTERNAL_IMPL: Self = match N {
         // SAFETY: We are transmuting a type to itself
         2 => unsafe {
             transmute_generic::<Projective<2, T, A>, Projective<N, T, A>>(Projective::<2, T, A>(
@@ -211,7 +211,7 @@ where
     Length<N>: TwoOrThree,
     T: Scalar,
 {
-    /// Creates a transform from a non-uniform `scale`.
+    /// Creates a projective transform from a non-uniform `scale`.
     #[inline]
     #[must_use]
     pub fn from_scale(scale: Vector<N, T, A>) -> Self
@@ -221,7 +221,7 @@ where
         specialize_23!(Projective::<N, T, A>::from_scale_backend(scale))
     }
 
-    /// Creates a transform from a translation vector.
+    /// Creates a projective transform from a `translation` vector.
     #[inline]
     #[must_use]
     pub fn from_translation(translation: Vector<N, T, A>) -> Self
@@ -231,7 +231,8 @@ where
         specialize_23!(Projective::<N, T, A>::from_translation_backend(translation))
     }
 
-    /// Creates a transform from a non-uniform scale and a translation vector.
+    /// Creates a projective transform from a non-uniform `scale` and a
+    /// `translation` vector.
     #[inline]
     #[must_use]
     pub fn from_scale_translation(scale: Vector<N, T, A>, translation: Vector<N, T, A>) -> Self
@@ -244,8 +245,7 @@ where
         ))
     }
 
-    /// Creates a projective transform from a smaller matrix representing a
-    /// linear transformation.
+    /// Creates a projective transform from a linear transformation matrix.
     #[inline]
     #[must_use]
     pub fn from_matrix(matrix: &Matrix<N, T, A>) -> Self
@@ -255,8 +255,8 @@ where
         specialize_23!(Projective::<N, T, A>::from_matrix_backend(matrix))
     }
 
-    /// Creates a projective transform from a smaller matrix representing a
-    /// linear transformation, and a translation vector.
+    /// Creates a projective transform from a linear transformation `matrix` and
+    /// a `translation` vector.
     #[inline]
     #[must_use]
     pub fn from_matrix_translation(matrix: Matrix<N, T, A>, translation: Vector<N, T, A>) -> Self
@@ -277,17 +277,17 @@ where
     /// # use ggmath::{Affine2, Proj2, Vec2, Vec3};
     /// #
     /// let affine = Affine2::from_rows(&[
-    ///     Vec2::new(1.0, 2.0),
-    ///     Vec2::new(3.0, 4.0),
-    ///     Vec2::new(5.0, 6.0),
+    ///     Vec2::new(1, 2),
+    ///     Vec2::new(3, 4),
+    ///     Vec2::new(5, 6),
     /// ]);
     ///
     /// assert_eq!(
     ///     Proj2::from_affine(&affine),
     ///     Proj2::from_rows(&[
-    ///         Vec3::new(1.0, 2.0, 0.0),
-    ///         Vec3::new(3.0, 4.0, 0.0),
-    ///         Vec3::new(5.0, 6.0, 1.0),
+    ///         Vec3::new(1, 2, 0),
+    ///         Vec3::new(3, 4, 0),
+    ///         Vec3::new(5, 6, 1),
     ///     ]),
     /// );
     /// ```
@@ -300,7 +300,10 @@ where
         specialize_23!(Projective::<N, T, A>::from_affine_backend(affine))
     }
 
-    /// Returns the translation of a projective transform.
+    /// Returns the translation part of a projective transform.
+    ///
+    /// Even if `self` contains a projection, non-translation cells are
+    /// completely ignored.
     ///
     /// # Examples
     ///
@@ -442,7 +445,7 @@ where
         Self(Matrix::<3, T, A>::from_row_array(array))
     }
 
-    /// Reinterprets a homogeneous 3x3 matrix as a 2D projective transform.
+    /// Reinterprets a homogeneous matrix as a projective transform.
     ///
     /// This is a no-op, because the representation is the same.
     #[inline]
@@ -451,7 +454,7 @@ where
         Self(*homogeneous)
     }
 
-    /// Reinterprets `self` as a homogeneous 3x3 matrix.
+    /// Reinterprets a projective transform as a homogeneous matrix.
     ///
     /// This is a no-op, because the representation is the same.
     #[inline]
@@ -460,7 +463,8 @@ where
         self.0
     }
 
-    /// Reinterprets `self` as a reference to a homogeneous 3x3 matrix.
+    /// Reinterprets a projective transform as a reference to a homogeneous
+    /// matrix.
     ///
     /// This is a no-op, because the representation is the same.
     #[inline]
@@ -469,7 +473,8 @@ where
         &self.0
     }
 
-    /// Reinterprets `self` as a mutable reference to a homogeneous 3x3 matrix.
+    /// Reinterprets a projective transform as a mutable reference to a
+    /// homogeneous matrix.
     ///
     /// This is a no-op, because the representation is the same.
     #[inline]
@@ -478,14 +483,14 @@ where
         &mut self.0
     }
 
-    /// Returns a reference to the transform's rows.
+    /// Returns a reference to the projective transform's rows.
     #[inline]
     #[must_use]
     pub const fn as_rows(&self) -> &[Vector<3, T, A>; 3] {
         self.0.as_rows()
     }
 
-    /// Returns a mutable reference to the transform's rows.
+    /// Returns a mutable reference to the projective transform's rows.
     #[inline]
     #[must_use]
     pub const fn as_mut_rows(&mut self) -> &mut [Vector<3, T, A>; 3] {
@@ -496,7 +501,7 @@ where
     ///
     /// # Panics
     ///
-    /// Panics if `index` is greater than or equal to the number of rows
+    /// Panics if `index` is greater than or equal to the number of columns
     /// `N + 1`.
     #[inline]
     #[must_use]
@@ -509,7 +514,7 @@ where
     ///
     /// # Panics
     ///
-    /// Panics if `index` is greater than or equal to the number of rows
+    /// Panics if `index` is greater than or equal to the number of columns
     /// `N + 1`.
     #[inline]
     #[track_caller]
@@ -697,7 +702,7 @@ where
         Self(Matrix::<4, T, A>::from_row_array(array))
     }
 
-    /// Reinterprets a homogeneous 4x4 matrix as a 3D projective transform.
+    /// Reinterprets a homogeneous matrix as a projective transform.
     ///
     /// This is a no-op, because the representation is the same.
     #[inline]
@@ -706,7 +711,7 @@ where
         Self(*homogeneous)
     }
 
-    /// Reinterprets `self` as a homogeneous 4x4 matrix.
+    /// Reinterprets a projective transform as a homogeneous matrix.
     ///
     /// This is a no-op, because the representation is the same.
     #[inline]
@@ -715,7 +720,8 @@ where
         self.0
     }
 
-    /// Reinterprets `self` as a reference to a homogeneous 4x4 matrix.
+    /// Reinterprets a projective transform as a reference to a homogeneous
+    /// matrix.
     ///
     /// This is a no-op, because the representation is the same.
     #[inline]
@@ -724,7 +730,8 @@ where
         &self.0
     }
 
-    /// Reinterprets `self` as a mutable reference to a homogeneous 4x4 matrix.
+    /// Reinterprets a projective transform as a mutable reference to a
+    /// homogeneous matrix.
     ///
     /// This is a no-op, because the representation is the same.
     #[inline]
@@ -733,14 +740,14 @@ where
         &mut self.0
     }
 
-    /// Returns a reference to the transform's rows.
+    /// Returns a reference to the projective transform's rows.
     #[inline]
     #[must_use]
     pub const fn as_rows(&self) -> &[Vector<4, T, A>; 4] {
         self.0.as_rows()
     }
 
-    /// Returns a mutable reference to the transform's rows.
+    /// Returns a mutable reference to the projective transform's rows.
     #[inline]
     #[must_use]
     pub const fn as_mut_rows(&mut self) -> &mut [Vector<4, T, A>; 4] {
@@ -751,7 +758,7 @@ where
     ///
     /// # Panics
     ///
-    /// Panics if `index` is greater than or equal to the number of rows
+    /// Panics if `index` is greater than or equal to the number of columns
     /// `N + 1`.
     #[inline]
     #[must_use]
@@ -764,7 +771,7 @@ where
     ///
     /// # Panics
     ///
-    /// Panics if `index` is greater than or equal to the number of rows
+    /// Panics if `index` is greater than or equal to the number of columns
     /// `N + 1`.
     #[inline]
     #[track_caller]
@@ -987,17 +994,17 @@ pub struct Proj2Fields<T, A: Alignment>
 where
     T: Scalar,
 {
-    /// The first row of the transform.
+    /// The first row of the projective transform.
     ///
     /// This is a vector3, since projective transforms are represented by
     /// homogeneous matrices.
     pub x_axis: Vector<3, T, A>,
-    /// The second row of the transform.
+    /// The second row of the projective transform.
     ///
     /// This is a vector3, since projective transforms are represented by
     /// homogeneous matrices.
     pub y_axis: Vector<3, T, A>,
-    /// The third row of the transform.
+    /// The third row of the projective transform.
     ///
     /// This is a vector3, since projective transforms are represented by
     /// homogeneous matrices.
@@ -1036,22 +1043,22 @@ pub struct Proj3Fields<T, A: Alignment>
 where
     T: Scalar,
 {
-    /// The first row of the transform.
+    /// The first row of the projective transform.
     ///
     /// This is a vector4, since projective transforms are represented by
     /// homogeneous matrices.
     pub x_axis: Vector<4, T, A>,
-    /// The second row of the transform.
+    /// The second row of the projective transform.
     ///
     /// This is a vector4, since projective transforms are represented by
     /// homogeneous matrices.
     pub y_axis: Vector<4, T, A>,
-    /// The third row of the transform.
+    /// The third row of the projective transform.
     ///
     /// This is a vector4, since projective transforms are represented by
     /// homogeneous matrices.
     pub z_axis: Vector<4, T, A>,
-    /// The fourth row of the transform.
+    /// The fourth row of the projective transform.
     ///
     /// This is a vector4, since projective transforms are represented by
     /// homogeneous matrices.
@@ -1265,7 +1272,21 @@ macro_rules! impl_vector_mul {
     };
 }
 impl_vector_mul!(
-    /// TODO
+    /// Transforms a homogeneous vector by a projective transform.
+    ///
+    /// The vector has one element more than the dimension of the transform,
+    /// because projective transforms are represented as homogeneous matrices.
+    ///
+    /// Because vectors are treated as row matrices, they always go on the
+    /// left-hand side.
+    ///
+    /// Equivalent to `self.x * rhs.x_axis + self.y * rhs.y_axis + ...`.
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is cross-platform deterministic and
+    /// fully consistent with scalar addition and multiplication, including
+    /// floating-point precision and integer panics.
 );
 
 macro_rules! impl_mul {
@@ -1358,7 +1379,7 @@ macro_rules! impl_mul {
     };
 }
 impl_mul!(
-    /// Projective transform multiplication.
+    /// Multiplies two projective transforms.
     ///
     /// The resulting transform is equivalent to first applying the left
     /// transform, then the right transform.
