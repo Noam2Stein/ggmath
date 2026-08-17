@@ -10,7 +10,7 @@ where
 {
     /// An affine transform with all elements set to NaN (Not a Number).
     pub const NAN: Self =
-        Self::from_submatrix_translation(Matrix::<N, T, A>::NAN, Vector::<N, T, A>::NAN);
+        Self::from_matrix_translation(Matrix::<N, T, A>::NAN, Vector::<N, T, A>::NAN);
 
     /// Returns `true` if any element is NaN.
     ///
@@ -36,7 +36,7 @@ where
     #[inline]
     #[must_use]
     pub fn is_nan(&self) -> bool {
-        self.submatrix.is_nan() || self.translation.is_nan()
+        self.matrix.is_nan() || self.translation.is_nan()
     }
 
     /// Returns `true` if all elements are neither infinite nor NaN.
@@ -63,7 +63,7 @@ where
     #[inline]
     #[must_use]
     pub fn is_finite(&self) -> bool {
-        self.submatrix.is_finite() && self.translation.is_finite()
+        self.matrix.is_finite() && self.translation.is_finite()
     }
 
     /// Returns the inverse of `self`.
@@ -79,20 +79,20 @@ where
     #[must_use]
     #[track_caller]
     pub fn inverse(&self) -> Self {
-        let submatrix = self.submatrix.inverse();
-        let translation = -self.translation * submatrix;
+        let matrix = self.matrix.inverse();
+        let translation = -self.translation * matrix;
 
-        Self::from_submatrix_translation(submatrix, translation)
+        Self::from_matrix_translation(matrix, translation)
     }
 
     /// Returns the inverse of `self` or `None` if `self` is not invertable.
     #[inline]
     #[must_use]
     pub fn try_inverse(&self) -> Option<Self> {
-        let submatrix = self.submatrix.try_inverse()?;
-        let translation = -self.translation * submatrix;
+        let matrix = self.matrix.try_inverse()?;
+        let translation = -self.translation * matrix;
 
-        Some(Self::from_submatrix_translation(submatrix, translation))
+        Some(Self::from_matrix_translation(matrix, translation))
     }
 
     /// Returns the inverse of `self` or `fallback` if `self` is not invertable.
@@ -118,7 +118,7 @@ where
     #[inline]
     #[must_use]
     pub fn abs_diff_eq(&self, other: &Self, max_abs_diff: T) -> bool {
-        self.submatrix.abs_diff_eq(&other.submatrix, max_abs_diff)
+        self.matrix.abs_diff_eq(&other.matrix, max_abs_diff)
             && self
                 .translation
                 .abs_diff_eq(other.translation, max_abs_diff)
@@ -136,7 +136,7 @@ where
     #[inline]
     #[must_use]
     pub fn from_angle(angle: T) -> Self {
-        Self::from_submatrix(Matrix::<2, T, A>::from_angle(angle))
+        Self::from_matrix(Matrix::<2, T, A>::from_angle(angle))
     }
 
     /// Creates an affine transform containing a rotation of `angle`
@@ -146,7 +146,7 @@ where
     #[inline]
     #[must_use]
     pub fn from_angle_translation(angle: T, translation: Vector<2, T, A>) -> Self {
-        Self::from_submatrix_translation(Matrix::<2, T, A>::from_angle(angle), translation)
+        Self::from_matrix_translation(Matrix::<2, T, A>::from_angle(angle), translation)
     }
 
     /// Creates an affine transform containing a non-uniform `scale` and
@@ -156,7 +156,7 @@ where
     #[inline]
     #[must_use]
     pub fn from_scale_angle(scale: Vector<2, T, A>, angle: T) -> Self {
-        Self::from_submatrix(Matrix::<2, T, A>::from_scale_angle(scale, angle))
+        Self::from_matrix(Matrix::<2, T, A>::from_scale_angle(scale, angle))
     }
 
     /// Creates an affine transform containing a non-uniform `scale`, rotation
@@ -170,7 +170,7 @@ where
         angle: T,
         translation: Vector<2, T, A>,
     ) -> Self {
-        Self::from_submatrix_translation(
+        Self::from_matrix_translation(
             Matrix::<2, T, A>::from_scale_angle(scale, angle),
             translation,
         )
@@ -190,7 +190,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn to_scale_angle(&self) -> (Vector<2, T, A>, T) {
-        self.submatrix.to_scale_angle()
+        self.matrix.to_scale_angle()
     }
 
     /// Returns the `scale`, `angle` and `translation` of `self`.
@@ -207,7 +207,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn to_scale_angle_translation(&self) -> (Vector<2, T, A>, T, Vector<2, T, A>) {
-        let (scale, angle) = self.submatrix.to_scale_angle();
+        let (scale, angle) = self.matrix.to_scale_angle();
         (scale, angle, self.translation)
     }
 }
@@ -223,7 +223,7 @@ where
     #[inline]
     #[must_use]
     pub fn from_rotation_x(angle: T) -> Self {
-        Self::from_submatrix(Matrix::<3, T, A>::from_rotation_x(angle))
+        Self::from_matrix(Matrix::<3, T, A>::from_rotation_x(angle))
     }
 
     /// Creates an affine transform containing a 3D rotation from `angle` (in
@@ -233,7 +233,7 @@ where
     #[inline]
     #[must_use]
     pub fn from_rotation_y(angle: T) -> Self {
-        Self::from_submatrix(Matrix::<3, T, A>::from_rotation_y(angle))
+        Self::from_matrix(Matrix::<3, T, A>::from_rotation_y(angle))
     }
 
     /// Creates an affine transform containing a 3D rotation from `angle` (in
@@ -243,7 +243,7 @@ where
     #[inline]
     #[must_use]
     pub fn from_rotation_z(angle: T) -> Self {
-        Self::from_submatrix(Matrix::<3, T, A>::from_rotation_z(angle))
+        Self::from_matrix(Matrix::<3, T, A>::from_rotation_z(angle))
     }
 
     /// Creates an affine transform containing a 3D rotation from a quaternion.
@@ -257,7 +257,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn from_quat(quat: Quaternion<T, A>) -> Self {
-        Self::from_submatrix(Matrix::<3, T, A>::from_quat(quat))
+        Self::from_matrix(Matrix::<3, T, A>::from_quat(quat))
     }
 
     /// Creates an affine transform containing a rotation from a rotation `axis`
@@ -274,7 +274,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn from_axis_angle(axis: Vector<3, T, A>, angle: T) -> Self {
-        Self::from_submatrix(Matrix::<3, T, A>::from_axis_angle(axis, angle))
+        Self::from_matrix(Matrix::<3, T, A>::from_axis_angle(axis, angle))
     }
 
     /// Creates an affine transform containing a rotation from an Euler rotation
@@ -282,7 +282,7 @@ where
     #[inline]
     #[must_use]
     pub fn from_euler(order: EulerRot, a: T, b: T, c: T) -> Self {
-        Self::from_submatrix(Matrix::<3, T, A>::from_euler(order, a, b, c))
+        Self::from_matrix(Matrix::<3, T, A>::from_euler(order, a, b, c))
     }
 
     /// Creates an affine transform containing a non-uniform `scale` and a 3D
@@ -297,7 +297,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn from_scale_rotation(scale: Vector<3, T, A>, rotation: Quaternion<T, A>) -> Self {
-        Self::from_submatrix(Matrix::<3, T, A>::from_scale_rotation(scale, rotation))
+        Self::from_matrix(Matrix::<3, T, A>::from_scale_rotation(scale, rotation))
     }
 
     /// Creates an affine transform containing a 3D `rotation` and
@@ -315,7 +315,7 @@ where
         rotation: Quaternion<T, A>,
         translation: Vector<3, T, A>,
     ) -> Self {
-        Self::from_submatrix_translation(Matrix::<3, T, A>::from_quat(rotation), translation)
+        Self::from_matrix_translation(Matrix::<3, T, A>::from_quat(rotation), translation)
     }
 
     /// Creates an affine transform containing a non-uniform `scale`, a 3D
@@ -334,7 +334,7 @@ where
         rotation: Quaternion<T, A>,
         translation: Vector<3, T, A>,
     ) -> Self {
-        Self::from_submatrix_translation(
+        Self::from_matrix_translation(
             Matrix::<3, T, A>::from_scale_rotation(scale, rotation),
             translation,
         )
@@ -531,7 +531,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn to_euler(&self, order: EulerRot) -> (T, T, T) {
-        self.submatrix.to_euler(order)
+        self.matrix.to_euler(order)
     }
 
     /// Returns the `scale` and `rotation` of `self`.
@@ -548,7 +548,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn to_scale_rotation(&self) -> (Vector<3, T, A>, Quaternion<T, A>) {
-        self.submatrix.to_scale_rotation()
+        self.matrix.to_scale_rotation()
     }
 
     /// Returns the `scale`, `rotation` and `translation` of `self`.
@@ -567,7 +567,7 @@ where
     pub fn to_scale_rotation_translation(
         &self,
     ) -> (Vector<3, T, A>, Quaternion<T, A>, Vector<3, T, A>) {
-        let (scale, rotation) = self.submatrix.to_scale_rotation();
+        let (scale, rotation) = self.matrix.to_scale_rotation();
         (scale, rotation, self.translation)
     }
 }

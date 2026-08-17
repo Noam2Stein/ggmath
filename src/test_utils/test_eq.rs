@@ -1025,8 +1025,8 @@ where
         infinity_eq_nan: bool,
         quat_eq_neg_quat: bool,
     ) -> bool {
-        self.submatrix.eq(
-            &expected.submatrix,
+        self.matrix.eq(
+            &expected.matrix,
             zero_eq_neg_zero,
             infinity_eq_nan,
             quat_eq_neg_quat,
@@ -1052,9 +1052,9 @@ where
         infinity_eq_nan: bool,
         quat_eq_neg_quat: bool,
     ) -> bool {
-        self.submatrix.eq(
-            &expected.submatrix,
-            &tol.submatrix,
+        self.matrix.eq(
+            &expected.matrix,
+            &tol.matrix,
             zero_eq_neg_zero,
             infinity_eq_nan,
             quat_eq_neg_quat,
@@ -1081,8 +1081,8 @@ where
         infinity_eq_nan: bool,
         quat_eq_neg_quat: bool,
     ) -> bool {
-        self.submatrix.eq(
-            &expected.submatrix,
+        self.matrix.eq(
+            &expected.matrix,
             tol,
             zero_eq_neg_zero,
             infinity_eq_nan,

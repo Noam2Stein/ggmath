@@ -35,6 +35,9 @@ stabilized, which should not affect most users.
   transformations. These have been removed and moved into the new `Proj3` and
   `Proj2` types
 
+- The affine transform field `submatrix` has been renamed to `matrix`. Many
+  related functions have also been renamed with `submatrix` to `matrix`
+
 - Most functions for converting between transform types. The function you
   want has most likely been renamed into one of these new functions:
   - `to/from_matrix`

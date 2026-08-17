@@ -12,7 +12,7 @@ macro_rules! impl_wide_float {
             Length<N>: SupportedLength,
         {
             /// An affine transform with all elements set to NaN (Not a Number).
-            pub const NAN: Self = Self::from_submatrix_translation(
+            pub const NAN: Self = Self::from_matrix_translation(
                 Matrix::<N, $Wide, A>::NAN,
                 Vector::<N, $Wide, A>::NAN,
             );
@@ -21,14 +21,14 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn is_nan(&self) -> $Wide {
-                self.submatrix.is_nan() | self.translation.is_nan()
+                self.matrix.is_nan() | self.translation.is_nan()
             }
 
             /// Returns `true` if all elements are neither infinite nor NaN.
             #[inline]
             #[must_use]
             pub fn is_finite(&self) -> $Wide {
-                self.submatrix.is_finite() & self.translation.is_finite()
+                self.matrix.is_finite() & self.translation.is_finite()
             }
 
             /// Returns the inverse of `self`.
@@ -37,10 +37,10 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn inverse(&self) -> Self {
-                let submatrix = self.submatrix.inverse();
-                let translation = -self.translation * submatrix;
+                let matrix = self.matrix.inverse();
+                let translation = -self.translation * matrix;
 
-                Self::from_submatrix_translation(submatrix, translation)
+                Self::from_matrix_translation(matrix, translation)
             }
 
             // `try_inverse` is exluded on purpose. It would not be useful
@@ -78,7 +78,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn abs_diff_eq(&self, other: &Self, max_abs_diff: $Wide) -> bool {
-                self.submatrix.abs_diff_eq(&other.submatrix, max_abs_diff)
+                self.matrix.abs_diff_eq(&other.matrix, max_abs_diff)
                     && self
                         .translation
                         .abs_diff_eq(other.translation, max_abs_diff)
@@ -93,7 +93,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn from_angle(angle: $Wide) -> Self {
-                Self::from_submatrix(Matrix::<2, $Wide, A>::from_angle(angle))
+                Self::from_matrix(Matrix::<2, $Wide, A>::from_angle(angle))
             }
 
             /// Creates an affine transform containing a rotation of `angle`
@@ -103,10 +103,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn from_angle_translation(angle: $Wide, translation: Vector<2, $Wide, A>) -> Self {
-                Self::from_submatrix_translation(
-                    Matrix::<2, $Wide, A>::from_angle(angle),
-                    translation,
-                )
+                Self::from_matrix_translation(Matrix::<2, $Wide, A>::from_angle(angle), translation)
             }
 
             /// Creates an affine transform containing a non-uniform `scale` and
@@ -116,7 +113,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn from_scale_angle(scale: Vector<2, $Wide, A>, angle: $Wide) -> Self {
-                Self::from_submatrix(Matrix::<2, $Wide, A>::from_scale_angle(scale, angle))
+                Self::from_matrix(Matrix::<2, $Wide, A>::from_scale_angle(scale, angle))
             }
 
             /// Creates an affine transform containing a non-uniform `scale`,
@@ -130,7 +127,7 @@ macro_rules! impl_wide_float {
                 angle: $Wide,
                 translation: Vector<2, $Wide, A>,
             ) -> Self {
-                Self::from_submatrix_translation(
+                Self::from_matrix_translation(
                     Matrix::<2, $Wide, A>::from_scale_angle(scale, angle),
                     translation,
                 )
@@ -143,7 +140,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn to_scale_angle(&self) -> (Vector<2, $Wide, A>, $Wide) {
-                self.submatrix.to_scale_angle()
+                self.matrix.to_scale_angle()
             }
 
             /// For each lane, returns the `scale`, `angle` and `translation` of
@@ -156,21 +153,21 @@ macro_rules! impl_wide_float {
             pub fn to_scale_angle_translation(
                 &self,
             ) -> (Vector<2, $Wide, A>, $Wide, Vector<2, $Wide, A>) {
-                let (scale, angle) = self.submatrix.to_scale_angle();
+                let (scale, angle) = self.matrix.to_scale_angle();
                 (scale, angle, self.translation)
             }
 
             #[inline(always)]
             fn inverse_or_backend(&self, fallback: &Self) -> Self {
-                let (submatrix, determinant) = self.submatrix.inverse_and_determinant();
-                let translation = -self.translation * submatrix;
+                let (matrix, determinant) = self.matrix.inverse_and_determinant();
+                let translation = -self.translation * matrix;
 
                 let fallback_mask = determinant.simd_eq($Wide::ZERO);
                 Self::from_row_array(&[
-                    fallback_mask.blend(fallback.submatrix.x_axis.x, submatrix.x_axis.x),
-                    fallback_mask.blend(fallback.submatrix.x_axis.y, submatrix.x_axis.y),
-                    fallback_mask.blend(fallback.submatrix.y_axis.x, submatrix.y_axis.x),
-                    fallback_mask.blend(fallback.submatrix.y_axis.y, submatrix.y_axis.y),
+                    fallback_mask.blend(fallback.matrix.x_axis.x, matrix.x_axis.x),
+                    fallback_mask.blend(fallback.matrix.x_axis.y, matrix.x_axis.y),
+                    fallback_mask.blend(fallback.matrix.y_axis.x, matrix.y_axis.x),
+                    fallback_mask.blend(fallback.matrix.y_axis.y, matrix.y_axis.y),
                     fallback_mask.blend(fallback.translation.x, translation.x),
                     fallback_mask.blend(fallback.translation.y, translation.y),
                 ])
@@ -178,15 +175,15 @@ macro_rules! impl_wide_float {
 
             #[inline(always)]
             fn inverse_or_zero_backend(&self) -> Self {
-                let (submatrix, determinant) = self.submatrix.inverse_and_determinant();
-                let translation = -self.translation * submatrix;
+                let (matrix, determinant) = self.matrix.inverse_and_determinant();
+                let translation = -self.translation * matrix;
 
                 let non_fallback_mask = determinant.simd_ne($Wide::ZERO);
                 Self::from_row_array(&[
-                    submatrix.x_axis.x & non_fallback_mask,
-                    submatrix.x_axis.y & non_fallback_mask,
-                    submatrix.y_axis.x & non_fallback_mask,
-                    submatrix.y_axis.y & non_fallback_mask,
+                    matrix.x_axis.x & non_fallback_mask,
+                    matrix.x_axis.y & non_fallback_mask,
+                    matrix.y_axis.x & non_fallback_mask,
+                    matrix.y_axis.y & non_fallback_mask,
                     translation.x & non_fallback_mask,
                     translation.y & non_fallback_mask,
                 ])
@@ -201,7 +198,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn from_rotation_x(angle: $Wide) -> Self {
-                Self::from_submatrix(Matrix::<3, $Wide, A>::from_rotation_x(angle))
+                Self::from_matrix(Matrix::<3, $Wide, A>::from_rotation_x(angle))
             }
 
             /// Creates an affine transform containing a 3D rotation from
@@ -211,7 +208,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn from_rotation_y(angle: $Wide) -> Self {
-                Self::from_submatrix(Matrix::<3, $Wide, A>::from_rotation_y(angle))
+                Self::from_matrix(Matrix::<3, $Wide, A>::from_rotation_y(angle))
             }
 
             /// Creates an affine transform containing a 3D rotation from
@@ -221,7 +218,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn from_rotation_z(angle: $Wide) -> Self {
-                Self::from_submatrix(Matrix::<3, $Wide, A>::from_rotation_z(angle))
+                Self::from_matrix(Matrix::<3, $Wide, A>::from_rotation_z(angle))
             }
 
             /// Creates an affine transform containing a 3D rotation from a
@@ -229,7 +226,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn from_quat(quat: Quaternion<$Wide, A>) -> Self {
-                Self::from_submatrix(Matrix::<3, $Wide, A>::from_quat(quat))
+                Self::from_matrix(Matrix::<3, $Wide, A>::from_quat(quat))
             }
 
             /// Creates an affine transform containing a rotation from a
@@ -239,7 +236,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn from_axis_angle(axis: Vector<3, $Wide, A>, angle: $Wide) -> Self {
-                Self::from_submatrix(Matrix::<3, $Wide, A>::from_axis_angle(axis, angle))
+                Self::from_matrix(Matrix::<3, $Wide, A>::from_axis_angle(axis, angle))
             }
 
             /// Creates an affine transform containing a rotation from an Euler
@@ -247,7 +244,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn from_euler(order: EulerRot, a: $Wide, b: $Wide, c: $Wide) -> Self {
-                Self::from_submatrix(Matrix::<3, $Wide, A>::from_euler(order, a, b, c))
+                Self::from_matrix(Matrix::<3, $Wide, A>::from_euler(order, a, b, c))
             }
 
             /// Creates an affine transform containing a non-uniform `scale` and
@@ -258,7 +255,7 @@ macro_rules! impl_wide_float {
                 scale: Vector<3, $Wide, A>,
                 rotation: Quaternion<$Wide, A>,
             ) -> Self {
-                Self::from_submatrix(Matrix::<3, $Wide, A>::from_scale_rotation(scale, rotation))
+                Self::from_matrix(Matrix::<3, $Wide, A>::from_scale_rotation(scale, rotation))
             }
 
             /// Creates an affine transform containing a 3D `rotation` and
@@ -269,7 +266,7 @@ macro_rules! impl_wide_float {
                 rotation: Quaternion<$Wide, A>,
                 translation: Vector<3, $Wide, A>,
             ) -> Self {
-                Self::from_submatrix_translation(
+                Self::from_matrix_translation(
                     Matrix::<3, $Wide, A>::from_quat(rotation),
                     translation,
                 )
@@ -284,7 +281,7 @@ macro_rules! impl_wide_float {
                 rotation: Quaternion<$Wide, A>,
                 translation: Vector<3, $Wide, A>,
             ) -> Self {
-                Self::from_submatrix_translation(
+                Self::from_matrix_translation(
                     Matrix::<3, $Wide, A>::from_scale_rotation(scale, rotation),
                     translation,
                 )
@@ -376,7 +373,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn to_euler(&self, order: EulerRot) -> ($Wide, $Wide, $Wide) {
-                self.submatrix.to_euler(order)
+                self.matrix.to_euler(order)
             }
 
             /// For each lane, returns the `scale` and `rotation` of `self`.
@@ -386,7 +383,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn to_scale_rotation(&self) -> (Vector<3, $Wide, A>, Quaternion<$Wide, A>) {
-                self.submatrix.to_scale_rotation()
+                self.matrix.to_scale_rotation()
             }
 
             /// For each lane, returns the `scale`, `rotation` and `translation`
@@ -403,26 +400,26 @@ macro_rules! impl_wide_float {
                 Quaternion<$Wide, A>,
                 Vector<3, $Wide, A>,
             ) {
-                let (scale, rotation) = self.submatrix.to_scale_rotation();
+                let (scale, rotation) = self.matrix.to_scale_rotation();
                 (scale, rotation, self.translation)
             }
 
             #[inline(always)]
             fn inverse_or_backend(&self, fallback: &Self) -> Self {
-                let (submatrix, determinant) = self.submatrix.inverse_and_determinant();
-                let translation = -self.translation * submatrix;
+                let (matrix, determinant) = self.matrix.inverse_and_determinant();
+                let translation = -self.translation * matrix;
 
                 let fallback_mask = determinant.simd_eq($Wide::ZERO);
                 Self::from_row_array(&[
-                    fallback_mask.blend(fallback.submatrix.x_axis.x, submatrix.x_axis.x),
-                    fallback_mask.blend(fallback.submatrix.x_axis.y, submatrix.x_axis.y),
-                    fallback_mask.blend(fallback.submatrix.x_axis.z, submatrix.x_axis.z),
-                    fallback_mask.blend(fallback.submatrix.y_axis.x, submatrix.y_axis.x),
-                    fallback_mask.blend(fallback.submatrix.y_axis.y, submatrix.y_axis.y),
-                    fallback_mask.blend(fallback.submatrix.y_axis.z, submatrix.y_axis.z),
-                    fallback_mask.blend(fallback.submatrix.z_axis.x, submatrix.z_axis.x),
-                    fallback_mask.blend(fallback.submatrix.z_axis.y, submatrix.z_axis.y),
-                    fallback_mask.blend(fallback.submatrix.z_axis.z, submatrix.z_axis.z),
+                    fallback_mask.blend(fallback.matrix.x_axis.x, matrix.x_axis.x),
+                    fallback_mask.blend(fallback.matrix.x_axis.y, matrix.x_axis.y),
+                    fallback_mask.blend(fallback.matrix.x_axis.z, matrix.x_axis.z),
+                    fallback_mask.blend(fallback.matrix.y_axis.x, matrix.y_axis.x),
+                    fallback_mask.blend(fallback.matrix.y_axis.y, matrix.y_axis.y),
+                    fallback_mask.blend(fallback.matrix.y_axis.z, matrix.y_axis.z),
+                    fallback_mask.blend(fallback.matrix.z_axis.x, matrix.z_axis.x),
+                    fallback_mask.blend(fallback.matrix.z_axis.y, matrix.z_axis.y),
+                    fallback_mask.blend(fallback.matrix.z_axis.z, matrix.z_axis.z),
                     fallback_mask.blend(fallback.translation.x, translation.x),
                     fallback_mask.blend(fallback.translation.y, translation.y),
                     fallback_mask.blend(fallback.translation.z, translation.z),
@@ -431,20 +428,20 @@ macro_rules! impl_wide_float {
 
             #[inline(always)]
             fn inverse_or_zero_backend(&self) -> Self {
-                let (submatrix, determinant) = self.submatrix.inverse_and_determinant();
-                let translation = -self.translation * submatrix;
+                let (matrix, determinant) = self.matrix.inverse_and_determinant();
+                let translation = -self.translation * matrix;
 
                 let non_fallback_mask = determinant.simd_ne($Wide::ZERO);
                 Self::from_row_array(&[
-                    submatrix.x_axis.x & non_fallback_mask,
-                    submatrix.x_axis.y & non_fallback_mask,
-                    submatrix.x_axis.z & non_fallback_mask,
-                    submatrix.y_axis.x & non_fallback_mask,
-                    submatrix.y_axis.y & non_fallback_mask,
-                    submatrix.y_axis.z & non_fallback_mask,
-                    submatrix.z_axis.x & non_fallback_mask,
-                    submatrix.z_axis.y & non_fallback_mask,
-                    submatrix.z_axis.z & non_fallback_mask,
+                    matrix.x_axis.x & non_fallback_mask,
+                    matrix.x_axis.y & non_fallback_mask,
+                    matrix.x_axis.z & non_fallback_mask,
+                    matrix.y_axis.x & non_fallback_mask,
+                    matrix.y_axis.y & non_fallback_mask,
+                    matrix.y_axis.z & non_fallback_mask,
+                    matrix.z_axis.x & non_fallback_mask,
+                    matrix.z_axis.y & non_fallback_mask,
+                    matrix.z_axis.z & non_fallback_mask,
                     translation.x & non_fallback_mask,
                     translation.y & non_fallback_mask,
                     translation.z & non_fallback_mask,
@@ -455,27 +452,27 @@ macro_rules! impl_wide_float {
         impl<A: Alignment> Affine<4, $Wide, A> {
             #[inline(always)]
             fn inverse_or_backend(&self, fallback: &Self) -> Self {
-                let (submatrix, determinant) = self.submatrix.inverse_and_determinant();
-                let translation = -self.translation * submatrix;
+                let (matrix, determinant) = self.matrix.inverse_and_determinant();
+                let translation = -self.translation * matrix;
 
                 let fallback_mask = determinant.simd_eq($Wide::ZERO);
                 Self::from_row_array(&[
-                    fallback_mask.blend(fallback.submatrix.x_axis.x, submatrix.x_axis.x),
-                    fallback_mask.blend(fallback.submatrix.x_axis.y, submatrix.x_axis.y),
-                    fallback_mask.blend(fallback.submatrix.x_axis.z, submatrix.x_axis.z),
-                    fallback_mask.blend(fallback.submatrix.x_axis.w, submatrix.x_axis.w),
-                    fallback_mask.blend(fallback.submatrix.y_axis.x, submatrix.y_axis.x),
-                    fallback_mask.blend(fallback.submatrix.y_axis.y, submatrix.y_axis.y),
-                    fallback_mask.blend(fallback.submatrix.y_axis.z, submatrix.y_axis.z),
-                    fallback_mask.blend(fallback.submatrix.y_axis.w, submatrix.y_axis.w),
-                    fallback_mask.blend(fallback.submatrix.z_axis.x, submatrix.z_axis.x),
-                    fallback_mask.blend(fallback.submatrix.z_axis.y, submatrix.z_axis.y),
-                    fallback_mask.blend(fallback.submatrix.z_axis.z, submatrix.z_axis.z),
-                    fallback_mask.blend(fallback.submatrix.z_axis.w, submatrix.z_axis.w),
-                    fallback_mask.blend(fallback.submatrix.w_axis.x, submatrix.w_axis.x),
-                    fallback_mask.blend(fallback.submatrix.w_axis.y, submatrix.w_axis.y),
-                    fallback_mask.blend(fallback.submatrix.w_axis.z, submatrix.w_axis.z),
-                    fallback_mask.blend(fallback.submatrix.w_axis.w, submatrix.w_axis.w),
+                    fallback_mask.blend(fallback.matrix.x_axis.x, matrix.x_axis.x),
+                    fallback_mask.blend(fallback.matrix.x_axis.y, matrix.x_axis.y),
+                    fallback_mask.blend(fallback.matrix.x_axis.z, matrix.x_axis.z),
+                    fallback_mask.blend(fallback.matrix.x_axis.w, matrix.x_axis.w),
+                    fallback_mask.blend(fallback.matrix.y_axis.x, matrix.y_axis.x),
+                    fallback_mask.blend(fallback.matrix.y_axis.y, matrix.y_axis.y),
+                    fallback_mask.blend(fallback.matrix.y_axis.z, matrix.y_axis.z),
+                    fallback_mask.blend(fallback.matrix.y_axis.w, matrix.y_axis.w),
+                    fallback_mask.blend(fallback.matrix.z_axis.x, matrix.z_axis.x),
+                    fallback_mask.blend(fallback.matrix.z_axis.y, matrix.z_axis.y),
+                    fallback_mask.blend(fallback.matrix.z_axis.z, matrix.z_axis.z),
+                    fallback_mask.blend(fallback.matrix.z_axis.w, matrix.z_axis.w),
+                    fallback_mask.blend(fallback.matrix.w_axis.x, matrix.w_axis.x),
+                    fallback_mask.blend(fallback.matrix.w_axis.y, matrix.w_axis.y),
+                    fallback_mask.blend(fallback.matrix.w_axis.z, matrix.w_axis.z),
+                    fallback_mask.blend(fallback.matrix.w_axis.w, matrix.w_axis.w),
                     fallback_mask.blend(fallback.translation.x, translation.x),
                     fallback_mask.blend(fallback.translation.y, translation.y),
                     fallback_mask.blend(fallback.translation.z, translation.z),
@@ -485,27 +482,27 @@ macro_rules! impl_wide_float {
 
             #[inline(always)]
             fn inverse_or_zero_backend(&self) -> Self {
-                let (submatrix, determinant) = self.submatrix.inverse_and_determinant();
-                let translation = -self.translation * submatrix;
+                let (matrix, determinant) = self.matrix.inverse_and_determinant();
+                let translation = -self.translation * matrix;
 
                 let non_fallback_mask = determinant.simd_ne($Wide::ZERO);
                 Self::from_row_array(&[
-                    submatrix.x_axis.x & non_fallback_mask,
-                    submatrix.x_axis.y & non_fallback_mask,
-                    submatrix.x_axis.z & non_fallback_mask,
-                    submatrix.x_axis.w & non_fallback_mask,
-                    submatrix.y_axis.x & non_fallback_mask,
-                    submatrix.y_axis.y & non_fallback_mask,
-                    submatrix.y_axis.z & non_fallback_mask,
-                    submatrix.y_axis.w & non_fallback_mask,
-                    submatrix.z_axis.x & non_fallback_mask,
-                    submatrix.z_axis.y & non_fallback_mask,
-                    submatrix.z_axis.z & non_fallback_mask,
-                    submatrix.z_axis.w & non_fallback_mask,
-                    submatrix.w_axis.x & non_fallback_mask,
-                    submatrix.w_axis.y & non_fallback_mask,
-                    submatrix.w_axis.z & non_fallback_mask,
-                    submatrix.w_axis.w & non_fallback_mask,
+                    matrix.x_axis.x & non_fallback_mask,
+                    matrix.x_axis.y & non_fallback_mask,
+                    matrix.x_axis.z & non_fallback_mask,
+                    matrix.x_axis.w & non_fallback_mask,
+                    matrix.y_axis.x & non_fallback_mask,
+                    matrix.y_axis.y & non_fallback_mask,
+                    matrix.y_axis.z & non_fallback_mask,
+                    matrix.y_axis.w & non_fallback_mask,
+                    matrix.z_axis.x & non_fallback_mask,
+                    matrix.z_axis.y & non_fallback_mask,
+                    matrix.z_axis.z & non_fallback_mask,
+                    matrix.z_axis.w & non_fallback_mask,
+                    matrix.w_axis.x & non_fallback_mask,
+                    matrix.w_axis.y & non_fallback_mask,
+                    matrix.w_axis.z & non_fallback_mask,
+                    matrix.w_axis.w & non_fallback_mask,
                     translation.x & non_fallback_mask,
                     translation.y & non_fallback_mask,
                     translation.z & non_fallback_mask,
@@ -536,7 +533,7 @@ mod tests {
         for_types!(|N, Wide: WideFloat| {
             assert_test_eq!(
                 Affine::<N, Wide, Unaligned>::NAN,
-                Affine::from_submatrix_translation(
+                Affine::from_matrix_translation(
                     Matrix::<N, Wide, Unaligned>::NAN,
                     Vector::<N, Wide, Unaligned>::NAN
                 )
@@ -550,7 +547,7 @@ mod tests {
             for affine in random_iter::<Affine<N, Wide, Unaligned>>() {
                 assert_test_eq!(
                     affine.is_nan(),
-                    affine.submatrix.is_nan() | affine.translation.is_nan()
+                    affine.matrix.is_nan() | affine.translation.is_nan()
                 );
             }
         });
@@ -562,7 +559,7 @@ mod tests {
             for affine in random_iter::<Affine<N, Wide, Unaligned>>() {
                 assert_test_eq!(
                     affine.is_finite(),
-                    affine.submatrix.is_finite() & affine.translation.is_finite()
+                    affine.matrix.is_finite() & affine.translation.is_finite()
                 );
             }
         });
@@ -829,7 +826,7 @@ mod tests {
                         axis.lane(lane),
                         angle.to_array()[lane]
                     )),
-                    abs <= Affine3::from_submatrix(
+                    abs <= Affine3::from_matrix(
                         Mat3::<Wide>::from_axis_angle(axis, angle).abs()
                             * axis.length().max(Wide::ONE)
                             * angle.abs().max(Wide::ONE)

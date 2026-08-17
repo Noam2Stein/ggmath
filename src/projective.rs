@@ -492,8 +492,8 @@ where
         T: Zero + One,
     {
         Self::from_rows(&[
-            affine.submatrix.x_axis.extend(T::ZERO),
-            affine.submatrix.y_axis.extend(T::ZERO),
+            affine.matrix.x_axis.extend(T::ZERO),
+            affine.matrix.y_axis.extend(T::ZERO),
             affine.translation.to_homogeneous(),
         ])
     }
@@ -751,9 +751,9 @@ where
         T: Zero + One,
     {
         Self::from_rows(&[
-            affine.submatrix.x_axis.extend(T::ZERO),
-            affine.submatrix.y_axis.extend(T::ZERO),
-            affine.submatrix.z_axis.extend(T::ZERO),
+            affine.matrix.x_axis.extend(T::ZERO),
+            affine.matrix.y_axis.extend(T::ZERO),
+            affine.matrix.z_axis.extend(T::ZERO),
             affine.translation.to_homogeneous(),
         ])
     }

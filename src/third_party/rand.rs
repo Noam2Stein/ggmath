@@ -48,7 +48,7 @@ where
 {
     #[inline]
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Affine<N, T, A> {
-        Affine::from_submatrix_translation(
+        Affine::from_matrix_translation(
             rng.random::<Matrix<N, T, A>>(),
             rng.random::<Vector<N, T, A>>(),
         )

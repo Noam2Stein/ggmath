@@ -42,7 +42,7 @@ where
     T: Scalar,
 {
     /// The part representing rotation, scaling and shear.
-    pub submatrix: Matrix<N, T, A>,
+    pub matrix: Matrix<N, T, A>,
     /// The part representing translation.
     pub translation: Vector<N, T, A>,
 }
@@ -128,7 +128,7 @@ where
     /// an affine transform with no transformation.
     ///
     /// [`IDENTITY`]: Self::IDENTITY
-    pub const ZERO: Self = Self::from_submatrix_translation(Matrix::ZERO, Vector::ZERO);
+    pub const ZERO: Self = Self::from_matrix_translation(Matrix::ZERO, Vector::ZERO);
 }
 
 impl<const N: usize, T, A: Alignment> Affine<N, T, A>
@@ -137,7 +137,7 @@ where
     T: Scalar + Zero + One,
 {
     /// An affine transform with no transformation.
-    pub const IDENTITY: Self = Self::from_submatrix_translation(Matrix::IDENTITY, Vector::ZERO);
+    pub const IDENTITY: Self = Self::from_matrix_translation(Matrix::IDENTITY, Vector::ZERO);
 }
 
 impl<const N: usize, T, A: Alignment> Affine<N, T, A>
@@ -169,7 +169,7 @@ where
         F: FnMut(usize) -> Vector<N, T, A>,
     {
         Self {
-            submatrix: Matrix::from_row_fn(&mut f),
+            matrix: Matrix::from_row_fn(&mut f),
             translation: f(N),
         }
     }
@@ -182,7 +182,7 @@ where
         T: Zero,
     {
         Self {
-            submatrix: Matrix::from_diagonal(scale),
+            matrix: Matrix::from_diagonal(scale),
             translation: Vector::ZERO,
         }
     }
@@ -195,35 +195,35 @@ where
         T: Zero + One,
     {
         Self {
-            submatrix: Matrix::IDENTITY,
+            matrix: Matrix::IDENTITY,
             translation,
         }
     }
 
-    /// Creates an affine transform from `submatrix` expressing rotation and
+    /// Creates an affine transform from `matrix` expressing rotation and
     /// scale, but not translation.
     #[inline]
     #[must_use]
-    pub const fn from_submatrix(submatrix: Matrix<N, T, A>) -> Self
+    pub const fn from_matrix(matrix: Matrix<N, T, A>) -> Self
     where
         T: Zero,
     {
         Self {
-            submatrix,
+            matrix,
             translation: Vector::ZERO,
         }
     }
 
-    /// Creates an affine transform from `translation` and `submatrix`
+    /// Creates an affine transform from `translation` and `matrix`
     /// expressing rotation and scale.
     #[inline]
     #[must_use]
-    pub const fn from_submatrix_translation(
-        submatrix: Matrix<N, T, A>,
+    pub const fn from_matrix_translation(
+        matrix: Matrix<N, T, A>,
         translation: Vector<N, T, A>,
     ) -> Self {
         Self {
-            submatrix,
+            matrix,
             translation,
         }
     }
@@ -265,10 +265,7 @@ where
     #[inline]
     #[must_use]
     pub const fn to_alignment<A2: Alignment>(&self) -> Affine<N, T, A2> {
-        Affine::from_submatrix_translation(
-            self.submatrix.to_alignment(),
-            self.translation.to_alignment(),
-        )
+        Affine::from_matrix_translation(self.matrix.to_alignment(), self.translation.to_alignment())
     }
 
     /// Conversion to [`Aligned`] storage.
@@ -317,7 +314,7 @@ where
     where
         T: Add<Output = T> + Mul<Output = T>,
     {
-        point * self.submatrix + self.translation
+        point * self.matrix + self.translation
     }
 
     /// Transforms the given vector applying scale and rotation, but not
@@ -333,7 +330,7 @@ where
     where
         T: Add<Output = T> + Mul<Output = T>,
     {
-        vector * self.submatrix
+        vector * self.matrix
     }
 }
 
@@ -346,7 +343,7 @@ where
     #[must_use]
     pub const fn from_rows(rows: &[Vector<2, T, A>; 3]) -> Self {
         Self {
-            submatrix: Matrix::from_rows(&[rows[0], rows[1]]),
+            matrix: Matrix::from_rows(&[rows[0], rows[1]]),
             translation: rows[2],
         }
     }
@@ -429,7 +426,7 @@ where
     #[must_use]
     pub const fn from_rows(rows: &[Vector<3, T, A>; 4]) -> Self {
         Self {
-            submatrix: Matrix::from_rows(&[rows[0], rows[1], rows[2]]),
+            matrix: Matrix::from_rows(&[rows[0], rows[1], rows[2]]),
             translation: rows[3],
         }
     }
@@ -514,7 +511,7 @@ where
     #[must_use]
     pub const fn from_rows(rows: &[Vector<4, T, A>; 5]) -> Self {
         Self {
-            submatrix: Matrix::from_rows(&[rows[0], rows[1], rows[2], rows[3]]),
+            matrix: Matrix::from_rows(&[rows[0], rows[1], rows[2], rows[3]]),
             translation: rows[4],
         }
     }
@@ -616,17 +613,17 @@ where
     #[track_caller]
     fn index(&self, index: usize) -> &Self::Output {
         match (N, index) {
-            (2, 0) => &self.submatrix[0],
-            (2, 1) => &self.submatrix[1],
+            (2, 0) => &self.matrix[0],
+            (2, 1) => &self.matrix[1],
             (2, 2) => &self.translation,
-            (3, 0) => &self.submatrix[0],
-            (3, 1) => &self.submatrix[1],
-            (3, 2) => &self.submatrix[2],
+            (3, 0) => &self.matrix[0],
+            (3, 1) => &self.matrix[1],
+            (3, 2) => &self.matrix[2],
             (3, 3) => &self.translation,
-            (4, 0) => &self.submatrix[0],
-            (4, 1) => &self.submatrix[1],
-            (4, 2) => &self.submatrix[2],
-            (4, 3) => &self.submatrix[3],
+            (4, 0) => &self.matrix[0],
+            (4, 1) => &self.matrix[1],
+            (4, 2) => &self.matrix[2],
+            (4, 3) => &self.matrix[3],
             (4, 4) => &self.translation,
             _ => panic!("index out of bounds"),
         }
@@ -648,17 +645,17 @@ where
     #[track_caller]
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         match (N, index) {
-            (2, 0) => &mut self.submatrix[0],
-            (2, 1) => &mut self.submatrix[1],
+            (2, 0) => &mut self.matrix[0],
+            (2, 1) => &mut self.matrix[1],
             (2, 2) => &mut self.translation,
-            (3, 0) => &mut self.submatrix[0],
-            (3, 1) => &mut self.submatrix[1],
-            (3, 2) => &mut self.submatrix[2],
+            (3, 0) => &mut self.matrix[0],
+            (3, 1) => &mut self.matrix[1],
+            (3, 2) => &mut self.matrix[2],
             (3, 3) => &mut self.translation,
-            (4, 0) => &mut self.submatrix[0],
-            (4, 1) => &mut self.submatrix[1],
-            (4, 2) => &mut self.submatrix[2],
-            (4, 3) => &mut self.submatrix[3],
+            (4, 0) => &mut self.matrix[0],
+            (4, 1) => &mut self.matrix[1],
+            (4, 2) => &mut self.matrix[2],
+            (4, 3) => &mut self.matrix[3],
             (4, 4) => &mut self.translation,
             _ => panic!("index out of bounds"),
         }
@@ -675,21 +672,17 @@ where
             2 => write!(
                 f,
                 "[{:?}, {:?}, {:?}]",
-                self.submatrix[0], self.submatrix[1], self.translation
+                self.matrix[0], self.matrix[1], self.translation
             ),
             3 => write!(
                 f,
                 "[{:?}, {:?}, {:?}, {:?}]",
-                self.submatrix[0], self.submatrix[1], self.submatrix[2], self.translation
+                self.matrix[0], self.matrix[1], self.matrix[2], self.translation
             ),
             4 => write!(
                 f,
                 "[{:?}, {:?}, {:?}, {:?}, {:?}]",
-                self.submatrix[0],
-                self.submatrix[1],
-                self.submatrix[2],
-                self.submatrix[3],
-                self.translation
+                self.matrix[0], self.matrix[1], self.matrix[2], self.matrix[3], self.translation
             ),
             _ => unreachable!(),
         }
@@ -706,21 +699,17 @@ where
             2 => write!(
                 f,
                 "[{}, {}, {}]",
-                self.submatrix[0], self.submatrix[1], self.translation
+                self.matrix[0], self.matrix[1], self.translation
             ),
             3 => write!(
                 f,
                 "[{}, {}, {}, {}]",
-                self.submatrix[0], self.submatrix[1], self.submatrix[2], self.translation
+                self.matrix[0], self.matrix[1], self.matrix[2], self.translation
             ),
             4 => write!(
                 f,
                 "[{}, {}, {}, {}, {}]",
-                self.submatrix[0],
-                self.submatrix[1],
-                self.submatrix[2],
-                self.submatrix[3],
-                self.translation
+                self.matrix[0], self.matrix[1], self.matrix[2], self.matrix[3], self.translation
             ),
             _ => unreachable!(),
         }
@@ -734,7 +723,7 @@ where
 {
     #[inline]
     fn eq(&self, other: &Self) -> bool {
-        self.submatrix == other.submatrix && self.translation == other.translation
+        self.matrix == other.matrix && self.translation == other.translation
     }
 }
 
@@ -751,7 +740,7 @@ where
     T: Scalar + Hash,
 {
     fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
-        self.submatrix.hash(state);
+        self.matrix.hash(state);
         self.translation.hash(state);
     }
 }
@@ -828,9 +817,9 @@ macro_rules! impl_mul {
             #[inline]
             #[track_caller]
             fn mul(self, rhs: &Affine<N, T, A>) -> Self::Output {
-                Affine::from_submatrix_translation(
-                    self.submatrix * rhs.submatrix,
-                    self.translation * rhs.submatrix + rhs.translation,
+                Affine::from_matrix_translation(
+                    self.matrix * rhs.matrix,
+                    self.translation * rhs.matrix + rhs.translation,
                 )
             }
         }

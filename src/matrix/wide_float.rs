@@ -555,7 +555,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn to_scale_angle(&self) -> (Vector<2, $Wide, A>, $Wide) {
-                self.submatrix().to_scale_angle()
+                self.matrix().to_scale_angle()
             }
 
             /// For each lane, returns the `scale`, `angle` and `translation` of
@@ -945,7 +945,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn from_euler(order: EulerRot, a: $Wide, b: $Wide, c: $Wide) -> Self {
-                Self::from_submatrix(&Matrix::<3, $Wide, A>::from_euler(order, a, b, c))
+                Self::from_matrix(&Matrix::<3, $Wide, A>::from_euler(order, a, b, c))
             }
 
             /// Creates an affine transformation matrix containing a non-uniform
@@ -1660,7 +1660,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn to_euler(&self, order: EulerRot) -> ($Wide, $Wide, $Wide) {
-                self.submatrix().to_euler(order)
+                self.matrix().to_euler(order)
             }
 
             /// For each lane, returns the `scale` and `rotation` of `self`.
@@ -1672,7 +1672,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn to_scale_rotation(&self) -> (Vector<3, $Wide, A>, Quaternion<$Wide, A>) {
-                self.submatrix().to_scale_rotation()
+                self.matrix().to_scale_rotation()
             }
 
             /// For each lane, returns the `scale`, `rotation` and `translation`
@@ -2128,7 +2128,7 @@ mod tests {
                 );
 
                 assert_test_eq!(
-                    Mat3::<Wide>::from_submatrix_translation(&matrix, translation).to_scale_angle(),
+                    Mat3::<Wide>::from_matrix_translation(&matrix, translation).to_scale_angle(),
                     matrix.to_scale_angle()
                 );
             }
@@ -2500,7 +2500,7 @@ mod tests {
                         0.0 = -0.0
                     );
 
-                    let matrix = matrix.submatrix();
+                    let matrix = matrix.matrix();
                     assert_test_eq_or_panic!(
                         matrix.to_euler(order),
                         (
@@ -2547,8 +2547,7 @@ mod tests {
                 );
 
                 assert_test_eq!(
-                    Mat4::<Wide>::from_submatrix_translation(&matrix, translation)
-                        .to_scale_rotation(),
+                    Mat4::<Wide>::from_matrix_translation(&matrix, translation).to_scale_rotation(),
                     matrix.to_scale_rotation()
                 );
             }
