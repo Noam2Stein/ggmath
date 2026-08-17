@@ -2422,3 +2422,999 @@ where
     T: Scalar + RefUnwindSafe,
 {
 }
+
+#[cfg(test)]
+mod tests {
+    extern crate std;
+
+    use std::format;
+
+    use crate::{
+        Aligned, Mask, Mat2A, Mat3A, Mat4A, Matrix, Projective, Unaligned, Vec3A, Vec4A, Vector,
+        test_utils::{assert_panic, assert_test_eq, for_types, random_iter},
+    };
+
+    #[test]
+    fn test_layout() {
+        for_types!(|N, T: PrimitiveNumber| {
+            assert_eq!(size_of::<Matrix<N, T, Unaligned>>(), size_of::<T>() * N * N);
+            assert_eq!(align_of::<Matrix<N, T, Unaligned>>(), align_of::<T>());
+
+            assert_eq!(
+                size_of::<Matrix<N, T, Aligned>>(),
+                size_of::<Vector<N, T, Aligned>>() * N
+            );
+        });
+        for_types!(|T: PrimitiveNumber| {
+            assert_eq!(align_of::<Mat2A<T>>(), align_of::<Vec4A<T>>());
+            assert_eq!(align_of::<Mat3A<T>>(), align_of::<Vec3A<T>>());
+            assert_eq!(align_of::<Mat4A<T>>(), align_of::<Vec4A<T>>());
+        });
+    }
+
+    #[test]
+    fn test_zero() {
+        for_types!(|N, T: PrimitiveNumber, A| {
+            assert_eq!(
+                Matrix::<N, T, A>::ZERO,
+                Matrix::from_rows(&[Vector::ZERO; N])
+            );
+        });
+    }
+
+    #[test]
+    fn test_identity() {
+        for_types!(|T: PrimitiveNumber, A| {
+            assert_eq!(
+                Matrix::<2, T, A>::IDENTITY,
+                Matrix::from_rows(&[
+                    Vector::<2, T, A>::new(T::as_from(1), T::as_from(0)),
+                    Vector::<2, T, A>::new(T::as_from(0), T::as_from(1))
+                ])
+            );
+            assert_eq!(
+                Matrix::<3, T, A>::IDENTITY,
+                Matrix::from_rows(&[
+                    Vector::<3, T, A>::new(T::as_from(1), T::as_from(0), T::as_from(0)),
+                    Vector::<3, T, A>::new(T::as_from(0), T::as_from(1), T::as_from(0)),
+                    Vector::<3, T, A>::new(T::as_from(0), T::as_from(0), T::as_from(1))
+                ])
+            );
+            assert_eq!(
+                Matrix::<4, T, A>::IDENTITY,
+                Matrix::from_rows(&[
+                    Vector::<4, T, A>::new(
+                        T::as_from(1),
+                        T::as_from(0),
+                        T::as_from(0),
+                        T::as_from(0)
+                    ),
+                    Vector::<4, T, A>::new(
+                        T::as_from(0),
+                        T::as_from(1),
+                        T::as_from(0),
+                        T::as_from(0)
+                    ),
+                    Vector::<4, T, A>::new(
+                        T::as_from(0),
+                        T::as_from(0),
+                        T::as_from(1),
+                        T::as_from(0)
+                    ),
+                    Vector::<4, T, A>::new(
+                        T::as_from(0),
+                        T::as_from(0),
+                        T::as_from(0),
+                        T::as_from(1)
+                    )
+                ])
+            );
+        });
+    }
+
+    #[test]
+    fn test_from_row_fn() {
+        for_types!(|N, T: PrimitiveNumber, A| {
+            let rows = std::array::from_fn(|r| Vector::from_fn(|c| T::as_from(r * N + c)));
+
+            assert_eq!(
+                Matrix::<N, T, A>::from_row_fn(|i| rows[i]),
+                Matrix::from_rows(&rows)
+            );
+        });
+    }
+
+    #[test]
+    fn test_from_diagonal() {
+        for_types!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w] = std::array::from_fn(|i| T::as_from(i + 1));
+
+            assert_eq!(
+                Matrix::<2, T, A>::from_diagonal(Vector::<2, T, A>::new(x, y)),
+                Matrix::from_rows(&[
+                    Vector::<2, T, A>::new(x, T::as_from(0)),
+                    Vector::<2, T, A>::new(T::as_from(0), y)
+                ])
+            );
+            assert_eq!(
+                Matrix::<3, T, A>::from_diagonal(Vector::<3, T, A>::new(x, y, z)),
+                Matrix::from_rows(&[
+                    Vector::<3, T, A>::new(x, T::as_from(0), T::as_from(0)),
+                    Vector::<3, T, A>::new(T::as_from(0), y, T::as_from(0)),
+                    Vector::<3, T, A>::new(T::as_from(0), T::as_from(0), z)
+                ])
+            );
+            assert_eq!(
+                Matrix::<4, T, A>::from_diagonal(Vector::<4, T, A>::new(x, y, z, w)),
+                Matrix::from_rows(&[
+                    Vector::<4, T, A>::new(x, T::as_from(0), T::as_from(0), T::as_from(0)),
+                    Vector::<4, T, A>::new(T::as_from(0), y, T::as_from(0), T::as_from(0)),
+                    Vector::<4, T, A>::new(T::as_from(0), T::as_from(0), z, T::as_from(0)),
+                    Vector::<4, T, A>::new(T::as_from(0), T::as_from(0), T::as_from(0), w)
+                ])
+            );
+        });
+    }
+
+    #[test]
+    fn test_from_scale() {
+        for_types!(|N, T: PrimitiveNumber, A| {
+            let scale = Vector::from_fn(|i| T::as_from(i + 1));
+
+            assert_eq!(
+                Matrix::<N, T, A>::from_scale(scale),
+                Matrix::<N, T, A>::from_diagonal(scale)
+            );
+        });
+    }
+
+    #[test]
+    fn test_to_alignment() {
+        for_types!(|N, T: PrimitiveNumber, A| {
+            let matrix =
+                Matrix::<N, T, A>::from_row_fn(|r| Vector::from_fn(|c| T::as_from(r * N + c)));
+
+            assert_eq!(
+                matrix.to_alignment(),
+                Matrix::<N, T, Aligned>::from_rows(&matrix.as_rows().map(Vector::align))
+            );
+            assert_eq!(
+                matrix.to_alignment(),
+                Matrix::<N, T, Unaligned>::from_rows(&matrix.as_rows().map(Vector::unalign))
+            );
+        });
+    }
+
+    #[test]
+    fn test_align() {
+        for_types!(|N, T: PrimitiveNumber, A| {
+            let matrix =
+                Matrix::<N, T, A>::from_row_fn(|r| Vector::from_fn(|c| T::as_from(r * N + c)));
+
+            assert_eq!(
+                matrix.align(),
+                Matrix::<N, T, Aligned>::from_rows(&matrix.as_rows().map(Vector::align))
+            );
+        });
+    }
+
+    #[test]
+    fn test_unalign() {
+        for_types!(|N, T: PrimitiveNumber, A| {
+            let matrix =
+                Matrix::<N, T, A>::from_row_fn(|r| Vector::from_fn(|c| T::as_from(r * N + c)));
+
+            assert_eq!(
+                matrix.unalign(),
+                Matrix::<N, T, Unaligned>::from_rows(&matrix.as_rows().map(Vector::unalign))
+            );
+        });
+    }
+
+    #[test]
+    fn test_as_rows() {
+        for_types!(|N, T: PrimitiveNumber, A| {
+            let rows = std::array::from_fn(|r| Vector::from_fn(|c| T::as_from(r * N + c)));
+
+            assert_eq!(Matrix::<N, T, A>::from_rows(&rows).as_rows(), &rows);
+        });
+    }
+
+    #[test]
+    fn test_as_mut_rows() {
+        for_types!(|N, T: PrimitiveNumber, A| {
+            let mut rows = std::array::from_fn(|r| Vector::from_fn(|c| T::as_from(r * N + c)));
+
+            assert_eq!(Matrix::<N, T, A>::from_rows(&rows).as_mut_rows(), &mut rows);
+        });
+    }
+
+    #[test]
+    fn test_column() {
+        for_types!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l] =
+                std::array::from_fn(|i| T::as_from(i + 1));
+
+            let matrix = Matrix::<2, T, A>::from_rows(&[
+                Vector::<2, T, A>::new(x, y),
+                Vector::<2, T, A>::new(z, w),
+            ]);
+            assert_eq!(matrix.column(0), Vector::<2, T, A>::new(x, z));
+            assert_eq!(matrix.column(1), Vector::<2, T, A>::new(y, w));
+            assert_panic!(matrix.column(2));
+
+            let matrix = Matrix::<3, T, A>::from_rows(&[
+                Vector::<3, T, A>::new(x, y, z),
+                Vector::<3, T, A>::new(w, a, b),
+                Vector::<3, T, A>::new(c, d, e),
+            ]);
+            assert_eq!(matrix.column(0), Vector::<3, T, A>::new(x, w, c));
+            assert_eq!(matrix.column(1), Vector::<3, T, A>::new(y, a, d));
+            assert_eq!(matrix.column(2), Vector::<3, T, A>::new(z, b, e));
+            assert_panic!(matrix.column(3));
+
+            let matrix = Matrix::<4, T, A>::from_rows(&[
+                Vector::<4, T, A>::new(x, y, z, w),
+                Vector::<4, T, A>::new(a, b, c, d),
+                Vector::<4, T, A>::new(e, f, g, h),
+                Vector::<4, T, A>::new(i, j, k, l),
+            ]);
+            assert_eq!(matrix.column(0), Vector::<4, T, A>::new(x, a, e, i));
+            assert_eq!(matrix.column(1), Vector::<4, T, A>::new(y, b, f, j));
+            assert_eq!(matrix.column(2), Vector::<4, T, A>::new(z, c, g, k));
+            assert_eq!(matrix.column(3), Vector::<4, T, A>::new(w, d, h, l));
+            assert_panic!(matrix.column(4));
+        });
+    }
+
+    #[test]
+    fn test_set_column() {
+        for_types!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l] =
+                std::array::from_fn(|i| T::as_from(i + 1));
+
+            let mut matrix = Matrix::<2, T, A>::from_rows(&[
+                Vector::<2, T, A>::new(x, y),
+                Vector::<2, T, A>::new(z, w),
+            ]);
+            matrix.set_column(0, Vector::<2, T, A>::new(a, b));
+            assert_eq!(
+                matrix,
+                Matrix::<2, T, A>::from_rows(&[
+                    Vector::<2, T, A>::new(a, y),
+                    Vector::<2, T, A>::new(b, w)
+                ])
+            );
+            matrix.set_column(1, Vector::<2, T, A>::new(c, d));
+            assert_eq!(
+                matrix,
+                Matrix::<2, T, A>::from_rows(&[
+                    Vector::<2, T, A>::new(a, c),
+                    Vector::<2, T, A>::new(b, d)
+                ])
+            );
+            assert_panic!(matrix.clone().set_column(2, Vector::ZERO));
+
+            let mut matrix = Matrix::<3, T, A>::from_rows(&[
+                Vector::<3, T, A>::new(x, y, z),
+                Vector::<3, T, A>::new(w, a, b),
+                Vector::<3, T, A>::new(c, d, e),
+            ]);
+            matrix.set_column(0, Vector::<3, T, A>::new(a, b, d));
+            assert_eq!(
+                matrix,
+                Matrix::<3, T, A>::from_rows(&[
+                    Vector::<3, T, A>::new(a, y, z),
+                    Vector::<3, T, A>::new(b, a, b),
+                    Vector::<3, T, A>::new(d, d, e)
+                ])
+            );
+            matrix.set_column(1, Vector::<3, T, A>::new(x, y, z));
+            assert_eq!(
+                matrix,
+                Matrix::<3, T, A>::from_rows(&[
+                    Vector::<3, T, A>::new(a, x, z),
+                    Vector::<3, T, A>::new(b, y, b),
+                    Vector::<3, T, A>::new(d, z, e)
+                ])
+            );
+            matrix.set_column(2, Vector::<3, T, A>::new(e, f, g));
+            assert_eq!(
+                matrix,
+                Matrix::<3, T, A>::from_rows(&[
+                    Vector::<3, T, A>::new(a, x, e),
+                    Vector::<3, T, A>::new(b, y, f),
+                    Vector::<3, T, A>::new(d, z, g)
+                ])
+            );
+            assert_panic!(matrix.clone().set_column(3, Vector::ZERO));
+
+            let mut matrix = Matrix::<4, T, A>::from_rows(&[
+                Vector::<4, T, A>::new(x, y, z, w),
+                Vector::<4, T, A>::new(a, b, c, d),
+                Vector::<4, T, A>::new(e, f, g, h),
+                Vector::<4, T, A>::new(i, j, k, l),
+            ]);
+            matrix.set_column(0, Vector::<4, T, A>::new(a, b, c, d));
+            assert_eq!(
+                matrix,
+                Matrix::<4, T, A>::from_rows(&[
+                    Vector::<4, T, A>::new(a, y, z, w),
+                    Vector::<4, T, A>::new(b, b, c, d),
+                    Vector::<4, T, A>::new(c, f, g, h),
+                    Vector::<4, T, A>::new(d, j, k, l)
+                ])
+            );
+            matrix.set_column(1, Vector::<4, T, A>::new(x, y, z, w));
+            assert_eq!(
+                matrix,
+                Matrix::<4, T, A>::from_rows(&[
+                    Vector::<4, T, A>::new(a, x, z, w),
+                    Vector::<4, T, A>::new(b, y, c, d),
+                    Vector::<4, T, A>::new(c, z, g, h),
+                    Vector::<4, T, A>::new(d, w, k, l)
+                ])
+            );
+            matrix.set_column(2, Vector::<4, T, A>::new(a, b, c, d));
+            assert_eq!(
+                matrix,
+                Matrix::<4, T, A>::from_rows(&[
+                    Vector::<4, T, A>::new(a, x, a, w),
+                    Vector::<4, T, A>::new(b, y, b, d),
+                    Vector::<4, T, A>::new(c, z, c, h),
+                    Vector::<4, T, A>::new(d, w, d, l)
+                ])
+            );
+            matrix.set_column(3, Vector::<4, T, A>::new(e, f, g, h));
+            assert_eq!(
+                matrix,
+                Matrix::<4, T, A>::from_rows(&[
+                    Vector::<4, T, A>::new(a, x, a, e),
+                    Vector::<4, T, A>::new(b, y, b, f),
+                    Vector::<4, T, A>::new(c, z, c, g),
+                    Vector::<4, T, A>::new(d, w, d, h)
+                ])
+            );
+            assert_panic!(matrix.clone().set_column(4, Vector::ZERO));
+        });
+    }
+
+    #[test]
+    fn test_transpose() {
+        for_types!(|N, T: PrimitiveNumber, A| {
+            let matrix =
+                Matrix::<N, T, A>::from_row_fn(|r| Vector::from_fn(|c| T::as_from(r * N + c)));
+
+            assert_eq!(
+                matrix.transpose(),
+                Matrix::<N, T, A>::from_row_fn(|r| Vector::from_fn(|c| T::as_from(c * N + r)))
+            );
+        });
+    }
+
+    #[test]
+    fn test_transpose_mul_vector() {
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for (matrix, vector) in random_iter::<(Matrix<N, T, A>, Vector<N, T, A>)>() {
+                assert_test_eq!(
+                    matrix.transpose_mul_vector(vector),
+                    vector * matrix.transpose(),
+                    abs <= (vector * matrix.transpose()).abs() * 1e-6 + 1e-5
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_diagonal() {
+        for_types!(|N, T: PrimitiveNumber, A| {
+            let matrix =
+                Matrix::<N, T, A>::from_row_fn(|r| Vector::from_fn(|c| T::as_from(r * N + c)));
+
+            assert_eq!(matrix.diagonal(), Vector::from_fn(|i| matrix[i][i]));
+        });
+    }
+
+    #[test]
+    fn test_prepend_scale() {
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for (scale, matrix) in random_iter::<(Vector<N, T, A>, Matrix<N, T, A>)>() {
+                if !scale.is_finite() || !matrix.is_finite() {
+                    continue;
+                }
+
+                assert_test_eq!(
+                    matrix.prepend_scale(scale),
+                    Matrix::from_scale(scale) * matrix,
+                    0.0 = -0.0
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_determinant() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for matrix in random_iter::<Matrix<2, T, A>>() {
+                assert_test_eq!(
+                    matrix.determinant(),
+                    matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0]
+                );
+            }
+
+            for matrix in random_iter::<Matrix<3, T, A>>() {
+                if !matrix.is_finite() || matrix.as_rows().iter().flatten().any(|x| x.abs() > 1e10)
+                {
+                    continue;
+                }
+
+                assert_test_eq!(
+                    matrix.determinant(),
+                    matrix[0][0] * matrix.remove(0, 0).determinant()
+                        - matrix[0][1] * matrix.remove(0, 1).determinant()
+                        + matrix[0][2] * matrix.remove(0, 2).determinant(),
+                    abs <= (matrix.as_rows().iter().map(|v| v.length()).product::<T>() * 1e-6)
+                        .max(1e-6),
+                    0.0 = -0.0
+                );
+            }
+
+            for matrix in random_iter::<Matrix<4, T, A>>() {
+                assert_test_eq!(
+                    matrix.determinant(),
+                    matrix[0][0] * matrix.remove(0, 0).determinant()
+                        - matrix[0][1] * matrix.remove(0, 1).determinant()
+                        + matrix[0][2] * matrix.remove(0, 2).determinant()
+                        - matrix[0][3] * matrix.remove(0, 3).determinant(),
+                    abs <= (matrix.as_rows().iter().map(|v| v.length()).product::<T>() * 1e-6)
+                        .max(1e-6),
+                    0.0 = -0.0,
+                    INFINITY = NAN
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_projective() {
+        for_types!(|T: PrimitiveNumber, A| {
+            let projective =
+                Projective::<2, T, A>::from_row_fn(|r| Vector::from_fn(|c| T::as_from(r * 2 + c)));
+            assert_eq!(
+                Matrix::<2, T, A>::from_projective(&projective),
+                Matrix::<2, T, A>::from_rows(&[
+                    projective.x_axis.truncate(),
+                    projective.y_axis.truncate(),
+                ])
+            );
+
+            let projective =
+                Projective::<3, T, A>::from_row_fn(|r| Vector::from_fn(|c| T::as_from(r * 3 + c)));
+            assert_eq!(
+                Matrix::<3, T, A>::from_projective(&projective),
+                Matrix::<3, T, A>::from_rows(&[
+                    projective.x_axis.truncate(),
+                    projective.y_axis.truncate(),
+                    projective.z_axis.truncate(),
+                ])
+            );
+        });
+    }
+
+    #[test]
+    fn test_from_row_array() {
+        for_types!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l] =
+                std::array::from_fn(|i| T::as_from(i + 1));
+
+            assert_eq!(
+                Matrix::<2, T, A>::from_row_array(&[x, y, z, w]),
+                Matrix::from_rows(&[Vector::<2, T, A>::new(x, y), Vector::<2, T, A>::new(z, w)])
+            );
+            assert_eq!(
+                Matrix::<3, T, A>::from_row_array(&[x, y, z, w, a, b, c, d, e]),
+                Matrix::from_rows(&[
+                    Vector::<3, T, A>::new(x, y, z),
+                    Vector::<3, T, A>::new(w, a, b),
+                    Vector::<3, T, A>::new(c, d, e)
+                ])
+            );
+            assert_eq!(
+                Matrix::<4, T, A>::from_row_array(&[
+                    x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l
+                ]),
+                Matrix::from_rows(&[
+                    Vector::<4, T, A>::new(x, y, z, w),
+                    Vector::<4, T, A>::new(a, b, c, d),
+                    Vector::<4, T, A>::new(e, f, g, h),
+                    Vector::<4, T, A>::new(i, j, k, l)
+                ])
+            );
+        });
+    }
+
+    #[test]
+    fn test_to_homogeneous() {
+        for_types!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w, a, b, c, d, e] = std::array::from_fn(|i| T::as_from(i + 1));
+
+            assert_eq!(
+                Matrix::<2, T, A>::from_rows(&[
+                    Vector::<2, T, A>::new(x, y),
+                    Vector::<2, T, A>::new(z, w)
+                ])
+                .to_homogeneous(),
+                Matrix::from_rows(&[
+                    Vector::<3, T, A>::new(x, y, T::ZERO),
+                    Vector::<3, T, A>::new(z, w, T::ZERO),
+                    Vector::<3, T, A>::new(T::ZERO, T::ZERO, T::ONE)
+                ])
+            );
+            assert_eq!(
+                Matrix::<3, T, A>::from_rows(&[
+                    Vector::<3, T, A>::new(x, y, z),
+                    Vector::<3, T, A>::new(w, a, b),
+                    Vector::<3, T, A>::new(c, d, e)
+                ])
+                .to_homogeneous(),
+                Matrix::from_rows(&[
+                    Vector::<4, T, A>::new(x, y, z, T::ZERO),
+                    Vector::<4, T, A>::new(w, a, b, T::ZERO),
+                    Vector::<4, T, A>::new(c, d, e, T::ZERO),
+                    Vector::<4, T, A>::new(T::ZERO, T::ZERO, T::ZERO, T::ONE)
+                ])
+            );
+        });
+    }
+
+    #[test]
+    fn test_from_homogeneous() {
+        for_types!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l] =
+                std::array::from_fn(|i| T::as_from(i + 1));
+
+            assert_eq!(
+                Matrix::<2, T, A>::from_homogeneous(&Matrix::from_rows(&[
+                    Vector::<3, T, A>::new(x, y, z),
+                    Vector::<3, T, A>::new(w, a, b),
+                    Vector::<3, T, A>::new(c, d, e)
+                ])),
+                Matrix::<2, T, A>::from_rows(&[
+                    Vector::<2, T, A>::new(x, y),
+                    Vector::<2, T, A>::new(w, a)
+                ])
+            );
+            assert_eq!(
+                Matrix::<3, T, A>::from_homogeneous(&Matrix::from_rows(&[
+                    Vector::<4, T, A>::new(x, y, z, w),
+                    Vector::<4, T, A>::new(a, b, c, d),
+                    Vector::<4, T, A>::new(e, f, g, h),
+                    Vector::<4, T, A>::new(i, j, k, l)
+                ])),
+                Matrix::<3, T, A>::from_rows(&[
+                    Vector::<3, T, A>::new(x, y, z),
+                    Vector::<3, T, A>::new(a, b, c),
+                    Vector::<3, T, A>::new(e, f, g)
+                ])
+            );
+        });
+    }
+
+    #[test]
+    fn test_remove() {
+        let matrix = Mat3A::from_rows(&[
+            Vec3A::new(1, 2, 3),
+            Vec3A::new(4, 5, 6),
+            Vec3A::new(7, 8, 9),
+        ]);
+
+        assert_panic!(matrix.remove(1, 3));
+        assert_panic!(matrix.remove(3, 1));
+
+        for row in 0..3 {
+            for column in 0..3 {
+                let rows = match row {
+                    0 => [matrix[1], matrix[2]],
+                    1 => [matrix[0], matrix[2]],
+                    2 => [matrix[0], matrix[1]],
+                    _ => unreachable!(),
+                };
+                let rows = match column {
+                    0 => rows.map(|c| c.yz()),
+                    1 => rows.map(|c| c.xz()),
+                    2 => rows.map(|c| c.xy()),
+                    _ => unreachable!(),
+                };
+
+                assert_eq!(matrix.remove(row, column), Mat2A::from_rows(&rows));
+            }
+        }
+
+        let matrix = Mat4A::from_rows(&[
+            Vec4A::new(1, 2, 3, 4),
+            Vec4A::new(5, 6, 7, 8),
+            Vec4A::new(9, 10, 11, 12),
+            Vec4A::new(13, 14, 15, 16),
+        ]);
+
+        assert_panic!(matrix.remove(1, 4));
+        assert_panic!(matrix.remove(4, 1));
+
+        for row in 0..4 {
+            for column in 0..4 {
+                let rows = match row {
+                    0 => [matrix[1], matrix[2], matrix[3]],
+                    1 => [matrix[0], matrix[2], matrix[3]],
+                    2 => [matrix[0], matrix[1], matrix[3]],
+                    3 => [matrix[0], matrix[1], matrix[2]],
+                    _ => unreachable!(),
+                };
+                let rows = match column {
+                    0 => rows.map(|c| c.yzw()),
+                    1 => rows.map(|c| c.xzw()),
+                    2 => rows.map(|c| c.xyw()),
+                    3 => rows.map(|c| c.xyz()),
+                    _ => unreachable!(),
+                };
+
+                assert_eq!(matrix.remove(row, column), Mat3A::from_rows(&rows));
+            }
+        }
+    }
+
+    #[test]
+    fn test_index() {
+        for_types!(|N, T: PrimitiveNumber, A| {
+            let matrix =
+                Matrix::<N, T, A>::from_row_fn(|r| Vector::from_fn(|c| T::as_from(r * N + c)));
+
+            for i in 0..N {
+                assert_eq!(matrix[i], matrix.as_rows()[i]);
+            }
+            assert_panic!(matrix[N]);
+            assert_panic!(matrix[N + 1]);
+        });
+    }
+
+    #[test]
+    #[expect(clippy::clone_on_copy)]
+    fn test_index_mut() {
+        for_types!(|N, T: PrimitiveNumber, A| {
+            let mut matrix =
+                Matrix::<N, T, A>::from_row_fn(|r| Vector::from_fn(|c| T::as_from(r * N + c)));
+
+            for i in 0..N {
+                assert_eq!(&mut matrix.clone()[i], &mut matrix.as_mut_rows()[i]);
+            }
+            assert_panic!(matrix[N]);
+            assert_panic!(matrix[N + 1]);
+        });
+    }
+
+    #[test]
+    fn test_deref() {
+        for_types!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l] =
+                std::array::from_fn(|i| T::as_from(i + 1));
+
+            let matrix = Matrix::<2, T, A>::from_rows(&[
+                Vector::<2, T, A>::new(x, y),
+                Vector::<2, T, A>::new(z, w),
+            ]);
+            assert_eq!(matrix.x_axis, Vector::<2, T, A>::new(x, y));
+            assert_eq!(matrix.y_axis, Vector::<2, T, A>::new(z, w));
+
+            let matrix = Matrix::<3, T, A>::from_rows(&[
+                Vector::<3, T, A>::new(x, y, z),
+                Vector::<3, T, A>::new(w, a, b),
+                Vector::<3, T, A>::new(c, d, e),
+            ]);
+            assert_eq!(matrix.x_axis, Vector::<3, T, A>::new(x, y, z));
+            assert_eq!(matrix.y_axis, Vector::<3, T, A>::new(w, a, b));
+            assert_eq!(matrix.z_axis, Vector::<3, T, A>::new(c, d, e));
+
+            let matrix = Matrix::<4, T, A>::from_rows(&[
+                Vector::<4, T, A>::new(x, y, z, w),
+                Vector::<4, T, A>::new(a, b, c, d),
+                Vector::<4, T, A>::new(e, f, g, h),
+                Vector::<4, T, A>::new(i, j, k, l),
+            ]);
+            assert_eq!(matrix.x_axis, Vector::<4, T, A>::new(x, y, z, w));
+            assert_eq!(matrix.y_axis, Vector::<4, T, A>::new(a, b, c, d));
+            assert_eq!(matrix.z_axis, Vector::<4, T, A>::new(e, f, g, h));
+            assert_eq!(matrix.w_axis, Vector::<4, T, A>::new(i, j, k, l));
+        });
+    }
+
+    #[test]
+    fn test_deref_mut() {
+        for_types!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l] =
+                std::array::from_fn(|i| T::as_from(i + 1));
+
+            let mut matrix = Matrix::<2, T, A>::from_rows(&[
+                Vector::<2, T, A>::new(x, y),
+                Vector::<2, T, A>::new(z, w),
+            ]);
+            assert_eq!(&mut matrix.x_axis, &mut Vector::<2, T, A>::new(x, y));
+            assert_eq!(&mut matrix.y_axis, &mut Vector::<2, T, A>::new(z, w));
+
+            let mut matrix = Matrix::<3, T, A>::from_rows(&[
+                Vector::<3, T, A>::new(x, y, z),
+                Vector::<3, T, A>::new(w, a, b),
+                Vector::<3, T, A>::new(c, d, e),
+            ]);
+            assert_eq!(&mut matrix.x_axis, &mut Vector::<3, T, A>::new(x, y, z));
+            assert_eq!(&mut matrix.y_axis, &mut Vector::<3, T, A>::new(w, a, b));
+            assert_eq!(&mut matrix.z_axis, &mut Vector::<3, T, A>::new(c, d, e));
+
+            let mut matrix = Matrix::<4, T, A>::from_rows(&[
+                Vector::<4, T, A>::new(x, y, z, w),
+                Vector::<4, T, A>::new(a, b, c, d),
+                Vector::<4, T, A>::new(e, f, g, h),
+                Vector::<4, T, A>::new(i, j, k, l),
+            ]);
+            assert_eq!(&mut matrix.x_axis, &mut Vector::<4, T, A>::new(x, y, z, w));
+            assert_eq!(&mut matrix.y_axis, &mut Vector::<4, T, A>::new(a, b, c, d));
+            assert_eq!(&mut matrix.z_axis, &mut Vector::<4, T, A>::new(e, f, g, h));
+            assert_eq!(&mut matrix.w_axis, &mut Vector::<4, T, A>::new(i, j, k, l));
+        });
+    }
+
+    #[test]
+    fn test_debug() {
+        for_types!(|T: PrimitiveNumber, A| {
+            let rows = std::array::from_fn(|r| Vector::from_fn(|c| T::as_from(r * 2 + c)));
+            let [x_axis, y_axis] = rows;
+            assert_eq!(
+                format!("{:?}", Matrix::<2, T, A>::from_rows(&rows)),
+                format!("[{x_axis:?}, {y_axis:?}]")
+            );
+
+            let rows = std::array::from_fn(|r| Vector::from_fn(|c| T::as_from(r * 3 + c)));
+            let [x_axis, y_axis, z_axis] = rows;
+            assert_eq!(
+                format!("{:?}", Matrix::<3, T, A>::from_rows(&rows)),
+                format!("[{x_axis:?}, {y_axis:?}, {z_axis:?}]")
+            );
+
+            let rows = std::array::from_fn(|r| Vector::from_fn(|c| T::as_from(r * 4 + c)));
+            let [x_axis, y_axis, z_axis, w_axis] = rows;
+            assert_eq!(
+                format!("{:?}", Matrix::<4, T, A>::from_rows(&rows)),
+                format!("[{x_axis:?}, {y_axis:?}, {z_axis:?}, {w_axis:?}]")
+            );
+        });
+    }
+
+    #[test]
+    fn test_display() {
+        for_types!(|T: PrimitiveNumber, A| {
+            let rows = std::array::from_fn(|r| Vector::from_fn(|c| T::as_from(r * 2 + c)));
+            let [x_axis, y_axis] = rows;
+            assert_eq!(
+                format!("{}", Matrix::<2, T, A>::from_rows(&rows)),
+                format!("[{x_axis}, {y_axis}]")
+            );
+
+            let rows = std::array::from_fn(|r| Vector::from_fn(|c| T::as_from(r * 3 + c)));
+            let [x_axis, y_axis, z_axis] = rows;
+            assert_eq!(
+                format!("{}", Matrix::<3, T, A>::from_rows(&rows)),
+                format!("[{x_axis}, {y_axis}, {z_axis}]")
+            );
+
+            let rows = std::array::from_fn(|r| Vector::from_fn(|c| T::as_from(r * 4 + c)));
+            let [x_axis, y_axis, z_axis, w_axis] = rows;
+            assert_eq!(
+                format!("{}", Matrix::<4, T, A>::from_rows(&rows)),
+                format!("[{x_axis}, {y_axis}, {z_axis}, {w_axis}]")
+            );
+        });
+    }
+
+    #[test]
+    fn test_eq() {
+        for_types!(|N, T: PrimitiveNumber, A| {
+            for ([matrix, other], mask) in
+                random_iter::<([Matrix<N, T, A>; 2], [Mask<N, T, A>; N])>()
+            {
+                let other = Matrix::from_row_fn(|r| mask[r].select(matrix[r], other[r]));
+
+                assert_eq!(matrix == other, matrix.as_rows() == other.as_rows());
+            }
+        });
+    }
+
+    #[test]
+    fn test_ne() {
+        for_types!(|N, T: PrimitiveNumber, A| {
+            for ([matrix, other], mask) in
+                random_iter::<([Matrix<N, T, A>; 2], [Mask<N, T, A>; N])>()
+            {
+                let other = Matrix::from_row_fn(|r| mask[r].select(matrix[r], other[r]));
+
+                assert_eq!(matrix != other, matrix.as_rows() != other.as_rows());
+            }
+        });
+    }
+
+    #[test]
+    fn test_default() {
+        for_types!(|N, T: PrimitiveNumber, A| {
+            assert_eq!(Matrix::<N, T, A>::default(), Matrix::IDENTITY);
+        });
+    }
+
+    #[test]
+    fn test_neg() {
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for matrix in random_iter::<Matrix<N, T, A>>() {
+                assert_test_eq!(-matrix, Matrix::from_rows(&matrix.as_rows().map(|v| -v)));
+            }
+        });
+    }
+
+    #[test]
+    fn test_add() {
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for [left, right] in random_iter::<[Matrix<N, T, A>; 2]>() {
+                assert_test_eq!(left + right, Matrix::from_row_fn(|r| left[r] + right[r]));
+            }
+        });
+    }
+
+    #[test]
+    fn test_add_assign() {
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for [left, right] in random_iter::<[Matrix<N, T, A>; 2]>() {
+                let mut result = left;
+                result += right;
+
+                assert_test_eq!(result, left + right);
+            }
+        });
+    }
+
+    #[test]
+    fn test_sub() {
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for [left, right] in random_iter::<[Matrix<N, T, A>; 2]>() {
+                assert_test_eq!(left - right, Matrix::from_row_fn(|r| left[r] - right[r]));
+            }
+        });
+    }
+
+    #[test]
+    fn test_sub_assign() {
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for [left, right] in random_iter::<[Matrix<N, T, A>; 2]>() {
+                let mut result = left;
+                result -= right;
+
+                assert_test_eq!(result, left - right);
+            }
+        });
+    }
+
+    #[test]
+    fn test_mul_scalar() {
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for (matrix, scalar) in random_iter::<(Matrix<N, T, A>, T)>() {
+                assert_test_eq!(matrix * scalar, Matrix::from_row_fn(|r| matrix[r] * scalar));
+            }
+        });
+    }
+
+    #[test]
+    fn test_mul() {
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for (vector, [matrix_1, matrix_2]) in
+                random_iter::<(Vector<N, T, A>, [Matrix<N, T, A>; 2])>()
+            {
+                if !vector.is_finite()
+                    || !matrix_1.is_finite()
+                    || !matrix_2.is_finite()
+                    || vector.iter().any(|x| x.abs() > 1e10)
+                    || matrix_1.as_rows().iter().flatten().any(|x| x.abs() > 1e10)
+                    || matrix_2.as_rows().iter().flatten().any(|x| x.abs() > 1e10)
+                {
+                    continue;
+                }
+
+                assert_test_eq!(
+                    vector * (matrix_1 * matrix_2),
+                    vector * matrix_1 * matrix_2,
+                    abs <= (vector * matrix_1 * matrix_2).abs() * 1e-3 + 1e-3,
+                    0.0 = -0.0
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_vector_mul() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for (vector, matrix) in random_iter::<(Vector<2, T, A>, Matrix<2, T, A>)>() {
+                assert_test_eq!(
+                    vector * matrix,
+                    matrix.x_axis * vector.x + matrix.y_axis * vector.y,
+                );
+            }
+
+            for (vector, matrix) in random_iter::<(Vector<3, T, A>, Matrix<3, T, A>)>() {
+                assert_test_eq!(
+                    vector * matrix,
+                    matrix.x_axis * vector.x + matrix.y_axis * vector.y + matrix.z_axis * vector.z,
+                );
+            }
+
+            for (vector, matrix) in random_iter::<(Vector<4, T, A>, Matrix<4, T, A>)>() {
+                assert_test_eq!(
+                    vector * matrix,
+                    matrix.x_axis * vector.x
+                        + matrix.y_axis * vector.y
+                        + matrix.z_axis * vector.z
+                        + matrix.w_axis * vector.w,
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_mul_assign_scalar() {
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for (matrix, scalar) in random_iter::<(Matrix<N, T, A>, T)>() {
+                let mut result = matrix;
+                result *= scalar;
+
+                assert_test_eq!(result, matrix * scalar);
+            }
+        });
+    }
+
+    #[test]
+    fn test_mul_assign() {
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for [left, right] in random_iter::<[Matrix<N, T, A>; 2]>() {
+                let mut result = left;
+                result *= right;
+
+                assert_test_eq!(result, left * right);
+            }
+        });
+    }
+
+    #[test]
+    fn test_vector_mul_assign() {
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for (vector, matrix) in random_iter::<(Vector<N, T, A>, Matrix<N, T, A>)>() {
+                let mut result = vector;
+                result *= matrix;
+
+                assert_test_eq!(result, vector * matrix);
+            }
+        });
+    }
+
+    #[test]
+    fn test_div_scalar() {
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for (matrix, scalar) in random_iter::<(Matrix<N, T, A>, T)>() {
+                assert_test_eq!(matrix / scalar, Matrix::from_row_fn(|r| matrix[r] / scalar));
+            }
+        });
+    }
+
+    #[test]
+    fn test_div_assign_scalar() {
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for (matrix, scalar) in random_iter::<(Matrix<N, T, A>, T)>() {
+                let mut result = matrix;
+                result /= scalar;
+
+                assert_test_eq!(result, matrix / scalar);
+            }
+        });
+    }
+}

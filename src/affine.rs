@@ -1513,35 +1513,34 @@ mod tests {
     #[test]
     fn test_to_homogeneous() {
         for_types!(|T: PrimitiveNumber, A| {
-            let [x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l] =
-                std::array::from_fn(|i| T::as_from(i + 1));
+            let [x, y, z, w, a, b, c, d, e, f, g, h] = std::array::from_fn(|i| T::as_from(i + 1));
 
             assert_eq!(
                 Affine::<2, T, A>::from_rows(&[
                     Vector::<2, T, A>::new(x, y),
-                    Vector::<2, T, A>::new(w, a),
-                    Vector::<2, T, A>::new(c, d)
+                    Vector::<2, T, A>::new(z, w),
+                    Vector::<2, T, A>::new(a, b)
                 ])
                 .to_homogeneous(),
                 Matrix::from_rows(&[
-                    Vector::<3, T, A>::new(x, y, z),
-                    Vector::<3, T, A>::new(w, a, b),
-                    Vector::<3, T, A>::new(c, d, e)
+                    Vector::<3, T, A>::new(x, y, T::ZERO),
+                    Vector::<3, T, A>::new(z, w, T::ZERO),
+                    Vector::<3, T, A>::new(a, b, T::ONE)
                 ])
             );
             assert_eq!(
                 Affine::<3, T, A>::from_rows(&[
                     Vector::<3, T, A>::new(x, y, z),
-                    Vector::<3, T, A>::new(a, b, c),
-                    Vector::<3, T, A>::new(e, f, g),
-                    Vector::<3, T, A>::new(i, j, k)
+                    Vector::<3, T, A>::new(w, a, b),
+                    Vector::<3, T, A>::new(c, d, e),
+                    Vector::<3, T, A>::new(f, g, h)
                 ])
                 .to_homogeneous(),
                 Matrix::from_rows(&[
-                    Vector::<4, T, A>::new(x, y, z, w),
-                    Vector::<4, T, A>::new(a, b, c, d),
-                    Vector::<4, T, A>::new(e, f, g, h),
-                    Vector::<4, T, A>::new(i, j, k, l)
+                    Vector::<4, T, A>::new(x, y, z, T::ZERO),
+                    Vector::<4, T, A>::new(w, a, b, T::ZERO),
+                    Vector::<4, T, A>::new(c, d, e, T::ZERO),
+                    Vector::<4, T, A>::new(f, g, h, T::ONE)
                 ])
             );
         });
