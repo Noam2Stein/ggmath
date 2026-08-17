@@ -934,6 +934,18 @@ where
         Vector::<3, T, A>::new(self.x, self.y, value)
     }
 
+    /// Converts `self` to homogeneous coordinates.
+    ///
+    /// Equivalent to `self.extend(1)`.
+    #[inline]
+    #[must_use]
+    pub fn to_homogeneous(self) -> Vector<3, T, A>
+    where
+        T: One,
+    {
+        self.extend(T::ONE)
+    }
+
     /// Returns `self` rotated by 90 degrees.
     ///
     /// This rotates `+X` to `+Y`.
@@ -3332,6 +3344,10 @@ mod tests {
         for_types!(|T: PrimitiveNumber, A| {
             let [x, y, z] = std::array::from_fn(T::as_from);
 
+            assert_eq!(
+                Vector::<2, T, A>::new(x, y).to_homogeneous(),
+                Vector::<3, T, A>::new(x, y, T::ONE)
+            );
             assert_eq!(
                 Vector::<3, T, A>::new(x, y, z).to_homogeneous(),
                 Vector::<4, T, A>::new(x, y, z, T::ONE)

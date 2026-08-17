@@ -1507,6 +1507,16 @@ impl<T, A: Alignment> Vector<2, T, A>
 where
     T: PrimitiveFloat,
 {
+    /// Creates a 2D vector from homogeneous coordinates by performing
+    /// perspective divide.
+    ///
+    /// Equivalent to `homogeneous.xy / homogeneous.z`.
+    #[inline]
+    #[must_use]
+    pub fn from_homogeneous(homogeneous: Vector<3, T, A>) -> Self {
+        homogeneous.xy() / homogeneous.z
+    }
+
     /// Returns the angle (in radians) that rotates `self` to `other` in the
     /// range `-π..=+π`.
     ///
@@ -1687,6 +1697,8 @@ where
     /// perspective divide.
     ///
     /// Equivalent to `homogeneous.xyz / homogeneous.w`.
+    #[inline]
+    #[must_use]
     pub fn from_homogeneous(homogeneous: Vector<4, T, A>) -> Self {
         homogeneous.xyz() / homogeneous.w
     }
@@ -3373,11 +3385,16 @@ mod tests {
     #[test]
     fn test_from_homogeneous() {
         for_types!(|T: PrimitiveFloat, A| {
-            let homogeneous = Vector::<4, T, A>::new(0.3, 0.6, 0.1, 0.4);
+            let vector3 = Vector::<3, T, A>::new(0.3, 0.6, 0.1);
+            let vector4 = Vector::<4, T, A>::new(0.3, 0.6, 0.1, 0.4);
 
             assert_test_eq!(
-                Vector::<3, T, A>::from_homogeneous(homogeneous),
-                homogeneous.xyz() / homogeneous.w
+                Vector::<2, T, A>::from_homogeneous(vector3),
+                vector3.xy() / vector3.z
+            );
+            assert_test_eq!(
+                Vector::<3, T, A>::from_homogeneous(vector4),
+                vector4.xyz() / vector4.w
             );
         });
     }
