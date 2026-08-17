@@ -136,6 +136,15 @@ macro_rules! specialize {
     (@fn($_0:expr, $_1:expr, $_2:expr)) => {
         fn(_, _, _) -> _
     };
+    (@fn($_0:expr, $_1:expr, $_2:expr, $_3:expr)) => {
+        fn(_, _, _, _) -> _
+    };
+    (@fn($_0:expr, $_1:expr, $_2:expr, $_3:expr, $_4:expr)) => {
+        fn(_, _, _, _, _) -> _
+    };
+    (@fn($_0:expr, $_1:expr, $_2:expr, $_3:expr, $_4:expr, $_5:expr)) => {
+        fn(_, _, _, _, _, _) -> _
+    };
 }
 
 pub(crate) use specialize;
@@ -594,63 +603,21 @@ where
 {
 }
 
-// SAFETY: `N == N2`, `A == A2`, `R == R2` => `fn() -> R == fn() -> R2`.
-unsafe impl<R, R2, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
-    Specialize<fn() -> R2, N, N2, A, A2> for fn() -> R
-where
-    R: Specialize<R2, N, N2, A, A2>,
-    Length<N>: SupportedLength,
-    Length<N2>: SupportedLength,
-{
+macro_rules! fn_impl {
+    ($($P:ident, $P2:ident),*) => {
+        // SAFETY: `$P == $P2`, `R == R2` => `fn($P) -> R == fn($P2) -> R2`.
+        unsafe impl<$($P, $P2,)* R, R2, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
+            Specialize<fn($($P2),*) -> R2, N, N2, A, A2> for fn($($P),*) -> R
+        where
+            $($P: Specialize<$P2, N, N2, A, A2>,)*
+            R: Specialize<R2, N, N2, A, A2>,
+        {
+        }
+    };
 }
-
-// SAFETY: `N == N2`, `A == A2`, `Pa == Pa2`, `R == R2`
-// => `fn(Pa) -> R == fn(Pa2) -> R2`.
-unsafe impl<Pa, Pa2, R, R2, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
-    Specialize<fn(Pa2) -> R2, N, N2, A, A2> for fn(Pa) -> R
-where
-    Pa: Specialize<Pa2, N, N2, A, A2>,
-    R: Specialize<R2, N, N2, A, A2>,
-    Length<N>: SupportedLength,
-    Length<N2>: SupportedLength,
-{
-}
-
-// SAFETY: `N == N2`, `A == A2`, `Pa == Pa2`, `Pb == Pb2`, `R == R2`
-// => `fn(Pa, Pb) -> R == fn(Pa2, Pb2) -> R2`.
-unsafe impl<Pa, Pa2, Pb, Pb2, R, R2, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
-    Specialize<fn(Pa2, Pb2) -> R2, N, N2, A, A2> for fn(Pa, Pb) -> R
-where
-    Pa: Specialize<Pa2, N, N2, A, A2>,
-    Pb: Specialize<Pb2, N, N2, A, A2>,
-    R: Specialize<R2, N, N2, A, A2>,
-    Length<N>: SupportedLength,
-    Length<N2>: SupportedLength,
-{
-}
-
-// SAFETY: `N == N2`, `A == A2`, `Pa == Pa2`, `Pb == Pb2`, `Pc == Pc2`, `R == R2`
-// => `fn(Pa, Pb, Pc) -> R == fn(Pa2, Pb2, Pc2) -> R2`.
-unsafe impl<
-    Pa,
-    Pa2,
-    Pb,
-    Pb2,
-    Pc,
-    Pc2,
-    R,
-    R2,
-    const N: usize,
-    const N2: usize,
-    A: Alignment,
-    A2: Alignment,
-> Specialize<fn(Pa2, Pb2, Pc2) -> R2, N, N2, A, A2> for fn(Pa, Pb, Pc) -> R
-where
-    Pa: Specialize<Pa2, N, N2, A, A2>,
-    Pb: Specialize<Pb2, N, N2, A, A2>,
-    Pc: Specialize<Pc2, N, N2, A, A2>,
-    R: Specialize<R2, N, N2, A, A2>,
-    Length<N>: SupportedLength,
-    Length<N2>: SupportedLength,
-{
-}
+fn_impl!(Pa, Pa2);
+fn_impl!(Pa, Pa2, Pb, Pb2);
+fn_impl!(Pa, Pa2, Pb, Pb2, Pc, Pc2);
+fn_impl!(Pa, Pa2, Pb, Pb2, Pc, Pc2, Pd, Pd2);
+fn_impl!(Pa, Pa2, Pb, Pb2, Pc, Pc2, Pd, Pd2, Pe, Pe2);
+fn_impl!(Pa, Pa2, Pb, Pb2, Pc, Pc2, Pd, Pd2, Pe, Pe2, Pf, Pf2);

@@ -49,6 +49,17 @@ macro_rules! for_types {
         for_n::<3>();
         for_n::<4>();
     };};
+    (|N: TwoOrThree| $expr:expr) => {{
+        fn for_n<const N: usize>()
+        where
+            crate::Length<N>: crate::length::TwoOrThree,
+        {
+            crate::test_utils::call_with_panic_message(|| $expr, Some(N), None, None, None);
+        }
+
+        for_n::<2>();
+        for_n::<3>();
+    };};
     (|T: PrimitiveNumber| $expr:expr) => {{
         fn for_t<T>(t: &'static str)
         where
@@ -215,6 +226,33 @@ macro_rules! for_types {
         for_n::<3>();
         for_n::<4>();
     };};
+    (|N: TwoOrThree, T: PrimitiveNumber| $expr:expr) => {{
+        fn for_nt<const N: usize, T>(t: &'static str)
+        where
+            crate::Length<N>: crate::length::TwoOrThree,
+            T: crate::test_utils::Number
+                + crate::test_utils::Random<Input = crate::test_utils::Category>,
+        {
+            crate::test_utils::call_with_panic_message(|| $expr, Some(N), Some(t), None, None);
+        }
+
+        fn for_n<const N: usize>()
+        where
+            crate::Length<N>: crate::length::TwoOrThree,
+        {
+            for_nt::<N, f32>("f32");
+            for_nt::<N, f64>("f64");
+            for_nt::<N, i32>("i32");
+            for_nt::<N, i64>("i64");
+            for_nt::<N, isize>("isize");
+            for_nt::<N, u32>("u32");
+            for_nt::<N, u64>("u64");
+            for_nt::<N, usize>("usize");
+        }
+
+        for_n::<2>();
+        for_n::<3>();
+    };};
     (|N, T: PrimitiveFloat| $expr:expr) => {{
         fn for_n<const N: usize>()
         where
@@ -245,6 +283,36 @@ macro_rules! for_types {
         for_n::<2>();
         for_n::<3>();
         for_n::<4>();
+    };};
+    (|N: TwoOrThree, T: PrimitiveFloat| $expr:expr) => {{
+        fn for_n<const N: usize>()
+        where
+            crate::Length<N>: crate::length::TwoOrThree,
+        {
+            {
+                type T = f32;
+                crate::test_utils::call_with_panic_message(
+                    || $expr,
+                    Some(N),
+                    Some("f32"),
+                    None,
+                    None,
+                );
+            };
+            {
+                type T = f64;
+                crate::test_utils::call_with_panic_message(
+                    || $expr,
+                    Some(N),
+                    Some("f64"),
+                    None,
+                    None,
+                );
+            };
+        }
+
+        for_n::<2>();
+        for_n::<3>();
     };};
     (|N, T: PrimitiveInteger| $expr:expr) => {{
         fn for_n<const N: usize>()
@@ -317,6 +385,76 @@ macro_rules! for_types {
         for_n::<3>();
         for_n::<4>();
     };};
+    (|N: TwoOrThree, T: PrimitiveInteger| $expr:expr) => {{
+        fn for_n<const N: usize>()
+        where
+            crate::Length<N>: crate::length::TwoOrThree,
+        {
+            {
+                type T = i32;
+                crate::test_utils::call_with_panic_message(
+                    || $expr,
+                    Some(N),
+                    Some("i32"),
+                    None,
+                    None,
+                );
+            };
+            {
+                type T = i64;
+                crate::test_utils::call_with_panic_message(
+                    || $expr,
+                    Some(N),
+                    Some("i64"),
+                    None,
+                    None,
+                );
+            };
+            {
+                type T = isize;
+                crate::test_utils::call_with_panic_message(
+                    || $expr,
+                    Some(N),
+                    Some("isize"),
+                    None,
+                    None,
+                );
+            };
+            {
+                type T = u32;
+                crate::test_utils::call_with_panic_message(
+                    || $expr,
+                    Some(N),
+                    Some("u32"),
+                    None,
+                    None,
+                );
+            };
+            {
+                type T = u64;
+                crate::test_utils::call_with_panic_message(
+                    || $expr,
+                    Some(N),
+                    Some("u64"),
+                    None,
+                    None,
+                );
+            };
+            {
+                type T = usize;
+                crate::test_utils::call_with_panic_message(
+                    || $expr,
+                    Some(N),
+                    Some("usize"),
+                    None,
+                    None,
+                );
+            };
+        }
+
+        for_n::<2>();
+        for_n::<3>();
+    };};
     (|N, T: PrimitiveSigned| $expr:expr) => {{
         fn for_n<const N: usize>()
         where
@@ -358,6 +496,46 @@ macro_rules! for_types {
         for_n::<3>();
         for_n::<4>();
     };};
+    (|N: TwoOrThree, T: PrimitiveSigned| $expr:expr) => {{
+        fn for_n<const N: usize>()
+        where
+            crate::Length<N>: crate::length::TwoOrThree,
+        {
+            {
+                type T = i32;
+                crate::test_utils::call_with_panic_message(
+                    || $expr,
+                    Some(N),
+                    Some("i32"),
+                    None,
+                    None,
+                );
+            };
+            {
+                type T = i64;
+                crate::test_utils::call_with_panic_message(
+                    || $expr,
+                    Some(N),
+                    Some("i64"),
+                    None,
+                    None,
+                );
+            };
+            {
+                type T = isize;
+                crate::test_utils::call_with_panic_message(
+                    || $expr,
+                    Some(N),
+                    Some("isize"),
+                    None,
+                    None,
+                );
+            };
+        }
+
+        for_n::<2>();
+        for_n::<3>();
+    };};
     (|N, T: PrimitiveUnsigned| $expr:expr) => {{
         fn for_n<const N: usize>()
         where
@@ -398,6 +576,46 @@ macro_rules! for_types {
         for_n::<2>();
         for_n::<3>();
         for_n::<4>();
+    };};
+    (|N: TwoOrThree, T: PrimitiveUnsigned| $expr:expr) => {{
+        fn for_n<const N: usize>()
+        where
+            crate::Length<N>: crate::length::TwoOrThree,
+        {
+            {
+                type T = u32;
+                crate::test_utils::call_with_panic_message(
+                    || $expr,
+                    Some(N),
+                    Some("u32"),
+                    None,
+                    None,
+                );
+            };
+            {
+                type T = u64;
+                crate::test_utils::call_with_panic_message(
+                    || $expr,
+                    Some(N),
+                    Some("u64"),
+                    None,
+                    None,
+                );
+            };
+            {
+                type T = usize;
+                crate::test_utils::call_with_panic_message(
+                    || $expr,
+                    Some(N),
+                    Some("usize"),
+                    None,
+                    None,
+                );
+            };
+        }
+
+        for_n::<2>();
+        for_n::<3>();
     };};
     (|N, Wide| $expr:expr) => {{
         fn for_n<const N: usize>()
@@ -466,6 +684,72 @@ macro_rules! for_types {
         for_n::<3>();
         for_n::<4>();
     };};
+    (|N: TwoOrThree, Wide| $expr:expr) => {{
+        fn for_n<const N: usize>()
+        where
+            crate::Length<N>: crate::length::TwoOrThree,
+        {
+            {
+                type Wide = wide::f32x4;
+                #[allow(dead_code)]
+                type T = f32;
+                #[allow(dead_code)]
+                const LANES: usize = 4;
+                crate::test_utils::call_with_panic_message(
+                    || $expr,
+                    Some(N),
+                    Some("f32"),
+                    Some(LANES),
+                    None,
+                );
+            };
+            {
+                type Wide = wide::f64x8;
+                #[allow(dead_code)]
+                type T = f64;
+                #[allow(dead_code)]
+                const LANES: usize = 8;
+                crate::test_utils::call_with_panic_message(
+                    || $expr,
+                    Some(N),
+                    Some("f64"),
+                    Some(LANES),
+                    None,
+                );
+            };
+            {
+                type Wide = wide::i32x4;
+                #[allow(dead_code)]
+                type T = i32;
+                #[allow(dead_code)]
+                const LANES: usize = 4;
+                crate::test_utils::call_with_panic_message(
+                    || $expr,
+                    Some(N),
+                    Some("i32"),
+                    Some(LANES),
+                    None,
+                );
+            };
+            {
+                type Wide = wide::u64x8;
+                #[allow(dead_code)]
+                type T = u64;
+                #[allow(dead_code)]
+                const LANES: usize = 8;
+                crate::test_utils::call_with_panic_message(
+                    || $expr,
+                    Some(N),
+                    Some("u64"),
+                    Some(LANES),
+                    None,
+                );
+            };
+        }
+
+        for_n::<2>();
+        for_n::<3>();
+    };};
     (|N, Wide: WideFloat| $expr:expr) => {{
         fn for_n<const N: usize>()
         where
@@ -504,6 +788,44 @@ macro_rules! for_types {
         for_n::<2>();
         for_n::<3>();
         for_n::<4>();
+    };};
+    (|N: TwoOrThree, Wide: WideFloat| $expr:expr) => {{
+        fn for_n<const N: usize>()
+        where
+            crate::Length<N>: crate::length::TwoOrThree,
+        {
+            {
+                type Wide = wide::f32x4;
+                #[allow(dead_code)]
+                type T = f32;
+                #[allow(dead_code)]
+                const LANES: usize = 4;
+                crate::test_utils::call_with_panic_message(
+                    || $expr,
+                    Some(N),
+                    Some("f32"),
+                    Some(LANES),
+                    None,
+                );
+            };
+            {
+                type Wide = wide::f64x8;
+                #[allow(dead_code)]
+                type T = f64;
+                #[allow(dead_code)]
+                const LANES: usize = 8;
+                crate::test_utils::call_with_panic_message(
+                    || $expr,
+                    Some(N),
+                    Some("f64"),
+                    Some(LANES),
+                    None,
+                );
+            };
+        }
+
+        for_n::<2>();
+        for_n::<3>();
     };};
     (|N, Wide: WideInteger| $expr:expr) => {{
         fn for_n<const N: usize>()
@@ -544,6 +866,44 @@ macro_rules! for_types {
         for_n::<3>();
         for_n::<4>();
     };};
+    (|N: TwoOrThree, Wide: WideInteger| $expr:expr) => {{
+        fn for_n<const N: usize>()
+        where
+            crate::Length<N>: crate::length::TwoOrThree,
+        {
+            {
+                type Wide = wide::i32x4;
+                #[allow(dead_code)]
+                type T = i32;
+                #[allow(dead_code)]
+                const LANES: usize = 4;
+                crate::test_utils::call_with_panic_message(
+                    || $expr,
+                    Some(N),
+                    Some("i32"),
+                    Some(LANES),
+                    None,
+                );
+            };
+            {
+                type Wide = wide::u64x8;
+                #[allow(dead_code)]
+                type T = u64;
+                #[allow(dead_code)]
+                const LANES: usize = 8;
+                crate::test_utils::call_with_panic_message(
+                    || $expr,
+                    Some(N),
+                    Some("u64"),
+                    Some(LANES),
+                    None,
+                );
+            };
+        }
+
+        for_n::<2>();
+        for_n::<3>();
+    };};
     (|A| $expr:expr) => {{
         fn for_a<A: crate::Alignment>() {
             crate::test_utils::call_with_panic_message(
@@ -578,6 +938,25 @@ macro_rules! for_types {
         for_na::<2, crate::Aligned>();
         for_na::<3, crate::Aligned>();
         for_na::<4, crate::Aligned>();
+    };};
+    (|N: TwoOrThree, A| $expr:expr) => {{
+        fn for_na<const N: usize, A: crate::Alignment>()
+        where
+            crate::Length<N>: crate::length::TwoOrThree,
+        {
+            crate::test_utils::call_with_panic_message(
+                || $expr,
+                Some(N),
+                None,
+                None,
+                Some(A::IS_ALIGNED),
+            );
+        }
+
+        for_na::<2, crate::Unaligned>();
+        for_na::<3, crate::Unaligned>();
+        for_na::<2, crate::Aligned>();
+        for_na::<3, crate::Aligned>();
     };};
     (|T: PrimitiveNumber, A| $expr:expr) => {{
         fn for_ta<T, A: crate::Alignment>(t: &'static str)
@@ -829,6 +1208,50 @@ macro_rules! for_types {
         for_n::<3>();
         for_n::<4>();
     };};
+    (|N: TwoOrThree, T: PrimitiveNumber, A| $expr:expr) => {{
+        fn for_nta<const N: usize, T, A: crate::Alignment>(t: &'static str)
+        where
+            crate::Length<N>: crate::length::TwoOrThree,
+            T: crate::test_utils::Number
+                + crate::test_utils::Random<Input = crate::test_utils::Category>,
+            crate::Vector<N, T, A>: crate::test_utils::Random<Input = crate::test_utils::Category>,
+            crate::Matrix<N, T, A>: crate::test_utils::Random<Input = crate::test_utils::Category>,
+            crate::Affine<N, T, A>: crate::test_utils::Random<Input = crate::test_utils::Category>,
+        {
+            crate::test_utils::call_with_panic_message(
+                || $expr,
+                Some(N),
+                Some(t),
+                None,
+                Some(A::IS_ALIGNED),
+            );
+        }
+
+        fn for_na<const N: usize, A: crate::Alignment>()
+        where
+            crate::Length<N>: crate::length::TwoOrThree,
+        {
+            for_nta::<N, f32, A>("f32");
+            for_nta::<N, f64, A>("f64");
+            for_nta::<N, i32, A>("i32");
+            for_nta::<N, u32, A>("u32");
+        }
+
+        fn for_n<const N: usize>()
+        where
+            crate::Length<N>: crate::length::TwoOrThree,
+        {
+            for_na::<N, crate::Unaligned>();
+            for_na::<N, crate::Aligned>();
+            for_nta::<N, i64, crate::Aligned>("i64");
+            for_nta::<N, isize, crate::Aligned>("isize");
+            for_nta::<N, u64, crate::Aligned>("u64");
+            for_nta::<N, usize, crate::Aligned>("usize");
+        }
+
+        for_n::<2>();
+        for_n::<3>();
+    };};
     (|N, T: PrimitiveFloat, A| $expr:expr) => {{
         fn for_na<const N: usize, A: crate::Alignment>()
         where
@@ -862,6 +1285,38 @@ macro_rules! for_types {
         for_na::<2, crate::Unaligned>();
         for_na::<3, crate::Unaligned>();
         for_na::<4, crate::Unaligned>();
+    };};
+    (|N: TwoOrThree, T: PrimitiveFloat, A| $expr:expr) => {{
+        fn for_na<const N: usize, A: crate::Alignment>()
+        where
+            crate::Length<N>: crate::length::TwoOrThree,
+        {
+            {
+                type T = f32;
+                crate::test_utils::call_with_panic_message(
+                    || $expr,
+                    Some(N),
+                    Some("f32"),
+                    None,
+                    Some(A::IS_ALIGNED),
+                );
+            };
+            {
+                type T = f64;
+                crate::test_utils::call_with_panic_message(
+                    || $expr,
+                    Some(N),
+                    Some("f64"),
+                    None,
+                    Some(A::IS_ALIGNED),
+                );
+            };
+        }
+
+        for_na::<2, crate::Aligned>();
+        for_na::<3, crate::Aligned>();
+        for_na::<2, crate::Unaligned>();
+        for_na::<3, crate::Unaligned>();
     };};
     (|N, T: PrimitiveInteger, A| $expr:expr) => {{
         fn for_na<const N: usize, A: crate::Alignment>()
@@ -946,6 +1401,88 @@ macro_rules! for_types {
         for_n::<3>();
         for_n::<4>();
     };};
+    (|N: TwoOrThree, T: PrimitiveInteger, A| $expr:expr) => {{
+        fn for_na<const N: usize, A: crate::Alignment>()
+        where
+            crate::Length<N>: crate::length::TwoOrThree,
+        {
+            {
+                type T = i32;
+                crate::test_utils::call_with_panic_message(
+                    || $expr,
+                    Some(N),
+                    Some("i32"),
+                    None,
+                    Some(A::IS_ALIGNED),
+                );
+            };
+            {
+                type T = u32;
+                crate::test_utils::call_with_panic_message(
+                    || $expr,
+                    Some(N),
+                    Some("u32"),
+                    None,
+                    Some(A::IS_ALIGNED),
+                );
+            };
+        }
+
+        fn for_n<const N: usize>()
+        where
+            crate::Length<N>: crate::length::TwoOrThree,
+        {
+            for_na::<N, crate::Unaligned>();
+            for_na::<N, crate::Aligned>();
+            {
+                type T = i64;
+                type A = crate::Aligned;
+                crate::test_utils::call_with_panic_message(
+                    || $expr,
+                    Some(N),
+                    Some("i64"),
+                    None,
+                    Some(true),
+                );
+            };
+            {
+                type T = isize;
+                type A = crate::Aligned;
+                crate::test_utils::call_with_panic_message(
+                    || $expr,
+                    Some(N),
+                    Some("isize"),
+                    None,
+                    Some(true),
+                );
+            };
+            {
+                type T = u64;
+                type A = crate::Aligned;
+                crate::test_utils::call_with_panic_message(
+                    || $expr,
+                    Some(N),
+                    Some("u64"),
+                    None,
+                    Some(true),
+                );
+            };
+            {
+                type T = usize;
+                type A = crate::Aligned;
+                crate::test_utils::call_with_panic_message(
+                    || $expr,
+                    Some(N),
+                    Some("usize"),
+                    None,
+                    Some(true),
+                );
+            };
+        }
+
+        for_n::<2>();
+        for_n::<3>();
+    };};
     (|N, T: PrimitiveSigned, A| $expr:expr) => {{
         fn for_na<const N: usize, A: crate::Alignment>()
         where
@@ -997,6 +1534,56 @@ macro_rules! for_types {
         for_n::<3>();
         for_n::<4>();
     };};
+    (|N: TwoOrThree, T: PrimitiveSigned, A| $expr:expr) => {{
+        fn for_na<const N: usize, A: crate::Alignment>()
+        where
+            crate::Length<N>: crate::length::TwoOrThree,
+        {
+            {
+                type T = i32;
+                crate::test_utils::call_with_panic_message(
+                    || $expr,
+                    Some(N),
+                    Some("i32"),
+                    None,
+                    Some(A::IS_ALIGNED),
+                );
+            };
+        }
+
+        fn for_n<const N: usize>()
+        where
+            crate::Length<N>: crate::length::TwoOrThree,
+        {
+            for_na::<N, crate::Unaligned>();
+            for_na::<N, crate::Aligned>();
+            {
+                type T = i64;
+                type A = crate::Aligned;
+                crate::test_utils::call_with_panic_message(
+                    || $expr,
+                    Some(N),
+                    Some("i64"),
+                    None,
+                    Some(true),
+                );
+            };
+            {
+                type T = isize;
+                type A = crate::Aligned;
+                crate::test_utils::call_with_panic_message(
+                    || $expr,
+                    Some(N),
+                    Some("isize"),
+                    None,
+                    Some(true),
+                );
+            };
+        }
+
+        for_n::<2>();
+        for_n::<3>();
+    };};
     (|N, T: PrimitiveUnsigned, A| $expr:expr) => {{
         fn for_na<const N: usize, A: crate::Alignment>()
         where
@@ -1047,6 +1634,56 @@ macro_rules! for_types {
         for_n::<2>();
         for_n::<3>();
         for_n::<4>();
+    };};
+    (|N: TwoOrThree, T: PrimitiveUnsigned, A| $expr:expr) => {{
+        fn for_na<const N: usize, A: crate::Alignment>()
+        where
+            crate::Length<N>: crate::length::TwoOrThree,
+        {
+            {
+                type T = u32;
+                crate::test_utils::call_with_panic_message(
+                    || $expr,
+                    Some(N),
+                    Some("u32"),
+                    None,
+                    Some(A::IS_ALIGNED),
+                );
+            };
+        }
+
+        fn for_n<const N: usize>()
+        where
+            crate::Length<N>: crate::length::TwoOrThree,
+        {
+            for_na::<N, crate::Unaligned>();
+            for_na::<N, crate::Aligned>();
+            {
+                type T = u64;
+                type A = crate::Aligned;
+                crate::test_utils::call_with_panic_message(
+                    || $expr,
+                    Some(N),
+                    Some("u64"),
+                    None,
+                    Some(true),
+                );
+            };
+            {
+                type T = usize;
+                type A = crate::Aligned;
+                crate::test_utils::call_with_panic_message(
+                    || $expr,
+                    Some(N),
+                    Some("usize"),
+                    None,
+                    Some(true),
+                );
+            };
+        }
+
+        for_n::<2>();
+        for_n::<3>();
     };};
 }
 pub(crate) use for_types;

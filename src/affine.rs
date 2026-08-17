@@ -1217,3 +1217,584 @@ impl_projective_mul_assign!(
     /// fully consistent with scalar addition and multiplication, including
     /// floating-point precision and integer panics.
 );
+
+#[cfg(test)]
+mod tests {
+    extern crate std;
+
+    use std::format;
+
+    use crate::{
+        Affine, Aligned, Mask, Matrix, Projective, Unaligned, Vector,
+        test_utils::{assert_panic, assert_test_eq, for_types, random_iter},
+    };
+
+    #[test]
+    fn test_zero() {
+        for_types!(|N, T: PrimitiveNumber, A| {
+            assert_eq!(
+                Affine::<N, T, A>::ZERO,
+                Affine::from_matrix_translation(Matrix::ZERO, Vector::ZERO)
+            );
+        });
+    }
+
+    #[test]
+    fn test_identity() {
+        for_types!(|N, T: PrimitiveNumber, A| {
+            assert_eq!(
+                Affine::<N, T, A>::IDENTITY,
+                Affine::from_matrix_translation(Matrix::IDENTITY, Vector::ZERO)
+            );
+        });
+    }
+
+    #[test]
+    fn test_from_row_fn() {
+        for_types!(|T: PrimitiveNumber, A| {
+            let rows = std::array::from_fn(|r| Vector::from_fn(|c| T::as_from(r * 2 + c)));
+            assert_eq!(
+                Affine::<2, T, A>::from_row_fn(|i| rows[i]),
+                Affine::<2, T, A>::from_rows(&rows)
+            );
+
+            let rows = std::array::from_fn(|r| Vector::from_fn(|c| T::as_from(r * 3 + c)));
+            assert_eq!(
+                Affine::<3, T, A>::from_row_fn(|i| rows[i]),
+                Affine::<3, T, A>::from_rows(&rows)
+            );
+
+            let rows = std::array::from_fn(|r| Vector::from_fn(|c| T::as_from(r * 4 + c)));
+            assert_eq!(
+                Affine::<4, T, A>::from_row_fn(|i| rows[i]),
+                Affine::<4, T, A>::from_rows(&rows)
+            );
+        });
+    }
+
+    #[test]
+    fn test_from_scale() {
+        for_types!(|N, T: PrimitiveNumber, A| {
+            let scale = Vector::from_fn(|i| T::as_from(i + 1));
+
+            assert_eq!(
+                Affine::<N, T, A>::from_scale(scale),
+                Affine::from_matrix(Matrix::from_diagonal(scale))
+            );
+        });
+    }
+
+    #[test]
+    fn test_from_translation() {
+        for_types!(|N, T: PrimitiveNumber, A| {
+            let translation = Vector::from_fn(|i| T::as_from(i + 1));
+
+            assert_eq!(
+                Affine::<N, T, A>::from_translation(translation),
+                Affine::from_matrix_translation(Matrix::IDENTITY, translation)
+            );
+        });
+    }
+
+    #[test]
+    fn test_from_matrix() {
+        for_types!(|N, T: PrimitiveNumber, A| {
+            let matrix = Matrix::from_row_fn(|r| Vector::from_fn(|c| T::as_from(r * N + c)));
+
+            assert_eq!(
+                Affine::<N, T, A>::from_matrix(matrix),
+                Affine::from_matrix_translation(matrix, Vector::ZERO)
+            );
+        });
+    }
+
+    #[test]
+    fn test_from_projective() {
+        for_types!(|T: PrimitiveNumber, A| {
+            let projective =
+                Projective::<2, T, A>::from_row_fn(|r| Vector::from_fn(|c| T::as_from(r * 2 + c)));
+            assert_eq!(
+                Affine::<2, T, A>::from_projective(&projective),
+                Affine::<2, T, A>::from_rows(&[
+                    projective.x_axis.truncate(),
+                    projective.y_axis.truncate(),
+                    projective.z_axis.truncate(),
+                ])
+            );
+
+            let projective =
+                Projective::<3, T, A>::from_row_fn(|r| Vector::from_fn(|c| T::as_from(r * 3 + c)));
+            assert_eq!(
+                Affine::<3, T, A>::from_projective(&projective),
+                Affine::<3, T, A>::from_rows(&[
+                    projective.x_axis.truncate(),
+                    projective.y_axis.truncate(),
+                    projective.z_axis.truncate(),
+                    projective.w_axis.truncate(),
+                ])
+            );
+        });
+    }
+
+    #[test]
+    fn test_to_alignment() {
+        for_types!(|N, T: PrimitiveNumber, A| {
+            let affine =
+                Affine::<N, T, A>::from_row_fn(|r| Vector::from_fn(|c| T::as_from(r * N + c)));
+
+            assert_eq!(
+                affine.to_alignment(),
+                Affine::<N, T, Aligned>::from_matrix_translation(
+                    affine.matrix.align(),
+                    affine.translation.align()
+                )
+            );
+            assert_eq!(
+                affine.to_alignment(),
+                Affine::<N, T, Unaligned>::from_matrix_translation(
+                    affine.matrix.unalign(),
+                    affine.translation.unalign()
+                )
+            );
+        });
+    }
+
+    #[test]
+    fn test_align() {
+        for_types!(|N, T: PrimitiveNumber, A| {
+            let affine =
+                Affine::<N, T, A>::from_row_fn(|r| Vector::from_fn(|c| T::as_from(r * N + c)));
+
+            assert_eq!(
+                affine.align(),
+                Affine::<N, T, Aligned>::from_matrix_translation(
+                    affine.matrix.align(),
+                    affine.translation.align()
+                )
+            );
+        });
+    }
+
+    #[test]
+    fn test_unalign() {
+        for_types!(|N, T: PrimitiveNumber, A| {
+            let affine =
+                Affine::<N, T, A>::from_row_fn(|r| Vector::from_fn(|c| T::as_from(r * N + c)));
+
+            assert_eq!(
+                affine.unalign(),
+                Affine::<N, T, Unaligned>::from_matrix_translation(
+                    affine.matrix.unalign(),
+                    affine.translation.unalign()
+                )
+            );
+        });
+    }
+
+    #[test]
+    fn test_transform_point() {
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for (point, affine) in random_iter::<(Vector<N, T, A>, Affine<N, T, A>)>() {
+                assert_test_eq!(
+                    affine.transform_point(point),
+                    point * affine.matrix + affine.translation
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_transform_vector() {
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for (point, affine) in random_iter::<(Vector<N, T, A>, Affine<N, T, A>)>() {
+                assert_test_eq!(affine.transform_vector(point), point * affine.matrix);
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_rows() {
+        for_types!(|T: PrimitiveNumber, A| {
+            let rows = std::array::from_fn(|r| Vector::from_fn(|c| T::as_from(r * 2 + c)));
+            assert_eq!(
+                Affine::<2, T, A>::from_rows(&rows),
+                Affine::<2, T, A>::from_matrix_translation(
+                    Matrix::from_rows(&[rows[0], rows[1]]),
+                    rows[2]
+                )
+            );
+
+            let rows = std::array::from_fn(|r| Vector::from_fn(|c| T::as_from(r * 3 + c)));
+            assert_eq!(
+                Affine::<3, T, A>::from_rows(&rows),
+                Affine::<3, T, A>::from_matrix_translation(
+                    Matrix::from_rows(&[rows[0], rows[1], rows[2]]),
+                    rows[3]
+                )
+            );
+
+            let rows = std::array::from_fn(|r| Vector::from_fn(|c| T::as_from(r * 4 + c)));
+            assert_eq!(
+                Affine::<4, T, A>::from_rows(&rows),
+                Affine::<4, T, A>::from_matrix_translation(
+                    Matrix::from_rows(&[rows[0], rows[1], rows[2], rows[3]]),
+                    rows[4]
+                )
+            );
+        });
+    }
+
+    #[test]
+    fn test_from_row_array() {
+        for_types!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p] =
+                std::array::from_fn(T::as_from);
+
+            assert_eq!(
+                Affine::<2, T, A>::from_row_array(&[x, y, z, w, a, b]),
+                Affine::<2, T, A>::from_rows(&[
+                    Vector::<2, T, A>::new(x, y),
+                    Vector::<2, T, A>::new(z, w),
+                    Vector::<2, T, A>::new(a, b)
+                ])
+            );
+            assert_eq!(
+                Affine::<3, T, A>::from_row_array(&[x, y, z, w, a, b, c, d, e, f, g, h]),
+                Affine::<3, T, A>::from_rows(&[
+                    Vector::<3, T, A>::new(x, y, z),
+                    Vector::<3, T, A>::new(w, a, b),
+                    Vector::<3, T, A>::new(c, d, e),
+                    Vector::<3, T, A>::new(f, g, h)
+                ])
+            );
+            assert_eq!(
+                Affine::<4, T, A>::from_row_array(&[
+                    x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p
+                ]),
+                Affine::<4, T, A>::from_rows(&[
+                    Vector::<4, T, A>::new(x, y, z, w),
+                    Vector::<4, T, A>::new(a, b, c, d),
+                    Vector::<4, T, A>::new(e, f, g, h),
+                    Vector::<4, T, A>::new(i, j, k, l),
+                    Vector::<4, T, A>::new(m, n, o, p)
+                ])
+            );
+        });
+    }
+
+    #[test]
+    fn test_as_rows() {
+        for_types!(|T: PrimitiveNumber, A| {
+            let rows = std::array::from_fn(|r| Vector::from_fn(|c| T::as_from(r * 2 + c)));
+            assert_eq!(Affine::<2, T, A>::from_rows(&rows).as_rows(), &rows);
+
+            let rows = std::array::from_fn(|r| Vector::from_fn(|c| T::as_from(r * 3 + c)));
+            assert_eq!(Affine::<3, T, A>::from_rows(&rows).as_rows(), &rows);
+
+            let rows = std::array::from_fn(|r| Vector::from_fn(|c| T::as_from(r * 4 + c)));
+            assert_eq!(Affine::<4, T, A>::from_rows(&rows).as_rows(), &rows);
+        });
+    }
+
+    #[test]
+    fn test_as_mut_rows() {
+        for_types!(|T: PrimitiveNumber, A| {
+            let mut rows = std::array::from_fn(|r| Vector::from_fn(|c| T::as_from(r * 2 + c)));
+            assert_eq!(Affine::<2, T, A>::from_rows(&rows).as_mut_rows(), &mut rows);
+
+            let mut rows = std::array::from_fn(|r| Vector::from_fn(|c| T::as_from(r * 3 + c)));
+            assert_eq!(Affine::<3, T, A>::from_rows(&rows).as_mut_rows(), &mut rows);
+
+            let mut rows = std::array::from_fn(|r| Vector::from_fn(|c| T::as_from(r * 4 + c)));
+            assert_eq!(Affine::<4, T, A>::from_rows(&rows).as_mut_rows(), &mut rows);
+        });
+    }
+
+    #[test]
+    fn test_to_homogeneous() {
+        for_types!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l] =
+                std::array::from_fn(|i| T::as_from(i + 1));
+
+            assert_eq!(
+                Affine::<2, T, A>::from_rows(&[
+                    Vector::<2, T, A>::new(x, y),
+                    Vector::<2, T, A>::new(w, a),
+                    Vector::<2, T, A>::new(c, d)
+                ])
+                .to_homogeneous(),
+                Matrix::from_rows(&[
+                    Vector::<3, T, A>::new(x, y, z),
+                    Vector::<3, T, A>::new(w, a, b),
+                    Vector::<3, T, A>::new(c, d, e)
+                ])
+            );
+            assert_eq!(
+                Affine::<3, T, A>::from_rows(&[
+                    Vector::<3, T, A>::new(x, y, z),
+                    Vector::<3, T, A>::new(a, b, c),
+                    Vector::<3, T, A>::new(e, f, g),
+                    Vector::<3, T, A>::new(i, j, k)
+                ])
+                .to_homogeneous(),
+                Matrix::from_rows(&[
+                    Vector::<4, T, A>::new(x, y, z, w),
+                    Vector::<4, T, A>::new(a, b, c, d),
+                    Vector::<4, T, A>::new(e, f, g, h),
+                    Vector::<4, T, A>::new(i, j, k, l)
+                ])
+            );
+        });
+    }
+
+    #[test]
+    fn test_from_homogeneous() {
+        for_types!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l] =
+                std::array::from_fn(|i| T::as_from(i + 1));
+
+            assert_eq!(
+                Affine::<2, T, A>::from_homogeneous(&Matrix::from_rows(&[
+                    Vector::<3, T, A>::new(x, y, z),
+                    Vector::<3, T, A>::new(w, a, b),
+                    Vector::<3, T, A>::new(c, d, e)
+                ])),
+                Affine::<2, T, A>::from_rows(&[
+                    Vector::<2, T, A>::new(x, y),
+                    Vector::<2, T, A>::new(w, a),
+                    Vector::<2, T, A>::new(c, d)
+                ])
+            );
+            assert_eq!(
+                Affine::<3, T, A>::from_homogeneous(&Matrix::from_rows(&[
+                    Vector::<4, T, A>::new(x, y, z, w),
+                    Vector::<4, T, A>::new(a, b, c, d),
+                    Vector::<4, T, A>::new(e, f, g, h),
+                    Vector::<4, T, A>::new(i, j, k, l)
+                ])),
+                Affine::<3, T, A>::from_rows(&[
+                    Vector::<3, T, A>::new(x, y, z),
+                    Vector::<3, T, A>::new(a, b, c),
+                    Vector::<3, T, A>::new(e, f, g),
+                    Vector::<3, T, A>::new(i, j, k)
+                ])
+            );
+        });
+    }
+
+    #[test]
+    fn test_index() {
+        for_types!(|N, T: PrimitiveNumber, A| {
+            let affine =
+                Affine::<N, T, A>::from_row_fn(|r| Vector::from_fn(|c| T::as_from(r * N + c)));
+
+            for i in 0..N {
+                assert_eq!(affine[i], affine.matrix[i]);
+            }
+            assert_eq!(affine[N], affine.translation);
+            assert_panic!(affine[N + 1]);
+            assert_panic!(affine[N + 2]);
+        });
+    }
+
+    #[test]
+    #[expect(clippy::clone_on_copy)]
+    fn test_index_mut() {
+        for_types!(|N, T: PrimitiveNumber, A| {
+            let affine =
+                Affine::<N, T, A>::from_row_fn(|r| Vector::from_fn(|c| T::as_from(r * N + c)));
+
+            for i in 0..N {
+                assert_eq!(&mut affine.clone()[i], &mut affine.clone().matrix[i]);
+            }
+            assert_eq!(&mut affine.clone()[N], &mut affine.clone().translation);
+            assert_panic!(&mut affine.clone()[N + 1]);
+            assert_panic!(&mut affine.clone()[N + 2]);
+        });
+    }
+
+    #[test]
+    fn test_debug() {
+        for_types!(|T: PrimitiveNumber, A| {
+            let rows = std::array::from_fn(|r| Vector::from_fn(|c| T::as_from(r * 2 + c)));
+            let [x_axis, y_axis, translation] = rows;
+            assert_eq!(
+                format!("{:?}", Affine::<2, T, A>::from_rows(&rows)),
+                format!("[{x_axis:?}, {y_axis:?}, {translation:?}]")
+            );
+
+            let rows = std::array::from_fn(|r| Vector::from_fn(|c| T::as_from(r * 3 + c)));
+            let [x_axis, y_axis, z_axis, translation] = rows;
+            assert_eq!(
+                format!("{:?}", Affine::<3, T, A>::from_rows(&rows)),
+                format!("[{x_axis:?}, {y_axis:?}, {z_axis:?}, {translation:?}]")
+            );
+
+            let rows = std::array::from_fn(|r| Vector::from_fn(|c| T::as_from(r * 4 + c)));
+            let [x_axis, y_axis, z_axis, w_axis, translation] = rows;
+            assert_eq!(
+                format!("{:?}", Affine::<4, T, A>::from_rows(&rows)),
+                format!("[{x_axis:?}, {y_axis:?}, {z_axis:?}, {w_axis:?}, {translation:?}]")
+            );
+        });
+    }
+
+    #[test]
+    fn test_display() {
+        for_types!(|T: PrimitiveNumber, A| {
+            let rows = std::array::from_fn(|r| Vector::from_fn(|c| T::as_from(r * 2 + c)));
+            let [x_axis, y_axis, translation] = rows;
+            assert_eq!(
+                format!("{}", Affine::<2, T, A>::from_rows(&rows)),
+                format!("[{x_axis}, {y_axis}, {translation}]")
+            );
+
+            let rows = std::array::from_fn(|r| Vector::from_fn(|c| T::as_from(r * 3 + c)));
+            let [x_axis, y_axis, z_axis, translation] = rows;
+            assert_eq!(
+                format!("{}", Affine::<3, T, A>::from_rows(&rows)),
+                format!("[{x_axis}, {y_axis}, {z_axis}, {translation}]")
+            );
+
+            let rows = std::array::from_fn(|r| Vector::from_fn(|c| T::as_from(r * 4 + c)));
+            let [x_axis, y_axis, z_axis, w_axis, translation] = rows;
+            assert_eq!(
+                format!("{}", Affine::<4, T, A>::from_rows(&rows)),
+                format!("[{x_axis}, {y_axis}, {z_axis}, {w_axis}, {translation}]")
+            );
+        });
+    }
+
+    #[test]
+    fn test_eq() {
+        for_types!(|N, T: PrimitiveNumber, A| {
+            for ([affine, other], mask) in
+                random_iter::<([Affine<N, T, A>; 2], [Mask<N, T, A>; 5])>()
+            {
+                let other = Affine::from_row_fn(|r| mask[r].select(affine[r], other[r]));
+
+                assert_eq!(
+                    affine == other,
+                    affine.matrix == other.matrix && affine.translation == other.translation
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_ne() {
+        for_types!(|N, T: PrimitiveNumber, A| {
+            for ([affine, other], mask) in
+                random_iter::<([Affine<N, T, A>; 2], [Mask<N, T, A>; 5])>()
+            {
+                let other = Affine::from_row_fn(|r| mask[r].select(affine[r], other[r]));
+
+                assert_eq!(
+                    affine != other,
+                    affine.matrix != other.matrix || affine.translation != other.translation
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_default() {
+        for_types!(|N, T: PrimitiveNumber, A| {
+            assert_eq!(Affine::<N, T, A>::default(), Affine::IDENTITY);
+        });
+    }
+
+    #[test]
+    fn test_mul() {
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for (vector, [affine_1, affine_2]) in
+                random_iter::<(Vector<N, T, A>, [Affine<N, T, A>; 2])>()
+            {
+                if !vector.is_finite()
+                    || !affine_1.is_finite()
+                    || !affine_2.is_finite()
+                    || vector.iter().any(|x| x.abs() > 1e10)
+                    || affine_1
+                        .matrix
+                        .as_rows()
+                        .iter()
+                        .chain([&affine_1.translation])
+                        .flatten()
+                        .any(|x| x.abs() > 1e10)
+                    || affine_2
+                        .matrix
+                        .as_rows()
+                        .iter()
+                        .chain([&affine_2.translation])
+                        .flatten()
+                        .any(|x| x.abs() > 1e10)
+                {
+                    continue;
+                }
+
+                assert_test_eq!(
+                    (affine_1 * affine_2).transform_point(vector),
+                    affine_2.transform_point(affine_1.transform_point(vector)),
+                    abs <= (affine_1 * affine_2).transform_point(vector).abs() * 1e-5 + 1e-3,
+                    0.0 = -0.0,
+                    INFINITY = NAN
+                );
+                assert_test_eq!(
+                    (affine_1 * affine_2).transform_vector(vector),
+                    affine_2.transform_vector(affine_1.transform_vector(vector)),
+                    abs <= (affine_1 * affine_2).transform_vector(vector).abs() * 1e-5 + 1e-3,
+                    0.0 = -0.0,
+                    INFINITY = NAN
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_mul_projective() {
+        for_types!(|N: TwoOrThree, T: PrimitiveFloat, A| {
+            for (affine, projective) in random_iter::<(Affine<N, T, A>, Projective<N, T, A>)>() {
+                assert_test_eq!(
+                    affine * projective,
+                    Projective::from_affine(&affine) * projective
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_projective_mul() {
+        for_types!(|N: TwoOrThree, T: PrimitiveFloat, A| {
+            for (projective, affine) in random_iter::<(Projective<N, T, A>, Affine<N, T, A>)>() {
+                assert_test_eq!(
+                    projective * affine,
+                    projective * Projective::from_affine(&affine)
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_mul_assign() {
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for [left, right] in random_iter::<[Affine<N, T, A>; 2]>() {
+                let mut result = left;
+                result *= right;
+
+                assert_test_eq!(result, left * right);
+            }
+        });
+    }
+
+    #[test]
+    fn test_projective_mul_assign() {
+        for_types!(|N: TwoOrThree, T: PrimitiveFloat, A| {
+            for (projective, affine) in random_iter::<(Projective<N, T, A>, Affine<N, T, A>)>() {
+                let mut result = projective;
+                result *= affine;
+
+                assert_test_eq!(result, projective * affine);
+            }
+        });
+    }
+}
