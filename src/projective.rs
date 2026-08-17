@@ -26,7 +26,7 @@ pub struct Projective<const N: usize, T, A: Alignment>(
     // This type always corresponds to `Matrix<N - 1, T, A>`, which cannot be
     // written directly due to type system limitations. Many functions here use
     // the [`specialize_23`] macro to circumvent this limitation.
-    <Length<N> as TwoOrThree>::Select<Matrix<3, T, A>, Matrix<4, T, A>>,
+    pub(crate) <Length<N> as TwoOrThree>::Select<Matrix<3, T, A>, Matrix<4, T, A>>,
 )
 where
     Length<N>: TwoOrThree,

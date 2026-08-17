@@ -424,16 +424,6 @@ where
 {
 }
 
-// SAFETY: `A == A2` => `Quaternion<T, A> == Quaternion<T, A2>`.
-unsafe impl<T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
-    Specialize<Quaternion<T, A2>, N, N2, A, A2> for Quaternion<T, A>
-where
-    T: Scalar,
-    Length<N>: SupportedLength,
-    Length<N2>: SupportedLength,
-{
-}
-
 // SAFETY: `N == N2`, `A == A2` => `Affine<N, T, A> == Affine<N2, T, A2>`.
 unsafe impl<T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<Affine<N2, T, A2>, N, N2, A, A2> for Affine<N, T, A>
@@ -493,6 +483,16 @@ where
     T: Scalar,
     Length<N>: TwoOrThree,
     Length<N2>: TwoOrThree,
+{
+}
+
+// SAFETY: `A == A2` => `Quaternion<T, A> == Quaternion<T, A2>`.
+unsafe impl<T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
+    Specialize<Quaternion<T, A2>, N, N2, A, A2> for Quaternion<T, A>
+where
+    T: Scalar,
+    Length<N>: SupportedLength,
+    Length<N2>: SupportedLength,
 {
 }
 

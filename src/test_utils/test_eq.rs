@@ -6,8 +6,8 @@ use std::{
 };
 
 use crate::{
-    Affine, Alignment, Length, Matrix, PrimitiveInteger, Quaternion, Scalar, SupportedLength,
-    Vector,
+    Affine, Alignment, Length, Matrix, PrimitiveInteger, Projective, Quaternion, Scalar,
+    SupportedLength, Vector,
 };
 
 /// Checks for equality with specific rules for each type.
@@ -872,6 +872,160 @@ where
     }
 }
 
+impl<const N: usize, T, A: Alignment> TestEq for Affine<N, T, A>
+where
+    Length<N>: SupportedLength,
+    T: Scalar + TestEq,
+{
+    fn eq(
+        &self,
+        expected: &Self,
+        zero_eq_neg_zero: bool,
+        infinity_eq_nan: bool,
+        quat_eq_neg_quat: bool,
+    ) -> bool {
+        self.matrix.eq(
+            &expected.matrix,
+            zero_eq_neg_zero,
+            infinity_eq_nan,
+            quat_eq_neg_quat,
+        ) && self.translation.eq(
+            &expected.translation,
+            zero_eq_neg_zero,
+            infinity_eq_nan,
+            quat_eq_neg_quat,
+        )
+    }
+}
+
+impl<const N: usize, T, A: Alignment> TestEqAbs for Affine<N, T, A>
+where
+    Length<N>: SupportedLength,
+    T: Scalar + TestEqAbs,
+{
+    fn eq(
+        &self,
+        expected: &Self,
+        tol: &Self,
+        zero_eq_neg_zero: bool,
+        infinity_eq_nan: bool,
+        quat_eq_neg_quat: bool,
+    ) -> bool {
+        self.matrix.eq(
+            &expected.matrix,
+            &tol.matrix,
+            zero_eq_neg_zero,
+            infinity_eq_nan,
+            quat_eq_neg_quat,
+        ) && self.translation.eq(
+            &expected.translation,
+            &tol.translation,
+            zero_eq_neg_zero,
+            infinity_eq_nan,
+            quat_eq_neg_quat,
+        )
+    }
+}
+
+impl<const N: usize, T, A: Alignment> TestEqAbs<T> for Affine<N, T, A>
+where
+    Length<N>: SupportedLength,
+    T: Scalar + TestEqAbs,
+{
+    fn eq(
+        &self,
+        expected: &Self,
+        tol: &T,
+        zero_eq_neg_zero: bool,
+        infinity_eq_nan: bool,
+        quat_eq_neg_quat: bool,
+    ) -> bool {
+        self.matrix.eq(
+            &expected.matrix,
+            tol,
+            zero_eq_neg_zero,
+            infinity_eq_nan,
+            quat_eq_neg_quat,
+        ) && self.translation.eq(
+            &expected.translation,
+            tol,
+            zero_eq_neg_zero,
+            infinity_eq_nan,
+            quat_eq_neg_quat,
+        )
+    }
+}
+
+macro_rules! projective_impl {
+    ($N:literal) => {
+        impl<T, A: Alignment> TestEq for Projective<$N, T, A>
+        where
+            T: Scalar + TestEq,
+        {
+            fn eq(
+                &self,
+                expected: &Self,
+                zero_eq_neg_zero: bool,
+                infinity_eq_nan: bool,
+                quat_eq_neg_quat: bool,
+            ) -> bool {
+                self.0.eq(
+                    &expected.0,
+                    zero_eq_neg_zero,
+                    infinity_eq_nan,
+                    quat_eq_neg_quat,
+                )
+            }
+        }
+
+        impl<T, A: Alignment> TestEqAbs for Projective<$N, T, A>
+        where
+            T: Scalar + TestEqAbs,
+        {
+            fn eq(
+                &self,
+                expected: &Self,
+                tol: &Self,
+                zero_eq_neg_zero: bool,
+                infinity_eq_nan: bool,
+                quat_eq_neg_quat: bool,
+            ) -> bool {
+                self.0.eq(
+                    &expected.0,
+                    &tol.0,
+                    zero_eq_neg_zero,
+                    infinity_eq_nan,
+                    quat_eq_neg_quat,
+                )
+            }
+        }
+
+        impl<T, A: Alignment> TestEqAbs<T> for Projective<$N, T, A>
+        where
+            T: Scalar + TestEqAbs,
+        {
+            fn eq(
+                &self,
+                expected: &Self,
+                tol: &T,
+                zero_eq_neg_zero: bool,
+                infinity_eq_nan: bool,
+                quat_eq_neg_quat: bool,
+            ) -> bool {
+                self.0.eq(
+                    &expected.0,
+                    tol,
+                    zero_eq_neg_zero,
+                    infinity_eq_nan,
+                    quat_eq_neg_quat,
+                )
+            }
+        }
+    };
+}
+projective_impl!(2);
+projective_impl!(3);
+
 impl<T, A: Alignment> TestEq for Quaternion<T, A>
 where
     T: Scalar + Neg<Output = T> + TestEq,
@@ -1010,90 +1164,6 @@ where
         } else {
             eq
         }
-    }
-}
-
-impl<const N: usize, T, A: Alignment> TestEq for Affine<N, T, A>
-where
-    Length<N>: SupportedLength,
-    T: Scalar + TestEq,
-{
-    fn eq(
-        &self,
-        expected: &Self,
-        zero_eq_neg_zero: bool,
-        infinity_eq_nan: bool,
-        quat_eq_neg_quat: bool,
-    ) -> bool {
-        self.matrix.eq(
-            &expected.matrix,
-            zero_eq_neg_zero,
-            infinity_eq_nan,
-            quat_eq_neg_quat,
-        ) && self.translation.eq(
-            &expected.translation,
-            zero_eq_neg_zero,
-            infinity_eq_nan,
-            quat_eq_neg_quat,
-        )
-    }
-}
-
-impl<const N: usize, T, A: Alignment> TestEqAbs for Affine<N, T, A>
-where
-    Length<N>: SupportedLength,
-    T: Scalar + TestEqAbs,
-{
-    fn eq(
-        &self,
-        expected: &Self,
-        tol: &Self,
-        zero_eq_neg_zero: bool,
-        infinity_eq_nan: bool,
-        quat_eq_neg_quat: bool,
-    ) -> bool {
-        self.matrix.eq(
-            &expected.matrix,
-            &tol.matrix,
-            zero_eq_neg_zero,
-            infinity_eq_nan,
-            quat_eq_neg_quat,
-        ) && self.translation.eq(
-            &expected.translation,
-            &tol.translation,
-            zero_eq_neg_zero,
-            infinity_eq_nan,
-            quat_eq_neg_quat,
-        )
-    }
-}
-
-impl<const N: usize, T, A: Alignment> TestEqAbs<T> for Affine<N, T, A>
-where
-    Length<N>: SupportedLength,
-    T: Scalar + TestEqAbs,
-{
-    fn eq(
-        &self,
-        expected: &Self,
-        tol: &T,
-        zero_eq_neg_zero: bool,
-        infinity_eq_nan: bool,
-        quat_eq_neg_quat: bool,
-    ) -> bool {
-        self.matrix.eq(
-            &expected.matrix,
-            tol,
-            zero_eq_neg_zero,
-            infinity_eq_nan,
-            quat_eq_neg_quat,
-        ) && self.translation.eq(
-            &expected.translation,
-            tol,
-            zero_eq_neg_zero,
-            infinity_eq_nan,
-            quat_eq_neg_quat,
-        )
     }
 }
 

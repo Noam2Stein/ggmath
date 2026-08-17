@@ -5,7 +5,8 @@ extern crate std;
 use std::iter::repeat_n;
 
 use crate::{
-    Affine, Alignment, FloatExt, Length, Mask, Matrix, Quaternion, Scalar, SupportedLength, Vector,
+    Affine, Alignment, FloatExt, Length, Mask, Matrix, Projective, Quaternion, Scalar,
+    SupportedLength, Vector,
 };
 
 /// Returns an iterator over random values.
@@ -269,17 +270,6 @@ where
     }
 }
 
-impl<T, A: Alignment> Random for Quaternion<T, A>
-where
-    T: Scalar + Random,
-{
-    type Input = T::Input;
-
-    fn random(state: &mut u64, input: Self::Input) -> Self {
-        Self::from_array(Random::random(state, input))
-    }
-}
-
 impl<const N: usize, T, A: Alignment> Random for Affine<N, T, A>
 where
     Length<N>: SupportedLength,
@@ -289,6 +279,34 @@ where
 
     fn random(state: &mut u64, input: Self::Input) -> Self {
         Self::from_row_fn(|_| Random::random(state, input))
+    }
+}
+
+macro_rules! projective_impl {
+    ($N:literal) => {
+        impl<T, A: Alignment> Random for Projective<$N, T, A>
+        where
+            T: Scalar + Random,
+        {
+            type Input = T::Input;
+
+            fn random(state: &mut u64, input: Self::Input) -> Self {
+                Self::from_row_fn(|_| Random::random(state, input))
+            }
+        }
+    };
+}
+projective_impl!(2);
+projective_impl!(3);
+
+impl<T, A: Alignment> Random for Quaternion<T, A>
+where
+    T: Scalar + Random,
+{
+    type Input = T::Input;
+
+    fn random(state: &mut u64, input: Self::Input) -> Self {
+        Self::from_array(Random::random(state, input))
     }
 }
 
