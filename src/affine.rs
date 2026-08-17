@@ -25,10 +25,6 @@ mod wide_float;
 ///
 /// Contains a matrix and a translation vector.
 ///
-/// Prefer using affines over `N+1` matrices for affine transformations, because
-/// affines take less memory and perform better for select operations (see
-/// [benchmark results]).
-///
 /// # Type aliases
 ///
 /// - [`Affine2<T>`] for [`Affine<2, T, Unaligned>`].
@@ -52,16 +48,9 @@ where
 ///
 /// Contains a 2x2 matrix and a 2D translation vector.
 ///
-/// Prefer using [`Affine2<T>`] over [`Mat3<T>`] for affine transformations,
-/// because it takes less memory and performs better for select operations (see
-/// [benchmark results]).
-///
 /// # No SIMD alignment
 ///
 /// [`Affine2<T>`] does not have SIMD alignment, for that use [`Affine2A<T>`].
-///
-/// [`Mat3<T>`]: crate::Mat3
-/// [benchmark results]: https://github.com/Noam2Stein/ggmath/blob/main/BENCH_RESULTS.md
 pub type Affine2<T> = Affine<2, T, Unaligned>;
 
 /// A 3D affine transform which can represent translation, rotation, scaling and
@@ -69,16 +58,9 @@ pub type Affine2<T> = Affine<2, T, Unaligned>;
 ///
 /// Contains a 3x3 matrix and a 3D translation vector.
 ///
-/// Prefer using [`Affine3<T>`] over [`Mat4<T>`] for affine transformations,
-/// because it takes less memory and performs better for select operations (see
-/// [benchmark results]).
-///
 /// # No SIMD alignment
 ///
 /// [`Affine3<T>`] does not have SIMD alignment, for that use [`Affine3A<T>`].
-///
-/// [`Mat4<T>`]: crate::Mat4
-/// [benchmark results]: https://github.com/Noam2Stein/ggmath/blob/main/BENCH_RESULTS.md
 pub type Affine3<T> = Affine<3, T, Unaligned>;
 
 /// A 2D affine transform which can represent translation, rotation, scaling and
@@ -86,17 +68,10 @@ pub type Affine3<T> = Affine<3, T, Unaligned>;
 ///
 /// Contains a 2x2 matrix and a 2D translation vector.
 ///
-/// Prefer using [`Affine2A<T>`] over [`Mat3A<T>`] for affine transformations,
-/// because it takes less memory and performs better for select operations (see
-/// [benchmark results]).
-///
 /// # SIMD alignment
 ///
 /// For appropriate `T` types, [`Affine2A<T>`] has SIMD alignment. For no SIMD
 /// use [`Affine2<T>`].
-///
-/// [`Mat3A<T>`]: crate::Mat3A
-/// [benchmark results]: https://github.com/Noam2Stein/ggmath/blob/main/BENCH_RESULTS.md
 pub type Affine2A<T> = Affine<2, T, Aligned>;
 
 /// A 3D affine transform which can represent translation, rotation, scaling and
@@ -104,17 +79,10 @@ pub type Affine2A<T> = Affine<2, T, Aligned>;
 ///
 /// Contains a 3x3 matrix and a 3D translation vector.
 ///
-/// Prefer using [`Affine3A<T>`] over [`Mat4A<T>`] for affine transformations,
-/// because it takes less memory and performs better for select operations (see
-/// [benchmark results]).
-///
 /// # SIMD alignment
 ///
 /// For appropriate `T` types, [`Affine3A<T>`] has SIMD alignment. For no SIMD
 /// use [`Affine3<T>`].
-///
-/// [`Mat4A<T>`]: crate::Mat4A
-/// [benchmark results]: https://github.com/Noam2Stein/ggmath/blob/main/BENCH_RESULTS.md
 pub type Affine3A<T> = Affine<3, T, Aligned>;
 
 impl<const N: usize, T, A: Alignment> Affine<N, T, A>
