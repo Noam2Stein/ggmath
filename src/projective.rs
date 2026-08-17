@@ -19,7 +19,47 @@ mod wide_float;
 
 /// An `N`-dimensional projective transform represented by a homogeneous matrix.
 ///
-/// TODO
+/// `A` controls SIMD alignment and is either [`Unaligned`] or [`Aligned`]. See
+/// [`Alignment`] for more details.
+///
+/// This can represent translation, rotation, scaling, shear and projections. To
+/// apply this assuming no projection, use [`transform_point`] and
+/// [`transform_vector`]. To apply this with perspective divide, use
+/// [`project_point`]. To transform a homogeneous vector, use
+/// `vector_np1 * self`.
+///
+/// # Type aliases
+///
+/// - [`Proj2<T>`] for [`Projective<2, T, Unaligned>`].
+/// - [`Proj3<T>`] for [`Projective<3, T, Unaligned>`].
+/// - [`Proj2A<T>`] for [`Projective<2, T, Aligned>`].
+/// - [`Proj3A<T>`] for [`Projective<3, T, Aligned>`].
+///
+/// # Fields
+///
+/// - `x_axis: Vector<N + 1, T, N>` (first row of inner matrix, exists for
+///   dimensions `2`, `3`)
+///
+/// - `y_axis: Vector<N + 1, T, N>` (second row of inner matrix, exists for
+///   dimensions `2`, `3`)
+///
+/// - `z_axis: Vector<N + 1, T, N>` (third row of inner matrix, exists for
+///   dimensions `2`, `3`)
+///
+/// - `w_axis: Vector<N + 1, T, N>` (fourth row of inner matrix, exists for
+///   dimension `3`)
+///
+/// Note that these fields are only exposed by implementing [`Deref`] and
+/// [`DerefMut`].
+///
+/// # Memory layout
+///
+/// [`Projective<N, T, A>`] is a transparent wrapper over
+/// [`Matrix<N + 1, T, A>`]. The types can be transmuted both ways.
+///
+/// [`transform_point`]: Projective::transform_point
+/// [`transform_vector`]: Projective::transform_vector
+/// [`project_point`]: Projective::project_point
 #[repr(transparent)]
 #[expect(private_bounds)]
 pub struct Projective<const N: usize, T, A: Alignment>(
@@ -34,22 +74,68 @@ where
 
 /// A 2D projective transform represented by a homogeneous 3x3 matrix.
 ///
-/// TODO
+/// This can represent 2D translation, rotation, scaling, shear and projections.
+/// To apply this assuming no projection, use [`transform_point`] and
+/// [`transform_vector`]. To apply this with perspective divide, use
+/// [`project_point`]. To transform a homogeneous 3D vector, use `vec3 * self`.
+///
+/// # No SIMD alignment
+///
+/// [`Proj2<T>`] does not have SIMD alignment, for that use [`Proj2A<T>`].
+///
+/// [`transform_point`]: Projective::transform_point
+/// [`transform_vector`]: Projective::transform_vector
+/// [`project_point`]: Projective::project_point
 pub type Proj2<T> = Projective<2, T, Unaligned>;
 
 /// A 3D projective transform represented by a homogeneous 4x4 matrix.
 ///
-/// TODO
+/// This can represent 3D translation, rotation, scaling, shear and projections.
+/// To apply this assuming no projection, use [`transform_point`] and
+/// [`transform_vector`]. To apply this with perspective divide, use
+/// [`project_point`]. To transform a homogeneous 4D vector, use `vec4 * self`.
+///
+/// # No SIMD alignment
+///
+/// [`Proj3<T>`] does not have SIMD alignment, for that use [`Proj3A<T>`].
+///
+/// [`transform_point`]: Projective::transform_point
+/// [`transform_vector`]: Projective::transform_vector
+/// [`project_point`]: Projective::project_point
 pub type Proj3<T> = Projective<3, T, Unaligned>;
 
 /// A 2D projective transform represented by a homogeneous 3x3 matrix.
 ///
-/// TODO
+/// This can represent 2D translation, rotation, scaling, shear and projections.
+/// To apply this assuming no projection, use [`transform_point`] and
+/// [`transform_vector`]. To apply this with perspective divide, use
+/// [`project_point`]. To transform a homogeneous 3D vector, use `vec3 * self`.
+///
+/// # SIMD alignment
+///
+/// For appropriate `T` types, [`Proj2A<T>`] has SIMD alignment. For no SIMD use
+/// [`Proj2<T>`].
+///
+/// [`transform_point`]: Projective::transform_point
+/// [`transform_vector`]: Projective::transform_vector
+/// [`project_point`]: Projective::project_point
 pub type Proj2A<T> = Projective<2, T, Aligned>;
 
 /// A 3D projective transform represented by a homogeneous 4x4 matrix.
 ///
-/// TODO
+/// This can represent 3D translation, rotation, scaling, shear and projections.
+/// To apply this assuming no projection, use [`transform_point`] and
+/// [`transform_vector`]. To apply this with perspective divide, use
+/// [`project_point`]. To transform a homogeneous 4D vector, use `vec4 * self`.
+///
+/// # SIMD alignment
+///
+/// For appropriate `T` types, [`Proj3A<T>`] has SIMD alignment. For no SIMD use
+/// [`Proj3<T>`].
+///
+/// [`transform_point`]: Projective::transform_point
+/// [`transform_vector`]: Projective::transform_vector
+/// [`project_point`]: Projective::project_point
 pub type Proj3A<T> = Projective<3, T, Aligned>;
 
 #[expect(private_bounds)]
