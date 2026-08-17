@@ -11,28 +11,34 @@ where
     Wide: WideTy<Array = [T; LANES]>,
     T: Scalar,
 {
-    /// Creates an SoA (Structure of Arrays) matrix from an array of lanes or
-    /// scalar matrices.
+    /// Creates an SoA (Structure of Arrays) projective transform from an array
+    /// of regular, non-SoA projective transforms corresponding to each output
+    /// lane.
     ///
     /// # Examples
     ///
     /// ```
-    /// # use ggmath::Mat2;
+    /// # use ggmath::Proj2;
     /// # use wide::i32x4;
     /// #
     /// let lanes = [
-    ///     Mat2::from_row_array(&[1, 2, 3, 4]),
-    ///     Mat2::from_row_array(&[5, 6, 7, 8]),
-    ///     Mat2::from_row_array(&[9, 10, 11, 12]),
-    ///     Mat2::from_row_array(&[13, 14, 15, 16]),
+    ///     Proj2::from_row_array(&[1, 2, 3, 4, 5, 6, 7, 8, 9]),
+    ///     Proj2::from_row_array(&[11, 12, 13, 14, 15, 16, 17, 18, 19]),
+    ///     Proj2::from_row_array(&[21, 22, 23, 24, 25, 26, 27, 28, 29]),
+    ///     Proj2::from_row_array(&[31, 32, 33, 34, 35, 36, 37, 38, 39]),
     /// ];
     /// assert_eq!(
-    ///     Mat2::<i32x4>::from_lanes(&lanes),
-    ///     Mat2::from_row_array(&[
-    ///         i32x4::new([1, 5, 9, 13]),
-    ///         i32x4::new([2, 6, 10, 14]),
-    ///         i32x4::new([3, 7, 11, 15]),
-    ///         i32x4::new([4, 8, 12, 16]),
+    ///     Proj2::<i32x4>::from_lanes(&lanes),
+    ///     Proj2::from_row_array(&[
+    ///         i32x4::new([1, 11, 21, 31]),
+    ///         i32x4::new([2, 12, 22, 32]),
+    ///         i32x4::new([3, 13, 23, 33]),
+    ///         i32x4::new([4, 14, 24, 34]),
+    ///         i32x4::new([5, 15, 25, 35]),
+    ///         i32x4::new([6, 16, 26, 36]),
+    ///         i32x4::new([7, 17, 27, 37]),
+    ///         i32x4::new([8, 18, 28, 38]),
+    ///         i32x4::new([9, 19, 29, 39]),
     ///     ]),
     /// );
     /// ```
@@ -42,28 +48,33 @@ where
         specialize_23!(Projective::<N, Wide, A>::from_lanes_backend(lanes))
     }
 
-    /// Creates an SoA (Structure of Arrays) matrix by calling function `f` for
-    /// each lane index.
+    /// Creates an SoA (Structure of Arrays) projective transform by calling
+    /// function `f` for each output lane.
     ///
     /// # Examples
     ///
     /// ```
-    /// # use ggmath::Mat2;
+    /// # use ggmath::Proj2;
     /// # use wide::i32x4;
     /// #
     /// let lanes = [
-    ///     Mat2::from_row_array(&[1, 2, 3, 4]),
-    ///     Mat2::from_row_array(&[5, 6, 7, 8]),
-    ///     Mat2::from_row_array(&[9, 10, 11, 12]),
-    ///     Mat2::from_row_array(&[13, 14, 15, 16]),
+    ///     Proj2::from_row_array(&[1, 2, 3, 4, 5, 6, 7, 8, 9]),
+    ///     Proj2::from_row_array(&[11, 12, 13, 14, 15, 16, 17, 18, 19]),
+    ///     Proj2::from_row_array(&[21, 22, 23, 24, 25, 26, 27, 28, 29]),
+    ///     Proj2::from_row_array(&[31, 32, 33, 34, 35, 36, 37, 38, 39]),
     /// ];
     /// assert_eq!(
-    ///     Mat2::<i32x4>::from_lane_fn(|lane_index| lanes[lane_index]),
-    ///     Mat2::from_row_array(&[
-    ///         i32x4::new([1, 5, 9, 13]),
-    ///         i32x4::new([2, 6, 10, 14]),
-    ///         i32x4::new([3, 7, 11, 15]),
-    ///         i32x4::new([4, 8, 12, 16]),
+    ///     Proj2::<i32x4>::from_lane_fn(|lane_index| lanes[lane_index]),
+    ///     Proj2::from_row_array(&[
+    ///         i32x4::new([1, 11, 21, 31]),
+    ///         i32x4::new([2, 12, 22, 32]),
+    ///         i32x4::new([3, 13, 23, 33]),
+    ///         i32x4::new([4, 14, 24, 34]),
+    ///         i32x4::new([5, 15, 25, 35]),
+    ///         i32x4::new([6, 16, 26, 36]),
+    ///         i32x4::new([7, 17, 27, 37]),
+    ///         i32x4::new([8, 18, 28, 38]),
+    ///         i32x4::new([9, 19, 29, 39]),
     ///     ]),
     /// );
     /// ```
@@ -77,28 +88,34 @@ where
         Self::from_lanes(&core::array::from_fn(f))
     }
 
-    /// Converts an SoA (Structure of Arrays) matrix to an array of lanes or
-    /// scalar matrices.
+    /// Converts an SoA (Structure of Arrays) projective transform to an array
+    /// of regular, non-SoA projective transforms corresponding to each input
+    /// lane.
     ///
     /// # Examples
     ///
     /// ```
-    /// # use ggmath::Mat2;
+    /// # use ggmath::Proj2;
     /// # use wide::i32x4;
     /// #
-    /// let matrix = Mat2::from_row_array(&[
-    ///     i32x4::new([1, 5, 9, 13]),
-    ///     i32x4::new([2, 6, 10, 14]),
-    ///     i32x4::new([3, 7, 11, 15]),
-    ///     i32x4::new([4, 8, 12, 16]),
+    /// let soa = Proj2::from_row_array(&[
+    ///     i32x4::new([1, 11, 21, 31]),
+    ///     i32x4::new([2, 12, 22, 32]),
+    ///     i32x4::new([3, 13, 23, 33]),
+    ///     i32x4::new([4, 14, 24, 34]),
+    ///     i32x4::new([5, 15, 25, 35]),
+    ///     i32x4::new([6, 16, 26, 36]),
+    ///     i32x4::new([7, 17, 27, 37]),
+    ///     i32x4::new([8, 18, 28, 38]),
+    ///     i32x4::new([9, 19, 29, 39]),
     /// ]);
     /// assert_eq!(
-    ///     matrix.to_lanes(),
+    ///     soa.to_lanes(),
     ///     [
-    ///         Mat2::from_row_array(&[1, 2, 3, 4]),
-    ///         Mat2::from_row_array(&[5, 6, 7, 8]),
-    ///         Mat2::from_row_array(&[9, 10, 11, 12]),
-    ///         Mat2::from_row_array(&[13, 14, 15, 16]),
+    ///         Proj2::from_row_array(&[1, 2, 3, 4, 5, 6, 7, 8, 9]),
+    ///         Proj2::from_row_array(&[11, 12, 13, 14, 15, 16, 17, 18, 19]),
+    ///         Proj2::from_row_array(&[21, 22, 23, 24, 25, 26, 27, 28, 29]),
+    ///         Proj2::from_row_array(&[31, 32, 33, 34, 35, 36, 37, 38, 39]),
     ///     ],
     /// );
     /// ```
@@ -108,8 +125,8 @@ where
         core::array::from_fn(|lane| self.lane(lane))
     }
 
-    /// Takes an SoA (Structure of Arrays) matrix and returns the lane at the
-    /// given index.
+    /// Takes an SoA (Structure of Arrays) projective transform and returns the
+    /// lane at the given index.
     ///
     /// # Panics
     ///
@@ -118,16 +135,24 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use ggmath::Mat2;
+    /// # use ggmath::Proj2;
     /// # use wide::i32x4;
     /// #
-    /// let matrix = Mat2::from_row_array(&[
-    ///     i32x4::new([1, 5, 9, 13]),
-    ///     i32x4::new([2, 6, 10, 14]),
-    ///     i32x4::new([3, 7, 11, 15]),
-    ///     i32x4::new([4, 8, 12, 16]),
+    /// let soa = Proj2::from_row_array(&[
+    ///     i32x4::new([1, 11, 21, 31]),
+    ///     i32x4::new([2, 12, 22, 32]),
+    ///     i32x4::new([3, 13, 23, 33]),
+    ///     i32x4::new([4, 14, 24, 34]),
+    ///     i32x4::new([5, 15, 25, 35]),
+    ///     i32x4::new([6, 16, 26, 36]),
+    ///     i32x4::new([7, 17, 27, 37]),
+    ///     i32x4::new([8, 18, 28, 38]),
+    ///     i32x4::new([9, 19, 29, 39]),
     /// ]);
-    /// assert_eq!(matrix.lane(1), Mat2::from_row_array(&[5, 6, 7, 8]));
+    /// assert_eq!(
+    ///     soa.lane(1),
+    ///     Proj2::from_row_array(&[11, 12, 13, 14, 15, 16, 17, 18, 19]),
+    /// );
     /// ```
     #[inline]
     #[must_use]
@@ -136,8 +161,8 @@ where
         specialize_23!(Projective::<N, Wide, A>::lane_backend(self, lane))
     }
 
-    /// Takes an SoA (Structure of Arrays) matrix and sets the lane at the given
-    /// index to `value`.
+    /// Takes an SoA (Structure of Arrays) projective transform and sets the
+    /// lane at the given index to `value`.
     ///
     /// # Panics
     ///
@@ -147,23 +172,33 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use ggmath::Mat2;
+    /// # use ggmath::Proj2;
     /// # use wide::i32x4;
     /// #
-    /// let mut matrix = Mat2::from_row_array(&[
-    ///     i32x4::new([1, 5, 9, 13]),
-    ///     i32x4::new([2, 6, 10, 14]),
-    ///     i32x4::new([3, 7, 11, 15]),
-    ///     i32x4::new([4, 8, 12, 16]),
+    /// let mut soa = Proj2::from_row_array(&[
+    ///     i32x4::new([1, 11, 21, 31]),
+    ///     i32x4::new([2, 12, 22, 32]),
+    ///     i32x4::new([3, 13, 23, 33]),
+    ///     i32x4::new([4, 14, 24, 34]),
+    ///     i32x4::new([5, 15, 25, 35]),
+    ///     i32x4::new([6, 16, 26, 36]),
+    ///     i32x4::new([7, 17, 27, 37]),
+    ///     i32x4::new([8, 18, 28, 38]),
+    ///     i32x4::new([9, 19, 29, 39]),
     /// ]);
-    /// matrix.set_lane(1, Mat2::ZERO);
+    /// soa.set_lane(1, Proj2::ZERO);
     /// assert_eq!(
     ///     matrix,
-    ///     Mat2::from_row_array(&[
-    ///         i32x4::new([1, 0, 9, 13]),
-    ///         i32x4::new([2, 0, 10, 14]),
-    ///         i32x4::new([3, 0, 11, 15]),
-    ///         i32x4::new([4, 0, 12, 16]),
+    ///     Proj2::from_row_array(&[
+    ///         i32x4::new([1, 0, 21, 31]),
+    ///         i32x4::new([2, 0, 22, 32]),
+    ///         i32x4::new([3, 0, 23, 33]),
+    ///         i32x4::new([4, 0, 24, 34]),
+    ///         i32x4::new([5, 0, 25, 35]),
+    ///         i32x4::new([6, 0, 26, 36]),
+    ///         i32x4::new([7, 0, 27, 37]),
+    ///         i32x4::new([8, 0, 28, 38]),
+    ///         i32x4::new([9, 0, 29, 39]),
     ///     ]),
     /// );
     /// ```
