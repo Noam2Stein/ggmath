@@ -11,13 +11,13 @@ where
     T: PrimitiveFloat,
 {
     /// A transform with all elements set to NaN (Not a Number).
-    pub const NAN: Self = Self::NAN_IMPL;
+    pub const NAN: Self = Self::NAN_INTERNAL_IMPL;
 
     /// The implementation of [`Self::NAN`].
     ///
     /// Because of type system limitations, this implementation looks crazy. Use
     /// a separate constant so that IDEs do not show the implementation.
-    const NAN_IMPL: Self = match N {
+    const NAN_INTERNAL_IMPL: Self = match N {
         // SAFETY: We are transmuting a type to itself
         2 => unsafe {
             transmute_generic::<Projective<2, T, A>, Projective<N, T, A>>(Projective::<2, T, A> {
@@ -91,11 +91,13 @@ where
     ///
     /// If `self` is not invertable, the result is unspecified.
     ///
+    /// This computes the inverse of the inner homogeneous matrix.
+    ///
     /// # Panics
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if the determinant is `0`.
+    /// Panics if the determinant of the homogeneous matrix is `0`.
     #[must_use]
     #[track_caller]
     pub fn inverse(&self) -> Self {
@@ -103,19 +105,25 @@ where
     }
 
     /// Returns the inverse of `self` or `None` if `self` is not invertable.
+    ///
+    /// This computes the inverse of the inner homogeneous matrix.
     #[must_use]
     pub fn try_inverse(&self) -> Option<Self> {
         specialize_23!(Projective::<N, T, A>::try_inverse_backend(self))
     }
 
     /// Returns the inverse of `self` or `fallback` if `self` is not invertable.
+    ///
+    /// This computes the inverse of the inner homogeneous matrix.
     #[must_use]
     pub fn inverse_or(&self, fallback: &Self) -> Self {
         specialize_23!(Projective::<N, T, A>::inverse_or_backend(self, fallback))
     }
 
-    /// Returns the inverse of `self` or the zero matrix if `self` is not
+    /// Returns the inverse of `self` or the zero transform if `self` is not
     /// invertable.
+    ///
+    /// This computes the inverse of the inner homogeneous matrix.
     #[must_use]
     pub fn inverse_or_zero(&self) -> Self {
         specialize_23!(Projective::<N, T, A>::inverse_or_zero_backend(self))
@@ -125,14 +133,14 @@ where
     ///
     /// Equivalent to `(point, 1) * self` but is faster.
     ///
-    /// `self` must contain a valid affine transform, meaning the third column
-    /// must be `(0, 0, 1)`.
+    /// This function assumes `self` contains an affine transformation, with no
+    /// projections, meaning the last column must be `(0, 0, ..., 1)`.
     ///
     /// # Panics
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if the third column of `self` is not `(0, 0, 1)`.
+    /// Panics if the last column of `self` is not `(0, 0, ..., 1)`.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -140,18 +148,18 @@ where
         specialize_23!(Projective::<N, T, A>::transform_point_backend(self, point))
     }
 
-    /// Transforms the given 2D vector without applying translation.
+    /// Transforms the given vector without applying translation.
     ///
     /// Equivalent to `(vector, 0) * self` but is faster.
     ///
-    /// `self` must contain a valid affine transform, meaning the third column
-    /// must be `(0, 0, 1)`.
+    /// This function assumes `self` contains an affine transformation, with no
+    /// projections, meaning the last column must be `(0, 0, ..., 1)`.
     ///
     /// # Panics
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if the third column of `self` is not `(0, 0, 1)`.
+    /// Panics if the last column of `self` is not `(0, 0, ..., 1)`.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -161,15 +169,7 @@ where
         ))
     }
 
-    /// Transforms the given 3D vector as a point, applying perspective
-    /// projection.
-    ///
-    /// Equivalent to:
-    ///
-    /// ```ignore
-    /// let result = matrix * (point, 1);
-    /// result.xyz / result.w
-    /// ```
+    /// Transforms the given vector as a point, applying perspective divide.
     #[inline]
     #[must_use]
     pub fn project_point(&self, point: Vector<N, T, A>) -> Vector<N, T, A> {
@@ -196,16 +196,10 @@ impl<T, A: Alignment> Projective<2, T, A>
 where
     T: PrimitiveFloat,
 {
-    /// Creates an affine transformation matrix containing a rotation of `angle`
-    /// (in radians).
+    /// Creates a 2D projective transform containing a rotation of `angle` (in
+    /// radians).
     ///
     /// This rotates `+X` to `+Y`.
-    ///
-    /// The resulting matrix can be used to transform 2D points and vectors. See
-    /// [`transform_point`] and [`transform_vector`].
-    ///
-    /// [`transform_point`]: Self::transform_point
-    /// [`transform_vector`]: Self::transform_vector
     #[inline]
     #[must_use]
     pub fn from_angle(angle: T) -> Self {
@@ -217,16 +211,10 @@ where
         ])
     }
 
-    /// Creates an affine transformation matrix containing the non-uniform
-    /// `scale` and a rotation of `angle` (in radians).
+    /// Creates a 2D projective transform containing a non-uniform `scale` and a
+    /// rotation of `angle` (in radians).
     ///
     /// This rotates `+X` to `+Y`.
-    ///
-    /// The resulting matrix can be used to transform 2D points and vectors. See
-    /// [`transform_point`] and [`transform_vector`].
-    ///
-    /// [`transform_point`]: Self::transform_point
-    /// [`transform_vector`]: Self::transform_vector
     #[inline]
     #[must_use]
     pub fn from_scale_angle(scale: Vector<2, T, A>, angle: T) -> Self {
@@ -238,16 +226,10 @@ where
         ])
     }
 
-    /// Creates an affine transformation matrix containing a rotation of `angle`
-    /// (in radians) and `translation`.
+    /// Creates a 2D projective transform containing a rotation of `angle` (in
+    /// radians) and `translation`.
     ///
     /// This rotates `+X` to `+Y`.
-    ///
-    /// The resulting matrix can be used to transform 2D points and vectors. See
-    /// [`transform_point`] and [`transform_vector`].
-    ///
-    /// [`transform_point`]: Self::transform_point
-    /// [`transform_vector`]: Self::transform_vector
     #[inline]
     #[must_use]
     pub fn from_angle_translation(angle: T, translation: Vector<2, T, A>) -> Self {
@@ -259,16 +241,10 @@ where
         ])
     }
 
-    /// Creates an affine transformation matrix containing the non-uniform
-    /// `scale`, a rotation of `angle` (in radians) and `translation`.
+    /// Creates a 2D projective transform containing a non-uniform `scale`, a
+    /// rotation of `angle` (in radians) and `translation`.
     ///
     /// This rotates `+X` to `+Y`.
-    ///
-    /// The resulting matrix can be used to transform 2D points and vectors. See
-    /// [`transform_point`] and [`transform_vector`].
-    ///
-    /// [`transform_point`]: Self::transform_point
-    /// [`transform_vector`]: Self::transform_vector
     #[inline]
     #[must_use]
     pub fn from_scale_angle_translation(
@@ -286,16 +262,16 @@ where
 
     /// Returns the `scale` and `angle` of `self`.
     ///
-    /// `self` must contain a valid affine transformation without shearing.
-    /// Otherwise the result is unspecified.
+    /// This function assumes `self` contains an affine transformation with no
+    /// shearing.
     ///
-    /// `self` can contain translation which is ignored.
+    /// `self` can contain translation, which is ignored.
     ///
     /// # Panics
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `self` contains shearing or the determinant of `self` is zero.
+    /// Panics if `self` contains shearing or the 2D determinant of `self` is zero.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -305,14 +281,14 @@ where
 
     /// Returns the `scale`, `angle` and `translation` of `self`.
     ///
-    /// `self` must contain a valid affine transformation without shearing.
-    /// Otherwise the result is unspecified.
+    /// This function assumes `self` contains an affine transformation with no
+    /// shearing.
     ///
     /// # Panics
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `self` contains shearing or the determinant of `self` is zero.
+    /// Panics if `self` contains shearing or the 2D determinant of `self` is zero.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -392,16 +368,10 @@ impl<T, A: Alignment> Projective<3, T, A>
 where
     T: PrimitiveFloat,
 {
-    /// Creates an affine transformation matrix containing a 3D rotation from
-    /// `angle` (in radians) around the x axis.
+    /// Creates a 3D projective transform containing a rotation from `angle` (in
+    /// radians) around the x axis.
     ///
     /// This rotates `+Y` to `+Z`.
-    ///
-    /// The resulting matrix can be used to transform 3D points and vectors. See
-    /// [`transform_point`] and [`transform_vector`].
-    ///
-    /// [`transform_point`]: Self::transform_point
-    /// [`transform_vector`]: Self::transform_vector
     #[inline]
     #[must_use]
     pub fn from_rotation_x(angle: T) -> Self {
@@ -414,16 +384,10 @@ where
         ])
     }
 
-    /// Creates an affine transformation matrix containing a 3D rotation from
-    /// `angle` (in radians) around the y axis.
+    /// Creates a 3D projective transform containing a rotation from `angle` (in
+    /// radians) around the y axis.
     ///
     /// This rotates `+Z` to `+X`.
-    ///
-    /// The resulting matrix can be used to transform 3D points and vectors. See
-    /// [`transform_point`] and [`transform_vector`].
-    ///
-    /// [`transform_point`]: Self::transform_point
-    /// [`transform_vector`]: Self::transform_vector
     #[inline]
     #[must_use]
     pub fn from_rotation_y(angle: T) -> Self {
@@ -436,16 +400,10 @@ where
         ])
     }
 
-    /// Creates an affine transformation matrix containing a 3D rotation from
-    /// `angle` (in radians) around the z axis.
+    /// Creates a 3D projective transform containing a rotation from `angle` (in
+    /// radians) around the z axis.
     ///
     /// This rotates `+X` to `+Y`.
-    ///
-    /// The resulting matrix can be used to transform 3D points and vectors. See
-    /// [`transform_point`] and [`transform_vector`].
-    ///
-    /// [`transform_point`]: Self::transform_point
-    /// [`transform_vector`]: Self::transform_vector
     #[inline]
     #[must_use]
     pub fn from_rotation_z(angle: T) -> Self {
@@ -480,20 +438,14 @@ where
         ]
     }
 
-    /// Creates an affine transformation matrix containing a 3D rotation from a
+    /// Creates a 3D projective transform containing a rotation from a
     /// quaternion.
-    ///
-    /// The resulting matrix can be used to transform 3D points and vectors. See
-    /// [`transform_point`] and [`transform_vector`].
     ///
     /// # Panics
     ///
     /// When debug assertions are enabled:
     ///
     /// Panics if the quaternion is not normalized.
-    ///
-    /// [`transform_point`]: Self::transform_point
-    /// [`transform_vector`]: Self::transform_vector
     #[inline]
     #[must_use]
     #[track_caller]
@@ -507,22 +459,16 @@ where
         Self::from_rows(&[x_axis, y_axis, z_axis, Vector::W])
     }
 
-    /// Creates an affine transformation matrix containing a rotation from a
+    /// Creates a 3D projective transform containing a rotation from a
     /// rotation `axis` and `angle` (in radians).
     ///
     /// `axis` must be normalized. Otherwise the result is unspecified.
-    ///
-    /// The resulting matrix can be used to transform 3D points and vectors. See
-    /// [`transform_point`] and [`transform_vector`].
     ///
     /// # Panics
     ///
     /// When debug assertions are enabled:
     ///
     /// Panics if `axis` is not normalized.
-    ///
-    /// [`transform_point`]: Self::transform_point
-    /// [`transform_vector`]: Self::transform_vector
     #[inline]
     #[must_use]
     #[track_caller]
@@ -549,34 +495,22 @@ where
         ])
     }
 
-    /// Creates an affine transformation matrix containing a rotation from an
-    /// Euler rotation order/sequence and angles (in radians).
-    ///
-    /// The resulting matrix can be used to transform 3D points and vectors. See
-    /// [`transform_point`] and [`transform_vector`].
-    ///
-    /// [`transform_point`]: Self::transform_point
-    /// [`transform_vector`]: Self::transform_vector
+    /// Creates a 3D projective transform containing a rotation from an Euler
+    /// rotation order/sequence and angles (in radians).
     #[inline]
     #[must_use]
     pub fn from_euler(order: EulerRot, a: T, b: T, c: T) -> Self {
         Self::from_matrix(&Matrix::<3, T, A>::from_euler(order, a, b, c))
     }
 
-    /// Creates an affine transformation matrix containing a non-uniform `scale`
-    /// and a 3D `rotation`.
-    ///
-    /// The resulting matrix can be used to transform 3D points and vectors. See
-    /// [`transform_point`] and [`transform_vector`].
+    /// Creates a 3D projective transform containing a non-uniform `scale` and a
+    /// 3D `rotation`.
     ///
     /// # Panics
     ///
     /// When debug assertions are enabled:
     ///
     /// Panics if `rotation` is not normalized.
-    ///
-    /// [`transform_point`]: Self::transform_point
-    /// [`transform_vector`]: Self::transform_vector
     #[inline]
     #[must_use]
     #[track_caller]
@@ -595,20 +529,14 @@ where
         ])
     }
 
-    /// Creates an affine transformation matrix containing a 3D `rotation` and
+    /// Creates a 3D projective transform containing a 3D `rotation` and
     /// `translation`.
-    ///
-    /// The resulting matrix can be used to transform 3D points and vectors. See
-    /// [`transform_point`] and [`transform_vector`].
     ///
     /// # Panics
     ///
     /// When debug assertions are enabled:
     ///
     /// Panics if `rotation` is not normalized.
-    ///
-    /// [`transform_point`]: Self::transform_point
-    /// [`transform_vector`]: Self::transform_vector
     #[inline]
     #[must_use]
     #[track_caller]
@@ -630,20 +558,14 @@ where
         ])
     }
 
-    /// Creates an affine transformation matrix containing the non-uniform
-    /// `scale`, a 3D `rotation` and `translation`.
-    ///
-    /// The resulting matrix can be used to transform 3D points and vectors. See
-    /// [`transform_point`] and [`transform_vector`].
+    /// Creates a 3D projective transform containing a non-uniform `scale`, a 3D
+    /// `rotation` and `translation`.
     ///
     /// # Panics
     ///
     /// When debug assertions are enabled:
     ///
     /// Panics if `rotation` is not normalized.
-    ///
-    /// [`transform_point`]: Self::transform_point
-    /// [`transform_vector`]: Self::transform_vector
     #[inline]
     #[must_use]
     #[track_caller]
@@ -666,13 +588,10 @@ where
         ])
     }
 
-    /// Creates a left-handed view matrix from a camera position, a facing
+    /// Creates a left-handed view transform from a camera position, a facing
     /// direction and an up direction.
     ///
     /// For a view coordinate system with `+X=right`, `+Y=up` and `+Z=forward`.
-    ///
-    /// The resulting matrix can be used to transform 3D points and vectors. See
-    /// [`transform_point`] and [`transform_vector`].
     ///
     /// # Panics
     ///
@@ -682,9 +601,6 @@ where
     ///
     /// - `dir` or `up` are not normalized
     /// - `dir` and `up` are parallel
-    ///
-    /// [`transform_point`]: Self::transform_point
-    /// [`transform_vector`]: Self::transform_vector
     #[inline]
     #[must_use]
     #[track_caller]
@@ -713,13 +629,10 @@ where
         ])
     }
 
-    /// Creates a right-handed view matrix from a camera position, a facing
+    /// Creates a right-handed view transform from a camera position, a facing
     /// direction and an up direction.
     ///
     /// For a view coordinate system with `+X=right`, `+Y=up` and `+Z=back`.
-    ///
-    /// The resulting matrix can be used to transform 3D points and vectors. See
-    /// [`transform_point`] and [`transform_vector`].
     ///
     /// # Panics
     ///
@@ -729,9 +642,6 @@ where
     ///
     /// - `dir` or `up` are not normalized
     /// - `dir` and `up` are parallel
-    ///
-    /// [`transform_point`]: Self::transform_point
-    /// [`transform_vector`]: Self::transform_vector
     #[inline]
     #[must_use]
     #[track_caller]
@@ -760,13 +670,10 @@ where
         ])
     }
 
-    /// Creates a left-handed view matrix from a camera position, a focal point
+    /// Creates a left-handed view transform from a camera position, a focal point
     /// and an up direction.
     ///
     /// For a view coordinate system with `+X=right`, `+Y=up` and `+Z=forward`.
-    ///
-    /// The resulting matrix can be used to transform 3D points and vectors. See
-    /// [`transform_point`] and [`transform_vector`].
     ///
     /// # Panics
     ///
@@ -777,9 +684,6 @@ where
     /// - `up` is not normalized
     /// - `center` is equal to `eye`
     /// - The resulting forward direction is parallel to `up`
-    ///
-    /// [`transform_point`]: Self::transform_point
-    /// [`transform_vector`]: Self::transform_vector
     #[inline]
     #[must_use]
     #[track_caller]
@@ -813,13 +717,10 @@ where
         ])
     }
 
-    /// Creates a right-handed view matrix from a camera position, a focal point
+    /// Creates a right-handed view transform from a camera position, a focal point
     /// and an up direction.
     ///
     /// For a view coordinate system with `+X=right`, `+Y=up` and `+Z=back`.
-    ///
-    /// The resulting matrix can be used to transform 3D points and vectors. See
-    /// [`transform_point`] and [`transform_vector`].
     ///
     /// # Panics
     ///
@@ -830,9 +731,6 @@ where
     /// - `up` is not normalized
     /// - `center` is equal to `eye`
     /// - The resulting forward direction is parallel to `up`
-    ///
-    /// [`transform_point`]: Self::transform_point
-    /// [`transform_vector`]: Self::transform_vector
     #[inline]
     #[must_use]
     #[track_caller]
@@ -866,13 +764,10 @@ where
         ])
     }
 
-    /// Creates a left-handed perspective projection matrix with `0..1` depth
-    /// range.
+    /// Creates a left-handed perspective projection with `0..1` depth range.
     ///
     /// Useful to map the standard left-handed coordinate system into what
     /// WebGPU/Metal/Direct3D expect.
-    ///
-    /// The resulting matrix can be used to transform 3D points using [`project_point`].
     ///
     /// # Panics
     ///
@@ -880,8 +775,6 @@ where
     ///
     /// Panics if `near_plane` is less than or equal to `0`, or if `far_plane`
     /// is less than or equal to `near_plane`.
-    ///
-    /// [`project_point`]: Self::project_point
     #[inline]
     #[must_use]
     #[track_caller]
@@ -904,13 +797,10 @@ where
         ])
     }
 
-    /// Creates a right-handed perspective projection matrix with `0..1` depth
-    /// range.
+    /// Creates a right-handed perspective projection with `0..1` depth range.
     ///
     /// Useful to map the standard right-handed coordinate system into what
     /// WebGPU/Metal/Direct3D expect.
-    ///
-    /// The resulting matrix can be used to transform 3D points using [`project_point`].
     ///
     /// # Panics
     ///
@@ -918,8 +808,6 @@ where
     ///
     /// Panics if `near_plane` is less than or equal to `0`, or if `far_plane`
     /// is less than or equal to `near_plane`.
-    ///
-    /// [`project_point`]: Self::project_point
     #[inline]
     #[must_use]
     #[track_caller]
@@ -942,12 +830,9 @@ where
         ])
     }
 
-    /// Creates a right-handed perspective projection matrix with `-1..1` depth
-    /// range.
+    /// Creates a right-handed perspective projection with `-1..1` depth range.
     ///
     /// Equivalent to the OpenGL [`gluPerspective`] function.
-    ///
-    /// The resulting matrix can be used to transform 3D points using [`project_point`].
     ///
     /// # Panics
     ///
@@ -957,7 +842,6 @@ where
     /// is less than or equal to `near_plane`.
     ///
     /// [`gluPerspective`]: https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/gluPerspective.xml
-    /// [`project_point`]: Self::project_point
     #[inline]
     #[must_use]
     #[track_caller]
@@ -995,22 +879,18 @@ where
         ])
     }
 
-    /// Creates an infinite left-handed perspective projection matrix with
-    /// `0..1` depth range.
+    /// Creates an infinite left-handed perspective projection with `0..1` depth
+    /// range.
     ///
     /// Equivalent to `perspective_lh`, but with an infinite value for
     /// `far_plane`. The result is that points near `near_plane` have depth `0`,
     /// and as they move towards infinity the depth approaches `1`.
-    ///
-    /// The resulting matrix can be used to transform 3D points using [`project_point`].
     ///
     /// # Panics
     ///
     /// When debug assertions are enabled:
     ///
     /// Panics if `near_plane` is less than or equal to `0`.
-    ///
-    /// [`project_point`]: Self::project_point
     #[inline]
     #[must_use]
     #[track_caller]
@@ -1029,22 +909,18 @@ where
         ])
     }
 
-    /// Creates an infinite right-handed perspective projection matrix with
-    /// `0..1` depth range.
+    /// Creates an infinite right-handed perspective projection with `0..1`
+    /// depth range.
     ///
     /// Equivalent to `perspective_rh`, but with an infinite value for
     /// `far_plane`. The result is that points near `near_plane` have depth `0`,
     /// and as they move towards infinity the depth approaches `1`.
-    ///
-    /// The resulting matrix can be used to transform 3D points using [`project_point`].
     ///
     /// # Panics
     ///
     /// When debug assertions are enabled:
     ///
     /// Panics if `near_plane` is less than or equal to `0`.
-    ///
-    /// [`project_point`]: Self::project_point
     #[inline]
     #[must_use]
     #[track_caller]
@@ -1063,21 +939,17 @@ where
         ])
     }
 
-    /// Creates an infinite left-handed perspective projection matrix with
-    /// reversed `0..1` depth range.
+    /// Creates an infinite left-handed perspective projection with reversed
+    /// `0..1` depth range.
     ///
     /// Equivalent to `perspective_infinite_lh`, but maps points at `near_plane`
     /// to depth `1` and points at infinity to depth `0`.
-    ///
-    /// The resulting matrix can be used to transform 3D points using [`project_point`].
     ///
     /// # Panics
     ///
     /// When debug assertions are enabled:
     ///
     /// Panics if `near_plane` is less than or equal to `0`.
-    ///
-    /// [`project_point`]: Self::project_point
     #[inline]
     #[must_use]
     #[track_caller]
@@ -1100,21 +972,17 @@ where
         ])
     }
 
-    /// Creates an infinite right-handed perspective projection matrix with
-    /// reversed `0..1` depth range.
+    /// Creates an infinite right-handed perspective projection with reversed
+    /// `0..1` depth range.
     ///
     /// Equivalent to `perspective_infinite_rh`, but maps points at `near_plane`
     /// to depth `1` and points at infinity to depth `0`.
-    ///
-    /// The resulting matrix can be used to transform 3D points using [`project_point`].
     ///
     /// # Panics
     ///
     /// When debug assertions are enabled:
     ///
     /// Panics if `near_plane` is less than or equal to `0`.
-    ///
-    /// [`project_point`]: Self::project_point
     #[inline]
     #[must_use]
     #[track_caller]
@@ -1137,10 +1005,7 @@ where
         ])
     }
 
-    /// Creates a left-handed perspective projection matrix with `0..1` depth
-    /// range.
-    ///
-    /// The resulting matrix can be used to transform 3D points using [`project_point`].
+    /// Creates a left-handed perspective projection with `0..1` depth range.
     ///
     /// # Panics
     ///
@@ -1148,8 +1013,6 @@ where
     ///
     /// Panics if `near_plane` is less than or equal to `0`, or if `far_plane`
     /// is less than or equal to `near_plane`.
-    ///
-    /// [`project_point`]: Self::project_point
     #[inline]
     #[must_use]
     #[track_caller]
@@ -1176,10 +1039,7 @@ where
         ])
     }
 
-    /// Creates a right-handed perspective projection matrix with `0..1` depth
-    /// range.
-    ///
-    /// The resulting matrix can be used to transform 3D points using [`project_point`].
+    /// Creates a right-handed perspective projection with `0..1` depth range.
     ///
     /// # Panics
     ///
@@ -1187,8 +1047,6 @@ where
     ///
     /// Panics if `near_plane` is less than or equal to `0`, or if `far_plane`
     /// is less than or equal to `near_plane`.
-    ///
-    /// [`project_point`]: Self::project_point
     #[inline]
     #[must_use]
     #[track_caller]
@@ -1215,12 +1073,9 @@ where
         ])
     }
 
-    /// Creates a right-handed perspective projection matrix with `-1..1` depth
-    /// range.
+    /// Creates a right-handed perspective projection with `-1..1` depth range.
     ///
     /// Equivalent to the OpenGL [`glFrustum`] function.
-    ///
-    /// The resulting matrix can be used to transform 3D points using [`project_point`].
     ///
     /// # Panics
     ///
@@ -1230,7 +1085,6 @@ where
     /// is less than or equal to `near_plane`.
     ///
     /// [`glFrustum`]: https://registry.khronos.org/OpenGL-Refpages/gl2.1/xhtml/glFrustum.xml
-    /// [`project_point`]: Self::project_point
     #[inline]
     #[must_use]
     #[track_caller]
@@ -1264,21 +1118,16 @@ where
         ])
     }
 
-    /// Creates a left-handed orthographic projection matrix with `0..1` depth
-    /// range.
+    /// Creates a left-handed orthographic projection with `0..1` depth range.
     ///
     /// Useful to map a left-handed coordinate system into what
     /// WebGPU/Metal/Direct3D expect.
-    ///
-    /// The resulting matrix can be used to transform 3D points using [`project_point`].
     ///
     /// # Panics
     ///
     /// When debug assertions are enabled:
     ///
     /// Panics if `far` is less than or equal to `near`.
-    ///
-    /// [`project_point`]: Self::project_point
     #[inline]
     #[must_use]
     #[track_caller]
@@ -1302,21 +1151,16 @@ where
         ])
     }
 
-    /// Creates a right-handed orthographic projection matrix with `0..1` depth
-    /// range.
+    /// Creates a right-handed orthographic projection with `0..1` depth range.
     ///
     /// Useful to map a right-handed coordinate system into what
     /// WebGPU/Metal/Direct3D expect.
-    ///
-    /// The resulting matrix can be used to transform 3D points using [`project_point`].
     ///
     /// # Panics
     ///
     /// When debug assertions are enabled:
     ///
     /// Panics if `far` is less than or equal to `near`.
-    ///
-    /// [`project_point`]: Self::project_point
     #[inline]
     #[must_use]
     #[track_caller]
@@ -1340,12 +1184,9 @@ where
         ])
     }
 
-    /// Creates a right-handed orthographic projection matrix with `-1..1` depth
-    /// range.
+    /// Creates a right-handed orthographic projection with `-1..1` depth range.
     ///
     /// Equivalent to the OpenGL [`glOrtho`] function.
-    ///
-    /// The resulting matrix can be used to transform 3D points using [`project_point`].
     ///
     /// # Panics
     ///
@@ -1354,7 +1195,6 @@ where
     /// Panics if `far` is less than or equal to `near`.
     ///
     /// [`glOrtho`]: https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glOrtho.xml
-    /// [`project_point`]: Self::project_point
     #[inline]
     #[must_use]
     #[track_caller]
@@ -1379,8 +1219,8 @@ where
     /// Returns the Euler angles forming `self` for the given Euler rotation
     /// order/sequence.
     ///
-    /// The upper 3x3 matrix must not contain any non-rotation transformations.
-    /// Otherwise the result is unspecified.
+    /// The upper-left 3x3 matrix of `self` must not contain any non-rotation
+    /// transformations. Otherwise the result is unspecified.
     ///
     /// # Panics
     ///
@@ -1396,10 +1236,8 @@ where
 
     /// Returns the `scale` and `rotation` of `self`.
     ///
-    /// `self` must contain a valid affine transformation. Otherwise the result
-    /// is unspecified.
-    ///
-    /// `self` can contain translation which is ignored.
+    /// This function assumes `self` contains an affine transform with no shear
+    /// or projections. `self` can contain translation which is ignored.
     ///
     /// # Panics
     ///
@@ -1415,8 +1253,8 @@ where
 
     /// Returns the `scale`, `rotation` and `translation` of `self`.
     ///
-    /// `self` must contain a valid affine transformation. Otherwise the result
-    /// is unspecified.
+    /// This function assumes `self` contains an affine transform with no shear
+    /// or projections.
     ///
     /// # Panics
     ///
