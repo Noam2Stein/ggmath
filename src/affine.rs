@@ -96,7 +96,7 @@ where
     /// an affine transform with no transformation.
     ///
     /// [`IDENTITY`]: Self::IDENTITY
-    pub const ZERO: Self = Self::from_matrix_translation(Matrix::ZERO, Vector::ZERO);
+    pub const ZERO: Self = Self::from_matrix_translation(&Matrix::ZERO, Vector::ZERO);
 }
 
 impl<const N: usize, T, A: Alignment> Affine<N, T, A>
@@ -105,7 +105,7 @@ where
     T: Scalar + Zero + One,
 {
     /// An affine transform with no transformation.
-    pub const IDENTITY: Self = Self::from_matrix_translation(Matrix::IDENTITY, Vector::ZERO);
+    pub const IDENTITY: Self = Self::from_matrix_translation(&Matrix::IDENTITY, Vector::ZERO);
 }
 
 impl<const N: usize, T, A: Alignment> Affine<N, T, A>
@@ -150,7 +150,7 @@ where
         T: Zero,
     {
         Self {
-            matrix: Matrix::from_diagonal(scale),
+            matrix: Matrix::from_scale(scale),
             translation: Vector::ZERO,
         }
     }
@@ -172,12 +172,12 @@ where
     /// scale, but not translation.
     #[inline]
     #[must_use]
-    pub const fn from_matrix(matrix: Matrix<N, T, A>) -> Self
+    pub const fn from_matrix(matrix: &Matrix<N, T, A>) -> Self
     where
         T: Zero,
     {
         Self {
-            matrix,
+            matrix: *matrix,
             translation: Vector::ZERO,
         }
     }
@@ -187,11 +187,11 @@ where
     #[inline]
     #[must_use]
     pub const fn from_matrix_translation(
-        matrix: Matrix<N, T, A>,
+        matrix: &Matrix<N, T, A>,
         translation: Vector<N, T, A>,
     ) -> Self {
         Self {
-            matrix,
+            matrix: *matrix,
             translation,
         }
     }
@@ -257,7 +257,10 @@ where
     #[inline]
     #[must_use]
     pub const fn to_alignment<A2: Alignment>(&self) -> Affine<N, T, A2> {
-        Affine::from_matrix_translation(self.matrix.to_alignment(), self.translation.to_alignment())
+        Affine::from_matrix_translation(
+            &self.matrix.to_alignment(),
+            self.translation.to_alignment(),
+        )
     }
 
     /// Conversion to [`Aligned`] storage.
@@ -954,7 +957,7 @@ macro_rules! impl_mul {
             #[track_caller]
             fn mul(self, rhs: &Affine<N, T, A>) -> Self::Output {
                 Affine::from_matrix_translation(
-                    self.matrix * rhs.matrix,
+                    &(self.matrix * rhs.matrix),
                     self.translation * rhs.matrix + rhs.translation,
                 )
             }
@@ -1234,7 +1237,7 @@ mod tests {
         for_types!(|N, T: PrimitiveNumber, A| {
             assert_eq!(
                 Affine::<N, T, A>::ZERO,
-                Affine::from_matrix_translation(Matrix::ZERO, Vector::ZERO)
+                Affine::from_matrix_translation(&Matrix::ZERO, Vector::ZERO)
             );
         });
     }
@@ -1244,7 +1247,7 @@ mod tests {
         for_types!(|N, T: PrimitiveNumber, A| {
             assert_eq!(
                 Affine::<N, T, A>::IDENTITY,
-                Affine::from_matrix_translation(Matrix::IDENTITY, Vector::ZERO)
+                Affine::from_matrix_translation(&Matrix::IDENTITY, Vector::ZERO)
             );
         });
     }
@@ -1279,7 +1282,7 @@ mod tests {
 
             assert_eq!(
                 Affine::<N, T, A>::from_scale(scale),
-                Affine::from_matrix(Matrix::from_diagonal(scale))
+                Affine::from_matrix(&Matrix::from_scale(scale))
             );
         });
     }
@@ -1291,7 +1294,7 @@ mod tests {
 
             assert_eq!(
                 Affine::<N, T, A>::from_translation(translation),
-                Affine::from_matrix_translation(Matrix::IDENTITY, translation)
+                Affine::from_matrix_translation(&Matrix::IDENTITY, translation)
             );
         });
     }
@@ -1302,8 +1305,8 @@ mod tests {
             let matrix = Matrix::from_row_fn(|r| Vector::from_fn(|c| T::as_from(r * N + c)));
 
             assert_eq!(
-                Affine::<N, T, A>::from_matrix(matrix),
-                Affine::from_matrix_translation(matrix, Vector::ZERO)
+                Affine::<N, T, A>::from_matrix(&matrix),
+                Affine::from_matrix_translation(&matrix, Vector::ZERO)
             );
         });
     }
@@ -1345,14 +1348,14 @@ mod tests {
             assert_eq!(
                 affine.to_alignment(),
                 Affine::<N, T, Aligned>::from_matrix_translation(
-                    affine.matrix.align(),
+                    &affine.matrix.align(),
                     affine.translation.align()
                 )
             );
             assert_eq!(
                 affine.to_alignment(),
                 Affine::<N, T, Unaligned>::from_matrix_translation(
-                    affine.matrix.unalign(),
+                    &affine.matrix.unalign(),
                     affine.translation.unalign()
                 )
             );
@@ -1368,7 +1371,7 @@ mod tests {
             assert_eq!(
                 affine.align(),
                 Affine::<N, T, Aligned>::from_matrix_translation(
-                    affine.matrix.align(),
+                    &affine.matrix.align(),
                     affine.translation.align()
                 )
             );
@@ -1384,7 +1387,7 @@ mod tests {
             assert_eq!(
                 affine.unalign(),
                 Affine::<N, T, Unaligned>::from_matrix_translation(
-                    affine.matrix.unalign(),
+                    &affine.matrix.unalign(),
                     affine.translation.unalign()
                 )
             );
@@ -1419,7 +1422,7 @@ mod tests {
             assert_eq!(
                 Affine::<2, T, A>::from_rows(&rows),
                 Affine::<2, T, A>::from_matrix_translation(
-                    Matrix::from_rows(&[rows[0], rows[1]]),
+                    &Matrix::from_rows(&[rows[0], rows[1]]),
                     rows[2]
                 )
             );
@@ -1428,7 +1431,7 @@ mod tests {
             assert_eq!(
                 Affine::<3, T, A>::from_rows(&rows),
                 Affine::<3, T, A>::from_matrix_translation(
-                    Matrix::from_rows(&[rows[0], rows[1], rows[2]]),
+                    &Matrix::from_rows(&[rows[0], rows[1], rows[2]]),
                     rows[3]
                 )
             );
@@ -1437,7 +1440,7 @@ mod tests {
             assert_eq!(
                 Affine::<4, T, A>::from_rows(&rows),
                 Affine::<4, T, A>::from_matrix_translation(
-                    Matrix::from_rows(&[rows[0], rows[1], rows[2], rows[3]]),
+                    &Matrix::from_rows(&[rows[0], rows[1], rows[2], rows[3]]),
                     rows[4]
                 )
             );

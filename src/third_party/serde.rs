@@ -444,7 +444,7 @@ mod tests {
     #[test]
     fn test_affine() -> Result<(), Box<dyn Error>> {
         let affine = Affine2A::<i32>::from_matrix_translation(
-            Mat2A::from_rows(&[Vec2A::new(1, 2), Vec2A::new(3, 4)]),
+            &Mat2A::from_rows(&[Vec2A::new(1, 2), Vec2A::new(3, 4)]),
             Vec2A::new(5, 6),
         );
         assert_eq!(affine, from_str(&to_string(&affine)?)?);
@@ -455,7 +455,7 @@ mod tests {
         assert!(from_str::<Affine<4, i32, Unaligned>>(&to_string(&affine)?).is_err());
 
         let affine = Affine3A::<i32>::from_matrix_translation(
-            Mat3A::from_rows(&[
+            &Mat3A::from_rows(&[
                 Vec3A::new(1, 2, 3),
                 Vec3A::new(4, 5, 6),
                 Vec3A::new(97, 8, 9),
@@ -470,7 +470,7 @@ mod tests {
         assert!(from_str::<Affine<4, i32, Unaligned>>(&to_string(&affine)?).is_err());
 
         let affine = Affine::<4, i32, Aligned>::from_matrix_translation(
-            Mat4A::from_rows(&[
+            &Mat4A::from_rows(&[
                 Vec4A::new(1, 2, 3, 4),
                 Vec4A::new(5, 6, 7, 8),
                 Vec4A::new(9, 10, 11, 12),
@@ -486,7 +486,7 @@ mod tests {
         assert!(from_str::<Affine3<i32>>(&to_string(&affine)?).is_err());
 
         let affine = Affine2::<i32>::from_matrix_translation(
-            Mat2::from_rows(&[Vec2::new(1, 2), Vec2::new(3, 4)]),
+            &Mat2::from_rows(&[Vec2::new(1, 2), Vec2::new(3, 4)]),
             Vec2::new(5, 6),
         );
         assert_eq!(affine, from_str(&to_string(&affine)?)?);
@@ -497,7 +497,7 @@ mod tests {
         assert!(from_str::<Affine<4, i32, Unaligned>>(&to_string(&affine)?).is_err());
 
         let affine = Affine3::<i32>::from_matrix_translation(
-            Mat3::from_rows(&[Vec3::new(1, 2, 3), Vec3::new(4, 5, 6), Vec3::new(97, 8, 9)]),
+            &Mat3::from_rows(&[Vec3::new(1, 2, 3), Vec3::new(4, 5, 6), Vec3::new(97, 8, 9)]),
             Vec3::new(10, 11, 12),
         );
         assert_eq!(affine, from_str(&to_string(&affine)?)?);
@@ -508,7 +508,7 @@ mod tests {
         assert!(from_str::<Affine<4, i32, Unaligned>>(&to_string(&affine)?).is_err());
 
         let affine = Affine::<4, i32, Unaligned>::from_matrix_translation(
-            Mat4::from_rows(&[
+            &Mat4::from_rows(&[
                 Vec4::new(1, 2, 3, 4),
                 Vec4::new(5, 6, 7, 8),
                 Vec4::new(9, 10, 11, 12),

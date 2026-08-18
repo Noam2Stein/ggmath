@@ -13,7 +13,7 @@ macro_rules! impl_wide_float {
         {
             /// An affine transform with all elements set to NaN (Not a Number).
             pub const NAN: Self = Self::from_matrix_translation(
-                Matrix::<N, $Wide, A>::NAN,
+                &Matrix::<N, $Wide, A>::NAN,
                 Vector::<N, $Wide, A>::NAN,
             );
 
@@ -40,7 +40,7 @@ macro_rules! impl_wide_float {
                 let matrix = self.matrix.inverse();
                 let translation = -self.translation * matrix;
 
-                Self::from_matrix_translation(matrix, translation)
+                Self::from_matrix_translation(&matrix, translation)
             }
 
             // `try_inverse` is exluded on purpose. It would not be useful
@@ -93,7 +93,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn from_angle(angle: $Wide) -> Self {
-                Self::from_matrix(Matrix::<2, $Wide, A>::from_angle(angle))
+                Self::from_matrix(&Matrix::<2, $Wide, A>::from_angle(angle))
             }
 
             /// Creates an affine transform containing a rotation of `angle`
@@ -103,7 +103,10 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn from_angle_translation(angle: $Wide, translation: Vector<2, $Wide, A>) -> Self {
-                Self::from_matrix_translation(Matrix::<2, $Wide, A>::from_angle(angle), translation)
+                Self::from_matrix_translation(
+                    &Matrix::<2, $Wide, A>::from_angle(angle),
+                    translation,
+                )
             }
 
             /// Creates an affine transform containing a non-uniform `scale` and
@@ -113,7 +116,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn from_scale_angle(scale: Vector<2, $Wide, A>, angle: $Wide) -> Self {
-                Self::from_matrix(Matrix::<2, $Wide, A>::from_scale_angle(scale, angle))
+                Self::from_matrix(&Matrix::<2, $Wide, A>::from_scale_angle(scale, angle))
             }
 
             /// Creates an affine transform containing a non-uniform `scale`,
@@ -128,7 +131,7 @@ macro_rules! impl_wide_float {
                 translation: Vector<2, $Wide, A>,
             ) -> Self {
                 Self::from_matrix_translation(
-                    Matrix::<2, $Wide, A>::from_scale_angle(scale, angle),
+                    &Matrix::<2, $Wide, A>::from_scale_angle(scale, angle),
                     translation,
                 )
             }
@@ -198,7 +201,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn from_rotation_x(angle: $Wide) -> Self {
-                Self::from_matrix(Matrix::<3, $Wide, A>::from_rotation_x(angle))
+                Self::from_matrix(&Matrix::<3, $Wide, A>::from_rotation_x(angle))
             }
 
             /// Creates an affine transform containing a 3D rotation from
@@ -208,7 +211,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn from_rotation_y(angle: $Wide) -> Self {
-                Self::from_matrix(Matrix::<3, $Wide, A>::from_rotation_y(angle))
+                Self::from_matrix(&Matrix::<3, $Wide, A>::from_rotation_y(angle))
             }
 
             /// Creates an affine transform containing a 3D rotation from
@@ -218,7 +221,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn from_rotation_z(angle: $Wide) -> Self {
-                Self::from_matrix(Matrix::<3, $Wide, A>::from_rotation_z(angle))
+                Self::from_matrix(&Matrix::<3, $Wide, A>::from_rotation_z(angle))
             }
 
             /// Creates an affine transform containing a 3D rotation from a
@@ -226,7 +229,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn from_quat(quat: Quaternion<$Wide, A>) -> Self {
-                Self::from_matrix(Matrix::<3, $Wide, A>::from_quat(quat))
+                Self::from_matrix(&Matrix::<3, $Wide, A>::from_quat(quat))
             }
 
             /// Creates an affine transform containing a rotation from a
@@ -236,7 +239,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn from_axis_angle(axis: Vector<3, $Wide, A>, angle: $Wide) -> Self {
-                Self::from_matrix(Matrix::<3, $Wide, A>::from_axis_angle(axis, angle))
+                Self::from_matrix(&Matrix::<3, $Wide, A>::from_axis_angle(axis, angle))
             }
 
             /// Creates an affine transform containing a rotation from an Euler
@@ -244,7 +247,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn from_euler(order: EulerRot, a: $Wide, b: $Wide, c: $Wide) -> Self {
-                Self::from_matrix(Matrix::<3, $Wide, A>::from_euler(order, a, b, c))
+                Self::from_matrix(&Matrix::<3, $Wide, A>::from_euler(order, a, b, c))
             }
 
             /// Creates an affine transform containing a non-uniform `scale` and
@@ -255,7 +258,7 @@ macro_rules! impl_wide_float {
                 scale: Vector<3, $Wide, A>,
                 rotation: Quaternion<$Wide, A>,
             ) -> Self {
-                Self::from_matrix(Matrix::<3, $Wide, A>::from_scale_rotation(scale, rotation))
+                Self::from_matrix(&Matrix::<3, $Wide, A>::from_scale_rotation(scale, rotation))
             }
 
             /// Creates an affine transform containing a 3D `rotation` and
@@ -267,7 +270,7 @@ macro_rules! impl_wide_float {
                 translation: Vector<3, $Wide, A>,
             ) -> Self {
                 Self::from_matrix_translation(
-                    Matrix::<3, $Wide, A>::from_quat(rotation),
+                    &Matrix::<3, $Wide, A>::from_quat(rotation),
                     translation,
                 )
             }
@@ -282,7 +285,7 @@ macro_rules! impl_wide_float {
                 translation: Vector<3, $Wide, A>,
             ) -> Self {
                 Self::from_matrix_translation(
-                    Matrix::<3, $Wide, A>::from_scale_rotation(scale, rotation),
+                    &Matrix::<3, $Wide, A>::from_scale_rotation(scale, rotation),
                     translation,
                 )
             }
@@ -534,7 +537,7 @@ mod tests {
             assert_test_eq!(
                 Affine::<N, Wide, Unaligned>::NAN,
                 Affine::from_matrix_translation(
-                    Matrix::<N, Wide, Unaligned>::NAN,
+                    &Matrix::<N, Wide, Unaligned>::NAN,
                     Vector::<N, Wide, Unaligned>::NAN
                 )
             );
@@ -827,11 +830,11 @@ mod tests {
                         angle.to_array()[lane]
                     )),
                     abs <= Affine3::from_matrix(
-                        Mat3::<Wide>::from_axis_angle(axis, angle).abs()
+                        &(Mat3::<Wide>::from_axis_angle(axis, angle).abs()
                             * axis.length().max(Wide::ONE)
                             * angle.abs().max(Wide::ONE)
                             * Wide::splat(1e-4)
-                            + Mat3::from_row_array(&[Wide::splat(1e-3); 9])
+                            + Mat3::from_row_array(&[Wide::splat(1e-3); 9]))
                     ),
                     0.0 = -0.0
                 );

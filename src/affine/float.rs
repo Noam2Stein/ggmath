@@ -10,7 +10,7 @@ where
 {
     /// An affine transform with all elements set to NaN (Not a Number).
     pub const NAN: Self =
-        Self::from_matrix_translation(Matrix::<N, T, A>::NAN, Vector::<N, T, A>::NAN);
+        Self::from_matrix_translation(&Matrix::<N, T, A>::NAN, Vector::<N, T, A>::NAN);
 
     /// Returns `true` if any element is NaN.
     ///
@@ -82,7 +82,7 @@ where
         let matrix = self.matrix.inverse();
         let translation = -self.translation * matrix;
 
-        Self::from_matrix_translation(matrix, translation)
+        Self::from_matrix_translation(&matrix, translation)
     }
 
     /// Returns the inverse of `self` or `None` if `self` is not invertable.
@@ -92,7 +92,7 @@ where
         let matrix = self.matrix.try_inverse()?;
         let translation = -self.translation * matrix;
 
-        Some(Self::from_matrix_translation(matrix, translation))
+        Some(Self::from_matrix_translation(&matrix, translation))
     }
 
     /// Returns the inverse of `self` or `fallback` if `self` is not invertable.
@@ -136,7 +136,7 @@ where
     #[inline]
     #[must_use]
     pub fn from_angle(angle: T) -> Self {
-        Self::from_matrix(Matrix::<2, T, A>::from_angle(angle))
+        Self::from_matrix(&Matrix::<2, T, A>::from_angle(angle))
     }
 
     /// Creates an affine transform containing a rotation of `angle`
@@ -146,7 +146,7 @@ where
     #[inline]
     #[must_use]
     pub fn from_angle_translation(angle: T, translation: Vector<2, T, A>) -> Self {
-        Self::from_matrix_translation(Matrix::<2, T, A>::from_angle(angle), translation)
+        Self::from_matrix_translation(&Matrix::<2, T, A>::from_angle(angle), translation)
     }
 
     /// Creates an affine transform containing a non-uniform `scale` and
@@ -156,7 +156,7 @@ where
     #[inline]
     #[must_use]
     pub fn from_scale_angle(scale: Vector<2, T, A>, angle: T) -> Self {
-        Self::from_matrix(Matrix::<2, T, A>::from_scale_angle(scale, angle))
+        Self::from_matrix(&Matrix::<2, T, A>::from_scale_angle(scale, angle))
     }
 
     /// Creates an affine transform containing a non-uniform `scale`, rotation
@@ -171,7 +171,7 @@ where
         translation: Vector<2, T, A>,
     ) -> Self {
         Self::from_matrix_translation(
-            Matrix::<2, T, A>::from_scale_angle(scale, angle),
+            &Matrix::<2, T, A>::from_scale_angle(scale, angle),
             translation,
         )
     }
@@ -223,7 +223,7 @@ where
     #[inline]
     #[must_use]
     pub fn from_rotation_x(angle: T) -> Self {
-        Self::from_matrix(Matrix::<3, T, A>::from_rotation_x(angle))
+        Self::from_matrix(&Matrix::<3, T, A>::from_rotation_x(angle))
     }
 
     /// Creates an affine transform containing a 3D rotation from `angle` (in
@@ -233,7 +233,7 @@ where
     #[inline]
     #[must_use]
     pub fn from_rotation_y(angle: T) -> Self {
-        Self::from_matrix(Matrix::<3, T, A>::from_rotation_y(angle))
+        Self::from_matrix(&Matrix::<3, T, A>::from_rotation_y(angle))
     }
 
     /// Creates an affine transform containing a 3D rotation from `angle` (in
@@ -243,7 +243,7 @@ where
     #[inline]
     #[must_use]
     pub fn from_rotation_z(angle: T) -> Self {
-        Self::from_matrix(Matrix::<3, T, A>::from_rotation_z(angle))
+        Self::from_matrix(&Matrix::<3, T, A>::from_rotation_z(angle))
     }
 
     /// Creates an affine transform containing a 3D rotation from a quaternion.
@@ -257,7 +257,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn from_quat(quat: Quaternion<T, A>) -> Self {
-        Self::from_matrix(Matrix::<3, T, A>::from_quat(quat))
+        Self::from_matrix(&Matrix::<3, T, A>::from_quat(quat))
     }
 
     /// Creates an affine transform containing a rotation from a rotation `axis`
@@ -274,7 +274,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn from_axis_angle(axis: Vector<3, T, A>, angle: T) -> Self {
-        Self::from_matrix(Matrix::<3, T, A>::from_axis_angle(axis, angle))
+        Self::from_matrix(&Matrix::<3, T, A>::from_axis_angle(axis, angle))
     }
 
     /// Creates an affine transform containing a rotation from an Euler rotation
@@ -282,7 +282,7 @@ where
     #[inline]
     #[must_use]
     pub fn from_euler(order: EulerRot, a: T, b: T, c: T) -> Self {
-        Self::from_matrix(Matrix::<3, T, A>::from_euler(order, a, b, c))
+        Self::from_matrix(&Matrix::<3, T, A>::from_euler(order, a, b, c))
     }
 
     /// Creates an affine transform containing a non-uniform `scale` and a 3D
@@ -297,7 +297,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn from_scale_rotation(scale: Vector<3, T, A>, rotation: Quaternion<T, A>) -> Self {
-        Self::from_matrix(Matrix::<3, T, A>::from_scale_rotation(scale, rotation))
+        Self::from_matrix(&Matrix::<3, T, A>::from_scale_rotation(scale, rotation))
     }
 
     /// Creates an affine transform containing a 3D `rotation` and
@@ -315,7 +315,7 @@ where
         rotation: Quaternion<T, A>,
         translation: Vector<3, T, A>,
     ) -> Self {
-        Self::from_matrix_translation(Matrix::<3, T, A>::from_quat(rotation), translation)
+        Self::from_matrix_translation(&Matrix::<3, T, A>::from_quat(rotation), translation)
     }
 
     /// Creates an affine transform containing a non-uniform `scale`, a 3D
@@ -335,7 +335,7 @@ where
         translation: Vector<3, T, A>,
     ) -> Self {
         Self::from_matrix_translation(
-            Matrix::<3, T, A>::from_scale_rotation(scale, rotation),
+            &Matrix::<3, T, A>::from_scale_rotation(scale, rotation),
             translation,
         )
     }
@@ -569,5 +569,611 @@ where
     ) -> (Vector<3, T, A>, Quaternion<T, A>, Vector<3, T, A>) {
         let (scale, rotation) = self.matrix.to_scale_rotation();
         (scale, rotation, self.translation)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{
+        Affine, Affine2, EulerRot, Matrix, Projective, Quaternion, Vec2, Vector,
+        test_utils::{
+            assert_debug_panic, assert_panic_test_eq, assert_test_eq, for_types, random_iter,
+        },
+    };
+
+    #[test]
+    fn test_constants() {
+        for_types!(|N, T: PrimitiveFloat, A| {
+            assert_test_eq!(
+                Affine::<N, T, A>::NAN,
+                Affine::from_matrix_translation(&Matrix::<N, T, A>::NAN, Vector::<N, T, A>::NAN)
+            );
+        });
+    }
+
+    #[test]
+    fn test_is_nan() {
+        for_types!(|T: PrimitiveFloat, A| {
+            let one = Vector::ONE;
+            let nan = Vector::<2, T, A>::NAN;
+            assert!(!Affine::<2, T, A>::from_rows(&[one; 3]).is_nan());
+            assert!(Affine::<2, T, A>::from_rows(&[nan, one, one]).is_nan());
+            assert!(Affine::<2, T, A>::from_rows(&[one, nan, one]).is_nan());
+            assert!(Affine::<2, T, A>::from_rows(&[one, one, nan]).is_nan());
+            assert!(Affine::<2, T, A>::NAN.is_nan());
+
+            let one = Vector::ONE;
+            let nan = Vector::<3, T, A>::NAN;
+            assert!(!Affine::<3, T, A>::from_rows(&[one; 4]).is_nan());
+            assert!(Affine::<3, T, A>::from_rows(&[nan, one, one, one]).is_nan());
+            assert!(Affine::<3, T, A>::from_rows(&[one, nan, one, one]).is_nan());
+            assert!(Affine::<3, T, A>::from_rows(&[one, one, nan, one]).is_nan());
+            assert!(Affine::<3, T, A>::from_rows(&[one, one, one, nan]).is_nan());
+            assert!(Affine::<3, T, A>::NAN.is_nan());
+
+            let one = Vector::ONE;
+            let nan = Vector::<4, T, A>::NAN;
+            assert!(!Affine::<4, T, A>::from_rows(&[one; 5]).is_nan());
+            assert!(Affine::<4, T, A>::from_rows(&[nan, one, one, one, one]).is_nan());
+            assert!(Affine::<4, T, A>::from_rows(&[one, nan, one, one, one]).is_nan());
+            assert!(Affine::<4, T, A>::from_rows(&[one, one, nan, one, one]).is_nan());
+            assert!(Affine::<4, T, A>::from_rows(&[one, one, one, nan, one]).is_nan());
+            assert!(Affine::<4, T, A>::from_rows(&[one, one, one, one, nan]).is_nan());
+            assert!(Affine::<4, T, A>::NAN.is_nan());
+        });
+    }
+
+    #[test]
+    fn test_is_finite() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for non_finite_value in [T::INFINITY, T::NEG_INFINITY, T::NAN] {
+                let one = Vector::ONE;
+                let non_finite = Vector::splat(non_finite_value);
+                assert!(Affine::<2, T, A>::from_rows(&[one; 3]).is_finite());
+                assert!(!Affine::<2, T, A>::from_rows(&[non_finite, one, one]).is_finite());
+                assert!(!Affine::<2, T, A>::from_rows(&[one, non_finite, one]).is_finite());
+                assert!(!Affine::<2, T, A>::from_rows(&[one, one, non_finite]).is_finite());
+                assert!(!Affine::<2, T, A>::from_rows(&[non_finite; 3]).is_finite());
+
+                let one = Vector::ONE;
+                let non_finite = Vector::splat(non_finite_value);
+                assert!(Affine::<3, T, A>::from_rows(&[one; 4]).is_finite());
+                assert!(!Affine::<3, T, A>::from_rows(&[non_finite, one, one, one]).is_finite());
+                assert!(!Affine::<3, T, A>::from_rows(&[one, non_finite, one, one]).is_finite());
+                assert!(!Affine::<3, T, A>::from_rows(&[one, one, non_finite, one]).is_finite());
+                assert!(!Affine::<3, T, A>::from_rows(&[one, one, one, non_finite]).is_finite());
+                assert!(!Affine::<3, T, A>::from_rows(&[non_finite; 4]).is_finite());
+
+                let one = Vector::ONE;
+                let non_finite = Vector::splat(non_finite_value);
+                assert!(Affine::<4, T, A>::from_rows(&[one; 5]).is_finite());
+                assert!(
+                    !Affine::<4, T, A>::from_rows(&[non_finite, one, one, one, one]).is_finite()
+                );
+                assert!(
+                    !Affine::<4, T, A>::from_rows(&[one, non_finite, one, one, one]).is_finite()
+                );
+                assert!(
+                    !Affine::<4, T, A>::from_rows(&[one, one, non_finite, one, one]).is_finite()
+                );
+                assert!(
+                    !Affine::<4, T, A>::from_rows(&[one, one, one, non_finite, one]).is_finite()
+                );
+                assert!(
+                    !Affine::<4, T, A>::from_rows(&[one, one, one, one, non_finite]).is_finite()
+                );
+                assert!(!Affine::<4, T, A>::from_rows(&[non_finite; 5]).is_finite());
+            }
+        });
+    }
+
+    #[test]
+    fn test_inverse() {
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for affine in random_iter::<Affine<N, T, A>>() {
+                if affine.matrix.determinant() == 0.0 {
+                    assert_debug_panic!(affine.inverse());
+                }
+
+                if !affine.is_finite()
+                    || affine
+                        .matrix
+                        .as_rows()
+                        .iter()
+                        .chain([&affine.translation])
+                        .flatten()
+                        .any(|x| x.abs() > 1e6)
+                    || !(1e-2..=1e2).contains(
+                        &(affine.matrix.determinant()
+                            / affine
+                                .matrix
+                                .as_rows()
+                                .iter()
+                                .flatten()
+                                .reduce(T::max)
+                                .unwrap()
+                                .powi(N as i32)),
+                    )
+                {
+                    continue;
+                }
+
+                assert_test_eq!(
+                    affine * affine.inverse(),
+                    Affine::IDENTITY,
+                    abs <= affine
+                        .matrix
+                        .determinant()
+                        .abs()
+                        .max(affine.matrix.determinant().recip().abs())
+                        * 1e-4,
+                    0.0 = -0.0
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_try_inverse() {
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for affine in random_iter::<Affine<N, T, A>>() {
+                let Some(try_inverse) = affine.try_inverse() else {
+                    assert_debug_panic!(affine.inverse());
+                    continue;
+                };
+
+                assert_test_eq!(affine.inverse(), try_inverse);
+            }
+        });
+    }
+
+    #[test]
+    fn test_inverse_or() {
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for [affine, fallback] in random_iter::<[Affine<N, T, A>; 2]>() {
+                let Some(inverse) = affine.try_inverse() else {
+                    assert_test_eq!(affine.inverse_or(&fallback), fallback);
+                    continue;
+                };
+
+                assert_test_eq!(affine.inverse_or(&fallback), inverse);
+            }
+        });
+    }
+
+    #[test]
+    fn test_inverse_or_zero() {
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for affine in random_iter::<Affine<N, T, A>>() {
+                let Some(inverse) = affine.try_inverse() else {
+                    assert_test_eq!(affine.inverse_or_zero(), Affine::ZERO);
+                    continue;
+                };
+
+                assert_test_eq!(affine.inverse_or_zero(), inverse);
+            }
+        });
+    }
+
+    #[test]
+    fn test_abs_diff_eq() {
+        for_types!(|T: PrimitiveFloat| {
+            assert!(
+                Affine2::<T>::from_rows(&[
+                    Vec2::new(0.0, 1.0),
+                    Vec2::new(2.0, 3.0),
+                    Vec2::new(4.0, 5.0)
+                ])
+                .abs_diff_eq(
+                    &Affine2::<T>::from_rows(&[
+                        Vec2::new(0.1, 0.9),
+                        Vec2::new(1.95, 3.05),
+                        Vec2::new(4.1, 4.9)
+                    ]),
+                    0.125
+                )
+            );
+            assert!(
+                !Affine2::<T>::from_rows(&[
+                    Vec2::new(0.0, 1.0),
+                    Vec2::new(2.0, 3.0),
+                    Vec2::new(4.0, 5.0)
+                ])
+                .abs_diff_eq(
+                    &Affine2::<T>::from_rows(&[
+                        Vec2::new(0.1, 0.9),
+                        Vec2::new(1.95, 3.5),
+                        Vec2::new(4.1, 4.9)
+                    ]),
+                    0.125
+                )
+            );
+            assert!(
+                !Affine2::<T>::from_rows(&[
+                    Vec2::new(0.0, 1.0),
+                    Vec2::new(2.0, 3.0),
+                    Vec2::new(4.0, 5.0)
+                ])
+                .abs_diff_eq(
+                    &Affine2::<T>::from_rows(&[
+                        Vec2::new(0.1, 0.9),
+                        Vec2::new(1.95, 3.05),
+                        Vec2::new(4.6, 4.9)
+                    ]),
+                    0.125
+                )
+            );
+        });
+    }
+
+    #[test]
+    fn test_from_angle() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for (angle, point) in random_iter::<(T, Vector<2, T, A>)>() {
+                assert_test_eq!(
+                    Affine::<2, T, A>::from_angle(angle).transform_point(point),
+                    point.rotate(angle),
+                    0.0 = -0.0
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_angle_translation() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for (angle, translation) in random_iter::<(T, Vector<2, T, A>)>() {
+                assert_test_eq!(
+                    Affine::<2, T, A>::from_angle_translation(angle, translation),
+                    Affine::<2, T, A>::from_matrix_translation(
+                        &Matrix::<2, T, A>::from_angle(angle),
+                        translation
+                    )
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_scale_angle() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for (scale, angle) in random_iter::<(Vector<2, T, A>, T)>() {
+                assert_panic_test_eq!(
+                    Affine::<2, T, A>::from_scale_angle(scale, angle),
+                    Affine::<2, T, A>::from_matrix(&Matrix::<2, T, A>::from_scale_angle(
+                        scale, angle
+                    ))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_scale_angle_translation() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for (scale, angle, translation) in
+                random_iter::<(Vector<2, T, A>, T, Vector<2, T, A>)>()
+            {
+                assert_test_eq!(
+                    Affine::<2, T, A>::from_scale_angle_translation(scale, angle, translation),
+                    Affine::<2, T, A>::from_matrix_translation(
+                        &Matrix::<2, T, A>::from_scale_angle(scale, angle),
+                        translation
+                    )
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_to_scale_angle() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for (scale, angle, translation) in
+                random_iter::<(Vector<2, T, A>, T, Vector<2, T, A>)>()
+            {
+                let affine =
+                    Affine::<2, T, A>::from_scale_angle_translation(scale, angle, translation);
+
+                assert_panic_test_eq!(affine.to_scale_angle(), affine.matrix.to_scale_angle());
+            }
+        });
+    }
+
+    #[test]
+    fn test_to_scale_angle_translation() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for (scale, angle, translation) in
+                random_iter::<(Vector<2, T, A>, T, Vector<2, T, A>)>()
+            {
+                let affine =
+                    Affine::<2, T, A>::from_scale_angle_translation(scale, angle, translation);
+
+                assert_panic_test_eq!(
+                    affine.to_scale_angle_translation(),
+                    (
+                        affine.matrix.to_scale_angle().0,
+                        affine.matrix.to_scale_angle().1,
+                        affine.translation
+                    )
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_rotation_x() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for angle in random_iter::<T>() {
+                assert_test_eq!(
+                    Affine::<3, T, A>::from_rotation_x(angle),
+                    Affine::from_matrix(&Matrix::<3, T, A>::from_rotation_x(angle))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_rotation_y() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for angle in random_iter::<T>() {
+                assert_test_eq!(
+                    Affine::<3, T, A>::from_rotation_y(angle),
+                    Affine::from_matrix(&Matrix::<3, T, A>::from_rotation_y(angle))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_rotation_z() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for angle in random_iter::<T>() {
+                assert_test_eq!(
+                    Affine::<3, T, A>::from_rotation_z(angle),
+                    Affine::from_matrix(&Matrix::<3, T, A>::from_rotation_z(angle))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_quat() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for quat in random_iter::<Quaternion<T, A>>() {
+                assert_panic_test_eq!(
+                    Affine::<3, T, A>::from_quat(quat),
+                    Affine::from_matrix(&Matrix::<3, T, A>::from_quat(quat))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_axis_angle() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for (axis, angle) in random_iter::<(Vector<3, T, A>, T)>() {
+                assert_panic_test_eq!(
+                    Affine::<3, T, A>::from_axis_angle(axis, angle),
+                    Affine::from_matrix(&Matrix::<3, T, A>::from_axis_angle(axis, angle))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_euler() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for order in EulerRot::values() {
+                for [a, b, c] in random_iter::<[T; 3]>() {
+                    assert_test_eq!(
+                        Affine::<3, T, A>::from_euler(order, a, b, c),
+                        Affine::from_matrix(&Matrix::<3, T, A>::from_euler(order, a, b, c))
+                    );
+                }
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_scale_rotation() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for (scale, rotation) in random_iter::<(Vector<3, T, A>, Quaternion<T, A>)>() {
+                assert_panic_test_eq!(
+                    Affine::<3, T, A>::from_scale_rotation(scale, rotation),
+                    Affine::from_matrix(&Matrix::<3, T, A>::from_scale_rotation(scale, rotation))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_rotation_translation() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for (rotation, translation) in random_iter::<(Quaternion<T, A>, Vector<3, T, A>)>() {
+                assert_panic_test_eq!(
+                    Affine::<3, T, A>::from_rotation_translation(rotation, translation),
+                    Affine::<3, T, A>::from_matrix_translation(
+                        &Matrix::<3, T, A>::from_quat(rotation),
+                        translation
+                    )
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_scale_rotation_translation() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for (scale, rotation, translation) in
+                random_iter::<(Vector<3, T, A>, Quaternion<T, A>, Vector<3, T, A>)>()
+            {
+                assert_panic_test_eq!(
+                    Affine::<3, T, A>::from_scale_rotation_translation(
+                        scale,
+                        rotation,
+                        translation
+                    ),
+                    Affine::<3, T, A>::from_matrix_translation(
+                        &Matrix::<3, T, A>::from_scale_rotation(scale, rotation),
+                        translation
+                    )
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_look_to_lh() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for [eye, dir, up] in random_iter::<[Vector<3, T, A>; 3]>() {
+                assert_panic_test_eq!(
+                    Projective::<3, T, A>::from_affine(&Affine::<3, T, A>::look_to_lh(
+                        eye, dir, up
+                    )),
+                    Projective::<3, T, A>::look_to_lh(eye, dir, up)
+                );
+
+                let dir = dir.normalize_or(Vector::<3, T, A>::Z);
+                let up = up.normalize_or(Vector::<3, T, A>::Y);
+
+                assert_panic_test_eq!(
+                    Projective::<3, T, A>::from_affine(&Affine::<3, T, A>::look_to_lh(
+                        eye, dir, up
+                    )),
+                    Projective::<3, T, A>::look_to_lh(eye, dir, up)
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_look_to_rh() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for [eye, dir, up] in random_iter::<[Vector<3, T, A>; 3]>() {
+                assert_panic_test_eq!(
+                    Projective::<3, T, A>::from_affine(&Affine::<3, T, A>::look_to_rh(
+                        eye, dir, up
+                    )),
+                    Projective::<3, T, A>::look_to_rh(eye, dir, up)
+                );
+
+                let dir = dir.normalize_or(Vector::<3, T, A>::Z);
+                let up = up.normalize_or(Vector::<3, T, A>::Y);
+
+                assert_panic_test_eq!(
+                    Projective::<3, T, A>::from_affine(&Affine::<3, T, A>::look_to_rh(
+                        eye, dir, up
+                    )),
+                    Projective::<3, T, A>::look_to_rh(eye, dir, up)
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_look_at_lh() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for [eye, center, up] in random_iter::<[Vector<3, T, A>; 3]>() {
+                assert_panic_test_eq!(
+                    Projective::<3, T, A>::from_affine(&Affine::<3, T, A>::look_at_lh(
+                        eye, center, up
+                    )),
+                    Projective::<3, T, A>::look_at_lh(eye, center, up)
+                );
+
+                let up = up.normalize_or(Vector::<3, T, A>::Y);
+
+                assert_panic_test_eq!(
+                    Projective::<3, T, A>::from_affine(&Affine::<3, T, A>::look_at_lh(
+                        eye, center, up
+                    )),
+                    Projective::<3, T, A>::look_at_lh(eye, center, up)
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_look_at_rh() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for [eye, center, up] in random_iter::<[Vector<3, T, A>; 3]>() {
+                assert_panic_test_eq!(
+                    Projective::<3, T, A>::from_affine(&Affine::<3, T, A>::look_at_rh(
+                        eye, center, up
+                    )),
+                    Projective::<3, T, A>::look_at_rh(eye, center, up)
+                );
+
+                let up = up.normalize_or(Vector::<3, T, A>::Y);
+
+                assert_panic_test_eq!(
+                    Projective::<3, T, A>::from_affine(&Affine::<3, T, A>::look_at_rh(
+                        eye, center, up
+                    )),
+                    Projective::<3, T, A>::look_at_rh(eye, center, up)
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_to_euler() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for order in EulerRot::values() {
+                for [a, b, c] in random_iter::<[T; 3]>() {
+                    let affine = Affine::<3, T, A>::from_euler(order, a, b, c);
+
+                    assert_panic_test_eq!(affine.to_euler(order), affine.matrix.to_euler(order));
+                }
+            }
+        });
+    }
+
+    #[test]
+    fn test_to_scale_rotation() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for (scale, rotation, translation) in
+                random_iter::<(Vector<3, T, A>, Quaternion<T, A>, Vector<3, T, A>)>()
+            {
+                let rotation = rotation.normalize_or(Quaternion::IDENTITY).normalize();
+
+                let affine = Affine::<3, T, A>::from_scale_rotation_translation(
+                    scale,
+                    rotation,
+                    translation,
+                );
+
+                assert_panic_test_eq!(
+                    affine.to_scale_rotation(),
+                    affine.matrix.to_scale_rotation()
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_to_scale_rotation_translation() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for (scale, rotation, translation) in
+                random_iter::<(Vector<3, T, A>, Quaternion<T, A>, Vector<3, T, A>)>()
+            {
+                let rotation = rotation.normalize_or(Quaternion::IDENTITY).normalize();
+
+                let affine = Affine::<3, T, A>::from_scale_rotation_translation(
+                    scale,
+                    rotation,
+                    translation,
+                );
+
+                assert_panic_test_eq!(
+                    affine.to_scale_rotation_translation(),
+                    (
+                        affine.to_scale_rotation().0,
+                        affine.to_scale_rotation().1,
+                        affine.translation
+                    )
+                );
+            }
+        });
     }
 }
