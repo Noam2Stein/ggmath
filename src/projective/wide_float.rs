@@ -20,6 +20,10 @@ macro_rules! impl_wide_float {
             ///
             /// Because of type system limitations, this implementation looks crazy. Use
             /// a separate constant so that IDEs do not show the implementation.
+            #[allow(
+                clippy::init_numbered_fields,
+                reason = "due to some sort of compiler bug, tuple initialization fails here"
+            )]
             const NAN_INTERNAL_IMPL: Self = match N {
                 // SAFETY: We are transmuting a type to itself
                 2 => unsafe {

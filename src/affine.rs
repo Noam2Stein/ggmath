@@ -213,7 +213,7 @@ where
     /// ]);
     ///
     /// assert_eq!(
-    ///     Affine2::from_projective(projective),
+    ///     Affine2::from_projective(&projective),
     ///     Affine2::from_rows(&[
     ///         Vec2::new(00, 01),
     ///         Vec2::new(10, 11),
@@ -406,7 +406,7 @@ where
     ///
     /// assert_eq!(
     ///     affine.to_homogeneous(),
-    ///     Mat3::from_rows([
+    ///     Mat3::from_rows(&[
     ///         Vec3::new(2, 3, 0),
     ///         Vec3::new(4, 5, 0),
     ///         Vec3::new(6, 7, 1),
@@ -443,7 +443,7 @@ where
     /// ]);
     ///
     /// assert_eq!(
-    ///     Affine2::from_homogeneous(homogeneous),
+    ///     Affine2::from_homogeneous(&homogeneous),
     ///     Affine2::from_rows(&[
     ///         Vec2::new(00, 01),
     ///         Vec2::new(10, 11),
@@ -561,7 +561,7 @@ where
     ///
     /// assert_eq!(
     ///     affine.to_homogeneous(),
-    ///     Mat3::from_rows([
+    ///     Mat3::from_rows(&[
     ///         Vec3::new(2, 3, 0),
     ///         Vec3::new(4, 5, 0),
     ///         Vec3::new(6, 7, 1),
@@ -599,7 +599,7 @@ where
     /// ]);
     ///
     /// assert_eq!(
-    ///     Affine2::from_homogeneous(homogeneous),
+    ///     Affine2::from_homogeneous(&homogeneous),
     ///     Affine2::from_rows(&[
     ///         Vec2::new(00, 01),
     ///         Vec2::new(10, 11),

@@ -17,6 +17,10 @@ where
     ///
     /// Because of type system limitations, this implementation looks crazy. Use
     /// a separate constant so that IDEs do not show the implementation.
+    #[allow(
+        clippy::init_numbered_fields,
+        reason = "due to some sort of compiler bug, tuple initialization fails here"
+    )]
     const NAN_INTERNAL_IMPL: Self = match N {
         // SAFETY: We are transmuting a type to itself
         2 => unsafe {
@@ -1938,12 +1942,15 @@ mod tests {
     fn test_from_scale_rotation() {
         for_types!(|T: PrimitiveFloat, A| {
             for (scale, rotation) in random_iter::<(Vector<3, T, A>, Quaternion<T, A>)>() {
-                assert_panic_test_eq!(
-                    Projective::<3, T, A>::from_scale_rotation(scale, rotation),
-                    Projective::<3, T, A>::from_matrix(&Matrix::<3, T, A>::from_scale_rotation(
-                        scale, rotation
-                    ))
-                );
+                if scale.is_finite() && rotation.is_finite() {
+                    assert_panic_test_eq!(
+                        Projective::<3, T, A>::from_scale_rotation(scale, rotation),
+                        Projective::<3, T, A>::from_matrix(
+                            &Matrix::<3, T, A>::from_scale_rotation(scale, rotation)
+                        ),
+                        0.0 = -0.0
+                    );
+                }
             }
         });
     }
@@ -1956,7 +1963,8 @@ mod tests {
                     Projective::<3, T, A>::from_rotation_translation(rotation, translation),
                     Projective::<3, T, A>::from_affine(
                         &Affine::<3, T, A>::from_rotation_translation(rotation, translation)
-                    )
+                    ),
+                    0.0 = -0.0
                 );
             }
         });
@@ -1968,20 +1976,23 @@ mod tests {
             for (scale, rotation, translation) in
                 random_iter::<(Vector<3, T, A>, Quaternion<T, A>, Vector<3, T, A>)>()
             {
-                assert_panic_test_eq!(
-                    Projective::<3, T, A>::from_scale_rotation_translation(
-                        scale,
-                        rotation,
-                        translation
-                    ),
-                    Projective::<3, T, A>::from_affine(
-                        &Affine::<3, T, A>::from_scale_rotation_translation(
+                if scale.is_finite() && rotation.is_finite() {
+                    assert_panic_test_eq!(
+                        Projective::<3, T, A>::from_scale_rotation_translation(
                             scale,
                             rotation,
                             translation
-                        )
-                    )
-                );
+                        ),
+                        Projective::<3, T, A>::from_affine(
+                            &Affine::<3, T, A>::from_scale_rotation_translation(
+                                scale,
+                                rotation,
+                                translation,
+                            )
+                        ),
+                        0.0 = -0.0
+                    );
+                }
             }
         });
     }

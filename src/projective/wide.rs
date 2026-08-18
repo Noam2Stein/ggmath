@@ -188,7 +188,7 @@ where
     /// ]);
     /// soa.set_lane(1, Proj2::ZERO);
     /// assert_eq!(
-    ///     matrix,
+    ///     soa,
     ///     Proj2::from_row_array(&[
     ///         i32x4::new([1, 0, 21, 31]),
     ///         i32x4::new([2, 0, 22, 32]),
@@ -353,7 +353,7 @@ mod tests {
             Proj2::<i32x4>::from_lanes(&[
                 Proj2::from_row_array(&[0, 1, 2, 3, 4, 5, 6, 7, 8]),
                 Proj2::from_row_array(&[10, 11, 12, 13, 14, 15, 16, 17, 18]),
-                Proj2::from_row_array(&[20, 21, 2, 23, 24, 25, 26, 27, 28]),
+                Proj2::from_row_array(&[20, 21, 22, 23, 24, 25, 26, 27, 28]),
                 Proj2::from_row_array(&[30, 31, 32, 33, 34, 35, 36, 37, 38]),
             ]),
             Proj2::from_row_array(&[
@@ -376,7 +376,7 @@ mod tests {
             Proj2::<i32x4>::from_lane_fn(|i| [
                 Proj2::from_row_array(&[0, 1, 2, 3, 4, 5, 6, 7, 8]),
                 Proj2::from_row_array(&[10, 11, 12, 13, 14, 15, 16, 17, 18]),
-                Proj2::from_row_array(&[20, 21, 2, 23, 24, 25, 26, 27, 28]),
+                Proj2::from_row_array(&[20, 21, 22, 23, 24, 25, 26, 27, 28]),
                 Proj2::from_row_array(&[30, 31, 32, 33, 34, 35, 36, 37, 38]),
             ][i]),
             Proj2::from_row_array(&[
@@ -411,7 +411,7 @@ mod tests {
             [
                 Proj2::from_row_array(&[0, 1, 2, 3, 4, 5, 6, 7, 8]),
                 Proj2::from_row_array(&[10, 11, 12, 13, 14, 15, 16, 17, 18]),
-                Proj2::from_row_array(&[20, 21, 2, 23, 24, 25, 26, 27, 28]),
+                Proj2::from_row_array(&[20, 21, 22, 23, 24, 25, 26, 27, 28]),
                 Proj2::from_row_array(&[30, 31, 32, 33, 34, 35, 36, 37, 38]),
             ],
         );
@@ -441,7 +441,7 @@ mod tests {
         );
         assert_eq!(
             projective.lane(2),
-            Proj2::from_row_array(&[20, 21, 2, 23, 24, 25, 26, 27, 28])
+            Proj2::from_row_array(&[20, 21, 22, 23, 24, 25, 26, 27, 28])
         );
         assert_eq!(
             projective.lane(3),

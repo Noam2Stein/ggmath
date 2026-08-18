@@ -2081,7 +2081,7 @@ mod tests {
         for_types!(|T: PrimitiveNumber, A| {
             let translation = Vector::from_fn(|i| T::as_from(i + 1));
             assert_eq!(
-                Projective::<2, T, A>::from_scale(translation),
+                Projective::<2, T, A>::from_translation(translation),
                 Projective::<2, T, A>::from_rows(&[
                     Vector::<3, T, A>::new(T::ONE, T::ZERO, T::ZERO),
                     Vector::<3, T, A>::new(T::ZERO, T::ONE, T::ZERO),
@@ -2091,7 +2091,7 @@ mod tests {
 
             let translation = Vector::from_fn(|i| T::as_from(i + 1));
             assert_eq!(
-                Projective::<3, T, A>::from_scale(translation),
+                Projective::<3, T, A>::from_translation(translation),
                 Projective::<3, T, A>::from_rows(&[
                     Vector::<4, T, A>::new(T::ONE, T::ZERO, T::ZERO, T::ZERO),
                     Vector::<4, T, A>::new(T::ZERO, T::ONE, T::ZERO, T::ZERO),

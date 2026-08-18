@@ -838,7 +838,7 @@ where
     /// ]);
     ///
     /// assert_eq!(
-    ///     Mat2::from_projective(projective),
+    ///     Mat2::from_projective(&projective),
     ///     Mat2::from_rows(&[
     ///         Vec2::new(00, 01),
     ///         Vec2::new(10, 11),
@@ -906,7 +906,7 @@ where
     ///
     /// assert_eq!(
     ///     matrix.to_homogeneous(),
-    ///     Mat3::from_rows([
+    ///     Mat3::from_rows(&[
     ///         Vec3::new(2, 3, 0),
     ///         Vec3::new(4, 5, 0),
     ///         Vec3::new(0, 0, 1),
@@ -944,7 +944,7 @@ where
     /// ]);
     ///
     /// assert_eq!(
-    ///     Mat2::from_homogeneous(homogeneous),
+    ///     Mat2::from_homogeneous(&homogeneous),
     ///     Mat2::from_rows(&[
     ///         Vec2::new(00, 01),
     ///         Vec2::new(10, 11),
@@ -1034,7 +1034,7 @@ where
     ///
     /// assert_eq!(
     ///     matrix.to_homogeneous(),
-    ///     Mat3::from_rows([
+    ///     Mat3::from_rows(&[
     ///         Vec3::new(2, 3, 0),
     ///         Vec3::new(4, 5, 0),
     ///         Vec3::new(0, 0, 1),
@@ -1073,7 +1073,7 @@ where
     /// ]);
     ///
     /// assert_eq!(
-    ///     Mat2::from_homogeneous(homogeneous),
+    ///     Mat2::from_homogeneous(&homogeneous),
     ///     Mat2::from_rows(&[
     ///         Vec2::new(00, 01),
     ///         Vec2::new(10, 11),
