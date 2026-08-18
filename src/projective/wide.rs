@@ -335,3 +335,281 @@ where
             | self.w_axis.simd_ne(other.w_axis)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    extern crate std;
+
+    use wide::i32x4;
+
+    use crate::{
+        Proj2, Proj3, Projective,
+        test_utils::{assert_panic, assert_test_eq, for_types, random_iter},
+    };
+
+    #[test]
+    fn test_from_lanes() {
+        assert_eq!(
+            Proj2::<i32x4>::from_lanes(&[
+                Proj2::from_row_array(&[0, 1, 2, 3, 4, 5, 6, 7, 8]),
+                Proj2::from_row_array(&[10, 11, 12, 13, 14, 15, 16, 17, 18]),
+                Proj2::from_row_array(&[20, 21, 2, 23, 24, 25, 26, 27, 28]),
+                Proj2::from_row_array(&[30, 31, 32, 33, 34, 35, 36, 37, 38]),
+            ]),
+            Proj2::from_row_array(&[
+                i32x4::new([0, 10, 20, 30]),
+                i32x4::new([1, 11, 21, 31]),
+                i32x4::new([2, 12, 22, 32]),
+                i32x4::new([3, 13, 23, 33]),
+                i32x4::new([4, 14, 24, 34]),
+                i32x4::new([5, 15, 25, 35]),
+                i32x4::new([6, 16, 26, 36]),
+                i32x4::new([7, 17, 27, 37]),
+                i32x4::new([8, 18, 28, 38]),
+            ]),
+        );
+    }
+
+    #[test]
+    fn test_from_lane_fn() {
+        assert_eq!(
+            Proj2::<i32x4>::from_lane_fn(|i| [
+                Proj2::from_row_array(&[0, 1, 2, 3, 4, 5, 6, 7, 8]),
+                Proj2::from_row_array(&[10, 11, 12, 13, 14, 15, 16, 17, 18]),
+                Proj2::from_row_array(&[20, 21, 2, 23, 24, 25, 26, 27, 28]),
+                Proj2::from_row_array(&[30, 31, 32, 33, 34, 35, 36, 37, 38]),
+            ][i]),
+            Proj2::from_row_array(&[
+                i32x4::new([0, 10, 20, 30]),
+                i32x4::new([1, 11, 21, 31]),
+                i32x4::new([2, 12, 22, 32]),
+                i32x4::new([3, 13, 23, 33]),
+                i32x4::new([4, 14, 24, 34]),
+                i32x4::new([5, 15, 25, 35]),
+                i32x4::new([6, 16, 26, 36]),
+                i32x4::new([7, 17, 27, 37]),
+                i32x4::new([8, 18, 28, 38]),
+            ]),
+        );
+    }
+
+    #[test]
+    fn test_to_lanes() {
+        assert_eq!(
+            Proj2::from_row_array(&[
+                i32x4::new([0, 10, 20, 30]),
+                i32x4::new([1, 11, 21, 31]),
+                i32x4::new([2, 12, 22, 32]),
+                i32x4::new([3, 13, 23, 33]),
+                i32x4::new([4, 14, 24, 34]),
+                i32x4::new([5, 15, 25, 35]),
+                i32x4::new([6, 16, 26, 36]),
+                i32x4::new([7, 17, 27, 37]),
+                i32x4::new([8, 18, 28, 38]),
+            ])
+            .to_lanes(),
+            [
+                Proj2::from_row_array(&[0, 1, 2, 3, 4, 5, 6, 7, 8]),
+                Proj2::from_row_array(&[10, 11, 12, 13, 14, 15, 16, 17, 18]),
+                Proj2::from_row_array(&[20, 21, 2, 23, 24, 25, 26, 27, 28]),
+                Proj2::from_row_array(&[30, 31, 32, 33, 34, 35, 36, 37, 38]),
+            ],
+        );
+    }
+
+    #[test]
+    fn test_lane() {
+        let projective = Proj2::from_row_array(&[
+            i32x4::new([0, 10, 20, 30]),
+            i32x4::new([1, 11, 21, 31]),
+            i32x4::new([2, 12, 22, 32]),
+            i32x4::new([3, 13, 23, 33]),
+            i32x4::new([4, 14, 24, 34]),
+            i32x4::new([5, 15, 25, 35]),
+            i32x4::new([6, 16, 26, 36]),
+            i32x4::new([7, 17, 27, 37]),
+            i32x4::new([8, 18, 28, 38]),
+        ]);
+
+        assert_eq!(
+            projective.lane(0),
+            Proj2::from_row_array(&[0, 1, 2, 3, 4, 5, 6, 7, 8])
+        );
+        assert_eq!(
+            projective.lane(1),
+            Proj2::from_row_array(&[10, 11, 12, 13, 14, 15, 16, 17, 18])
+        );
+        assert_eq!(
+            projective.lane(2),
+            Proj2::from_row_array(&[20, 21, 2, 23, 24, 25, 26, 27, 28])
+        );
+        assert_eq!(
+            projective.lane(3),
+            Proj2::from_row_array(&[30, 31, 32, 33, 34, 35, 36, 37, 38])
+        );
+        assert_panic!(projective.lane(4));
+    }
+
+    #[test]
+    fn test_set_lane() {
+        let mut projective = Proj2::from_row_array(&[
+            i32x4::new([0, 10, 20, 30]),
+            i32x4::new([1, 11, 21, 31]),
+            i32x4::new([2, 12, 22, 32]),
+            i32x4::new([3, 13, 23, 33]),
+            i32x4::new([4, 14, 24, 34]),
+            i32x4::new([5, 15, 25, 35]),
+            i32x4::new([6, 16, 26, 36]),
+            i32x4::new([7, 17, 27, 37]),
+            i32x4::new([8, 18, 28, 38]),
+        ]);
+
+        projective.set_lane(
+            0,
+            Proj2::from_row_array(&[-1, -2, -3, -4, -5, -6, -7, -8, -9]),
+        );
+        assert_eq!(
+            projective,
+            Proj2::from_row_array(&[
+                i32x4::new([-1, 10, 20, 30]),
+                i32x4::new([-2, 11, 21, 31]),
+                i32x4::new([-3, 12, 22, 32]),
+                i32x4::new([-4, 13, 23, 33]),
+                i32x4::new([-5, 14, 24, 34]),
+                i32x4::new([-6, 15, 25, 35]),
+                i32x4::new([-7, 16, 26, 36]),
+                i32x4::new([-8, 17, 27, 37]),
+                i32x4::new([-9, 18, 28, 38]),
+            ])
+        );
+        projective.set_lane(
+            1,
+            Proj2::from_row_array(&[-10, -11, -12, -13, -14, -15, -16, -17, -18]),
+        );
+        assert_eq!(
+            projective,
+            Proj2::from_row_array(&[
+                i32x4::new([-1, -10, 20, 30]),
+                i32x4::new([-2, -11, 21, 31]),
+                i32x4::new([-3, -12, 22, 32]),
+                i32x4::new([-4, -13, 23, 33]),
+                i32x4::new([-5, -14, 24, 34]),
+                i32x4::new([-6, -15, 25, 35]),
+                i32x4::new([-7, -16, 26, 36]),
+                i32x4::new([-8, -17, 27, 37]),
+                i32x4::new([-9, -18, 28, 38]),
+            ])
+        );
+        projective.set_lane(
+            2,
+            Proj2::from_row_array(&[-20, -21, -22, -23, -24, -25, -26, -27, -28]),
+        );
+        assert_eq!(
+            projective,
+            Proj2::from_row_array(&[
+                i32x4::new([-1, -10, -20, 30]),
+                i32x4::new([-2, -11, -21, 31]),
+                i32x4::new([-3, -12, -22, 32]),
+                i32x4::new([-4, -13, -23, 33]),
+                i32x4::new([-5, -14, -24, 34]),
+                i32x4::new([-6, -15, -25, 35]),
+                i32x4::new([-7, -16, -26, 36]),
+                i32x4::new([-8, -17, -27, 37]),
+                i32x4::new([-9, -18, -28, 38]),
+            ])
+        );
+        projective.set_lane(
+            3,
+            Proj2::from_row_array(&[-30, -31, -32, -33, -34, -35, -36, -37, -38]),
+        );
+        assert_eq!(
+            projective,
+            Proj2::from_row_array(&[
+                i32x4::new([-1, -10, -20, -30]),
+                i32x4::new([-2, -11, -21, -31]),
+                i32x4::new([-3, -12, -22, -32]),
+                i32x4::new([-4, -13, -23, -33]),
+                i32x4::new([-5, -14, -24, -34]),
+                i32x4::new([-6, -15, -25, -35]),
+                i32x4::new([-7, -16, -26, -36]),
+                i32x4::new([-8, -17, -27, -37]),
+                i32x4::new([-9, -18, -28, -38]),
+            ])
+        );
+        assert_panic!(projective.clone().set_lane(4, Projective::ZERO));
+    }
+
+    #[test]
+    fn test_simd_eq() {
+        for_types!(|Wide: WideFloat| {
+            for [a, b, mask] in random_iter::<[Proj2<Wide>; 3]>() {
+                let mask = Proj2::from_row_fn(|r| mask[r].sign_negative_mask());
+                let b = Proj2::from_row_fn(|r| mask[r].blend(a[r], b[r]));
+
+                assert_test_eq!(
+                    a.simd_eq(&b),
+                    Wide::new(std::array::from_fn(
+                        |lane| if a.lane(lane) == b.lane(lane) {
+                            T::from_bits(!0)
+                        } else {
+                            0.0
+                        }
+                    ))
+                );
+            }
+
+            for [a, b, mask] in random_iter::<[Proj3<Wide>; 3]>() {
+                let mask = Proj3::from_row_fn(|r| mask[r].sign_negative_mask());
+                let b = Proj3::from_row_fn(|r| mask[r].blend(a[r], b[r]));
+
+                assert_test_eq!(
+                    a.simd_eq(&b),
+                    Wide::new(std::array::from_fn(
+                        |lane| if a.lane(lane) == b.lane(lane) {
+                            T::from_bits(!0)
+                        } else {
+                            0.0
+                        }
+                    ))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_simd_ne() {
+        for_types!(|Wide: WideFloat| {
+            for [a, b, mask] in random_iter::<[Proj2<Wide>; 3]>() {
+                let mask = Proj2::from_row_fn(|r| mask[r].sign_negative_mask());
+                let b = Proj2::from_row_fn(|r| mask[r].blend(a[r], b[r]));
+
+                assert_test_eq!(
+                    a.simd_ne(&b),
+                    Wide::new(std::array::from_fn(
+                        |lane| if a.lane(lane) != b.lane(lane) {
+                            T::from_bits(!0)
+                        } else {
+                            0.0
+                        }
+                    ))
+                );
+            }
+
+            for [a, b, mask] in random_iter::<[Proj3<Wide>; 3]>() {
+                let mask = Proj3::from_row_fn(|r| mask[r].sign_negative_mask());
+                let b = Proj3::from_row_fn(|r| mask[r].blend(a[r], b[r]));
+
+                assert_test_eq!(
+                    a.simd_ne(&b),
+                    Wide::new(std::array::from_fn(
+                        |lane| if a.lane(lane) != b.lane(lane) {
+                            T::from_bits(!0)
+                        } else {
+                            0.0
+                        }
+                    ))
+                );
+            }
+        });
+    }
+}
