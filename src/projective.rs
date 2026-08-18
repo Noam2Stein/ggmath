@@ -1,7 +1,7 @@
 use core::{
     fmt::{Debug, Display},
     hash::Hash,
-    ops::{Add, Deref, DerefMut, Index, IndexMut, Mul, MulAssign},
+    ops::{Add, AddAssign, Deref, DerefMut, Index, IndexMut, Mul, MulAssign, Neg, Sub, SubAssign},
     panic::{RefUnwindSafe, UnwindSafe},
 };
 
@@ -632,6 +632,33 @@ where
 
     #[inline(always)]
     #[track_caller]
+    fn neg_backend(&self) -> Self
+    where
+        T: Neg<Output = T>,
+    {
+        Self(-self.0)
+    }
+
+    #[inline(always)]
+    #[track_caller]
+    fn add_backend(&self, rhs: &Self) -> Self
+    where
+        T: Add<Output = T>,
+    {
+        Self(self.0 + rhs.0)
+    }
+
+    #[inline(always)]
+    #[track_caller]
+    fn sub_backend(&self, rhs: &Self) -> Self
+    where
+        T: Sub<Output = T>,
+    {
+        Self(self.0 - rhs.0)
+    }
+
+    #[inline(always)]
+    #[track_caller]
     fn mul_backend(&self, rhs: &Self) -> Self
     where
         T: Add<Output = T> + Mul<Output = T>,
@@ -899,6 +926,33 @@ where
         T: Hash,
     {
         self.0.hash(state);
+    }
+
+    #[inline(always)]
+    #[track_caller]
+    fn neg_backend(&self) -> Self
+    where
+        T: Neg<Output = T>,
+    {
+        Self(-self.0)
+    }
+
+    #[inline(always)]
+    #[track_caller]
+    fn add_backend(&self, rhs: &Self) -> Self
+    where
+        T: Add<Output = T>,
+    {
+        Self(self.0 + rhs.0)
+    }
+
+    #[inline(always)]
+    #[track_caller]
+    fn sub_backend(&self, rhs: &Self) -> Self
+    where
+        T: Sub<Output = T>,
+    {
+        Self(self.0 - rhs.0)
     }
 
     #[inline(always)]
@@ -1173,6 +1227,252 @@ where
         Self::IDENTITY
     }
 }
+
+macro_rules! impl_neg {
+    ($(#[$doc:meta])*) => {
+        impl<const N: usize, T, A: Alignment> Neg for Projective<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Neg<Output = T>,
+        {
+            type Output = Self;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn neg(self) -> Self::Output {
+                -(&self)
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Neg for &Projective<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Neg<Output = T>,
+        {
+            type Output = Projective<N, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn neg(self) -> Self::Output {
+                specialize_23!(Projective::<N, T, A>::neg_backend(self))
+            }
+        }
+    };
+}
+impl_neg!(
+    /// Performs the unary `-` operation for each element.
+    ///
+    /// Equivalent to `[-self.x_axis, -self.y_axis, ...]`.
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is fully consistent with the scalar
+    /// operation, including integer panics.
+);
+
+macro_rules! impl_add {
+    ($(#[$doc:meta])*) => {
+        impl<const N: usize, T, A: Alignment> Add for Projective<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Add<Output = T>,
+        {
+            type Output = Self;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn add(self, rhs: Self) -> Self::Output {
+                (&self) + (&rhs)
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Add<&Projective<N, T, A>> for Projective<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Add<Output = T>,
+        {
+            type Output = Self;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn add(self, rhs: &Self) -> Self::Output {
+                (&self) + rhs
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Add<Projective<N, T, A>> for &Projective<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Add<Output = T>,
+        {
+            type Output = Projective<N, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn add(self, rhs: Projective<N, T, A>) -> Self::Output {
+                self + (&rhs)
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Add for &Projective<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Add<Output = T>,
+        {
+            type Output = Projective<N, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn add(self, rhs: Self) -> Self::Output {
+                specialize_23!(Projective::<N, T, A>::add_backend(self, rhs))
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> AddAssign for Projective<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Add<Output = T>,
+        {
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn add_assign(&mut self, rhs: Self) {
+                *self = &*self + rhs;
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> AddAssign<&Projective<N, T, A>> for Projective<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Add<Output = T>,
+        {
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn add_assign(&mut self, rhs: &Self) {
+                *self = &*self + rhs;
+            }
+        }
+    };
+}
+impl_add!(
+    /// Performs the `+` operation for each element.
+    ///
+    /// Equivalent to
+    /// `[self.x_axis + rhs.x_axis, self.y_axis + rhs.y_axis, ...]`.
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is fully consistent with the scalar
+    /// operation, including floating-point precision and integer panics.
+);
+
+macro_rules! impl_sub {
+    ($(#[$doc:meta])*) => {
+        impl<const N: usize, T, A: Alignment> Sub for Projective<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Sub<Output = T>,
+        {
+            type Output = Self;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn sub(self, rhs: Self) -> Self::Output {
+                (&self) - (&rhs)
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Sub<&Projective<N, T, A>> for Projective<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Sub<Output = T>,
+        {
+            type Output = Self;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn sub(self, rhs: &Self) -> Self::Output {
+                (&self) - rhs
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Sub<Projective<N, T, A>> for &Projective<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Sub<Output = T>,
+        {
+            type Output = Projective<N, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn sub(self, rhs: Projective<N, T, A>) -> Self::Output {
+                self - (&rhs)
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Sub for &Projective<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Sub<Output = T>,
+        {
+            type Output = Projective<N, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn sub(self, rhs: Self) -> Self::Output {
+                specialize_23!(Projective::<N, T, A>::sub_backend(self, rhs))
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> SubAssign for Projective<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Sub<Output = T>,
+        {
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn sub_assign(&mut self, rhs: Self) {
+                *self = &*self - rhs;
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> SubAssign<&Projective<N, T, A>> for Projective<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Sub<Output = T>,
+        {
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn sub_assign(&mut self, rhs: &Self) {
+                *self = &*self - rhs;
+            }
+        }
+    };
+}
+impl_sub!(
+    /// Performs the `-` operation for each element.
+    ///
+    /// Equivalent to
+    /// `[self.x_axis - rhs.x_axis, self.y_axis - rhs.y_axis, ...]`.
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is fully consistent with the scalar
+    /// operation, including floating-point precision and integer panics.
+);
 
 macro_rules! impl_vector_mul {
     ($(#[$doc:meta])*) => {

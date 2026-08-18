@@ -131,6 +131,15 @@ macro_rules! impl_wide_float {
                 ))
             }
 
+            /// Returns the absolute values of the elements of `self`.
+            ///
+            /// Equivalent to `(self.x_axis.abs(), self.y_axis.abs(), ...)`.
+            #[inline]
+            #[must_use]
+            pub fn abs(&self) -> Self {
+                specialize_23!(Projective::<N, $Wide, A>::abs_backend(self))
+            }
+
             /// Returns `true` if the absolute difference of all elements
             /// between `self` and `other` is less than or equal to
             /// `max_abs_diff` for all lanes.
@@ -265,13 +274,6 @@ macro_rules! impl_wide_float {
             }
 
             #[inline(always)]
-            fn abs_diff_eq_backend(&self, other: &Self, max_abs_diff: $Wide) -> bool {
-                self.x_axis.abs_diff_eq(other.x_axis, max_abs_diff)
-                    && self.y_axis.abs_diff_eq(other.y_axis, max_abs_diff)
-                    && self.z_axis.abs_diff_eq(other.z_axis, max_abs_diff)
-            }
-
-            #[inline(always)]
             fn transform_point_backend(&self, point: Vector<2, $Wide, A>) -> Vector<2, $Wide, A> {
                 self.x_axis.xy() * point.x + self.y_axis.xy() * point.y + self.z_axis.xy()
             }
@@ -286,6 +288,18 @@ macro_rules! impl_wide_float {
                 let result = self.x_axis * point.x + self.y_axis * point.y + self.z_axis;
 
                 (result / result.z).xy()
+            }
+
+            #[inline(always)]
+            fn abs_backend(&self) -> Self {
+                Self(self.0.abs())
+            }
+
+            #[inline(always)]
+            fn abs_diff_eq_backend(&self, other: &Self, max_abs_diff: $Wide) -> bool {
+                self.x_axis.abs_diff_eq(other.x_axis, max_abs_diff)
+                    && self.y_axis.abs_diff_eq(other.y_axis, max_abs_diff)
+                    && self.z_axis.abs_diff_eq(other.z_axis, max_abs_diff)
             }
         }
 
@@ -1078,31 +1092,6 @@ macro_rules! impl_wide_float {
             }
 
             #[inline(always)]
-            fn transform_point_backend(&self, point: Vector<3, $Wide, A>) -> Vector<3, $Wide, A> {
-                self.x_axis.xyz() * point.x
-                    + self.y_axis.xyz() * point.y
-                    + self.z_axis.xyz() * point.z
-                    + self.w_axis.xyz()
-            }
-
-            #[inline(always)]
-            fn transform_vector_backend(&self, vector: Vector<3, $Wide, A>) -> Vector<3, $Wide, A> {
-                self.x_axis.xyz() * vector.x
-                    + self.y_axis.xyz() * vector.y
-                    + self.z_axis.xyz() * vector.z
-            }
-
-            #[inline(always)]
-            fn project_point_backend(&self, point: Vector<3, $Wide, A>) -> Vector<3, $Wide, A> {
-                let result = self.x_axis * point.x
-                    + self.y_axis * point.y
-                    + self.z_axis * point.z
-                    + self.w_axis;
-
-                (result / result.w).xyz()
-            }
-
-            #[inline(always)]
             fn is_nan_backend(&self) -> $Wide {
                 self.x_axis.is_nan()
                     | self.y_axis.is_nan()
@@ -1134,6 +1123,36 @@ macro_rules! impl_wide_float {
             }
 
             #[inline(always)]
+            fn transform_point_backend(&self, point: Vector<3, $Wide, A>) -> Vector<3, $Wide, A> {
+                self.x_axis.xyz() * point.x
+                    + self.y_axis.xyz() * point.y
+                    + self.z_axis.xyz() * point.z
+                    + self.w_axis.xyz()
+            }
+
+            #[inline(always)]
+            fn transform_vector_backend(&self, vector: Vector<3, $Wide, A>) -> Vector<3, $Wide, A> {
+                self.x_axis.xyz() * vector.x
+                    + self.y_axis.xyz() * vector.y
+                    + self.z_axis.xyz() * vector.z
+            }
+
+            #[inline(always)]
+            fn project_point_backend(&self, point: Vector<3, $Wide, A>) -> Vector<3, $Wide, A> {
+                let result = self.x_axis * point.x
+                    + self.y_axis * point.y
+                    + self.z_axis * point.z
+                    + self.w_axis;
+
+                (result / result.w).xyz()
+            }
+
+            #[inline(always)]
+            fn abs_backend(&self) -> Self {
+                Self(self.0.abs())
+            }
+
+            #[inline(always)]
             fn abs_diff_eq_backend(&self, other: &Self, max_abs_diff: $Wide) -> bool {
                 self.x_axis.abs_diff_eq(other.x_axis, max_abs_diff)
                     && self.y_axis.abs_diff_eq(other.y_axis, max_abs_diff)
@@ -1149,3 +1168,1067 @@ impl_wide_float!(f32x16, f32);
 impl_wide_float!(f64x2, f64);
 impl_wide_float!(f64x4, f64);
 impl_wide_float!(f64x8, f64);
+
+#[cfg(test)]
+mod tests {
+    use crate::{
+        Affine, EulerRot, Mat3, Mat4, Matrix, Proj2, Proj3, Projective, Quat, Unaligned, Vec2,
+        Vec3, Vector,
+        test_utils::{assert_test_eq, assert_test_eq_or_panic, for_types, random_iter},
+    };
+
+    #[test]
+    fn test_constants() {
+        for_types!(|Wide: WideFloat| {
+            assert_test_eq!(Proj2::<Wide>::NAN, Projective(Mat3::<Wide>::NAN));
+            assert_test_eq!(Proj3::<Wide>::NAN, Projective(Mat4::<Wide>::NAN));
+        });
+    }
+
+    #[test]
+    fn test_is_nan() {
+        for_types!(|Wide: WideFloat| {
+            for [x, y, z, w] in random_iter::<[Wide; 4]>() {
+                assert_test_eq!(
+                    Proj2::from_rows(&[x, y, z].map(Vector::splat)).is_nan(),
+                    x.is_nan() | y.is_nan() | z.is_nan()
+                );
+                assert_test_eq!(
+                    Proj3::from_rows(&[x, y, z, w].map(Vector::splat)).is_nan(),
+                    x.is_nan() | y.is_nan() | z.is_nan() | w.is_nan()
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_is_finite() {
+        for_types!(|Wide: WideFloat| {
+            for [x, y, z, w] in random_iter::<[Wide; 4]>() {
+                assert_test_eq!(
+                    Proj2::from_rows(&[x, y, z].map(Vector::splat)).is_finite(),
+                    x.is_finite() & y.is_finite() & z.is_finite()
+                );
+                assert_test_eq!(
+                    Proj3::from_rows(&[x, y, z, w].map(Vector::splat)).is_finite(),
+                    x.is_finite() & y.is_finite() & z.is_finite() & w.is_finite()
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_inverse() {
+        for_types!(|N: TwoOrThree, Wide: WideFloat| {
+            for projective in random_iter::<Projective<N, Wide, Unaligned>>() {
+                assert_test_eq_or_panic!(
+                    projective.inverse(),
+                    Projective::from_lane_fn(|lane| projective.lane(lane).inverse())
+                );
+            }
+        });
+    }
+
+    // `try_inverse` is exluded on purpose.
+
+    #[test]
+    fn test_inverse_or() {
+        for_types!(|N: TwoOrThree, Wide: WideFloat| {
+            for [projective, fallback] in random_iter::<[Projective<N, Wide, Unaligned>; 2]>() {
+                assert_test_eq!(
+                    projective.inverse_or(&fallback),
+                    Projective::from_lane_fn(|lane| projective
+                        .lane(lane)
+                        .inverse_or(&fallback.lane(lane)))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_inverse_or_zero() {
+        for_types!(|N: TwoOrThree, Wide: WideFloat| {
+            for projective in random_iter::<Projective<N, Wide, Unaligned>>() {
+                assert_test_eq!(
+                    projective.inverse_or_zero(),
+                    Projective::from_lane_fn(|lane| projective.lane(lane).inverse_or_zero())
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_transform_point() {
+        for_types!(|N: TwoOrThree, Wide: WideFloat| {
+            for (projective, point) in
+                random_iter::<(Projective<N, Wide, Unaligned>, Vector<N, Wide, Unaligned>)>()
+                    .flat_map(|(projective, point)| {
+                        [
+                            (projective, point),
+                            (
+                                Projective::from_affine(&Affine::from_projective(&projective)),
+                                point,
+                            ),
+                        ]
+                    })
+            {
+                assert_test_eq_or_panic!(
+                    projective.transform_point(point),
+                    Vector::from_lane_fn(|lane| projective
+                        .lane(lane)
+                        .transform_point(point.lane(lane)))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_transform_vector() {
+        for_types!(|N: TwoOrThree, Wide: WideFloat| {
+            for (projective, vector) in
+                random_iter::<(Projective<N, Wide, Unaligned>, Vector<N, Wide, Unaligned>)>()
+                    .flat_map(|(projective, vector)| {
+                        [
+                            (projective, vector),
+                            (
+                                Projective::from_affine(&Affine::from_projective(&projective)),
+                                vector,
+                            ),
+                        ]
+                    })
+            {
+                assert_test_eq_or_panic!(
+                    projective.transform_vector(vector),
+                    Vector::from_lane_fn(|lane| projective
+                        .lane(lane)
+                        .transform_vector(vector.lane(lane)))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_project_point() {
+        for_types!(|N: TwoOrThree, Wide: WideFloat| {
+            for (projective, point) in
+                random_iter::<(Projective<N, Wide, Unaligned>, Vector<N, Wide, Unaligned>)>()
+            {
+                assert_test_eq!(
+                    projective.project_point(point),
+                    Vector::from_lane_fn(|lane| projective
+                        .lane(lane)
+                        .project_point(point.lane(lane)))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_abs() {
+        for_types!(|N: TwoOrThree, Wide: WideFloat| {
+            for projective in random_iter::<Projective<N, Wide, Unaligned>>() {
+                assert_test_eq!(
+                    projective.abs(),
+                    Projective::from_lane_fn(|lane| projective.lane(lane).abs())
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_abs_diff_eq() {
+        for_types!(|N, Wide: WideFloat| {
+            for ([a, b], max_abs_diff) in random_iter::<([Matrix<N, Wide, Unaligned>; 2], Wide)>() {
+                assert_test_eq!(
+                    a.abs_diff_eq(&b, max_abs_diff),
+                    (0..LANES).all(|lane| a
+                        .lane(lane)
+                        .abs_diff_eq(&b.lane(lane), max_abs_diff.to_array()[lane]))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_angle() {
+        for_types!(|Wide: WideFloat| {
+            for angle in random_iter::<Wide>() {
+                assert_test_eq!(
+                    Proj2::<Wide>::from_angle(angle),
+                    Proj2::from_lane_fn(|lane| Proj2::<T>::from_angle(angle.to_array()[lane])),
+                    abs <= angle.abs() * 1e-4 + 1e-3,
+                    0.0 = -0.0
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_scale_angle() {
+        for_types!(|Wide: WideFloat| {
+            for (scale, angle) in random_iter::<(Vec2<Wide>, Wide)>() {
+                let scale = Vec2::splat(scale.length().is_finite()).blend(scale, Vec2::ONE);
+
+                assert_test_eq!(
+                    Proj2::<Wide>::from_scale_angle(scale, angle),
+                    Proj2::from_lane_fn(|lane| Proj2::<T>::from_scale_angle(
+                        scale.lane(lane),
+                        angle.to_array()[lane]
+                    )),
+                    abs <= (scale.length() * angle.abs() * 1e-4).max(Wide::splat(1e-3)),
+                    0.0 = -0.0,
+                    INFINITY = NAN
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_angle_translation() {
+        for_types!(|Wide: WideFloat| {
+            for (angle, translation) in random_iter::<(Wide, Vec2<Wide>)>() {
+                assert_test_eq!(
+                    Proj2::<Wide>::from_angle_translation(angle, translation),
+                    Proj2::from_lane_fn(|lane| Proj2::<T>::from_angle_translation(
+                        angle.to_array()[lane],
+                        translation.lane(lane)
+                    )),
+                    abs <= angle.abs() * 1e-4,
+                    0.0 = -0.0
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_scale_angle_translation() {
+        for_types!(|Wide: WideFloat| {
+            for (scale, angle, translation) in random_iter::<(Vec2<Wide>, Wide, Vec2<Wide>)>() {
+                let scale = Vec2::splat(scale.length().is_finite()).blend(scale, Vec2::ONE);
+
+                assert_test_eq!(
+                    Proj2::<Wide>::from_scale_angle_translation(scale, angle, translation),
+                    Proj2::from_lane_fn(|lane| Proj2::<T>::from_scale_angle_translation(
+                        scale.lane(lane),
+                        angle.to_array()[lane],
+                        translation.lane(lane)
+                    )),
+                    abs <= (scale.length() * angle.abs() * 1e-4).max(Wide::splat(1e-3)),
+                    0.0 = -0.0
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_to_scale_angle() {
+        for_types!(|Wide: WideFloat| {
+            for projective in random_iter::<(Vec2<Wide>, Wide, Vec2<Wide>)>()
+                .map(|(scale, angle, translation)| {
+                    Proj2::<Wide>::from_scale_angle_translation(scale, angle, translation)
+                })
+                .chain(random_iter())
+            {
+                assert_test_eq_or_panic!(
+                    projective.to_scale_angle(),
+                    (
+                        Vec2::from_lane_fn(|lane| projective.lane(lane).to_scale_angle().0),
+                        Wide::new(std::array::from_fn(|lane| projective
+                            .lane(lane)
+                            .to_scale_angle()
+                            .1))
+                    ),
+                    abs <= (
+                        projective.to_scale_angle().0.abs() * Wide::splat(1e-4) + Wide::splat(1e-3),
+                        projective.to_scale_angle().1.abs() * 1e-4 + 1e-3
+                    )
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_to_scale_angle_translation() {
+        for_types!(|Wide: WideFloat| {
+            for projective in random_iter::<(Vec2<Wide>, Wide, Vec2<Wide>)>()
+                .map(|(scale, angle, translation)| {
+                    Proj2::<Wide>::from_scale_angle_translation(scale, angle, translation)
+                })
+                .chain(random_iter())
+            {
+                assert_test_eq_or_panic!(
+                    projective.to_scale_angle_translation(),
+                    (
+                        Vec2::from_lane_fn(|lane| projective
+                            .lane(lane)
+                            .to_scale_angle_translation()
+                            .0),
+                        Wide::new(std::array::from_fn(|lane| projective
+                            .lane(lane)
+                            .to_scale_angle_translation()
+                            .1)),
+                        Vec2::from_lane_fn(|lane| projective
+                            .lane(lane)
+                            .to_scale_angle_translation()
+                            .2)
+                    ),
+                    abs <= (
+                        projective.to_scale_angle_translation().0.abs() * Wide::splat(1e-4)
+                            + Wide::splat(1e-3),
+                        projective.to_scale_angle_translation().1.abs() * 1e-4 + 1e-3,
+                        Vector::ZERO
+                    )
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_rotation_x() {
+        for_types!(|Wide: WideFloat| {
+            for angle in random_iter::<Wide>() {
+                assert_test_eq!(
+                    Proj3::<Wide>::from_rotation_x(angle),
+                    Proj3::from_lane_fn(|lane| Proj3::<T>::from_rotation_x(angle.to_array()[lane])),
+                    abs <= angle.abs() * 1e-4 + 1e-3,
+                    0.0 = -0.0
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_rotation_y() {
+        for_types!(|Wide: WideFloat| {
+            for angle in random_iter::<Wide>() {
+                assert_test_eq!(
+                    Proj3::<Wide>::from_rotation_y(angle),
+                    Proj3::from_lane_fn(|lane| Proj3::<T>::from_rotation_y(angle.to_array()[lane])),
+                    abs <= angle.abs() * 1e-4 + 1e-3,
+                    0.0 = -0.0
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_rotation_z() {
+        for_types!(|Wide: WideFloat| {
+            for angle in random_iter::<Wide>() {
+                assert_test_eq!(
+                    Proj3::<Wide>::from_rotation_z(angle),
+                    Proj3::from_lane_fn(|lane| Proj3::<T>::from_rotation_z(angle.to_array()[lane])),
+                    abs <= angle.abs() * 1e-4 + 1e-3,
+                    0.0 = -0.0
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_quat() {
+        for_types!(|Wide: WideFloat| {
+            for quat in random_iter::<Quat<Wide>>().flat_map(|quat| [quat, quat.normalize()]) {
+                assert_test_eq_or_panic!(
+                    Proj3::<Wide>::from_quat(quat),
+                    Proj3::from_lane_fn(|lane| Proj3::<T>::from_quat(quat.lane(lane)))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_axis_angle() {
+        for_types!(|Wide: WideFloat| {
+            for (axis, angle) in random_iter::<(Vec3<Wide>, Wide)>()
+                .flat_map(|(axis, angle)| [(axis, angle), (axis.normalize(), angle)])
+            {
+                let condition =
+                    axis.length().is_finite() & angle.is_finite() & angle.abs().simd_lt(1e3);
+                let axis = Vec3::splat(condition).blend(axis, Vec3::X);
+                let angle = condition.blend(angle, Wide::ONE);
+
+                assert_test_eq_or_panic!(
+                    Proj3::<Wide>::from_axis_angle(axis, angle),
+                    Proj3::from_lane_fn(|lane| Proj3::<T>::from_axis_angle(
+                        axis.lane(lane),
+                        angle.to_array()[lane]
+                    )),
+                    abs <= Proj3::<Wide>::from_axis_angle(axis, angle).abs()
+                        * axis.length().max(Wide::ONE)
+                        * angle.abs().max(Wide::ONE)
+                        * Wide::splat(1e-4)
+                        + Proj3::from_row_array(&[Wide::splat(1e-3); 16]),
+                    0.0 = -0.0
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_euler() {
+        for_types!(|Wide: WideFloat| {
+            for order in EulerRot::values() {
+                for [a, b, c] in random_iter::<[Wide; 3]>() {
+                    assert_test_eq!(
+                        Proj3::<Wide>::from_euler(order, a, b, c),
+                        Proj3::from_lane_fn(|lane| Proj3::<T>::from_euler(
+                            order,
+                            a.to_array()[lane],
+                            b.to_array()[lane],
+                            c.to_array()[lane]
+                        )),
+                        abs <= a.abs().max(b.abs()).max(c.abs()) * 1e-4,
+                        0.0 = -0.0
+                    );
+                }
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_scale_rotation() {
+        for_types!(|Wide: WideFloat| {
+            for (scale, rotation) in random_iter::<(Vec3<Wide>, Quat<Wide>)>()
+                .flat_map(|(scale, quat)| [(scale, quat), (scale, quat.normalize())])
+            {
+                assert_test_eq_or_panic!(
+                    Proj3::<Wide>::from_scale_rotation(scale, rotation),
+                    Proj3::from_lane_fn(|lane| Proj3::<T>::from_scale_rotation(
+                        scale.lane(lane),
+                        rotation.lane(lane)
+                    ))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_rotation_translation() {
+        for_types!(|Wide: WideFloat| {
+            for (rotation, translation) in
+                random_iter::<(Quat<Wide>, Vec3<Wide>)>().flat_map(|(rotation, translation)| {
+                    [(rotation, translation), (rotation.normalize(), translation)]
+                })
+            {
+                assert_test_eq_or_panic!(
+                    Proj3::<Wide>::from_rotation_translation(rotation, translation),
+                    Proj3::from_lane_fn(|lane| Proj3::<T>::from_rotation_translation(
+                        rotation.lane(lane),
+                        translation.lane(lane)
+                    ))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_scale_rotation_translation() {
+        for_types!(|Wide: WideFloat| {
+            for (scale, rotation, translation) in
+                random_iter::<(Vec3<Wide>, Quat<Wide>, Vec3<Wide>)>().flat_map(
+                    |(scale, rotation, translation)| {
+                        [
+                            (scale, rotation, translation),
+                            (scale, rotation.normalize(), translation),
+                        ]
+                    },
+                )
+            {
+                assert_test_eq_or_panic!(
+                    Proj3::<Wide>::from_scale_rotation_translation(scale, rotation, translation),
+                    Proj3::from_lane_fn(|lane| Proj3::<T>::from_scale_rotation_translation(
+                        scale.lane(lane),
+                        rotation.lane(lane),
+                        translation.lane(lane)
+                    ))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_look_to_lh() {
+        for_types!(|Wide: WideFloat| {
+            for [eye, dir, up] in random_iter::<[Vec3<Wide>; 3]>()
+                .flat_map(|[eye, dir, up]| [[eye, dir, up], [eye, dir.normalize(), up.normalize()]])
+            {
+                assert_test_eq_or_panic!(
+                    Proj3::<Wide>::look_to_lh(eye, dir, up),
+                    Proj3::from_lane_fn(|lane| Proj3::<T>::look_to_lh(
+                        eye.lane(lane),
+                        dir.lane(lane),
+                        up.lane(lane)
+                    ))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_look_to_rh() {
+        for_types!(|Wide: WideFloat| {
+            for [eye, dir, up] in random_iter::<[Vec3<Wide>; 3]>()
+                .flat_map(|[eye, dir, up]| [[eye, dir, up], [eye, dir.normalize(), up.normalize()]])
+            {
+                assert_test_eq_or_panic!(
+                    Proj3::<Wide>::look_to_rh(eye, dir, up),
+                    Proj3::from_lane_fn(|lane| Proj3::<T>::look_to_rh(
+                        eye.lane(lane),
+                        dir.lane(lane),
+                        up.lane(lane)
+                    ))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_look_at_lh() {
+        for_types!(|Wide: WideFloat| {
+            for [eye, center, up] in random_iter::<[Vec3<Wide>; 3]>()
+                .flat_map(|[eye, center, up]| [[eye, center, up], [eye, center, up.normalize()]])
+            {
+                assert_test_eq_or_panic!(
+                    Proj3::<Wide>::look_at_lh(eye, center, up),
+                    Proj3::from_lane_fn(|lane| Proj3::<T>::look_at_lh(
+                        eye.lane(lane),
+                        center.lane(lane),
+                        up.lane(lane)
+                    ))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_look_at_rh() {
+        for_types!(|Wide: WideFloat| {
+            for [eye, center, up] in random_iter::<[Vec3<Wide>; 3]>()
+                .flat_map(|[eye, center, up]| [[eye, center, up], [eye, center, up.normalize()]])
+            {
+                assert_test_eq_or_panic!(
+                    Proj3::<Wide>::look_at_rh(eye, center, up),
+                    Proj3::from_lane_fn(|lane| Proj3::<T>::look_at_rh(
+                        eye.lane(lane),
+                        center.lane(lane),
+                        up.lane(lane)
+                    ))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_perspective_lh() {
+        for_types!(|Wide: WideFloat| {
+            for [vertical_fov, near_plane, far_plane, aspect_ratio] in random_iter::<[Wide; 4]>() {
+                let [vertical_fov, near_plane, far_plane, aspect_ratio] =
+                    [vertical_fov, near_plane, far_plane, aspect_ratio]
+                        .map(|x| (x.is_finite() & x.abs().simd_lt(1e3)).blend(x, Wide::ONE));
+
+                assert_test_eq_or_panic!(
+                    Proj3::<Wide>::perspective_lh(
+                        vertical_fov,
+                        aspect_ratio,
+                        near_plane,
+                        far_plane
+                    ),
+                    Proj3::from_lane_fn(|lane| Proj3::<T>::perspective_lh(
+                        vertical_fov.to_array()[lane],
+                        aspect_ratio.to_array()[lane],
+                        near_plane.to_array()[lane],
+                        far_plane.to_array()[lane]
+                    )),
+                    abs <= Proj3::<Wide>::perspective_lh(
+                        vertical_fov,
+                        aspect_ratio,
+                        near_plane,
+                        far_plane
+                    )
+                    .abs()
+                        * Wide::splat(1e-3)
+                        + Proj3::from_row_array(&[Wide::splat(1e-3); 16])
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_perspective_rh() {
+        for_types!(|Wide: WideFloat| {
+            for [vertical_fov, near_plane, far_plane, aspect_ratio] in random_iter::<[Wide; 4]>() {
+                let [vertical_fov, near_plane, far_plane, aspect_ratio] =
+                    [vertical_fov, near_plane, far_plane, aspect_ratio]
+                        .map(|x| (x.is_finite() & x.abs().simd_lt(1e3)).blend(x, Wide::ONE));
+
+                assert_test_eq_or_panic!(
+                    Proj3::<Wide>::perspective_rh(
+                        vertical_fov,
+                        aspect_ratio,
+                        near_plane,
+                        far_plane
+                    ),
+                    Proj3::from_lane_fn(|lane| Proj3::<T>::perspective_rh(
+                        vertical_fov.to_array()[lane],
+                        aspect_ratio.to_array()[lane],
+                        near_plane.to_array()[lane],
+                        far_plane.to_array()[lane]
+                    )),
+                    abs <= Proj3::<Wide>::perspective_rh(
+                        vertical_fov,
+                        aspect_ratio,
+                        near_plane,
+                        far_plane
+                    )
+                    .abs()
+                        * Wide::splat(1e-3)
+                        + Proj3::from_row_array(&[Wide::splat(1e-3); 16])
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_perspective_rh_gl() {
+        for_types!(|Wide: WideFloat| {
+            for [vertical_fov, near_plane, far_plane, aspect_ratio] in random_iter::<[Wide; 4]>() {
+                let [vertical_fov, near_plane, far_plane, aspect_ratio] =
+                    [vertical_fov, near_plane, far_plane, aspect_ratio]
+                        .map(|x| (x.is_finite() & x.abs().simd_lt(1e3)).blend(x, Wide::ONE));
+
+                assert_test_eq_or_panic!(
+                    Proj3::<Wide>::perspective_rh_gl(
+                        vertical_fov,
+                        aspect_ratio,
+                        near_plane,
+                        far_plane
+                    ),
+                    Proj3::from_lane_fn(|lane| Proj3::<T>::perspective_rh_gl(
+                        vertical_fov.to_array()[lane],
+                        aspect_ratio.to_array()[lane],
+                        near_plane.to_array()[lane],
+                        far_plane.to_array()[lane]
+                    )),
+                    abs <= Proj3::<Wide>::perspective_rh_gl(
+                        vertical_fov,
+                        aspect_ratio,
+                        near_plane,
+                        far_plane
+                    )
+                    .abs()
+                        * Wide::splat(1e-3)
+                        + Proj3::from_row_array(&[Wide::splat(1e-3); 16])
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_perspective_infinite_lh() {
+        for_types!(|Wide: WideFloat| {
+            for [vertical_fov, near_plane, aspect_ratio] in random_iter::<[Wide; 3]>() {
+                let [vertical_fov, near_plane, aspect_ratio] =
+                    [vertical_fov, near_plane, aspect_ratio]
+                        .map(|x| (x.is_finite() & x.abs().simd_lt(1e3)).blend(x, Wide::ONE));
+
+                assert_test_eq_or_panic!(
+                    Proj3::<Wide>::perspective_infinite_lh(vertical_fov, aspect_ratio, near_plane),
+                    Proj3::from_lane_fn(|lane| Proj3::<T>::perspective_infinite_lh(
+                        vertical_fov.to_array()[lane],
+                        aspect_ratio.to_array()[lane],
+                        near_plane.to_array()[lane]
+                    )),
+                    abs <= Proj3::<Wide>::perspective_infinite_lh(
+                        vertical_fov,
+                        aspect_ratio,
+                        near_plane
+                    )
+                    .abs()
+                        * Wide::splat(1e-3)
+                        + Proj3::from_row_array(&[Wide::splat(1e-3); 16])
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_perspective_infinite_rh() {
+        for_types!(|Wide: WideFloat| {
+            for [vertical_fov, near_plane, aspect_ratio] in random_iter::<[Wide; 3]>() {
+                let [vertical_fov, near_plane, aspect_ratio] =
+                    [vertical_fov, near_plane, aspect_ratio]
+                        .map(|x| (x.is_finite() & x.abs().simd_lt(1e3)).blend(x, Wide::ONE));
+
+                assert_test_eq_or_panic!(
+                    Proj3::<Wide>::perspective_infinite_rh(vertical_fov, aspect_ratio, near_plane),
+                    Proj3::from_lane_fn(|lane| Proj3::<T>::perspective_infinite_rh(
+                        vertical_fov.to_array()[lane],
+                        aspect_ratio.to_array()[lane],
+                        near_plane.to_array()[lane]
+                    )),
+                    abs <= Proj3::<Wide>::perspective_infinite_rh(
+                        vertical_fov,
+                        aspect_ratio,
+                        near_plane
+                    )
+                    .abs()
+                        * Wide::splat(1e-3)
+                        + Proj3::from_row_array(&[Wide::splat(1e-3); 16])
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_perspective_infinite_reverse_lh() {
+        for_types!(|Wide: WideFloat| {
+            for [vertical_fov, near_plane, aspect_ratio] in random_iter::<[Wide; 3]>() {
+                let [vertical_fov, near_plane, aspect_ratio] =
+                    [vertical_fov, near_plane, aspect_ratio]
+                        .map(|x| (x.is_finite() & x.abs().simd_lt(1e3)).blend(x, Wide::ONE));
+
+                assert_test_eq_or_panic!(
+                    Proj3::<Wide>::perspective_infinite_reverse_lh(
+                        vertical_fov,
+                        aspect_ratio,
+                        near_plane
+                    ),
+                    Proj3::from_lane_fn(|lane| Proj3::<T>::perspective_infinite_reverse_lh(
+                        vertical_fov.to_array()[lane],
+                        aspect_ratio.to_array()[lane],
+                        near_plane.to_array()[lane]
+                    )),
+                    abs <= Proj3::<Wide>::perspective_infinite_reverse_lh(
+                        vertical_fov,
+                        aspect_ratio,
+                        near_plane
+                    )
+                    .abs()
+                        * Wide::splat(1e-3)
+                        + Proj3::from_row_array(&[Wide::splat(1e-3); 16])
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_perspective_infinite_reverse_rh() {
+        for_types!(|Wide: WideFloat| {
+            for [vertical_fov, near_plane, aspect_ratio] in random_iter::<[Wide; 3]>() {
+                let [vertical_fov, near_plane, aspect_ratio] =
+                    [vertical_fov, near_plane, aspect_ratio]
+                        .map(|x| (x.is_finite() & x.abs().simd_lt(1e3)).blend(x, Wide::ONE));
+
+                assert_test_eq_or_panic!(
+                    Proj3::<Wide>::perspective_infinite_reverse_rh(
+                        vertical_fov,
+                        aspect_ratio,
+                        near_plane
+                    ),
+                    Proj3::from_lane_fn(|lane| Proj3::<T>::perspective_infinite_reverse_rh(
+                        vertical_fov.to_array()[lane],
+                        aspect_ratio.to_array()[lane],
+                        near_plane.to_array()[lane]
+                    )),
+                    abs <= Proj3::<Wide>::perspective_infinite_reverse_rh(
+                        vertical_fov,
+                        aspect_ratio,
+                        near_plane
+                    )
+                    .abs()
+                        * Wide::splat(1e-3)
+                        + Proj3::from_row_array(&[Wide::splat(1e-3); 16])
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_frustum_lh() {
+        for_types!(|Wide: WideFloat| {
+            for [left, right, bottom, top, near_plane, far_plane] in random_iter::<[Wide; 6]>()
+                .flat_map(|[left, right, bottom, top, near_plane, far_plane]| {
+                    [
+                        [left, right, bottom, top, near_plane, far_plane],
+                        [
+                            left.min(right),
+                            left.max(right),
+                            bottom.min(top),
+                            bottom.max(top),
+                            near_plane.min(far_plane),
+                            near_plane.max(far_plane),
+                        ],
+                    ]
+                })
+            {
+                assert_test_eq_or_panic!(
+                    Proj3::<Wide>::frustum_lh(left, right, bottom, top, near_plane, far_plane),
+                    Proj3::from_lane_fn(|lane| Proj3::<T>::frustum_lh(
+                        left.to_array()[lane],
+                        right.to_array()[lane],
+                        bottom.to_array()[lane],
+                        top.to_array()[lane],
+                        near_plane.to_array()[lane],
+                        far_plane.to_array()[lane]
+                    ))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_frustum_rh() {
+        for_types!(|Wide: WideFloat| {
+            for [left, right, bottom, top, near_plane, far_plane] in random_iter::<[Wide; 6]>()
+                .flat_map(|[left, right, bottom, top, near_plane, far_plane]| {
+                    [
+                        [left, right, bottom, top, near_plane, far_plane],
+                        [
+                            left.min(right),
+                            left.max(right),
+                            bottom.min(top),
+                            bottom.max(top),
+                            near_plane.min(far_plane),
+                            near_plane.max(far_plane),
+                        ],
+                    ]
+                })
+            {
+                assert_test_eq_or_panic!(
+                    Proj3::<Wide>::frustum_rh(left, right, bottom, top, near_plane, far_plane),
+                    Proj3::from_lane_fn(|lane| Proj3::<T>::frustum_rh(
+                        left.to_array()[lane],
+                        right.to_array()[lane],
+                        bottom.to_array()[lane],
+                        top.to_array()[lane],
+                        near_plane.to_array()[lane],
+                        far_plane.to_array()[lane]
+                    ))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_frustum_rh_gl() {
+        for_types!(|Wide: WideFloat| {
+            for [left, right, bottom, top, near_plane, far_plane] in random_iter::<[Wide; 6]>()
+                .flat_map(|[left, right, bottom, top, near_plane, far_plane]| {
+                    [
+                        [left, right, bottom, top, near_plane, far_plane],
+                        [
+                            left.min(right),
+                            left.max(right),
+                            bottom.min(top),
+                            bottom.max(top),
+                            near_plane.min(far_plane),
+                            near_plane.max(far_plane),
+                        ],
+                    ]
+                })
+            {
+                assert_test_eq_or_panic!(
+                    Proj3::<Wide>::frustum_rh_gl(left, right, bottom, top, near_plane, far_plane),
+                    Proj3::from_lane_fn(|lane| Proj3::<T>::frustum_rh_gl(
+                        left.to_array()[lane],
+                        right.to_array()[lane],
+                        bottom.to_array()[lane],
+                        top.to_array()[lane],
+                        near_plane.to_array()[lane],
+                        far_plane.to_array()[lane]
+                    ))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_orthographic_lh() {
+        for_types!(|Wide: WideFloat| {
+            for [left, right, bottom, top, near, far] in
+                random_iter::<[Wide; 6]>().flat_map(|[left, right, bottom, top, near, far]| {
+                    [
+                        [left, right, bottom, top, near, far],
+                        [
+                            left.min(right),
+                            left.max(right),
+                            bottom.min(top),
+                            bottom.max(top),
+                            near.min(far),
+                            near.max(far),
+                        ],
+                    ]
+                })
+            {
+                assert_test_eq_or_panic!(
+                    Proj3::<Wide>::orthographic_lh(left, right, bottom, top, near, far),
+                    Proj3::from_lane_fn(|lane| Proj3::<T>::orthographic_lh(
+                        left.to_array()[lane],
+                        right.to_array()[lane],
+                        bottom.to_array()[lane],
+                        top.to_array()[lane],
+                        near.to_array()[lane],
+                        far.to_array()[lane]
+                    ))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_orthographic_rh() {
+        for_types!(|Wide: WideFloat| {
+            for [left, right, bottom, top, near, far] in
+                random_iter::<[Wide; 6]>().flat_map(|[left, right, bottom, top, near, far]| {
+                    [
+                        [left, right, bottom, top, near, far],
+                        [
+                            left.min(right),
+                            left.max(right),
+                            bottom.min(top),
+                            bottom.max(top),
+                            near.min(far),
+                            near.max(far),
+                        ],
+                    ]
+                })
+            {
+                assert_test_eq_or_panic!(
+                    Proj3::<Wide>::orthographic_rh(left, right, bottom, top, near, far),
+                    Proj3::from_lane_fn(|lane| Proj3::<T>::orthographic_rh(
+                        left.to_array()[lane],
+                        right.to_array()[lane],
+                        bottom.to_array()[lane],
+                        top.to_array()[lane],
+                        near.to_array()[lane],
+                        far.to_array()[lane]
+                    ))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_orthographic_rh_gl() {
+        for_types!(|Wide: WideFloat| {
+            for [left, right, bottom, top, near, far] in
+                random_iter::<[Wide; 6]>().flat_map(|[left, right, bottom, top, near, far]| {
+                    [
+                        [left, right, bottom, top, near, far],
+                        [
+                            left.min(right),
+                            left.max(right),
+                            bottom.min(top),
+                            bottom.max(top),
+                            near.min(far),
+                            near.max(far),
+                        ],
+                    ]
+                })
+            {
+                assert_test_eq_or_panic!(
+                    Proj3::<Wide>::orthographic_rh_gl(left, right, bottom, top, near, far),
+                    Proj3::from_lane_fn(|lane| Proj3::<T>::orthographic_rh_gl(
+                        left.to_array()[lane],
+                        right.to_array()[lane],
+                        bottom.to_array()[lane],
+                        top.to_array()[lane],
+                        near.to_array()[lane],
+                        far.to_array()[lane]
+                    ))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_to_euler() {
+        for_types!(|Wide: WideFloat| {
+            for order in EulerRot::values() {
+                for projective in random_iter::<[Wide; 3]>()
+                    .map(|[a, b, c]| Proj3::<Wide>::from_euler(order, a, b, c))
+                    .chain(random_iter())
+                {
+                    assert_test_eq_or_panic!(
+                        projective.to_euler(order),
+                        (
+                            Wide::new(std::array::from_fn(|lane| projective
+                                .lane(lane)
+                                .to_euler(order)
+                                .0)),
+                            Wide::new(std::array::from_fn(|lane| projective
+                                .lane(lane)
+                                .to_euler(order)
+                                .1)),
+                            Wide::new(std::array::from_fn(|lane| projective
+                                .lane(lane)
+                                .to_euler(order)
+                                .2))
+                        ),
+                        abs <= (Wide::splat(1e-4), Wide::splat(1e-4), Wide::splat(1e-4)),
+                        0.0 = -0.0
+                    );
+                }
+            }
+        });
+    }
+
+    #[test]
+    fn test_to_scale_rotation() {
+        for_types!(|Wide: WideFloat| {
+            for projective in random_iter::<(Vec3<Wide>, Quat<Wide>, Vec3<Wide>)>()
+                .map(|(scale, rotation, translation)| {
+                    Proj3::<Wide>::from_scale_rotation_translation(
+                        scale,
+                        rotation.normalize(),
+                        translation,
+                    )
+                })
+                .chain(random_iter())
+            {
+                assert_test_eq_or_panic!(
+                    projective.to_scale_rotation(),
+                    (
+                        Vec3::from_lane_fn(|lane| projective.lane(lane).to_scale_rotation().0),
+                        Quat::from_lane_fn(|lane| projective.lane(lane).to_scale_rotation().1)
+                    )
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_to_scale_rotation_translation() {
+        for_types!(|Wide: WideFloat| {
+            for projective in random_iter::<(Vec3<Wide>, Quat<Wide>, Vec3<Wide>)>()
+                .map(|(scale, rotation, translation)| {
+                    Proj3::<Wide>::from_scale_rotation_translation(
+                        scale,
+                        rotation.normalize(),
+                        translation,
+                    )
+                })
+                .chain(random_iter())
+            {
+                assert_test_eq_or_panic!(
+                    projective.to_scale_rotation_translation(),
+                    (
+                        Vec3::from_lane_fn(|lane| projective
+                            .lane(lane)
+                            .to_scale_rotation_translation()
+                            .0),
+                        Quat::from_lane_fn(|lane| projective
+                            .lane(lane)
+                            .to_scale_rotation_translation()
+                            .1),
+                        Vec3::from_lane_fn(|lane| projective
+                            .lane(lane)
+                            .to_scale_rotation_translation()
+                            .2)
+                    )
+                );
+            }
+        });
+    }
+}
