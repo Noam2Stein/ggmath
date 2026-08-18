@@ -1033,3 +1033,686 @@ where
             && self.w_axis.abs_diff_eq(other.w_axis, max_abs_diff)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::{
+        EulerRot, FloatExt, Matrix, Quaternion, Vector,
+        test_utils::{assert_debug_panic, assert_test_eq, for_types, random_iter},
+    };
+
+    #[test]
+    fn test_constants() {
+        for_types!(|N, T: PrimitiveFloat, A| {
+            assert_test_eq!(
+                Matrix::<N, T, A>::NAN,
+                Matrix::from_rows(&[Vector::<N, T, A>::NAN; N])
+            );
+        });
+    }
+
+    #[test]
+    fn test_is_nan() {
+        for_types!(|T: PrimitiveFloat, A| {
+            let one = Vector::ONE;
+            let nan = Vector::<2, T, A>::NAN;
+            assert!(!Matrix::<2, T, A>::from_rows(&[one; 2]).is_nan());
+            assert!(Matrix::<2, T, A>::from_rows(&[nan, one]).is_nan());
+            assert!(Matrix::<2, T, A>::from_rows(&[one, nan]).is_nan());
+            assert!(Matrix::<2, T, A>::NAN.is_nan());
+
+            let one = Vector::ONE;
+            let nan = Vector::<3, T, A>::NAN;
+            assert!(!Matrix::<3, T, A>::from_rows(&[one; 3]).is_nan());
+            assert!(Matrix::<3, T, A>::from_rows(&[nan, one, one]).is_nan());
+            assert!(Matrix::<3, T, A>::from_rows(&[one, nan, one]).is_nan());
+            assert!(Matrix::<3, T, A>::from_rows(&[one, one, nan]).is_nan());
+            assert!(Matrix::<3, T, A>::NAN.is_nan());
+
+            let one = Vector::ONE;
+            let nan = Vector::<4, T, A>::NAN;
+            assert!(!Matrix::<4, T, A>::from_rows(&[one; 4]).is_nan());
+            assert!(Matrix::<4, T, A>::from_rows(&[nan, one, one, one]).is_nan());
+            assert!(Matrix::<4, T, A>::from_rows(&[one, nan, one, one]).is_nan());
+            assert!(Matrix::<4, T, A>::from_rows(&[one, one, nan, one]).is_nan());
+            assert!(Matrix::<4, T, A>::from_rows(&[one, one, one, nan]).is_nan());
+            assert!(Matrix::<4, T, A>::NAN.is_nan());
+        });
+    }
+
+    #[test]
+    fn test_is_finite() {
+        for_types!(|T: PrimitiveFloat, A| {
+            let one = Vector::ONE;
+            let inf = Vector::<2, T, A>::INFINITY;
+            assert!(Matrix::<2, T, A>::from_rows(&[one, one]).is_finite());
+            assert!(!Matrix::<2, T, A>::from_rows(&[inf, one]).is_finite());
+            assert!(!Matrix::<2, T, A>::from_rows(&[one, inf]).is_finite());
+            assert!(!Matrix::<2, T, A>::from_rows(&[inf, inf]).is_finite());
+
+            let one = Vector::ONE;
+            let inf = Vector::<3, T, A>::INFINITY;
+            assert!(Matrix::<3, T, A>::from_rows(&[one, one, one]).is_finite());
+            assert!(!Matrix::<3, T, A>::from_rows(&[inf, one, one]).is_finite());
+            assert!(!Matrix::<3, T, A>::from_rows(&[one, inf, one]).is_finite());
+            assert!(!Matrix::<3, T, A>::from_rows(&[one, one, inf]).is_finite());
+            assert!(!Matrix::<3, T, A>::from_rows(&[inf, inf, inf]).is_finite());
+
+            let one = Vector::ONE;
+            let inf = Vector::<4, T, A>::INFINITY;
+            assert!(Matrix::<4, T, A>::from_rows(&[one, one, one, one]).is_finite());
+            assert!(!Matrix::<4, T, A>::from_rows(&[inf, one, one, one]).is_finite());
+            assert!(!Matrix::<4, T, A>::from_rows(&[one, inf, one, one]).is_finite());
+            assert!(!Matrix::<4, T, A>::from_rows(&[one, one, inf, one]).is_finite());
+            assert!(!Matrix::<4, T, A>::from_rows(&[one, one, one, inf]).is_finite());
+            assert!(!Matrix::<4, T, A>::from_rows(&[inf, inf, inf, inf]).is_finite());
+        });
+    }
+
+    #[test]
+    fn test_inverse() {
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for matrix in random_iter::<Matrix<N, T, A>>() {
+                if matrix.determinant() == 0.0 {
+                    assert_debug_panic!(matrix.inverse());
+                }
+
+                if !matrix.is_finite()
+                    || matrix.as_rows().iter().flatten().any(|x| x.abs() > 1e6)
+                    || !(1e-2..=1e2).contains(
+                        &(matrix.determinant()
+                            / matrix
+                                .as_rows()
+                                .iter()
+                                .flatten()
+                                .reduce(T::max)
+                                .unwrap()
+                                .powi(N as i32)),
+                    )
+                {
+                    continue;
+                }
+
+                assert_test_eq!(
+                    matrix.inverse() * matrix,
+                    Matrix::IDENTITY,
+                    abs <= matrix
+                        .determinant()
+                        .abs()
+                        .max(matrix.determinant().recip().abs())
+                        * 1e-4,
+                    0.0 = -0.0
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_try_inverse() {
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for matrix in random_iter::<Matrix<N, T, A>>() {
+                let Some(try_inverse) = matrix.try_inverse() else {
+                    assert_debug_panic!(matrix.inverse());
+                    continue;
+                };
+
+                assert_test_eq!(try_inverse, matrix.inverse())
+            }
+        });
+    }
+
+    #[test]
+    fn test_inverse_or() {
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for [matrix, fallback] in random_iter::<[Matrix<N, T, A>; 2]>() {
+                let Some(inverse) = matrix.try_inverse() else {
+                    assert_test_eq!(matrix.inverse_or(&fallback), fallback);
+                    continue;
+                };
+
+                assert_test_eq!(matrix.inverse_or(&fallback), inverse);
+            }
+        });
+    }
+
+    #[test]
+    fn test_inverse_or_zero() {
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for matrix in random_iter::<Matrix<N, T, A>>() {
+                assert_test_eq!(matrix.inverse_or_zero(), matrix.inverse_or(&Matrix::ZERO));
+            }
+        });
+    }
+
+    #[test]
+    fn test_recip() {
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for matrix in random_iter::<Matrix<N, T, A>>() {
+                assert_test_eq!(matrix.recip(), Matrix::from_row_fn(|r| matrix[r].recip()));
+            }
+        });
+    }
+
+    #[test]
+    fn test_abs() {
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for matrix in random_iter::<Matrix<N, T, A>>() {
+                assert_test_eq!(matrix.abs(), Matrix::from_row_fn(|r| matrix[r].abs()));
+            }
+        });
+    }
+
+    #[test]
+    fn test_abs_diff_eq() {
+        for_types!(|T: PrimitiveFloat, A| {
+            let x_axis = Vector::<2, T, A>::new(0.0, 1.0);
+            let y_axis = Vector::<2, T, A>::new(2.0, 3.0);
+            assert!(
+                Matrix::<2, T, A>::from_rows(&[x_axis, y_axis])
+                    .abs_diff_eq(&Matrix::from_rows(&[x_axis + 0.1, y_axis - 0.1]), 0.125)
+            );
+            assert!(
+                !Matrix::<2, T, A>::from_rows(&[x_axis, y_axis])
+                    .abs_diff_eq(&Matrix::from_rows(&[x_axis + 0.5, y_axis - 0.1]), 0.125)
+            );
+            assert!(
+                !Matrix::<2, T, A>::from_rows(&[x_axis, y_axis])
+                    .abs_diff_eq(&Matrix::from_rows(&[x_axis + 0.1, y_axis - 0.5]), 0.125)
+            );
+
+            let x_axis = Vector::<3, T, A>::new(0.0, 1.0, 2.0);
+            let y_axis = Vector::<3, T, A>::new(3.0, 4.0, 5.0);
+            let z_axis = Vector::<3, T, A>::new(6.0, 7.0, 8.0);
+            assert!(
+                Matrix::<3, T, A>::from_rows(&[x_axis, y_axis, z_axis]).abs_diff_eq(
+                    &Matrix::from_rows(&[x_axis + 0.1, y_axis - 0.1, z_axis + 0.05]),
+                    0.125
+                )
+            );
+            assert!(
+                !Matrix::<3, T, A>::from_rows(&[x_axis, y_axis, z_axis]).abs_diff_eq(
+                    &Matrix::from_rows(&[x_axis + 0.5, y_axis - 0.1, z_axis + 0.05]),
+                    0.125
+                )
+            );
+            assert!(
+                !Matrix::<3, T, A>::from_rows(&[x_axis, y_axis, z_axis]).abs_diff_eq(
+                    &Matrix::from_rows(&[x_axis + 0.1, y_axis - 0.5, z_axis + 0.05]),
+                    0.125
+                )
+            );
+            assert!(
+                !Matrix::<3, T, A>::from_rows(&[x_axis, y_axis, z_axis]).abs_diff_eq(
+                    &Matrix::from_rows(&[x_axis + 0.1, y_axis - 0.1, z_axis + 0.5]),
+                    0.125
+                )
+            );
+
+            let x_axis = Vector::<4, T, A>::new(0.0, 1.0, 2.0, 3.0);
+            let y_axis = Vector::<4, T, A>::new(4.0, 5.0, 6.0, 7.0);
+            let z_axis = Vector::<4, T, A>::new(8.0, 9.0, 10.0, 11.0);
+            let w_axis = Vector::<4, T, A>::new(12.0, 13.0, 14.0, 15.0);
+            assert!(
+                Matrix::<4, T, A>::from_rows(&[x_axis, y_axis, z_axis, w_axis]).abs_diff_eq(
+                    &Matrix::from_rows(&[x_axis + 0.1, y_axis - 0.1, z_axis + 0.05, w_axis - 0.05]),
+                    0.125
+                )
+            );
+            assert!(
+                !Matrix::<4, T, A>::from_rows(&[x_axis, y_axis, z_axis, w_axis]).abs_diff_eq(
+                    &Matrix::from_rows(&[x_axis + 0.5, y_axis - 0.1, z_axis + 0.05, w_axis - 0.05]),
+                    0.125
+                )
+            );
+            assert!(
+                !Matrix::<4, T, A>::from_rows(&[x_axis, y_axis, z_axis, w_axis]).abs_diff_eq(
+                    &Matrix::from_rows(&[x_axis + 0.1, y_axis - 0.5, z_axis + 0.05, w_axis - 0.05]),
+                    0.125
+                )
+            );
+            assert!(
+                !Matrix::<4, T, A>::from_rows(&[x_axis, y_axis, z_axis, w_axis]).abs_diff_eq(
+                    &Matrix::from_rows(&[x_axis + 0.1, y_axis - 0.1, z_axis + 0.5, w_axis - 0.05]),
+                    0.125
+                )
+            );
+            assert!(
+                !Matrix::<4, T, A>::from_rows(&[x_axis, y_axis, z_axis, w_axis]).abs_diff_eq(
+                    &Matrix::from_rows(&[x_axis + 0.1, y_axis - 0.1, z_axis + 0.05, w_axis - 0.5]),
+                    0.125
+                )
+            );
+        });
+    }
+
+    #[test]
+    fn test_from_angle() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for (vector, angle) in random_iter::<(Vector<2, T, A>, T)>() {
+                assert_test_eq!(
+                    vector * Matrix::<2, T, A>::from_angle(angle),
+                    vector.rotate(angle)
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_scale_angle() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for (scale, angle) in random_iter::<(Vector<2, T, A>, T)>() {
+                if !scale.is_finite() || !angle.is_finite() {
+                    continue;
+                }
+
+                assert_test_eq!(
+                    Matrix::<2, T, A>::from_scale_angle(scale, angle),
+                    Matrix::<2, T, A>::from_scale(scale) * Matrix::<2, T, A>::from_angle(angle),
+                    0.0 = -0.0
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_to_scale_angle() {
+        for_types!(|T: PrimitiveFloat, A| {
+            assert_debug_panic!(Matrix::<2, T, A>::ZERO.to_scale_angle());
+            assert_debug_panic!(
+                Matrix::<2, T, A>::from_rows(&[
+                    Vector::<2, T, A>::new(0.3, 0.4),
+                    Vector::<2, T, A>::new(0.4, 0.6)
+                ])
+                .to_scale_angle()
+            );
+
+            for (scale, angle) in random_iter::<(Vector<2, T, A>, T)>() {
+                let matrix = Matrix::<2, T, A>::from_scale_angle(scale, angle);
+
+                if scale.iter().any(|x| x > 1e10)
+                    || !matrix.determinant().is_finite()
+                    || matrix.determinant().abs() < 1e-8
+                {
+                    continue;
+                }
+
+                let (result_scale, result_angle) = matrix.to_scale_angle();
+                assert_test_eq!(
+                    Matrix::<2, T, A>::from_scale_angle(result_scale, result_angle),
+                    matrix,
+                    abs <= scale.max_element() * 1e-5 + 1e-3,
+                    0.0 = -0.0
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_rotation_x() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for (vector, angle) in random_iter::<(Vector<3, T, A>, T)>() {
+                if !vector.is_finite() || !angle.is_finite() {
+                    continue;
+                }
+
+                assert_test_eq!(
+                    vector * Matrix::<3, T, A>::from_rotation_x(angle),
+                    vector.rotate_x(angle),
+                    0.0 = -0.0
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_rotation_y() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for (vector, angle) in random_iter::<(Vector<3, T, A>, T)>() {
+                if !vector.is_finite() || !angle.is_finite() {
+                    continue;
+                }
+
+                assert_test_eq!(
+                    vector * Matrix::<3, T, A>::from_rotation_y(angle),
+                    vector.rotate_y(angle),
+                    0.0 = -0.0
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_rotation_z() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for (vector, angle) in random_iter::<(Vector<3, T, A>, T)>() {
+                if !vector.is_finite() || !angle.is_finite() {
+                    continue;
+                }
+
+                assert_test_eq!(
+                    vector * Matrix::<3, T, A>::from_rotation_z(angle),
+                    vector.rotate_z(angle),
+                    0.0 = -0.0
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_quat() {
+        for_types!(|T: PrimitiveFloat, A| {
+            assert_test_eq!(
+                Matrix::<3, T, A>::from_quat(Quaternion::IDENTITY),
+                Matrix::IDENTITY
+            );
+
+            for quat in random_iter::<Quaternion<T, A>>() {
+                if !quat.is_normalized() {
+                    assert_debug_panic!(Matrix::<3, T, A>::from_quat(quat));
+                }
+
+                let quat = quat.normalize_or(Quaternion::IDENTITY).normalize();
+                assert_test_eq!(
+                    Matrix::<3, T, A>::from_quat(quat).determinant(),
+                    1.0,
+                    abs <= 1e-5
+                );
+
+                let (axis, angle) = quat.to_axis_angle();
+                assert_test_eq!(
+                    Matrix::<3, T, A>::from_quat(quat),
+                    Matrix::<3, T, A>::from_axis_angle(axis, angle),
+                    abs <= 1e-5,
+                    0.0 = -0.0
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_axis_angle() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for angle in random_iter::<T>() {
+                if !angle.is_finite() {
+                    continue;
+                }
+
+                assert_test_eq!(
+                    Matrix::<3, T, A>::from_axis_angle(Vector::<3, T, A>::X, angle),
+                    Matrix::<3, T, A>::from_rotation_x(angle),
+                    abs <= 1e-4,
+                    0.0 = -0.0
+                );
+                assert_test_eq!(
+                    Matrix::<3, T, A>::from_axis_angle(Vector::<3, T, A>::Y, angle),
+                    Matrix::<3, T, A>::from_rotation_y(angle),
+                    abs <= 1e-4,
+                    0.0 = -0.0
+                );
+                assert_test_eq!(
+                    Matrix::<3, T, A>::from_axis_angle(Vector::<3, T, A>::Z, angle),
+                    Matrix::<3, T, A>::from_rotation_z(angle),
+                    abs <= 1e-4,
+                    0.0 = -0.0
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_euler() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for [x, y, z] in random_iter::<[T; 3]>() {
+                let rot_x = Matrix::<3, T, A>::from_rotation_x(x);
+                let rot_y = Matrix::<3, T, A>::from_rotation_y(y);
+                let rot_z = Matrix::<3, T, A>::from_rotation_z(z);
+                let rot_x_by_y = Matrix::<3, T, A>::from_rotation_x(y);
+                let rot_x_by_z = Matrix::<3, T, A>::from_rotation_x(z);
+                let rot_y_by_x = Matrix::<3, T, A>::from_rotation_y(x);
+                let rot_y_by_z = Matrix::<3, T, A>::from_rotation_y(z);
+                let rot_z_by_x = Matrix::<3, T, A>::from_rotation_z(x);
+                let rot_z_by_y = Matrix::<3, T, A>::from_rotation_z(y);
+
+                for (order, a, b, c, result) in [
+                    (EulerRot::Xyz, x, y, z, rot_z * rot_y * rot_x),
+                    (EulerRot::Xzy, x, z, y, rot_y * rot_z * rot_x),
+                    (EulerRot::Yxz, y, x, z, rot_z * rot_x * rot_y),
+                    (EulerRot::Yzx, y, z, x, rot_x * rot_z * rot_y),
+                    (EulerRot::Zxy, z, x, y, rot_y * rot_x * rot_z),
+                    (EulerRot::Zyx, z, y, x, rot_x * rot_y * rot_z),
+                    (EulerRot::Xyx, x, y, z, rot_x_by_z * rot_y * rot_x),
+                    (EulerRot::Xzx, x, z, y, rot_x_by_y * rot_z * rot_x),
+                    (EulerRot::Yxy, y, x, z, rot_y_by_z * rot_x * rot_y),
+                    (EulerRot::Yzy, y, z, x, rot_y_by_x * rot_z * rot_y),
+                    (EulerRot::Zxz, z, x, y, rot_z_by_y * rot_x * rot_z),
+                    (EulerRot::Zyz, z, y, x, rot_z_by_x * rot_y * rot_z),
+                    (EulerRot::XyzEx, x, y, z, rot_x * rot_y * rot_z),
+                    (EulerRot::XzyEx, x, z, y, rot_x * rot_z * rot_y),
+                    (EulerRot::YxzEx, y, x, z, rot_y * rot_x * rot_z),
+                    (EulerRot::YzxEx, y, z, x, rot_y * rot_z * rot_x),
+                    (EulerRot::ZxyEx, z, x, y, rot_z * rot_x * rot_y),
+                    (EulerRot::ZyxEx, z, y, x, rot_z * rot_y * rot_x),
+                    (EulerRot::XyxEx, x, y, z, rot_x * rot_y * rot_x_by_z),
+                    (EulerRot::XzxEx, x, z, y, rot_x * rot_z * rot_x_by_y),
+                    (EulerRot::YxyEx, y, x, z, rot_y * rot_x * rot_y_by_z),
+                    (EulerRot::YzyEx, y, z, x, rot_y * rot_z * rot_y_by_x),
+                    (EulerRot::ZxzEx, z, x, y, rot_z * rot_x * rot_z_by_y),
+                    (EulerRot::ZyzEx, z, y, x, rot_z * rot_y * rot_z_by_x),
+                ] {
+                    assert_test_eq!(
+                        Matrix::<3, T, A>::from_euler(order, a, b, c),
+                        result,
+                        abs <= 1e-5,
+                        0.0 = -0.0
+                    );
+                }
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_scale_rotation() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for (scale, rotation) in random_iter::<(Vector<3, T, A>, Quaternion<T, A>)>() {
+                if !rotation.is_normalized() {
+                    assert_debug_panic!(Matrix::<3, T, A>::from_scale_rotation(scale, rotation));
+                }
+
+                let rotation = rotation.normalize_or(Quaternion::IDENTITY).normalize();
+
+                assert_test_eq!(
+                    Matrix::<3, T, A>::from_scale_rotation(scale, rotation),
+                    Matrix::<3, T, A>::from_scale(scale) * Matrix::<3, T, A>::from_quat(rotation),
+                    0.0 = -0.0
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_look_to_lh() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for [dir, up] in random_iter::<[Vector<3, T, A>; 2]>() {
+                if !dir.is_normalized() {
+                    assert_debug_panic!(Matrix::<3, T, A>::look_to_lh(dir, up.normalize()));
+                }
+                if !up.is_normalized() {
+                    assert_debug_panic!(Matrix::<3, T, A>::look_to_lh(dir.normalize(), up));
+                }
+
+                let dir = dir.normalize_or(Vector::<3, T, A>::Z).normalize();
+                let up = up.normalize_or(Vector::<3, T, A>::Y).normalize();
+                if dir.cross(up).try_normalize().is_none() {
+                    assert_debug_panic!(Matrix::<3, T, A>::look_to_lh(dir, up));
+                    continue;
+                }
+
+                let result = Matrix::<3, T, A>::look_to_lh(dir, up);
+                assert_test_eq!(result.determinant(), 1.0, abs <= 1e-2);
+                assert_test_eq!(dir * result, Vector::<3, T, A>::Z, abs <= 1e-5, 0.0 = -0.0);
+                assert_test_eq!((up * result).x, 0.0, abs <= 1e-6, 0.0 = -0.0);
+                assert!((0.0..=1.00001).contains(&(up * result).y));
+            }
+        });
+    }
+
+    #[test]
+    fn test_look_to_rh() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for [dir, up] in random_iter::<[Vector<3, T, A>; 2]>() {
+                if !dir.is_normalized() {
+                    assert_debug_panic!(Matrix::<3, T, A>::look_to_rh(dir, up.normalize()));
+                }
+                if !up.is_normalized() {
+                    assert_debug_panic!(Matrix::<3, T, A>::look_to_rh(dir.normalize(), up));
+                }
+
+                let dir = dir.normalize_or(Vector::<3, T, A>::Z).normalize();
+                let up = up.normalize_or(Vector::<3, T, A>::Y).normalize();
+                if dir.cross(up).try_normalize().is_none() {
+                    assert_debug_panic!(Matrix::<3, T, A>::look_to_rh(dir, up));
+                    continue;
+                }
+
+                let result = Matrix::<3, T, A>::look_to_rh(dir, up);
+                assert_test_eq!(result.determinant(), 1.0, abs <= 1e-2);
+                assert_test_eq!(
+                    dir * result,
+                    Vector::<3, T, A>::NEG_Z,
+                    abs <= 1e-5,
+                    0.0 = -0.0
+                );
+                assert_test_eq!((up * result).x, 0.0, abs <= 1e-6, 0.0 = -0.0);
+                assert!((0.0..=1.00001).contains(&(up * result).y));
+            }
+        });
+    }
+
+    #[test]
+    fn test_look_at_lh() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for [eye, center, up] in random_iter::<[Vector<3, T, A>; 3]>() {
+                if !up.is_normalized() || center == eye {
+                    assert_debug_panic!(Matrix::<3, T, A>::look_at_lh(eye, center, up));
+                }
+
+                let up = up.normalize_or(Vector::<3, T, A>::Y);
+                let Some(dir) = (center - eye).try_normalize() else {
+                    continue;
+                };
+                if up.cross(dir).try_normalize().is_none() {
+                    assert_debug_panic!(Matrix::<3, T, A>::look_at_lh(eye, center, up));
+                    continue;
+                }
+
+                let result = Matrix::<3, T, A>::look_at_lh(eye, center, up);
+                assert_test_eq!(result.determinant(), 1.0, abs <= 1e-5);
+                assert_test_eq!(dir * result, Vector::<3, T, A>::Z, abs <= 1e-5, 0.0 = -0.0);
+                assert_test_eq!((up * result).x, 0.0, abs <= 1e-6, 0.0 = -0.0);
+                assert!((0.0..=1.00001).contains(&(up * result).y));
+            }
+        });
+    }
+
+    #[test]
+    fn test_look_at_rh() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for [eye, center, up] in random_iter::<[Vector<3, T, A>; 3]>() {
+                if !up.is_normalized() || center == eye {
+                    assert_debug_panic!(Matrix::<3, T, A>::look_at_rh(eye, center, up));
+                }
+
+                let up = up.normalize_or(Vector::<3, T, A>::Y);
+                let Some(dir) = (center - eye).try_normalize() else {
+                    continue;
+                };
+                if up.cross(dir).try_normalize().is_none() {
+                    continue;
+                }
+
+                let result = Matrix::<3, T, A>::look_at_rh(eye, center, up);
+                assert_test_eq!(result.determinant(), 1.0, abs <= 1e-5);
+                assert_test_eq!(
+                    dir * result,
+                    Vector::<3, T, A>::NEG_Z,
+                    abs <= 1e-5,
+                    0.0 = -0.0
+                );
+                assert_test_eq!((up * result).x, 0.0, abs <= 1e-6, 0.0 = -0.0);
+                assert!((0.0..=1.00001).contains(&(up * result).y));
+            }
+        });
+    }
+
+    #[test]
+    fn test_to_euler() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for order in EulerRot::values() {
+                for matrix in random_iter::<Matrix<3, T, A>>().take(20) {
+                    let is_rotation = matrix.determinant().abs_diff_eq(1.0, 1e-4)
+                        && matrix.x_axis.dot(matrix.y_axis).abs_diff_eq(0.0, 1e-4)
+                        && matrix.x_axis.dot(matrix.z_axis).abs_diff_eq(0.0, 1e-4)
+                        && matrix.y_axis.dot(matrix.z_axis).abs_diff_eq(0.0, 1e-4)
+                        && matrix
+                            .x_axis
+                            .cross(matrix.y_axis)
+                            .abs_diff_eq(matrix.z_axis, 1e-4);
+
+                    if !is_rotation {
+                        assert_debug_panic!(matrix.to_euler(order));
+                    }
+                }
+
+                for quat in random_iter::<Quaternion<T, A>>() {
+                    let quat = quat.normalize_or(Quaternion::IDENTITY).normalize();
+                    let matrix = Matrix::<3, T, A>::from_quat(quat);
+
+                    let result = matrix.to_euler(order);
+                    assert_test_eq!(
+                        Quaternion::<T, A>::from_euler(order, result.0, result.1, result.2),
+                        quat,
+                        abs <= quat.to_vector().abs() * 1e-3 + 1e-2,
+                        0.0 = -0.0,
+                        quat = -quat
+                    );
+                }
+            }
+        });
+    }
+
+    #[test]
+    fn test_to_scale_rotation() {
+        for_types!(|T: PrimitiveFloat, A| {
+            assert_debug_panic!(Matrix::<3, T, A>::ZERO.to_scale_rotation());
+            assert_debug_panic!(
+                Matrix::<3, T, A>::from_rows(&[
+                    Vector::<3, T, A>::new(0.3, 0.4, -0.2),
+                    Vector::<3, T, A>::new(0.4, 0.6, -0.1),
+                    Vector::<3, T, A>::new(1.0, 1.0, 1.0)
+                ])
+                .to_scale_rotation()
+            );
+
+            for (scale, rotation) in random_iter::<(Vector<3, T, A>, Quaternion<T, A>)>() {
+                let rotation = rotation.normalize_or(Quaternion::IDENTITY).normalize();
+
+                let matrix = Matrix::<3, T, A>::from_scale_rotation(scale, rotation);
+
+                if scale.iter().any(|x| x > 1e10)
+                    || !matrix.is_finite()
+                    || !(1e-5..1e8).contains(&matrix.determinant().abs())
+                {
+                    continue;
+                }
+
+                let (result_scale, result_rotation) = matrix.to_scale_rotation();
+                assert_test_eq!(
+                    Matrix::<3, T, A>::from_scale_rotation(result_scale, result_rotation),
+                    matrix,
+                    abs <= matrix.abs() * 1e-4 + Matrix::<3, T, A>::from_row_array(&[1e-3; 9]),
+                    0.0 = -0.0
+                );
+            }
+        });
+    }
+}
