@@ -259,7 +259,7 @@ where
     /// a `translation` vector.
     #[inline]
     #[must_use]
-    pub fn from_matrix_translation(matrix: Matrix<N, T, A>, translation: Vector<N, T, A>) -> Self
+    pub fn from_matrix_translation(matrix: &Matrix<N, T, A>, translation: Vector<N, T, A>) -> Self
     where
         T: Zero + One,
     {
@@ -568,7 +568,7 @@ where
 
     #[inline]
     fn from_matrix_translation_backend(
-        matrix: Matrix<2, T, A>,
+        matrix: &Matrix<2, T, A>,
         translation: Vector<2, T, A>,
     ) -> Self
     where
@@ -828,7 +828,7 @@ where
 
     #[inline]
     fn from_matrix_translation_backend(
-        matrix: Matrix<3, T, A>,
+        matrix: &Matrix<3, T, A>,
         translation: Vector<3, T, A>,
     ) -> Self
     where
@@ -1428,4 +1428,461 @@ where
     Length<N>: TwoOrThree,
     T: Scalar + RefUnwindSafe,
 {
+}
+
+#[cfg(test)]
+mod tests {
+    extern crate std;
+
+    use std::format;
+
+    use crate::{
+        Affine, Aligned, Mask, Matrix, Projective, Unaligned, Vector,
+        test_utils::{for_types, random_iter},
+    };
+
+    #[test]
+    fn test_layout() {
+        for_types!(|T: PrimitiveNumber, A| {
+            assert_eq!(
+                size_of::<Projective<2, T, A>>(),
+                size_of::<Matrix<3, T, A>>()
+            );
+            assert_eq!(
+                size_of::<Projective<3, T, A>>(),
+                size_of::<Matrix<4, T, A>>()
+            );
+
+            assert_eq!(
+                align_of::<Projective<2, T, A>>(),
+                align_of::<Matrix<3, T, A>>()
+            );
+            assert_eq!(
+                align_of::<Projective<3, T, A>>(),
+                align_of::<Matrix<4, T, A>>()
+            );
+        });
+    }
+
+    #[test]
+    fn test_zero() {
+        for_types!(|T: PrimitiveFloat, A| {
+            assert_eq!(Projective::<2, T, A>::ZERO, Projective(Matrix::ZERO));
+            assert_eq!(Projective::<3, T, A>::ZERO, Projective(Matrix::ZERO));
+        });
+    }
+
+    #[test]
+    fn test_identity() {
+        for_types!(|T: PrimitiveFloat, A| {
+            assert_eq!(
+                Projective::<2, T, A>::IDENTITY,
+                Projective(Matrix::IDENTITY)
+            );
+            assert_eq!(
+                Projective::<3, T, A>::IDENTITY,
+                Projective(Matrix::IDENTITY)
+            );
+        });
+    }
+
+    #[test]
+    fn test_from_scale() {
+        for_types!(|T: PrimitiveNumber, A| {
+            let scale = Vector::from_fn(|i| T::as_from(i + 1));
+            assert_eq!(
+                Projective::<2, T, A>::from_scale(scale),
+                Projective(Matrix::from_scale(scale.extend(T::ONE)))
+            );
+
+            let scale = Vector::from_fn(|i| T::as_from(i + 1));
+            assert_eq!(
+                Projective::<3, T, A>::from_scale(scale),
+                Projective(Matrix::from_scale(scale.extend(T::ONE)))
+            );
+        });
+    }
+
+    #[test]
+    fn test_from_translation() {
+        for_types!(|T: PrimitiveNumber, A| {
+            let translation = Vector::from_fn(|i| T::as_from(i + 1));
+            assert_eq!(
+                Projective::<2, T, A>::from_scale(translation),
+                Projective::<2, T, A>::from_rows(&[
+                    Vector::<3, T, A>::new(T::ONE, T::ZERO, T::ZERO),
+                    Vector::<3, T, A>::new(T::ZERO, T::ONE, T::ZERO),
+                    translation.extend(T::ONE)
+                ])
+            );
+
+            let translation = Vector::from_fn(|i| T::as_from(i + 1));
+            assert_eq!(
+                Projective::<3, T, A>::from_scale(translation),
+                Projective::<3, T, A>::from_rows(&[
+                    Vector::<4, T, A>::new(T::ONE, T::ZERO, T::ZERO, T::ZERO),
+                    Vector::<4, T, A>::new(T::ZERO, T::ONE, T::ZERO, T::ZERO),
+                    Vector::<4, T, A>::new(T::ZERO, T::ZERO, T::ONE, T::ZERO),
+                    translation.extend(T::ONE)
+                ])
+            );
+        });
+    }
+
+    #[test]
+    fn test_from_scale_translation() {
+        for_types!(|T: PrimitiveNumber, A| {
+            let scale = Vector::<2, T, A>::from_fn(|i| T::as_from(i + 1));
+            let translation = Vector::<2, T, A>::from_fn(|i| T::as_from(i + 3));
+            assert_eq!(
+                Projective::<2, T, A>::from_scale_translation(scale, translation),
+                Projective::<2, T, A>::from_rows(&[
+                    Vector::<3, T, A>::new(scale.x, T::ZERO, T::ZERO),
+                    Vector::<3, T, A>::new(T::ZERO, scale.y, T::ZERO),
+                    translation.extend(T::ONE)
+                ])
+            );
+
+            let scale = Vector::<3, T, A>::from_fn(|i| T::as_from(i + 1));
+            let translation = Vector::<3, T, A>::from_fn(|i| T::as_from(i + 3));
+            assert_eq!(
+                Projective::<3, T, A>::from_scale_translation(scale, translation),
+                Projective::<3, T, A>::from_rows(&[
+                    Vector::<4, T, A>::new(scale.x, T::ZERO, T::ZERO, T::ZERO),
+                    Vector::<4, T, A>::new(T::ZERO, scale.y, T::ZERO, T::ZERO),
+                    Vector::<4, T, A>::new(T::ZERO, T::ZERO, scale.z, T::ZERO),
+                    translation.extend(T::ONE)
+                ])
+            );
+        });
+    }
+
+    #[test]
+    fn test_from_matrix() {
+        for_types!(|T: PrimitiveNumber, A| {
+            let matrix = Matrix::from_row_fn(|r| Vector::from_fn(|c| T::as_from(r * 2 + c)));
+            assert_eq!(
+                Projective::<2, T, A>::from_matrix(&matrix),
+                Projective::<2, T, A>::from_rows(&[
+                    matrix.x_axis.extend(T::ZERO),
+                    matrix.y_axis.extend(T::ZERO),
+                    Vector::<3, T, A>::new(T::ZERO, T::ZERO, T::ONE)
+                ])
+            );
+
+            let matrix = Matrix::from_row_fn(|r| Vector::from_fn(|c| T::as_from(r * 3 + c)));
+            assert_eq!(
+                Projective::<3, T, A>::from_matrix(&matrix),
+                Projective::<3, T, A>::from_rows(&[
+                    matrix.x_axis.extend(T::ZERO),
+                    matrix.y_axis.extend(T::ZERO),
+                    matrix.z_axis.extend(T::ZERO),
+                    Vector::<4, T, A>::new(T::ZERO, T::ZERO, T::ZERO, T::ONE)
+                ])
+            );
+        });
+    }
+
+    #[test]
+    fn test_from_matrix_translation() {
+        for_types!(|T: PrimitiveNumber, A| {
+            let matrix = Matrix::from_row_fn(|r| Vector::from_fn(|c| T::as_from(r * 2 + c)));
+            let translation = Vector::from_fn(|i| T::as_from(i + 3));
+            assert_eq!(
+                Projective::<2, T, A>::from_matrix_translation(&matrix, translation),
+                Projective::<2, T, A>::from_rows(&[
+                    matrix.x_axis.extend(T::ZERO),
+                    matrix.y_axis.extend(T::ZERO),
+                    translation.extend(T::ONE)
+                ])
+            );
+
+            let matrix = Matrix::from_row_fn(|r| Vector::from_fn(|c| T::as_from(r * 3 + c)));
+            let translation = Vector::from_fn(|i| T::as_from(i + 3));
+            assert_eq!(
+                Projective::<3, T, A>::from_matrix_translation(&matrix, translation),
+                Projective::<3, T, A>::from_rows(&[
+                    matrix.x_axis.extend(T::ZERO),
+                    matrix.y_axis.extend(T::ZERO),
+                    matrix.z_axis.extend(T::ZERO),
+                    translation.extend(T::ONE)
+                ])
+            );
+        });
+    }
+
+    #[test]
+    fn test_from_affine() {
+        for_types!(|T: PrimitiveNumber, A| {
+            let affine = Affine::from_row_fn(|r| Vector::from_fn(|c| T::as_from(r * 2 + c)));
+            assert_eq!(
+                Projective::<2, T, A>::from_affine(&affine),
+                Projective::<2, T, A>::from_rows(&[
+                    affine.matrix.x_axis.extend(T::ZERO),
+                    affine.matrix.y_axis.extend(T::ZERO),
+                    affine.translation.extend(T::ONE)
+                ])
+            );
+
+            let affine = Affine::from_row_fn(|r| Vector::from_fn(|c| T::as_from(r * 3 + c)));
+            assert_eq!(
+                Projective::<3, T, A>::from_affine(&affine),
+                Projective::<3, T, A>::from_rows(&[
+                    affine.matrix.x_axis.extend(T::ZERO),
+                    affine.matrix.y_axis.extend(T::ZERO),
+                    affine.matrix.z_axis.extend(T::ZERO),
+                    affine.translation.extend(T::ONE)
+                ])
+            );
+        });
+    }
+
+    #[test]
+    fn test_translation() {
+        for_types!(|T: PrimitiveNumber, A| {
+            let projective =
+                Projective::<2, T, A>::from_row_fn(|r| Vector::from_fn(|c| T::as_from(r * 3 + c)));
+            assert_eq!(projective.translation(), projective.z_axis.truncate());
+
+            let projective =
+                Projective::<3, T, A>::from_row_fn(|r| Vector::from_fn(|c| T::as_from(r * 4 + c)));
+            assert_eq!(projective.translation(), projective.w_axis.truncate());
+        });
+    }
+
+    #[test]
+    fn test_to_alignment() {
+        for_types!(|T: PrimitiveNumber, A| {
+            let projective =
+                Projective::<2, T, A>::from_row_fn(|r| Vector::from_fn(|c| T::as_from(r * 3 + c)));
+            assert_eq!(
+                projective.to_alignment(),
+                Projective::<2, T, Aligned>::from_rows(&projective.as_rows().map(Vector::align))
+            );
+            assert_eq!(
+                projective.to_alignment(),
+                Projective::<2, T, Unaligned>::from_rows(
+                    &projective.as_rows().map(Vector::unalign)
+                )
+            );
+
+            let projective =
+                Projective::<3, T, A>::from_row_fn(|r| Vector::from_fn(|c| T::as_from(r * 4 + c)));
+            assert_eq!(
+                projective.to_alignment(),
+                Projective::<3, T, Aligned>::from_rows(&projective.as_rows().map(Vector::align))
+            );
+            assert_eq!(
+                projective.to_alignment(),
+                Projective::<3, T, Unaligned>::from_rows(
+                    &projective.as_rows().map(Vector::unalign)
+                )
+            );
+        });
+    }
+
+    #[test]
+    fn test_align() {
+        for_types!(|T: PrimitiveNumber, A| {
+            let projective =
+                Projective::<2, T, A>::from_row_fn(|r| Vector::from_fn(|c| T::as_from(r * 3 + c)));
+            assert_eq!(
+                projective.align(),
+                Projective::<2, T, Aligned>::from_rows(&projective.as_rows().map(Vector::align))
+            );
+
+            let projective =
+                Projective::<3, T, A>::from_row_fn(|r| Vector::from_fn(|c| T::as_from(r * 4 + c)));
+            assert_eq!(
+                projective.align(),
+                Projective::<3, T, Aligned>::from_rows(&projective.as_rows().map(Vector::align))
+            );
+        });
+    }
+
+    #[test]
+    fn test_unalign() {
+        for_types!(|T: PrimitiveNumber, A| {
+            let projective =
+                Projective::<2, T, A>::from_row_fn(|r| Vector::from_fn(|c| T::as_from(r * 3 + c)));
+            assert_eq!(
+                projective.unalign(),
+                Projective::<2, T, Unaligned>::from_rows(
+                    &projective.as_rows().map(Vector::unalign)
+                )
+            );
+
+            let projective =
+                Projective::<3, T, A>::from_row_fn(|r| Vector::from_fn(|c| T::as_from(r * 4 + c)));
+            assert_eq!(
+                projective.unalign(),
+                Projective::<3, T, Unaligned>::from_rows(
+                    &projective.as_rows().map(Vector::unalign)
+                )
+            );
+        });
+    }
+
+    #[test]
+    fn test_deref() {
+        for_types!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l] =
+                std::array::from_fn(|i| T::as_from(i + 1));
+
+            let projective = Projective::<2, T, A>::from_rows(&[
+                Vector::<3, T, A>::new(x, y, z),
+                Vector::<3, T, A>::new(w, a, b),
+                Vector::<3, T, A>::new(c, d, e),
+            ]);
+            assert_eq!(projective.x_axis, Vector::<3, T, A>::new(x, y, z));
+            assert_eq!(projective.y_axis, Vector::<3, T, A>::new(w, a, b));
+            assert_eq!(projective.z_axis, Vector::<3, T, A>::new(c, d, e));
+
+            let projective = Projective::<3, T, A>::from_rows(&[
+                Vector::<4, T, A>::new(x, y, z, w),
+                Vector::<4, T, A>::new(a, b, c, d),
+                Vector::<4, T, A>::new(e, f, g, h),
+                Vector::<4, T, A>::new(i, j, k, l),
+            ]);
+            assert_eq!(projective.x_axis, Vector::<4, T, A>::new(x, y, z, w));
+            assert_eq!(projective.y_axis, Vector::<4, T, A>::new(a, b, c, d));
+            assert_eq!(projective.z_axis, Vector::<4, T, A>::new(e, f, g, h));
+            assert_eq!(projective.w_axis, Vector::<4, T, A>::new(i, j, k, l));
+        });
+    }
+
+    #[test]
+    fn test_deref_mut() {
+        for_types!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l] =
+                std::array::from_fn(|i| T::as_from(i + 1));
+
+            let mut projective = Projective::<2, T, A>::from_rows(&[
+                Vector::<3, T, A>::new(x, y, z),
+                Vector::<3, T, A>::new(w, a, b),
+                Vector::<3, T, A>::new(c, d, e),
+            ]);
+            assert_eq!(&mut projective.x_axis, &mut Vector::<3, T, A>::new(x, y, z));
+            assert_eq!(&mut projective.y_axis, &mut Vector::<3, T, A>::new(w, a, b));
+            assert_eq!(&mut projective.z_axis, &mut Vector::<3, T, A>::new(c, d, e));
+
+            let mut projective = Projective::<3, T, A>::from_rows(&[
+                Vector::<4, T, A>::new(x, y, z, w),
+                Vector::<4, T, A>::new(a, b, c, d),
+                Vector::<4, T, A>::new(e, f, g, h),
+                Vector::<4, T, A>::new(i, j, k, l),
+            ]);
+            assert_eq!(
+                &mut projective.x_axis,
+                &mut Vector::<4, T, A>::new(x, y, z, w)
+            );
+            assert_eq!(
+                &mut projective.y_axis,
+                &mut Vector::<4, T, A>::new(a, b, c, d)
+            );
+            assert_eq!(
+                &mut projective.z_axis,
+                &mut Vector::<4, T, A>::new(e, f, g, h)
+            );
+            assert_eq!(
+                &mut projective.w_axis,
+                &mut Vector::<4, T, A>::new(i, j, k, l)
+            );
+        });
+    }
+
+    #[test]
+    fn test_debug() {
+        for_types!(|T: PrimitiveNumber, A| {
+            let rows =
+                std::array::from_fn(|r| Vector::<3, T, A>::from_fn(|c| T::as_from(r * 3 + c)));
+            let [x_axis, y_axis, z_axis] = rows;
+            assert_eq!(
+                format!("{:?}", Projective::<2, T, A>::from_rows(&rows)),
+                format!("[{x_axis:?}, {y_axis:?}, {z_axis:?}]")
+            );
+
+            let rows =
+                std::array::from_fn(|r| Vector::<4, T, A>::from_fn(|c| T::as_from(r * 4 + c)));
+            let [x_axis, y_axis, z_axis, w_axis] = rows;
+            assert_eq!(
+                format!("{:?}", Projective::<3, T, A>::from_rows(&rows)),
+                format!("[{x_axis:?}, {y_axis:?}, {z_axis:?}, {w_axis:?}]")
+            );
+        });
+    }
+
+    #[test]
+    fn test_display() {
+        for_types!(|T: PrimitiveNumber, A| {
+            let rows =
+                std::array::from_fn(|r| Vector::<3, T, A>::from_fn(|c| T::as_from(r * 3 + c)));
+            let [x_axis, y_axis, z_axis] = rows;
+            assert_eq!(
+                format!("{}", Projective::<2, T, A>::from_rows(&rows)),
+                format!("[{x_axis}, {y_axis}, {z_axis}]")
+            );
+
+            let rows =
+                std::array::from_fn(|r| Vector::<4, T, A>::from_fn(|c| T::as_from(r * 4 + c)));
+            let [x_axis, y_axis, z_axis, w_axis] = rows;
+            assert_eq!(
+                format!("{}", Projective::<3, T, A>::from_rows(&rows)),
+                format!("[{x_axis}, {y_axis}, {z_axis}, {w_axis}]")
+            );
+        });
+    }
+
+    #[test]
+    fn test_eq() {
+        for_types!(|T: PrimitiveNumber, A| {
+            for ([projective, other], mask) in
+                random_iter::<([Projective<2, T, A>; 2], [Mask<3, T, A>; 3])>()
+            {
+                let other =
+                    Projective::<2, T, A>::from_row_fn(|r| mask[r].select(projective[r], other[r]));
+
+                assert_eq!(projective == other, projective.as_rows() == other.as_rows());
+            }
+
+            for ([projective, other], mask) in
+                random_iter::<([Projective<3, T, A>; 2], [Mask<4, T, A>; 4])>()
+            {
+                let other =
+                    Projective::<3, T, A>::from_row_fn(|r| mask[r].select(projective[r], other[r]));
+
+                assert_eq!(projective == other, projective.as_rows() == other.as_rows());
+            }
+        });
+    }
+
+    #[test]
+    fn test_ne() {
+        for_types!(|T: PrimitiveNumber, A| {
+            for ([projective, other], mask) in
+                random_iter::<([Projective<2, T, A>; 2], [Mask<3, T, A>; 3])>()
+            {
+                let other =
+                    Projective::<2, T, A>::from_row_fn(|r| mask[r].select(projective[r], other[r]));
+
+                assert_eq!(projective == other, projective.as_rows() == other.as_rows());
+            }
+
+            for ([projective, other], mask) in
+                random_iter::<([Projective<3, T, A>; 2], [Mask<4, T, A>; 4])>()
+            {
+                let other =
+                    Projective::<3, T, A>::from_row_fn(|r| mask[r].select(projective[r], other[r]));
+
+                assert_eq!(projective != other, projective.as_rows() != other.as_rows());
+            }
+        });
+    }
+
+    #[test]
+    fn test_default() {
+        for_types!(|N: TwoOrThree, T: PrimitiveNumber, A| {
+            assert_eq!(Projective::<N, T, A>::default(), Projective::IDENTITY);
+        });
+    }
 }
