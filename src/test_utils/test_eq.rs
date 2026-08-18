@@ -726,6 +726,30 @@ where
     }
 }
 
+impl<T> TestEq for Option<T>
+where
+    T: TestEq,
+{
+    fn eq(
+        &self,
+        expected: &Self,
+        zero_eq_neg_zero: bool,
+        infinity_eq_nan: bool,
+        quat_eq_neg_quat: bool,
+    ) -> bool {
+        match (self, expected) {
+            (Some(actual), Some(expected)) => actual.eq(
+                expected,
+                zero_eq_neg_zero,
+                infinity_eq_nan,
+                quat_eq_neg_quat,
+            ),
+            (Some(_), None) | (None, Some(_)) => false,
+            (None, None) => true,
+        }
+    }
+}
+
 impl<const N: usize, T, A: Alignment> TestEq for Vector<N, T, A>
 where
     Length<N>: SupportedLength,

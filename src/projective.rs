@@ -522,7 +522,7 @@ where
         self.0.set_column(index, value);
     }
 
-    #[inline]
+    #[inline(always)]
     fn from_scale_backend(scale: Vector<2, T, A>) -> Self
     where
         T: Zero + One,
@@ -530,7 +530,7 @@ where
         Self(Matrix::from_diagonal(scale.to_homogeneous()))
     }
 
-    #[inline]
+    #[inline(always)]
     fn from_translation_backend(translation: Vector<2, T, A>) -> Self
     where
         T: Zero + One,
@@ -542,7 +542,7 @@ where
         ])
     }
 
-    #[inline]
+    #[inline(always)]
     fn from_scale_translation_backend(scale: Vector<2, T, A>, translation: Vector<2, T, A>) -> Self
     where
         T: Zero + One,
@@ -554,7 +554,7 @@ where
         ])
     }
 
-    #[inline]
+    #[inline(always)]
     fn from_matrix_backend(matrix: &Matrix<2, T, A>) -> Self
     where
         T: Zero + One,
@@ -566,7 +566,7 @@ where
         ])
     }
 
-    #[inline]
+    #[inline(always)]
     fn from_matrix_translation_backend(
         matrix: &Matrix<2, T, A>,
         translation: Vector<2, T, A>,
@@ -581,7 +581,7 @@ where
         ])
     }
 
-    #[inline]
+    #[inline(always)]
     fn from_affine_backend(affine: &Affine<2, T, A>) -> Self
     where
         T: Zero + One,
@@ -593,12 +593,12 @@ where
         ])
     }
 
-    #[inline]
+    #[inline(always)]
     fn translation_backend(&self) -> Vector<2, T, A> {
         self.0.z_axis.truncate()
     }
 
-    #[inline]
+    #[inline(always)]
     fn debug_backend(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result
     where
         T: Debug,
@@ -606,7 +606,7 @@ where
         write!(f, "{:?}", self.as_homogeneous())
     }
 
-    #[inline]
+    #[inline(always)]
     fn display_backend(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result
     where
         T: Display,
@@ -614,7 +614,7 @@ where
         write!(f, "{}", self.as_homogeneous())
     }
 
-    #[inline]
+    #[inline(always)]
     fn eq_backend(&self, other: &Self) -> bool
     where
         T: PartialEq,
@@ -622,7 +622,7 @@ where
         self.0 == other.0
     }
 
-    #[inline]
+    #[inline(always)]
     fn hash_backend<H: core::hash::Hasher>(&self, (state,): (&mut H,))
     where
         T: Hash,
@@ -630,13 +630,22 @@ where
         self.0.hash(state);
     }
 
-    #[inline]
+    #[inline(always)]
     #[track_caller]
     fn mul_backend(&self, rhs: &Self) -> Self
     where
         T: Add<Output = T> + Mul<Output = T>,
     {
         Self(self.0 * rhs.0)
+    }
+
+    #[inline(always)]
+    #[track_caller]
+    fn mul_scalar_backend(&self, rhs: T) -> Self
+    where
+        T: Add<Output = T> + Mul<Output = T>,
+    {
+        Self(self.0 * rhs)
     }
 }
 
@@ -779,7 +788,7 @@ where
         self.0.set_column(index, value);
     }
 
-    #[inline]
+    #[inline(always)]
     fn from_scale_backend(scale: Vector<3, T, A>) -> Self
     where
         T: Zero + One,
@@ -787,7 +796,7 @@ where
         Self(Matrix::from_diagonal(scale.to_homogeneous()))
     }
 
-    #[inline]
+    #[inline(always)]
     fn from_translation_backend(translation: Vector<3, T, A>) -> Self
     where
         T: Zero + One,
@@ -800,7 +809,7 @@ where
         ])
     }
 
-    #[inline]
+    #[inline(always)]
     fn from_scale_translation_backend(scale: Vector<3, T, A>, translation: Vector<3, T, A>) -> Self
     where
         T: Zero + One,
@@ -813,7 +822,7 @@ where
         ])
     }
 
-    #[inline]
+    #[inline(always)]
     fn from_matrix_backend(matrix: &Matrix<3, T, A>) -> Self
     where
         T: Zero + One,
@@ -826,7 +835,7 @@ where
         ])
     }
 
-    #[inline]
+    #[inline(always)]
     fn from_matrix_translation_backend(
         matrix: &Matrix<3, T, A>,
         translation: Vector<3, T, A>,
@@ -842,7 +851,7 @@ where
         ])
     }
 
-    #[inline]
+    #[inline(always)]
     fn from_affine_backend(affine: &Affine<3, T, A>) -> Self
     where
         T: Zero + One,
@@ -855,12 +864,12 @@ where
         ])
     }
 
-    #[inline]
+    #[inline(always)]
     fn translation_backend(&self) -> Vector<3, T, A> {
         self.0.w_axis.truncate()
     }
 
-    #[inline]
+    #[inline(always)]
     fn debug_backend(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result
     where
         T: Debug,
@@ -868,7 +877,7 @@ where
         write!(f, "{:?}", self.as_homogeneous())
     }
 
-    #[inline]
+    #[inline(always)]
     fn display_backend(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result
     where
         T: Display,
@@ -876,7 +885,7 @@ where
         write!(f, "{}", self.as_homogeneous())
     }
 
-    #[inline]
+    #[inline(always)]
     fn eq_backend(&self, other: &Self) -> bool
     where
         T: PartialEq,
@@ -884,7 +893,7 @@ where
         self.0 == other.0
     }
 
-    #[inline]
+    #[inline(always)]
     fn hash_backend<H: core::hash::Hasher>(&self, (state,): (&mut H,))
     where
         T: Hash,
@@ -892,13 +901,22 @@ where
         self.0.hash(state);
     }
 
-    #[inline]
+    #[inline(always)]
     #[track_caller]
     fn mul_backend(&self, rhs: &Self) -> Self
     where
         T: Add<Output = T> + Mul<Output = T>,
     {
         Self(self.0 * rhs.0)
+    }
+
+    #[inline(always)]
+    #[track_caller]
+    fn mul_scalar_backend(&self, rhs: T) -> Self
+    where
+        T: Add<Output = T> + Mul<Output = T>,
+    {
+        Self(self.0 * rhs)
     }
 }
 
@@ -1391,6 +1409,261 @@ impl_mul!(
     /// floating-point precision and integer panics.
 );
 
+macro_rules! impl_mul_scalar {
+    ($(#[$doc:meta])*) => {
+        impl<const N: usize, T, A: Alignment> Mul<T> for Projective<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Add<Output = T> + Mul<Output = T>,
+        {
+            type Output = Self;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: T) -> Self::Output {
+                &self * rhs
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Mul<&T> for Projective<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Add<Output = T> + Mul<Output = T>,
+        {
+            type Output = Self;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: &T) -> Self::Output {
+                &self * *rhs
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Mul<T> for &Projective<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Add<Output = T> + Mul<Output = T>,
+        {
+            type Output = Projective<N, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: T) -> Self::Output {
+                specialize_23!(Projective::<N, T, A>::mul_scalar_backend(self, rhs))
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Mul<&T> for &Projective<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Add<Output = T> + Mul<Output = T>,
+        {
+            type Output = Projective<N, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: &T) -> Self::Output {
+                self * *rhs
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> MulAssign<T> for Projective<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Add<Output = T> + Mul<Output = T>,
+        {
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul_assign(&mut self, rhs: T) {
+                *self = &*self * rhs;
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> MulAssign<&T> for Projective<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Add<Output = T> + Mul<Output = T>,
+        {
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul_assign(&mut self, rhs: &T) {
+                *self = &*self * *rhs;
+            }
+        }
+    };
+}
+impl_mul_scalar!(
+    /// Multiplies every element by a uniform scalar.
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is cross-platform deterministic and
+    /// fully consistent with scalar addition and multiplication, including
+    /// floating-point precision and integer panics.
+);
+
+macro_rules! impl_affine_mul {
+    ($(#[$doc:meta])*) => {
+        impl<const N: usize, T, A: Alignment> Mul<Projective<N, T, A>> for Affine<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Add<Output = T> + Mul<Output = T> + Zero + One,
+        {
+            type Output = Projective<N, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: Projective<N, T, A>) -> Self::Output {
+                &Projective::from_affine(&self) * &rhs
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Mul<&Projective<N, T, A>> for Affine<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Add<Output = T> + Mul<Output = T> + Zero + One,
+        {
+            type Output = Projective<N, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: &Projective<N, T, A>) -> Self::Output {
+                &Projective::from_affine(&self) * rhs
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Mul<Projective<N, T, A>> for &Affine<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Add<Output = T> + Mul<Output = T> + Zero + One,
+        {
+            type Output = Projective<N, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: Projective<N, T, A>) -> Self::Output {
+                &Projective::from_affine(self) * &rhs
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Mul<&Projective<N, T, A>> for &Affine<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Add<Output = T> + Mul<Output = T> + Zero + One,
+        {
+            type Output = Projective<N, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: &Projective<N, T, A>) -> Self::Output {
+                &Projective::from_affine(self) * rhs
+            }
+        }
+    };
+}
+impl_affine_mul!(
+    /// Affine-transform projective-transform multiplication, resulting in a
+    /// projective transform.
+    ///
+    /// Because vectors are treated as row matrices, multiplication first
+    /// applies the left-hand side transform, then the right-hand side
+    /// transform.
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is cross-platform deterministic and
+    /// fully consistent with scalar addition and multiplication, including
+    /// floating-point precision and integer panics.
+);
+
+macro_rules! impl_mul_affine {
+    ($(#[$doc:meta])*) => {
+        impl<const N: usize, T, A: Alignment> Mul<Affine<N, T, A>> for Projective<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Add<Output = T> + Mul<Output = T> + Zero + One,
+        {
+            type Output = Self;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: Affine<N, T, A>) -> Self::Output {
+                &self * &Projective::from_affine(&rhs)
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Mul<&Affine<N, T, A>> for Projective<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Add<Output = T> + Mul<Output = T> + Zero + One,
+        {
+            type Output = Self;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: &Affine<N, T, A>) -> Self::Output {
+                &self * &Projective::from_affine(rhs)
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Mul<Affine<N, T, A>> for &Projective<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Add<Output = T> + Mul<Output = T> + Zero + One,
+        {
+            type Output = Projective<N, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: Affine<N, T, A>) -> Self::Output {
+                self * &Projective::from_affine(&rhs)
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Mul<&Affine<N, T, A>> for &Projective<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Add<Output = T> + Mul<Output = T> + Zero + One,
+        {
+            type Output = Projective<N, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: &Affine<N, T, A>) -> Self::Output {
+                self * &Projective::from_affine(rhs)
+            }
+        }
+    };
+}
+impl_mul_affine!(
+    /// Projective-transform affine-transform multiplication, resulting in a
+    /// projective transform.
+    ///
+    /// Because vectors are treated as row matrices, multiplication first
+    /// applies the left-hand side transform, then the right-hand side
+    /// transform.
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is cross-platform deterministic and
+    /// fully consistent with scalar addition and multiplication, including
+    /// floating-point precision and integer panics.
+);
+
 // SAFETY: Projective is equivalent to values of `T` mixed with padding.
 // Because `T` is `Send` and padding is `Send`, projective is too.
 unsafe impl<const N: usize, T, A: Alignment> Send for Projective<N, T, A>
@@ -1438,7 +1711,7 @@ mod tests {
 
     use crate::{
         Affine, Aligned, Mask, Matrix, Projective, Unaligned, Vector,
-        test_utils::{for_types, random_iter},
+        test_utils::{assert_test_eq, for_types, random_iter},
     };
 
     #[test]
@@ -1883,6 +2156,42 @@ mod tests {
     fn test_default() {
         for_types!(|N: TwoOrThree, T: PrimitiveNumber, A| {
             assert_eq!(Projective::<N, T, A>::default(), Projective::IDENTITY);
+        });
+    }
+
+    #[test]
+    fn test_mul_scalar() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for (projective, scalar) in random_iter::<(Projective<2, T, A>, T)>() {
+                assert_test_eq!(projective * scalar, Projective(projective.0 * scalar));
+            }
+            for (projective, scalar) in random_iter::<(Projective<3, T, A>, T)>() {
+                assert_test_eq!(projective * scalar, Projective(projective.0 * scalar));
+            }
+        });
+    }
+
+    #[test]
+    fn test_affine_mul() {
+        for_types!(|N: TwoOrThree, T: PrimitiveFloat, A| {
+            for (affine, projective) in random_iter::<(Affine<N, T, A>, Projective<N, T, A>)>() {
+                assert_test_eq!(
+                    affine * projective,
+                    Projective::from_affine(&affine) * projective
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_mul_affine() {
+        for_types!(|N: TwoOrThree, T: PrimitiveFloat, A| {
+            for (projective, affine) in random_iter::<(Projective<N, T, A>, Affine<N, T, A>)>() {
+                assert_test_eq!(
+                    projective * affine,
+                    projective * Projective::from_affine(&affine)
+                );
+            }
         });
     }
 }

@@ -176,6 +176,36 @@ where
         specialize_23!(Projective::<N, T, A>::project_point_backend(self, point))
     }
 
+    /// Returns the absolute values of the elements of `self`.
+    ///
+    /// Equivalent to `(self.x_axis.abs(), self.y_axis.abs(), ...)`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Proj2, Vec3};
+    /// #
+    /// let projective = Proj2::from_rows(&[
+    ///     Vec3::new(1.0, 0.0, 0.0),
+    ///     Vec3::new(0.0, -1.0, 0.0),
+    ///     Vec3::new(0.0, 0.0, -1.0),
+    /// ]);
+    ///
+    /// assert_eq!(
+    ///     projective.abs(),
+    ///     Proj2::from_rows(&[
+    ///         Vec3::new(1.0, 0.0, 0.0),
+    ///         Vec3::new(0.0, 1.0, 0.0),
+    ///         Vec3::new(0.0, 0.0, 1.0),
+    ///     ]),
+    /// );
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn abs(&self) -> Self {
+        specialize_23!(Projective::<N, T, A>::abs_backend(self))
+    }
+
     /// Returns `true` if the absolute difference of all elements between `self`
     /// and `other` is less than or equal to `max_abs_diff`.
     ///
@@ -356,6 +386,11 @@ where
         let result = self.x_axis * point.x + self.y_axis * point.y + self.z_axis;
 
         (result / result.z).truncate()
+    }
+
+    #[inline(always)]
+    fn abs_backend(&self) -> Self {
+        Self(self.0.abs())
     }
 
     #[inline(always)]
@@ -1340,7 +1375,1206 @@ where
     }
 
     #[inline(always)]
+    fn abs_backend(&self) -> Self {
+        Self(self.0.abs())
+    }
+
+    #[inline(always)]
     fn abs_diff_eq_backend(&self, other: &Self, max_abs_diff: T) -> bool {
         self.0.abs_diff_eq(&other.0, max_abs_diff)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{
+        Affine, EulerRot, Matrix, Proj2A, Proj3A, Projective, Quaternion, Vec2A, Vec3A, Vec4A,
+        Vector,
+        test_utils::{
+            assert_debug_panic, assert_panic_test_eq, assert_test_eq, for_types, random_iter,
+        },
+    };
+
+    #[test]
+    fn test_constants() {
+        for_types!(|T: PrimitiveFloat, A| {
+            assert_test_eq!(
+                Projective::<2, T, A>::NAN,
+                Projective(Matrix::<3, T, A>::NAN)
+            );
+            assert_test_eq!(
+                Projective::<3, T, A>::NAN,
+                Projective(Matrix::<4, T, A>::NAN)
+            );
+        });
+    }
+
+    #[test]
+    fn test_is_nan() {
+        for_types!(|T: PrimitiveFloat, A| {
+            let one = Vector::ONE;
+            let nan = Vector::<3, T, A>::NAN;
+            assert!(!Projective::<2, T, A>::from_rows(&[one; 3]).is_nan());
+            assert!(Projective::<2, T, A>::from_rows(&[nan, one, one]).is_nan());
+            assert!(Projective::<2, T, A>::from_rows(&[one, nan, one]).is_nan());
+            assert!(Projective::<2, T, A>::from_rows(&[one, one, nan]).is_nan());
+            assert!(Projective::<2, T, A>::NAN.is_nan());
+
+            let one = Vector::ONE;
+            let nan = Vector::<4, T, A>::NAN;
+            assert!(!Projective::<3, T, A>::from_rows(&[one; 4]).is_nan());
+            assert!(Projective::<3, T, A>::from_rows(&[nan, one, one, one]).is_nan());
+            assert!(Projective::<3, T, A>::from_rows(&[one, nan, one, one]).is_nan());
+            assert!(Projective::<3, T, A>::from_rows(&[one, one, nan, one]).is_nan());
+            assert!(Projective::<3, T, A>::from_rows(&[one, one, one, nan]).is_nan());
+            assert!(Projective::<3, T, A>::NAN.is_nan());
+        });
+    }
+
+    #[test]
+    fn test_is_finite() {
+        for_types!(|T: PrimitiveFloat, A| {
+            let one = Vector::ONE;
+            let inf = Vector::<3, T, A>::INFINITY;
+            assert!(Projective::<2, T, A>::from_rows(&[one, one, one]).is_finite());
+            assert!(!Projective::<2, T, A>::from_rows(&[inf, one, one]).is_finite());
+            assert!(!Projective::<2, T, A>::from_rows(&[one, inf, one]).is_finite());
+            assert!(!Projective::<2, T, A>::from_rows(&[one, one, inf]).is_finite());
+            assert!(!Projective::<2, T, A>::from_rows(&[inf, inf, inf]).is_finite());
+
+            let one = Vector::ONE;
+            let inf = Vector::<4, T, A>::INFINITY;
+            assert!(Projective::<3, T, A>::from_rows(&[one, one, one, one]).is_finite());
+            assert!(!Projective::<3, T, A>::from_rows(&[inf, one, one, one]).is_finite());
+            assert!(!Projective::<3, T, A>::from_rows(&[one, inf, one, one]).is_finite());
+            assert!(!Projective::<3, T, A>::from_rows(&[one, one, inf, one]).is_finite());
+            assert!(!Projective::<3, T, A>::from_rows(&[one, one, one, inf]).is_finite());
+            assert!(!Projective::<3, T, A>::from_rows(&[inf, inf, inf, inf]).is_finite());
+        });
+    }
+
+    #[test]
+    fn test_inverse() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for projective in random_iter::<Projective<2, T, A>>() {
+                assert_panic_test_eq!(projective.inverse(), Projective(projective.0.inverse()));
+            }
+            for projective in random_iter::<Projective<3, T, A>>() {
+                assert_panic_test_eq!(projective.inverse(), Projective(projective.0.inverse()));
+            }
+        });
+    }
+
+    #[test]
+    fn test_try_inverse() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for projective in random_iter::<Projective<2, T, A>>() {
+                assert_test_eq!(
+                    projective.try_inverse(),
+                    projective.0.try_inverse().map(Projective)
+                );
+            }
+            for projective in random_iter::<Projective<3, T, A>>() {
+                assert_test_eq!(
+                    projective.try_inverse(),
+                    projective.0.try_inverse().map(Projective)
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_inverse_or() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for [projective, fallback] in random_iter::<[Projective<2, T, A>; 2]>() {
+                assert_panic_test_eq!(
+                    projective.inverse_or(&fallback),
+                    Projective(projective.0.inverse_or(&fallback.0))
+                );
+            }
+            for [projective, fallback] in random_iter::<[Projective<3, T, A>; 2]>() {
+                assert_panic_test_eq!(
+                    projective.inverse_or(&fallback),
+                    Projective(projective.0.inverse_or(&fallback.0))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_inverse_or_zero() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for projective in random_iter::<Projective<2, T, A>>() {
+                assert_panic_test_eq!(
+                    projective.inverse_or_zero(),
+                    Projective(projective.0.inverse_or_zero())
+                );
+            }
+            for projective in random_iter::<Projective<3, T, A>>() {
+                assert_panic_test_eq!(
+                    projective.inverse_or_zero(),
+                    Projective(projective.0.inverse_or_zero())
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_transform_point() {
+        assert_eq!(
+            Proj2A::from_rows(&[
+                Vec3A::new(2.0, 3.0, 0.0),
+                Vec3A::new(4.0, 5.0, 0.0),
+                Vec3A::new(6.0, 7.0, 1.0)
+            ])
+            .transform_point(Vec2A::new(-1.0, -2.0)),
+            Vec2A::new(-4.0, -6.0)
+        );
+        assert_eq!(
+            Proj3A::from_rows(&[
+                Vec4A::new(2.0, 3.0, 4.0, 0.0),
+                Vec4A::new(5.0, 6.0, 7.0, 0.0),
+                Vec4A::new(8.0, 9.0, 10.0, 0.0),
+                Vec4A::new(11.0, 12.0, 13.0, 1.0)
+            ])
+            .transform_point(Vec3A::new(-1.0, -2.0, -3.0)),
+            Vec3A::new(-25.0, -30.0, -35.0)
+        );
+
+        assert_debug_panic!(
+            Proj2A::from_rows(&[
+                Vec3A::new(2.0, 3.0, 0.0),
+                Vec3A::new(4.0, 5.0, 1.0),
+                Vec3A::new(6.0, 7.0, 1.0)
+            ])
+            .transform_point(Vec2A::new(-1.0, -2.0))
+        );
+        assert_debug_panic!(
+            Proj3A::from_rows(&[
+                Vec4A::new(2.0, 3.0, 4.0, 0.0),
+                Vec4A::new(5.0, 6.0, 7.0, 0.0),
+                Vec4A::new(8.0, 9.0, 10.0, 1.0),
+                Vec4A::new(11.0, 12.0, 13.0, 1.0)
+            ])
+            .transform_point(Vec3A::new(-1.0, -2.0, -3.0))
+        );
+    }
+
+    #[test]
+    fn test_transform_vector() {
+        assert_eq!(
+            Proj2A::from_rows(&[
+                Vec3A::new(2.0, 3.0, 0.0),
+                Vec3A::new(4.0, 5.0, 0.0),
+                Vec3A::new(6.0, 7.0, 1.0)
+            ])
+            .transform_vector(Vec2A::new(-1.0, -2.0)),
+            Vec2A::new(-10.0, -13.0)
+        );
+        assert_eq!(
+            Proj3A::from_rows(&[
+                Vec4A::new(2.0, 3.0, 4.0, 0.0),
+                Vec4A::new(5.0, 6.0, 7.0, 0.0),
+                Vec4A::new(8.0, 9.0, 10.0, 0.0),
+                Vec4A::new(11.0, 12.0, 13.0, 1.0)
+            ])
+            .transform_vector(Vec3A::new(-1.0, -2.0, -3.0)),
+            Vec3A::new(-36.0, -42.0, -48.0)
+        );
+
+        assert_debug_panic!(
+            Proj2A::from_rows(&[
+                Vec3A::new(2.0, 3.0, 0.0),
+                Vec3A::new(4.0, 5.0, 1.0),
+                Vec3A::new(6.0, 7.0, 1.0)
+            ])
+            .transform_vector(Vec2A::new(-1.0, -2.0))
+        );
+        assert_debug_panic!(
+            Proj3A::from_rows(&[
+                Vec4A::new(2.0, 3.0, 4.0, 0.0),
+                Vec4A::new(5.0, 6.0, 7.0, 0.0),
+                Vec4A::new(8.0, 9.0, 10.0, 1.0),
+                Vec4A::new(11.0, 12.0, 13.0, 1.0)
+            ])
+            .transform_vector(Vec3A::new(-1.0, -2.0, -3.0))
+        );
+    }
+
+    #[test]
+    fn test_project_point() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for (projective, point) in random_iter::<(Projective<2, T, A>, Vector<2, T, A>)>() {
+                assert_test_eq!(
+                    projective.project_point(point),
+                    Vector::<2, T, A>::from_homogeneous(point.to_homogeneous() * projective)
+                );
+            }
+            for (projective, point) in random_iter::<(Projective<3, T, A>, Vector<3, T, A>)>() {
+                assert_test_eq!(
+                    projective.project_point(point),
+                    Vector::<3, T, A>::from_homogeneous(point.to_homogeneous() * projective)
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_abs() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for projective in random_iter::<Projective<2, T, A>>() {
+                assert_test_eq!(projective.abs(), Projective(projective.0.abs()));
+            }
+            for projective in random_iter::<Projective<3, T, A>>() {
+                assert_test_eq!(projective.abs(), Projective(projective.0.abs()));
+            }
+        });
+    }
+
+    #[test]
+    fn test_abs_diff_eq() {
+        for_types!(|T: PrimitiveFloat, A| {
+            let x_axis = Vector::<3, T, A>::new(0.0, 1.0, 2.0);
+            let y_axis = Vector::<3, T, A>::new(3.0, 4.0, 5.0);
+            let z_axis = Vector::<3, T, A>::new(6.0, 7.0, 8.0);
+            assert!(
+                Projective::<2, T, A>::from_rows(&[x_axis, y_axis, z_axis]).abs_diff_eq(
+                    &Projective::<2, T, A>::from_rows(&[x_axis + 0.1, y_axis - 0.1, z_axis + 0.05]),
+                    0.125
+                )
+            );
+            assert!(
+                !Projective::<2, T, A>::from_rows(&[x_axis, y_axis, z_axis]).abs_diff_eq(
+                    &Projective::<2, T, A>::from_rows(&[x_axis + 0.5, y_axis - 0.1, z_axis + 0.05]),
+                    0.125
+                )
+            );
+            assert!(
+                !Projective::<2, T, A>::from_rows(&[x_axis, y_axis, z_axis]).abs_diff_eq(
+                    &Projective::<2, T, A>::from_rows(&[x_axis + 0.1, y_axis - 0.5, z_axis + 0.05]),
+                    0.125
+                )
+            );
+            assert!(
+                !Projective::<2, T, A>::from_rows(&[x_axis, y_axis, z_axis]).abs_diff_eq(
+                    &Projective::<2, T, A>::from_rows(&[x_axis + 0.1, y_axis - 0.1, z_axis + 0.5]),
+                    0.125
+                )
+            );
+
+            let x_axis = Vector::<4, T, A>::new(0.0, 1.0, 2.0, 3.0);
+            let y_axis = Vector::<4, T, A>::new(4.0, 5.0, 6.0, 7.0);
+            let z_axis = Vector::<4, T, A>::new(8.0, 9.0, 10.0, 11.0);
+            let w_axis = Vector::<4, T, A>::new(12.0, 13.0, 14.0, 15.0);
+            assert!(
+                Projective::<3, T, A>::from_rows(&[x_axis, y_axis, z_axis, w_axis]).abs_diff_eq(
+                    &Projective::<3, T, A>::from_rows(&[
+                        x_axis + 0.1,
+                        y_axis - 0.1,
+                        z_axis + 0.05,
+                        w_axis - 0.05
+                    ]),
+                    0.125
+                )
+            );
+            assert!(
+                !Projective::<3, T, A>::from_rows(&[x_axis, y_axis, z_axis, w_axis]).abs_diff_eq(
+                    &Projective::<3, T, A>::from_rows(&[
+                        x_axis + 0.5,
+                        y_axis - 0.1,
+                        z_axis + 0.05,
+                        w_axis - 0.05
+                    ]),
+                    0.125
+                )
+            );
+            assert!(
+                !Projective::<3, T, A>::from_rows(&[x_axis, y_axis, z_axis, w_axis]).abs_diff_eq(
+                    &Projective::<3, T, A>::from_rows(&[
+                        x_axis + 0.1,
+                        y_axis - 0.5,
+                        z_axis + 0.05,
+                        w_axis - 0.05
+                    ]),
+                    0.125
+                )
+            );
+            assert!(
+                !Projective::<3, T, A>::from_rows(&[x_axis, y_axis, z_axis, w_axis]).abs_diff_eq(
+                    &Projective::<3, T, A>::from_rows(&[
+                        x_axis + 0.1,
+                        y_axis - 0.1,
+                        z_axis + 0.5,
+                        w_axis - 0.05
+                    ]),
+                    0.125
+                )
+            );
+            assert!(
+                !Projective::<3, T, A>::from_rows(&[x_axis, y_axis, z_axis, w_axis]).abs_diff_eq(
+                    &Projective::<3, T, A>::from_rows(&[
+                        x_axis + 0.1,
+                        y_axis - 0.1,
+                        z_axis + 0.05,
+                        w_axis - 0.5
+                    ]),
+                    0.125
+                )
+            );
+        });
+    }
+
+    #[test]
+    fn test_from_angle() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for (vector, angle) in random_iter::<(Vector<2, T, A>, T)>() {
+                assert_test_eq!(
+                    Projective::<2, T, A>::from_angle(angle).transform_point(vector),
+                    vector.rotate(angle),
+                    0.0 = -0.0
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_scale_angle() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for (scale, angle) in random_iter::<(Vector<2, T, A>, T)>() {
+                if !scale.is_finite() || !angle.is_finite() {
+                    continue;
+                }
+
+                assert_test_eq!(
+                    Projective::<2, T, A>::from_scale_angle(scale, angle),
+                    Projective::<2, T, A>::from_scale(scale)
+                        * Projective::<2, T, A>::from_angle(angle),
+                    0.0 = -0.0
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_angle_translation() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for (angle, translation) in random_iter::<(T, Vector<2, T, A>)>() {
+                if !angle.is_finite() || !translation.is_finite() {
+                    continue;
+                }
+
+                assert_test_eq!(
+                    Projective::<2, T, A>::from_angle_translation(angle, translation),
+                    Projective::<2, T, A>::from_angle(angle)
+                        * Projective::<2, T, A>::from_translation(translation),
+                    0.0 = -0.0
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_scale_angle_translation() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for (scale, angle, translation) in
+                random_iter::<(Vector<2, T, A>, T, Vector<2, T, A>)>()
+            {
+                if !scale.is_finite() || !angle.is_finite() || !translation.is_finite() {
+                    continue;
+                }
+
+                assert_test_eq!(
+                    Projective::<2, T, A>::from_scale_angle_translation(scale, angle, translation),
+                    Projective::<2, T, A>::from_scale(scale)
+                        * Projective::<2, T, A>::from_angle(angle)
+                        * Projective::<2, T, A>::from_translation(translation),
+                    0.0 = -0.0
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_to_scale_angle() {
+        for_types!(|T: PrimitiveFloat, A| {
+            assert_debug_panic!(Projective::<2, T, A>::ZERO.to_scale_angle());
+            assert_debug_panic!(
+                Projective::<2, T, A>::from_rows(&[
+                    Vector::<3, T, A>::new(0.3, 0.4, 0.0),
+                    Vector::<3, T, A>::new(0.4, 0.6, 0.0),
+                    Vector::<3, T, A>::new(0.0, 0.0, 1.0)
+                ])
+                .to_scale_angle()
+            );
+
+            for (scale, angle, translation) in
+                random_iter::<(Vector<2, T, A>, T, Vector<2, T, A>)>()
+            {
+                let projective =
+                    Projective::<2, T, A>::from_scale_angle_translation(scale, angle, translation);
+
+                if scale.iter().any(|x| x > 1e10)
+                    || !projective.as_homogeneous().determinant().is_finite()
+                    || projective.as_homogeneous().determinant().abs() < 1e-8
+                {
+                    continue;
+                }
+
+                let (result_scale, result_angle) = projective.to_scale_angle();
+                assert_test_eq!(
+                    Projective::<2, T, A>::from_scale_angle_translation(
+                        result_scale,
+                        result_angle,
+                        translation
+                    ),
+                    projective,
+                    abs <= scale.max_element() * 1e-5 + 1e-3,
+                    0.0 = -0.0
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_to_scale_angle_translation() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for projective in random_iter::<(Vector<2, T, A>, T, Vector<2, T, A>)>()
+                .map(|(scale, angle, translation)| {
+                    Projective::<2, T, A>::from_scale_angle_translation(scale, angle, translation)
+                })
+                .chain(random_iter())
+            {
+                assert_panic_test_eq!(
+                    projective.to_scale_angle_translation(),
+                    (
+                        projective.to_scale_angle().0,
+                        projective.to_scale_angle().1,
+                        projective.translation()
+                    )
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_rotation_x() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for angle in random_iter::<T>() {
+                assert_test_eq!(
+                    Projective::<3, T, A>::from_rotation_x(angle),
+                    Projective::<3, T, A>::from_matrix(&Matrix::<3, T, A>::from_rotation_x(angle))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_rotation_y() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for angle in random_iter::<T>() {
+                assert_test_eq!(
+                    Projective::<3, T, A>::from_rotation_y(angle),
+                    Projective::<3, T, A>::from_matrix(&Matrix::<3, T, A>::from_rotation_y(angle))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_rotation_z() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for angle in random_iter::<T>() {
+                assert_test_eq!(
+                    Projective::<3, T, A>::from_rotation_z(angle),
+                    Projective::<3, T, A>::from_matrix(&Matrix::<3, T, A>::from_rotation_z(angle))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_quat() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for quat in random_iter::<Quaternion<T, A>>() {
+                assert_panic_test_eq!(
+                    Projective::<3, T, A>::from_quat(quat),
+                    Projective::<3, T, A>::from_matrix(&Matrix::<3, T, A>::from_quat(quat))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_axis_angle() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for (axis, angle) in random_iter::<(Vector<3, T, A>, T)>() {
+                assert_panic_test_eq!(
+                    Projective::<3, T, A>::from_axis_angle(axis, angle),
+                    Projective::<3, T, A>::from_matrix(&Matrix::<3, T, A>::from_axis_angle(
+                        axis, angle
+                    ))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_euler() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for order in EulerRot::values() {
+                for [a, b, c] in random_iter::<[T; 3]>() {
+                    assert_test_eq!(
+                        Projective::<3, T, A>::from_euler(order, a, b, c),
+                        Projective::<3, T, A>::from_matrix(&Matrix::<3, T, A>::from_euler(
+                            order, a, b, c
+                        ))
+                    );
+                }
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_scale_rotation() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for (scale, rotation) in random_iter::<(Vector<3, T, A>, Quaternion<T, A>)>() {
+                assert_panic_test_eq!(
+                    Projective::<3, T, A>::from_scale_rotation(scale, rotation),
+                    Projective::<3, T, A>::from_matrix(&Matrix::<3, T, A>::from_scale_rotation(
+                        scale, rotation
+                    ))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_rotation_translation() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for (rotation, translation) in random_iter::<(Quaternion<T, A>, Vector<3, T, A>)>() {
+                assert_panic_test_eq!(
+                    Projective::<3, T, A>::from_rotation_translation(rotation, translation),
+                    Projective::<3, T, A>::from_affine(
+                        &Affine::<3, T, A>::from_rotation_translation(rotation, translation)
+                    )
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_scale_rotation_translation() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for (scale, rotation, translation) in
+                random_iter::<(Vector<3, T, A>, Quaternion<T, A>, Vector<3, T, A>)>()
+            {
+                assert_panic_test_eq!(
+                    Projective::<3, T, A>::from_scale_rotation_translation(
+                        scale,
+                        rotation,
+                        translation
+                    ),
+                    Projective::<3, T, A>::from_affine(
+                        &Affine::<3, T, A>::from_scale_rotation_translation(
+                            scale,
+                            rotation,
+                            translation
+                        )
+                    )
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_look_to_lh() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for [eye, dir, up] in random_iter::<[Vector<3, T, A>; 3]>() {
+                assert_panic_test_eq!(
+                    Projective::<3, T, A>::look_to_lh(eye, dir, up),
+                    Projective::from_affine(&Affine::<3, T, A>::look_to_lh(eye, dir, up))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_look_to_rh() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for [eye, dir, up] in random_iter::<[Vector<3, T, A>; 3]>() {
+                assert_panic_test_eq!(
+                    Projective::<3, T, A>::look_to_rh(eye, dir, up),
+                    Projective::from_affine(&Affine::<3, T, A>::look_to_rh(eye, dir, up))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_look_at_lh() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for [eye, center, up] in random_iter::<[Vector<3, T, A>; 3]>() {
+                assert_panic_test_eq!(
+                    Projective::<3, T, A>::look_at_lh(eye, center, up),
+                    Projective::from_affine(&Affine::<3, T, A>::look_at_lh(eye, center, up))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_look_at_rh() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for [eye, center, up] in random_iter::<[Vector<3, T, A>; 3]>() {
+                assert_panic_test_eq!(
+                    Projective::<3, T, A>::look_at_rh(eye, center, up),
+                    Projective::from_affine(&Affine::<3, T, A>::look_at_rh(eye, center, up))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_perspective_lh() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for (vertical_fov, aspect_ratio, near_plane, far_plane) in [
+                ((70.0 as T).to_radians(), 16.0 / 9.0, 0.33, 400.0),
+                ((60.0 as T).to_radians(), 10.0 / 9.0, 0.5, 1e5),
+                ((120.0 as T).to_radians(), 20.0, 1e-3, 1e6),
+            ] {
+                assert_debug_panic!(Projective::<3, T, A>::perspective_lh(
+                    vertical_fov,
+                    aspect_ratio,
+                    -1.0,
+                    4.0
+                ));
+                assert_debug_panic!(Projective::<3, T, A>::perspective_lh(
+                    vertical_fov,
+                    aspect_ratio,
+                    6.0,
+                    4.0
+                ));
+
+                let projective = Projective::<3, T, A>::perspective_lh(
+                    vertical_fov,
+                    aspect_ratio,
+                    near_plane,
+                    far_plane,
+                );
+
+                let half_size = Vector::<2, T, A>::new(
+                    (vertical_fov / 2.0).tan() * aspect_ratio,
+                    (vertical_fov / 2.0).tan(),
+                );
+
+                for point in random_iter::<Vector<2, T, A>>() {
+                    let point = point.map(|x| if x.abs() < 1e7 { x } else { 0.0 });
+
+                    for (z, projection_z) in [(near_plane, 0.0), (far_plane, 1.0)] {
+                        let projection = point / z / half_size;
+
+                        assert_test_eq!(
+                            projective.project_point(point.extend(z)),
+                            projection.extend(projection_z),
+                            abs <= point.abs().max_element().max(1.0) * 1e-3,
+                            0.0 = -0.0
+                        );
+                    }
+                }
+            }
+        });
+    }
+
+    #[test]
+    fn test_perspective_rh() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for (vertical_fov, aspect_ratio, near_plane, far_plane) in [
+                ((70.0 as T).to_radians(), 16.0 / 9.0, 0.33, 400.0),
+                ((60.0 as T).to_radians(), 10.0 / 9.0, 0.5, 1e5),
+                ((120.0 as T).to_radians(), 20.0, 1e-3, 1e6),
+            ] {
+                assert_debug_panic!(Projective::<3, T, A>::perspective_rh(
+                    vertical_fov,
+                    aspect_ratio,
+                    -1.0,
+                    4.0
+                ));
+                assert_debug_panic!(Projective::<3, T, A>::perspective_rh(
+                    vertical_fov,
+                    aspect_ratio,
+                    6.0,
+                    4.0
+                ));
+
+                assert_test_eq!(
+                    Projective::<3, T, A>::perspective_rh(
+                        vertical_fov,
+                        aspect_ratio,
+                        near_plane,
+                        far_plane,
+                    ),
+                    Projective::<3, T, A>::from_scale(Vector::<3, T, A>::new(1.0, 1.0, -1.0))
+                        * Projective::<3, T, A>::perspective_lh(
+                            vertical_fov,
+                            aspect_ratio,
+                            near_plane,
+                            far_plane,
+                        )
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_perspective_rh_gl() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for (vertical_fov, aspect_ratio, near_plane, far_plane) in [
+                ((70.0 as T).to_radians(), 16.0 / 9.0, 0.33, 400.0),
+                ((60.0 as T).to_radians(), 10.0 / 9.0, 0.5, 1e5),
+                ((120.0 as T).to_radians(), 20.0, 1e-3, 1e6),
+            ] {
+                assert_debug_panic!(Projective::<3, T, A>::perspective_rh_gl(
+                    vertical_fov,
+                    aspect_ratio,
+                    -1.0,
+                    4.0
+                ));
+                assert_debug_panic!(Projective::<3, T, A>::perspective_rh_gl(
+                    vertical_fov,
+                    aspect_ratio,
+                    6.0,
+                    4.0
+                ));
+
+                let expected =
+                    Projective::<3, T, A>::perspective_rh(
+                        vertical_fov,
+                        aspect_ratio,
+                        near_plane,
+                        far_plane,
+                    ) * Projective::<3, T, A>::from_scale(Vector::<3, T, A>::new(1.0, 1.0, 2.0))
+                        * Projective::<3, T, A>::from_translation(Vector::<3, T, A>::NEG_Z);
+                assert_test_eq!(
+                    Projective::<3, T, A>::perspective_rh_gl(
+                        vertical_fov,
+                        aspect_ratio,
+                        near_plane,
+                        far_plane,
+                    ),
+                    expected,
+                    abs <= expected.abs() * 1e-4
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_perspective_infinite_lh() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for (vertical_fov, aspect_ratio, near_plane) in [
+                ((70.0 as T).to_radians(), 16.0 / 9.0, 0.33),
+                ((60.0 as T).to_radians(), 10.0 / 9.0, 0.5),
+                ((120.0 as T).to_radians(), 20.0, 1e-3),
+            ] {
+                assert_debug_panic!(Projective::<3, T, A>::perspective_infinite_lh(
+                    vertical_fov,
+                    aspect_ratio,
+                    -1.0
+                ));
+
+                let projective = Projective::<3, T, A>::perspective_infinite_lh(
+                    vertical_fov,
+                    aspect_ratio,
+                    near_plane,
+                );
+
+                let half_size = Vector::<2, T, A>::new(
+                    (vertical_fov / 2.0).tan() * aspect_ratio,
+                    (vertical_fov / 2.0).tan(),
+                );
+
+                for point in random_iter::<Vector<2, T, A>>() {
+                    let point = point.map(|x| if x.abs() < 1e7 { x } else { 0.0 });
+
+                    for (z, projection_z) in [(near_plane, 0.0), (1000.0, 1.0 - 1.0 / 1000.0)] {
+                        let projection = point / z / half_size;
+
+                        assert_test_eq!(
+                            projective.project_point(point.extend(z)),
+                            projection.extend(projection_z),
+                            abs <= point.abs().max_element().max(1.0) * 1e-3,
+                            0.0 = -0.0
+                        );
+                    }
+                }
+            }
+        });
+    }
+
+    #[test]
+    fn test_perspective_infinite_rh() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for (vertical_fov, aspect_ratio, near_plane) in [
+                ((70.0 as T).to_radians(), 16.0 / 9.0, 0.33),
+                ((60.0 as T).to_radians(), 10.0 / 9.0, 0.5),
+                ((120.0 as T).to_radians(), 20.0, 1e-3),
+            ] {
+                assert_debug_panic!(Projective::<3, T, A>::perspective_infinite_rh(
+                    vertical_fov,
+                    aspect_ratio,
+                    -1.0
+                ));
+
+                assert_test_eq!(
+                    Projective::<3, T, A>::perspective_infinite_rh(
+                        vertical_fov,
+                        aspect_ratio,
+                        near_plane
+                    ),
+                    Projective::<3, T, A>::from_scale(Vector::<3, T, A>::new(1.0, 1.0, -1.0))
+                        * Projective::<3, T, A>::perspective_infinite_lh(
+                            vertical_fov,
+                            aspect_ratio,
+                            near_plane
+                        )
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_perspective_infinite_reverse_lh() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for (vertical_fov, aspect_ratio, near_plane) in [
+                ((70.0 as T).to_radians(), 16.0 / 9.0, 0.33),
+                ((60.0 as T).to_radians(), 10.0 / 9.0, 0.5),
+                ((120.0 as T).to_radians(), 20.0, 1e-3),
+            ] {
+                assert_debug_panic!(Projective::<3, T, A>::perspective_infinite_reverse_lh(
+                    vertical_fov,
+                    aspect_ratio,
+                    -1.0
+                ));
+
+                assert_test_eq!(
+                    Projective::<3, T, A>::perspective_infinite_reverse_lh(
+                        vertical_fov,
+                        aspect_ratio,
+                        near_plane
+                    ),
+                    Projective::<3, T, A>::perspective_infinite_lh(
+                        vertical_fov,
+                        aspect_ratio,
+                        near_plane
+                    ) * Projective::<3, T, A>::from_scale(Vector::<3, T, A>::new(1.0, 1.0, -1.0))
+                        * Projective::<3, T, A>::from_translation(Vector::<3, T, A>::Z)
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_perspective_infinite_reverse_rh() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for (vertical_fov, aspect_ratio, near_plane) in [
+                ((70.0 as T).to_radians(), 16.0 / 9.0, 0.33),
+                ((60.0 as T).to_radians(), 10.0 / 9.0, 0.5),
+                ((120.0 as T).to_radians(), 20.0, 1e-3),
+            ] {
+                assert_debug_panic!(Projective::<3, T, A>::perspective_infinite_reverse_rh(
+                    vertical_fov,
+                    aspect_ratio,
+                    -1.0
+                ));
+
+                assert_test_eq!(
+                    Projective::<3, T, A>::perspective_infinite_reverse_rh(
+                        vertical_fov,
+                        aspect_ratio,
+                        near_plane
+                    ),
+                    Projective::<3, T, A>::from_scale(Vector::<3, T, A>::new(1.0, 1.0, -1.0))
+                        * Projective::<3, T, A>::perspective_infinite_reverse_lh(
+                            vertical_fov,
+                            aspect_ratio,
+                            near_plane
+                        )
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_frustum_lh() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for (vertical_fov, aspect_ratio, near_plane, far_plane) in [
+                ((70.0 as T).to_radians(), 16.0 / 9.0, 0.33, 400.0),
+                ((60.0 as T).to_radians(), 10.0 / 9.0, 0.5, 1e5),
+                ((120.0 as T).to_radians(), 20.0, 1e-3, 1e6),
+            ] {
+                let half_height = (vertical_fov / 2.0).tan() * near_plane;
+                let half_width = half_height * aspect_ratio;
+
+                assert_debug_panic!(Projective::<3, T, A>::frustum_lh(
+                    -half_width,
+                    half_width,
+                    -half_height,
+                    half_height,
+                    -1.0,
+                    4.0
+                ));
+                assert_debug_panic!(Projective::<3, T, A>::frustum_lh(
+                    -half_width,
+                    half_width,
+                    -half_height,
+                    half_height,
+                    6.0,
+                    4.0
+                ));
+
+                let expected = Projective::<3, T, A>::perspective_lh(
+                    vertical_fov,
+                    aspect_ratio,
+                    near_plane,
+                    far_plane,
+                );
+                assert_test_eq!(
+                    Projective::<3, T, A>::frustum_lh(
+                        -half_width,
+                        half_width,
+                        -half_height,
+                        half_height,
+                        near_plane,
+                        far_plane
+                    ),
+                    expected,
+                    abs <= expected.abs() * 1e-4
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_frustum_rh() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for (vertical_fov, aspect_ratio, near_plane, far_plane) in [
+                ((70.0 as T).to_radians(), 16.0 / 9.0, 0.33, 400.0),
+                ((60.0 as T).to_radians(), 10.0 / 9.0, 0.5, 1e5),
+                ((120.0 as T).to_radians(), 20.0, 1e-3, 1e6),
+            ] {
+                let half_height = (vertical_fov / 2.0).tan() * near_plane;
+                let half_width = half_height * aspect_ratio;
+
+                assert_debug_panic!(Projective::<3, T, A>::frustum_rh(
+                    -half_width,
+                    half_width,
+                    -half_height,
+                    half_height,
+                    -1.0,
+                    4.0
+                ));
+                assert_debug_panic!(Projective::<3, T, A>::frustum_rh(
+                    -half_width,
+                    half_width,
+                    -half_height,
+                    half_height,
+                    6.0,
+                    4.0
+                ));
+
+                let expected = Projective::<3, T, A>::perspective_rh(
+                    vertical_fov,
+                    aspect_ratio,
+                    near_plane,
+                    far_plane,
+                );
+                assert_test_eq!(
+                    Projective::<3, T, A>::frustum_rh(
+                        -half_width,
+                        half_width,
+                        -half_height,
+                        half_height,
+                        near_plane,
+                        far_plane
+                    ),
+                    expected,
+                    abs <= expected.abs() * 1e-4
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_frustum_rh_gl() {
+        for_types!(|T: PrimitiveFloat, A| {
+            let left = -0.6;
+            let right = 2.8;
+            let bottom = -0.4;
+            let top = 1.3;
+            let near_plane = 0.34;
+            let far_plane = 420.0;
+
+            assert_debug_panic!(Projective::<3, T, A>::frustum_rh_gl(
+                left, right, bottom, top, -1.0, 4.0
+            ));
+            assert_debug_panic!(Projective::<3, T, A>::frustum_rh_gl(
+                left, right, bottom, top, 6.0, 4.0
+            ));
+
+            let expected =
+                Projective::<3, T, A>::frustum_rh(left, right, bottom, top, near_plane, far_plane)
+                    * Projective::<3, T, A>::from_scale(Vector::<3, T, A>::new(1.0, 1.0, 2.0))
+                    * Projective::<3, T, A>::from_translation(Vector::<3, T, A>::NEG_Z);
+            assert_test_eq!(
+                Projective::<3, T, A>::frustum_rh_gl(
+                    left, right, bottom, top, near_plane, far_plane
+                ),
+                expected,
+                abs <= expected.abs() * 1e-4
+            );
+        });
+    }
+
+    #[test]
+    fn test_orthographic_lh() {
+        for_types!(|T: PrimitiveFloat, A| {
+            let left = -0.6;
+            let right = 2.8;
+            let bottom = -0.4;
+            let top = 1.3;
+            let near = 0.34;
+            let far = 420.0;
+
+            assert_debug_panic!(Projective::<3, T, A>::orthographic_lh(
+                left, right, bottom, top, 6.0, 4.0
+            ));
+
+            let projective =
+                Projective::<3, T, A>::orthographic_lh(left, right, bottom, top, near, far);
+
+            for (x, projection_x) in [(left, -1.0), (right, 1.0), (left.midpoint(right), 0.0)] {
+                for (y, projection_y) in [(bottom, -1.0), (top, 1.0), (bottom.midpoint(top), 0.0)] {
+                    for (z, projection_z) in [(near, 0.0), (far, 1.0), (near.midpoint(far), 0.5)] {
+                        let point = Vector::<3, T, A>::new(x, y, z);
+                        let projection =
+                            Vector::<3, T, A>::new(projection_x, projection_y, projection_z);
+
+                        assert_test_eq!(projective.project_point(point), projection, abs <= 1e-5);
+                    }
+                }
+            }
+        });
+    }
+
+    #[test]
+    fn test_orthographic_rh() {
+        for_types!(|T: PrimitiveFloat, A| {
+            let left = -0.6;
+            let right = 2.8;
+            let bottom = -0.4;
+            let top = 1.3;
+            let near = 0.34;
+            let far = 420.0;
+
+            assert_debug_panic!(Projective::<3, T, A>::orthographic_rh(
+                left, right, bottom, top, 6.0, 4.0
+            ));
+
+            assert_test_eq!(
+                Projective::<3, T, A>::orthographic_rh(left, right, bottom, top, near, far),
+                Projective::<3, T, A>::from_scale(Vector::<3, T, A>::new(1.0, 1.0, -1.0))
+                    * Projective::<3, T, A>::orthographic_lh(left, right, bottom, top, near, far)
+            );
+        });
+    }
+
+    #[test]
+    fn test_orthographic_rh_gl() {
+        for_types!(|T: PrimitiveFloat, A| {
+            let left = -0.6;
+            let right = 2.8;
+            let bottom = -0.4;
+            let top = 1.3;
+            let near = 0.34;
+            let far = 420.0;
+
+            assert_debug_panic!(Projective::<3, T, A>::orthographic_rh_gl(
+                left, right, bottom, top, 6.0, 4.0
+            ));
+
+            let expected =
+                Projective::<3, T, A>::orthographic_rh(left, right, bottom, top, near, far)
+                    * Projective::<3, T, A>::from_scale(Vector::<3, T, A>::new(1.0, 1.0, 2.0))
+                    * Projective::<3, T, A>::from_translation(Vector::<3, T, A>::NEG_Z);
+            assert_test_eq!(
+                Projective::<3, T, A>::orthographic_rh_gl(left, right, bottom, top, near, far),
+                expected,
+                abs <= expected.abs() * 1e-4
+            );
+        });
+    }
+
+    #[test]
+    fn test_to_euler() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for order in EulerRot::values() {
+                for projective in random_iter::<Quaternion<T, A>>()
+                    .map(|quat| {
+                        let quat = quat.normalize_or(Quaternion::IDENTITY).normalize();
+                        Projective::<3, T, A>::from_quat(quat)
+                    })
+                    .chain(random_iter::<Projective<3, T, A>>().take(20))
+                {
+                    assert_panic_test_eq!(
+                        projective.to_euler(order),
+                        Matrix::from_projective(&projective).to_euler(order)
+                    );
+                }
+            }
+        });
+    }
+
+    #[test]
+    fn test_to_scale_rotation() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for projective in random_iter::<(Vector<3, T, A>, Quaternion<T, A>, Vector<3, T, A>)>()
+                .map(|(scale, rotation, translation)| {
+                    let rotation = rotation.normalize_or(Quaternion::IDENTITY).normalize();
+                    Projective::<3, T, A>::from_scale_rotation_translation(
+                        scale,
+                        rotation,
+                        translation,
+                    )
+                })
+                .chain(random_iter::<Projective<3, T, A>>().take(20))
+            {
+                assert_panic_test_eq!(
+                    projective.to_scale_rotation(),
+                    Matrix::from_projective(&projective).to_scale_rotation()
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_to_scale_rotation_translation() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for projective in random_iter::<(Vector<3, T, A>, Quaternion<T, A>, Vector<3, T, A>)>()
+                .map(|(scale, rotation, translation)| {
+                    let rotation = rotation.normalize_or(Quaternion::IDENTITY).normalize();
+                    Projective::<3, T, A>::from_scale_rotation_translation(
+                        scale,
+                        rotation,
+                        translation,
+                    )
+                })
+                .chain(random_iter::<Projective<3, T, A>>().take(20))
+            {
+                assert_panic_test_eq!(
+                    projective.to_scale_rotation_translation(),
+                    Affine::from_projective(&projective).to_scale_rotation_translation()
+                );
+            }
+        });
     }
 }
