@@ -807,3 +807,432 @@ impl_wide_float!(f32x16, f32);
 impl_wide_float!(f64x2, f64);
 impl_wide_float!(f64x4, f64);
 impl_wide_float!(f64x8, f64);
+
+#[cfg(test)]
+mod tests {
+    use crate::{
+        EulerRot, Mat2, Mat3, Mat4, Matrix, Quat, Unaligned, Vec2, Vec3, Vector,
+        test_utils::{assert_test_eq, assert_test_eq_or_panic, for_types, random_iter},
+    };
+
+    #[test]
+    fn test_constants() {
+        for_types!(|N, Wide: WideFloat| {
+            assert_test_eq!(
+                Matrix::<N, Wide, Unaligned>::NAN,
+                Matrix::from_rows(&[Vector::<N, Wide, Unaligned>::NAN; N])
+            );
+        });
+    }
+
+    #[test]
+    fn test_is_nan() {
+        for_types!(|Wide: WideFloat| {
+            for [x, y, z, w] in random_iter::<[Wide; 4]>() {
+                assert_test_eq!(
+                    Mat2::from_rows(&[x, y].map(Vector::splat)).is_nan(),
+                    x.is_nan() | y.is_nan()
+                );
+                assert_test_eq!(
+                    Mat3::from_rows(&[x, y, z].map(Vector::splat)).is_nan(),
+                    x.is_nan() | y.is_nan() | z.is_nan()
+                );
+                assert_test_eq!(
+                    Mat4::from_rows(&[x, y, z, w].map(Vector::splat)).is_nan(),
+                    x.is_nan() | y.is_nan() | z.is_nan() | w.is_nan()
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_is_finite() {
+        for_types!(|Wide: WideFloat| {
+            for [x, y, z, w] in random_iter::<[Wide; 4]>() {
+                assert_test_eq!(
+                    Mat2::from_rows(&[x, y].map(Vector::splat)).is_finite(),
+                    x.is_finite() & y.is_finite()
+                );
+                assert_test_eq!(
+                    Mat3::from_rows(&[x, y, z].map(Vector::splat)).is_finite(),
+                    x.is_finite() & y.is_finite() & z.is_finite()
+                );
+                assert_test_eq!(
+                    Mat4::from_rows(&[x, y, z, w].map(Vector::splat)).is_finite(),
+                    x.is_finite() & y.is_finite() & z.is_finite() & w.is_finite()
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_inverse() {
+        for_types!(|N, Wide: WideFloat| {
+            for matrix in random_iter::<Matrix<N, Wide, Unaligned>>() {
+                assert_test_eq_or_panic!(
+                    matrix.inverse(),
+                    Matrix::from_lane_fn(|lane| matrix.lane(lane).inverse())
+                );
+            }
+        });
+    }
+
+    // `try_inverse` is exluded on purpose.
+
+    #[test]
+    fn test_inverse_or() {
+        for_types!(|N, Wide: WideFloat| {
+            for [matrix, fallback] in random_iter::<[Matrix<N, Wide, Unaligned>; 2]>() {
+                assert_test_eq!(
+                    matrix.inverse_or(&fallback),
+                    Matrix::from_lane_fn(|lane| matrix.lane(lane).inverse_or(&fallback.lane(lane)))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_inverse_or_zero() {
+        for_types!(|N, Wide: WideFloat| {
+            for matrix in random_iter::<Matrix<N, Wide, Unaligned>>() {
+                assert_test_eq!(
+                    matrix.inverse_or_zero(),
+                    Matrix::from_lane_fn(|lane| matrix.lane(lane).inverse_or_zero())
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_recip() {
+        for_types!(|N, Wide: WideFloat| {
+            for matrix in random_iter::<Matrix<N, Wide, Unaligned>>() {
+                assert_test_eq!(
+                    matrix.recip(),
+                    Matrix::from_lane_fn(|lane| matrix.lane(lane).recip())
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_abs() {
+        for_types!(|N, Wide: WideFloat| {
+            for matrix in random_iter::<Matrix<N, Wide, Unaligned>>() {
+                assert_test_eq!(
+                    matrix.abs(),
+                    Matrix::from_lane_fn(|lane| matrix.lane(lane).abs())
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_abs_diff_eq() {
+        for_types!(|N, Wide: WideFloat| {
+            for ([a, b], max_abs_diff) in random_iter::<([Matrix<N, Wide, Unaligned>; 2], Wide)>() {
+                assert_test_eq!(
+                    a.abs_diff_eq(&b, max_abs_diff),
+                    (0..LANES).all(|lane| a
+                        .lane(lane)
+                        .abs_diff_eq(&b.lane(lane), max_abs_diff.to_array()[lane]))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_angle() {
+        for_types!(|Wide: WideFloat| {
+            for angle in random_iter::<Wide>() {
+                assert_test_eq!(
+                    Mat2::<Wide>::from_angle(angle),
+                    Mat2::from_lane_fn(|lane| Mat2::<T>::from_angle(angle.to_array()[lane])),
+                    abs <= angle.abs() * 1e-4 + 1e-3,
+                    0.0 = -0.0
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_scale_angle() {
+        for_types!(|Wide: WideFloat| {
+            for (scale, angle) in random_iter::<(Vec2<Wide>, Wide)>() {
+                let scale = Vec2::splat(scale.length().is_finite()).blend(scale, Vec2::ONE);
+
+                assert_test_eq!(
+                    Mat2::<Wide>::from_scale_angle(scale, angle),
+                    Mat2::from_lane_fn(|lane| Mat2::<T>::from_scale_angle(
+                        scale.lane(lane),
+                        angle.to_array()[lane]
+                    )),
+                    abs <= (scale.length() * angle.abs() * 1e-4).max(Wide::splat(1e-3)),
+                    0.0 = -0.0,
+                    INFINITY = NAN
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_to_scale_angle() {
+        for_types!(|Wide: WideFloat| {
+            for matrix in random_iter::<(Vec2<Wide>, Wide)>()
+                .map(|(scale, angle)| Mat2::<Wide>::from_scale_angle(scale, angle))
+                .chain(random_iter())
+            {
+                assert_test_eq_or_panic!(
+                    matrix.to_scale_angle(),
+                    (
+                        Vec2::from_lane_fn(|lane| matrix.lane(lane).to_scale_angle().0),
+                        Wide::new(std::array::from_fn(|lane| matrix
+                            .lane(lane)
+                            .to_scale_angle()
+                            .1))
+                    ),
+                    abs <= (
+                        matrix.to_scale_angle().0.abs() * Wide::splat(1e-4) + Wide::splat(1e-3),
+                        matrix.to_scale_angle().1.abs() * 1e-4 + 1e-3
+                    )
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_rotation_x() {
+        for_types!(|Wide: WideFloat| {
+            for angle in random_iter::<Wide>() {
+                assert_test_eq!(
+                    Mat3::<Wide>::from_rotation_x(angle),
+                    Mat3::from_lane_fn(|lane| Mat3::<T>::from_rotation_x(angle.to_array()[lane])),
+                    abs <= angle.abs() * 1e-4 + 1e-3,
+                    0.0 = -0.0
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_rotation_y() {
+        for_types!(|Wide: WideFloat| {
+            for angle in random_iter::<Wide>() {
+                assert_test_eq!(
+                    Mat3::<Wide>::from_rotation_y(angle),
+                    Mat3::from_lane_fn(|lane| Mat3::<T>::from_rotation_y(angle.to_array()[lane])),
+                    abs <= angle.abs() * 1e-4 + 1e-3,
+                    0.0 = -0.0
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_rotation_z() {
+        for_types!(|Wide: WideFloat| {
+            for angle in random_iter::<Wide>() {
+                assert_test_eq!(
+                    Mat3::<Wide>::from_rotation_z(angle),
+                    Mat3::from_lane_fn(|lane| Mat3::<T>::from_rotation_z(angle.to_array()[lane])),
+                    abs <= angle.abs() * 1e-4 + 1e-3,
+                    0.0 = -0.0
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_quat() {
+        for_types!(|Wide: WideFloat| {
+            for quat in random_iter::<Quat<Wide>>().flat_map(|quat| [quat, quat.normalize()]) {
+                assert_test_eq_or_panic!(
+                    Mat3::<Wide>::from_quat(quat),
+                    Mat3::from_lane_fn(|lane| Mat3::<T>::from_quat(quat.lane(lane)))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_axis_angle() {
+        for_types!(|Wide: WideFloat| {
+            for (axis, angle) in random_iter::<(Vec3<Wide>, Wide)>()
+                .flat_map(|(axis, angle)| [(axis, angle), (axis.normalize(), angle)])
+            {
+                let condition =
+                    axis.length().is_finite() & angle.is_finite() & angle.abs().simd_lt(1e3);
+                let axis = Vec3::splat(condition).blend(axis, Vec3::X);
+                let angle = condition.blend(angle, Wide::ONE);
+
+                assert_test_eq_or_panic!(
+                    Mat3::<Wide>::from_axis_angle(axis, angle),
+                    Mat3::from_lane_fn(|lane| Mat3::<T>::from_axis_angle(
+                        axis.lane(lane),
+                        angle.to_array()[lane]
+                    )),
+                    abs <= Mat3::<Wide>::from_axis_angle(axis, angle).abs()
+                        * axis.length().max(Wide::ONE)
+                        * angle.abs().max(Wide::ONE)
+                        * Wide::splat(1e-4)
+                        + Mat3::from_row_array(&[Wide::splat(1e-3); 9]),
+                    0.0 = -0.0
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_euler() {
+        for_types!(|Wide: WideFloat| {
+            for order in EulerRot::values() {
+                for [a, b, c] in random_iter::<[Wide; 3]>() {
+                    assert_test_eq!(
+                        Mat3::<Wide>::from_euler(order, a, b, c),
+                        Mat3::from_lane_fn(|lane| Mat3::<T>::from_euler(
+                            order,
+                            a.to_array()[lane],
+                            b.to_array()[lane],
+                            c.to_array()[lane]
+                        )),
+                        abs <= a.abs().max(b.abs()).max(c.abs()) * 1e-4,
+                        0.0 = -0.0
+                    );
+                }
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_scale_rotation() {
+        for_types!(|Wide: WideFloat| {
+            for (scale, rotation) in random_iter::<(Vec3<Wide>, Quat<Wide>)>()
+                .flat_map(|(scale, quat)| [(scale, quat), (scale, quat.normalize())])
+            {
+                assert_test_eq_or_panic!(
+                    Mat3::<Wide>::from_scale_rotation(scale, rotation),
+                    Mat3::from_lane_fn(|lane| Mat3::<T>::from_scale_rotation(
+                        scale.lane(lane),
+                        rotation.lane(lane)
+                    ))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_look_to_lh() {
+        for_types!(|Wide: WideFloat| {
+            for [dir, up] in random_iter::<[Vec3<Wide>; 2]>()
+                .flat_map(|[dir, up]| [[dir, up], [dir.normalize(), up.normalize()]])
+            {
+                assert_test_eq_or_panic!(
+                    Mat3::<Wide>::look_to_lh(dir, up),
+                    Mat3::from_lane_fn(|lane| Mat3::<T>::look_to_lh(dir.lane(lane), up.lane(lane)))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_look_to_rh() {
+        for_types!(|Wide: WideFloat| {
+            for [dir, up] in random_iter::<[Vec3<Wide>; 2]>()
+                .flat_map(|[dir, up]| [[dir, up], [dir.normalize(), up.normalize()]])
+            {
+                assert_test_eq_or_panic!(
+                    Mat3::<Wide>::look_to_rh(dir, up),
+                    Mat3::from_lane_fn(|lane| Mat3::<T>::look_to_rh(dir.lane(lane), up.lane(lane)))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_look_at_lh() {
+        for_types!(|Wide: WideFloat| {
+            for [eye, center, up] in random_iter::<[Vec3<Wide>; 3]>()
+                .flat_map(|[eye, center, up]| [[eye, center, up], [eye, center, up.normalize()]])
+            {
+                assert_test_eq_or_panic!(
+                    Mat3::<Wide>::look_at_lh(eye, center, up),
+                    Mat3::from_lane_fn(|lane| Mat3::<T>::look_at_lh(
+                        eye.lane(lane),
+                        center.lane(lane),
+                        up.lane(lane)
+                    ))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_look_at_rh() {
+        for_types!(|Wide: WideFloat| {
+            for [eye, center, up] in random_iter::<[Vec3<Wide>; 3]>()
+                .flat_map(|[eye, center, up]| [[eye, center, up], [eye, center, up.normalize()]])
+            {
+                assert_test_eq_or_panic!(
+                    Mat3::<Wide>::look_at_rh(eye, center, up),
+                    Mat3::from_lane_fn(|lane| Mat3::<T>::look_at_rh(
+                        eye.lane(lane),
+                        center.lane(lane),
+                        up.lane(lane)
+                    ))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_to_euler() {
+        for_types!(|Wide: WideFloat| {
+            for order in EulerRot::values() {
+                for matrix in random_iter::<[Wide; 3]>()
+                    .map(|[a, b, c]| Mat3::<Wide>::from_euler(order, a, b, c))
+                    .chain(random_iter())
+                {
+                    assert_test_eq_or_panic!(
+                        matrix.to_euler(order),
+                        (
+                            Wide::new(std::array::from_fn(|lane| matrix
+                                .lane(lane)
+                                .to_euler(order)
+                                .0)),
+                            Wide::new(std::array::from_fn(|lane| matrix
+                                .lane(lane)
+                                .to_euler(order)
+                                .1)),
+                            Wide::new(std::array::from_fn(|lane| matrix
+                                .lane(lane)
+                                .to_euler(order)
+                                .2))
+                        ),
+                        abs <= (Wide::splat(1e-4), Wide::splat(1e-4), Wide::splat(1e-4)),
+                        0.0 = -0.0
+                    );
+                }
+            }
+        });
+    }
+
+    #[test]
+    fn test_to_scale_rotation() {
+        for_types!(|Wide: WideFloat| {
+            for matrix in random_iter::<(Vec3<Wide>, Quat<Wide>)>()
+                .map(|(scale, rotation)| {
+                    Mat3::<Wide>::from_scale_rotation(scale, rotation.normalize())
+                })
+                .chain(random_iter())
+            {
+                assert_test_eq_or_panic!(
+                    matrix.to_scale_rotation(),
+                    (
+                        Vec3::from_lane_fn(|lane| matrix.lane(lane).to_scale_rotation().0),
+                        Quat::from_lane_fn(|lane| matrix.lane(lane).to_scale_rotation().1)
+                    )
+                );
+            }
+        });
+    }
+}
