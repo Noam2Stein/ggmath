@@ -1,7 +1,10 @@
 #[expect(unused_imports)]
 use core::ops::{Deref, DerefMut};
 
-use crate::{Aligned, Alignment, Length, Scalar, Unaligned, Vector, length::TwoOrThree};
+use crate::{
+    Alignment, Length, One, Scalar, Unaligned, Vector, Zero, length::TwoOrThree,
+    utils::transmute_generic,
+};
 
 /// A rotor representing rotation.
 ///
@@ -228,3 +231,35 @@ pub type Rot2A<T> = Rotor<2, T, Aligned>;
 /// Note that these fields are only exposed by implementing [`Deref`] and
 /// [`DerefMut`].
 pub type Rot3A<T> = Rotor<3, T, Aligned>;
+
+#[expect(private_bounds)]
+impl<const N: usize, T, A: Alignment> Rotor<N, T, A>
+where
+    Length<N>: TwoOrThree,
+    T: Scalar + Zero + One,
+{
+    /// A rotor that keeps all vectors unchanged.
+    ///
+    /// This sets `s` to one and all plane fields to zero.
+    pub const IDENTITY: Self = Self::IDENTITY_INTERNAL_IMPL;
+
+    /// The implementation of [`Self::IDENTITY`].
+    ///
+    /// Because of type system limitations, this implementation looks crazy. Use
+    /// a separate constant so that IDEs do not show the implementation.
+    const IDENTITY_INTERNAL_IMPL: Self = match N {
+        // SAFETY: We are transmuting a type to itself
+        2 => unsafe {
+            transmute_generic::<Rotor<2, T, A>, Rotor<N, T, A>>(Rotor::<2, T, A>(
+                Vector::<2, T, A>::Y,
+            ))
+        },
+        // SAFETY: We are transmuting a type to itself
+        3 => unsafe {
+            transmute_generic::<Rotor<3, T, A>, Rotor<N, T, A>>(Rotor::<3, T, A>(
+                Vector::<4, T, A>::W,
+            ))
+        },
+        _ => unreachable!(),
+    };
+}
