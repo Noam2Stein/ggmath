@@ -67,39 +67,39 @@ where
 
 /// A 2D rotor representing 2D rotation.
 ///
-/// Rotors are an efficient representation of rotations, which make various
-/// operations faster and simpler than with matrices. You may already be
-/// familiar with complex numbers, which are identical to this 2D rotor type.
+/// Rotors are a compact and efficient alternative to rotation matrices. If you
+/// are familiar with complex numbers, you already know how to use rotors. This
+/// 2D rotor type is mathematically equivalent to complex numbers.
 ///
-/// > Rotors come from Geometric Algebra. You do not need to understand any math
-/// > in order to use this type, but if you want to anyway, I recommend
-/// > [this resource](https://www.youtube.com/playlist?list=PLVuwZXwFua-0Ks3rRS4tIkswgUmDLqqRy).
+/// > If you are curious about the underlying math, rotors come from Geometric
+/// > Algebra. I recommend
+/// > [this resource](https://www.youtube.com/playlist?list=PLVuwZXwFua-0Ks3rRS4tIkswgUmDLqqRy)
+/// > for learning more.
 ///
 /// This rotor is intended to be normalized, but may denormalize due to floating
 /// point "error creep" which can occur when successive operations are applied.
+/// Use `rotor.normalize()` to maintain precision.
 ///
 /// # No SIMD alignment
 ///
 /// [`Rot2<T>`] does not have SIMD alignment, for that use [`Rot2A<T>`].
 ///
-/// # Fields
+/// # Representation and Fields
 ///
-/// Unless you are familiar with rotor/complex-number math, you should avoid
-/// using these fields directly, and instead use higher level helper functions.
+/// Unless you are familiar with rotor/complex-number math, avoid using these
+/// fields directly, and instead use higher level helper functions.
+///
+/// This type stores two elements, with this order in memory:
 ///
 /// - `xy: T = sin(angle)`
 /// - `s: T = cos(angle)`
 ///
-/// Note that mathematically, this representation is incorrect. A rotor is
-/// typically written as:
-///
-/// `cos(angle/2) + sin(angle/2) * plane_of_rotation`
-///
-/// The half-angle is necessary because of the sandwich product, which is used
-/// to correctly handle vectors outside the plane of rotation. In 2D, however,
-/// the entire vector space is the plane of rotation, so the rotor can be
-/// represented directly by `cos(angle), sin(angle)`. This makes many operations
-/// faster than with half-angle.
+/// Note that mathematically, this representation is incorrect. The correct
+/// representation is `sin(angle/2), cos(angle/2)`. In three dimensions or more,
+/// the half-angle is necessary to correctly handle vectors outside the plane of
+/// rotation. In 2D, however, the entire vector space is the plane of rotation,
+/// so the rotor can be represented directly by `sin(angle), cos(angle)`. This
+/// trick makes many operations more efficient.
 ///
 /// Note that these fields are only exposed by implementing [`Deref`] and
 /// [`DerefMut`].
