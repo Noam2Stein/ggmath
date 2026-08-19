@@ -1,9 +1,9 @@
-use core::ops::{Deref, DerefMut};
+use core::ops::{Add, Deref, DerefMut, Mul, Neg};
 
 use crate::{
     Aligned, Alignment, Length, One, Scalar, Unaligned, Vector, Zero,
     length::TwoOrThree,
-    utils::{transmute_generic, transmute_mut, transmute_ref},
+    utils::{specialize_23, transmute_generic, transmute_mut, transmute_ref},
 };
 
 /// A rotor representing rotation.
@@ -270,6 +270,41 @@ where
     Length<N>: TwoOrThree,
     T: Scalar,
 {
+    /// Returns the conjugate of a rotor.
+    ///
+    /// Equivalent to the inverse if `self` is normalized.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn conjugate(self) -> Self
+    where
+        T: Neg<Output = T>,
+    {
+        specialize_23!(Rotor::<N, T, A>::conjugate_backend(self))
+    }
+
+    /// Computes the dot product of rotors `self` and `rhs`.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn dot(self, rhs: Self) -> T
+    where
+        T: Add<Output = T> + Mul<Output = T>,
+    {
+        specialize_23!(Rotor::<N, T, A>::dot_backend(self, rhs))
+    }
+
+    /// Computes the squared length/magnitude of a rotor.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn length_squared(self) -> T
+    where
+        T: Add<Output = T> + Mul<Output = T>,
+    {
+        specialize_23!(Rotor::<N, T, A>::length_squared_backend(self))
+    }
+
     /// Conversion between [`Aligned`] and [`Unaligned`] storage.
     ///
     /// See [`align`] and [`unalign`] for scenarios where the output alignment
@@ -464,6 +499,33 @@ where
     pub const fn as_mut_vector(&mut self) -> &mut Vector<2, T, A> {
         &mut self.0
     }
+
+    #[inline(always)]
+    #[track_caller]
+    fn conjugate_backend(self) -> Self
+    where
+        T: Neg<Output = T>,
+    {
+        Self::new(-self.xy, self.s)
+    }
+
+    #[inline(always)]
+    #[track_caller]
+    fn dot_backend(self, rhs: Self) -> T
+    where
+        T: Add<Output = T> + Mul<Output = T>,
+    {
+        self.0.dot(rhs.0)
+    }
+
+    #[inline(always)]
+    #[track_caller]
+    fn length_squared_backend(self) -> T
+    where
+        T: Add<Output = T> + Mul<Output = T>,
+    {
+        self.0.length_squared()
+    }
 }
 
 impl<T, A: Alignment> Rotor<3, T, A>
@@ -614,6 +676,33 @@ where
     #[must_use]
     pub const fn as_mut_vector(&mut self) -> &mut Vector<4, T, A> {
         &mut self.0
+    }
+
+    #[inline(always)]
+    #[track_caller]
+    fn conjugate_backend(self) -> Self
+    where
+        T: Neg<Output = T>,
+    {
+        Self::new(-self.xy, -self.xz, -self.yz, self.s)
+    }
+
+    #[inline(always)]
+    #[track_caller]
+    fn dot_backend(self, rhs: Self) -> T
+    where
+        T: Add<Output = T> + Mul<Output = T>,
+    {
+        self.0.dot(rhs.0)
+    }
+
+    #[inline(always)]
+    #[track_caller]
+    fn length_squared_backend(self) -> T
+    where
+        T: Add<Output = T> + Mul<Output = T>,
+    {
+        self.0.length_squared()
     }
 }
 
