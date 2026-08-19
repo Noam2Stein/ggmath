@@ -288,6 +288,140 @@ where
     pub const fn new(xy: T, s: T) -> Self {
         Self(Vector::<2, T, A>::new(xy, s))
     }
+
+    /// Creates a rotor from a raw-element array `[xy, s]`.
+    ///
+    /// Unless you are familiar with rotor/complex-number math, avoid using this
+    /// function directly, and instead use higher level constructors.
+    ///
+    /// Remember, in 2D, these fields are treated as `sin(angle), cos(angle)`,
+    /// not `sin(angle/2), cos(angle/2)`. This special case makes 2D rotors more
+    /// efficient. 3D rotors (and higher dimensional rotors, if those will ever
+    /// be supported) do use half-angle.
+    ///
+    /// # Unchecked
+    ///
+    /// This does not check that the resulting rotor is normalized. It is up to
+    /// the caller to provide normalized values or to normalize the resulting
+    /// rotor.
+    #[inline]
+    #[must_use]
+    pub const fn from_array(array: [T; 2]) -> Self {
+        Self(Vector::from_array(array))
+    }
+
+    /// Converts a rotor to a raw-element array `[xy, s]`.
+    ///
+    /// Unless you are familiar with rotor/complex-number math, avoid using this
+    /// function directly, and instead use higher level methods.
+    ///
+    /// Remember, in 2D, these fields are treated as `sin(angle), cos(angle)`,
+    /// not `sin(angle/2), cos(angle/2)`. This special case makes 2D rotors more
+    /// efficient. 3D rotors (and higher dimensional rotors, if those will ever
+    /// be supported) do use half-angle.
+    #[inline]
+    #[must_use]
+    pub const fn to_array(self) -> [T; 2] {
+        self.0.to_array()
+    }
+
+    /// Returns a reference to a rotor's raw elements `[xy, s]`.
+    ///
+    /// Unless you are familiar with rotor/complex-number math, avoid using this
+    /// function directly, and instead use higher level methods.
+    ///
+    /// Remember, in 2D, these fields are treated as `sin(angle), cos(angle)`,
+    /// not `sin(angle/2), cos(angle/2)`. This special case makes 2D rotors more
+    /// efficient. 3D rotors (and higher dimensional rotors, if those will ever
+    /// be supported) do use half-angle.
+    #[inline]
+    #[must_use]
+    pub const fn as_array(&self) -> &[T; 2] {
+        self.0.as_array()
+    }
+
+    /// Returns a mutable reference to a rotor's raw elements `[xy, s]`.
+    ///
+    /// Unless you are familiar with rotor/complex-number math, avoid using this
+    /// function directly, and instead use higher level methods.
+    ///
+    /// Remember, in 2D, these fields are treated as `sin(angle), cos(angle)`,
+    /// not `sin(angle/2), cos(angle/2)`. This special case makes 2D rotors more
+    /// efficient. 3D rotors (and higher dimensional rotors, if those will ever
+    /// be supported) do use half-angle.
+    #[inline]
+    #[must_use]
+    pub const fn as_mut_array(&mut self) -> &mut [T; 2] {
+        self.0.as_mut_array()
+    }
+
+    /// Creates a rotor from a raw-element vector `(xy, s)`.
+    ///
+    /// Unless you are familiar with rotor/complex-number math, avoid using this
+    /// function directly, and instead use higher level constructors.
+    ///
+    /// Remember, in 2D, these fields are treated as `sin(angle), cos(angle)`,
+    /// not `sin(angle/2), cos(angle/2)`. This special case makes 2D rotors more
+    /// efficient. 3D rotors (and higher dimensional rotors, if those will ever
+    /// be supported) do use half-angle.
+    ///
+    /// # Unchecked
+    ///
+    /// This does not check that the resulting rotor is normalized. It is up to
+    /// the caller to provide normalized values or to normalize the resulting
+    /// rotor.
+    #[inline]
+    #[must_use]
+    pub const fn from_vector(vector: Vector<2, T, A>) -> Self {
+        Self(vector)
+    }
+
+    /// Converts a rotor to a raw-element vector `(xy, s)`.
+    ///
+    /// Unless you are familiar with rotor/complex-number math, avoid using this
+    /// function directly, and instead use higher level methods.
+    ///
+    /// Remember, in 2D, these fields are treated as `sin(angle), cos(angle)`,
+    /// not `sin(angle/2), cos(angle/2)`. This special case makes 2D rotors more
+    /// efficient. 3D rotors (and higher dimensional rotors, if those will ever
+    /// be supported) do use half-angle.
+    #[inline]
+    #[must_use]
+    pub const fn to_vector(self) -> Vector<2, T, A> {
+        self.0
+    }
+
+    /// Returns a reference to a rotor's fields as a raw-element vector
+    /// `(xy, s)`.
+    ///
+    /// Unless you are familiar with rotor/complex-number math, avoid using this
+    /// function directly, and instead use higher level methods.
+    ///
+    /// Remember, in 2D, these fields are treated as `sin(angle), cos(angle)`,
+    /// not `sin(angle/2), cos(angle/2)`. This special case makes 2D rotors more
+    /// efficient. 3D rotors (and higher dimensional rotors, if those will ever
+    /// be supported) do use half-angle.
+    #[inline]
+    #[must_use]
+    pub const fn as_vector(&self) -> &Vector<2, T, A> {
+        &self.0
+    }
+
+    /// Returns a mutable reference to a rotor's fields as a raw-element vector
+    /// `(xy, s)`.
+    ///
+    /// Unless you are familiar with rotor/complex-number math, avoid using this
+    /// function directly, and instead use higher level methods.
+    ///
+    /// Remember, in 2D, these fields are treated as `sin(angle), cos(angle)`,
+    /// not `sin(angle/2), cos(angle/2)`. This special case makes 2D rotors more
+    /// efficient. 3D rotors (and higher dimensional rotors, if those will ever
+    /// be supported) do use half-angle.
+    #[inline]
+    #[must_use]
+    pub const fn as_mut_vector(&mut self) -> &mut Vector<2, T, A> {
+        &mut self.0
+    }
 }
 
 impl<T, A: Alignment> Rotor<3, T, A>
@@ -312,5 +446,131 @@ where
     #[must_use]
     pub const fn new(xy: T, xz: T, yz: T, s: T) -> Self {
         Self(Vector::<4, T, A>::new(xy, xz, yz, s))
+    }
+
+    /// Creates a rotor from a raw-element array `[xy, xz, yz, s]`.
+    ///
+    /// Unless you are familiar with rotor/quaternion math, avoid using this
+    /// function directly, and instead use higher level constructors.
+    ///
+    /// Remember, plane fields are treated as
+    /// `plane_of_rotation * sin(angle/2)`, and `s` is treated as
+    /// `cos(angle/2)`.
+    ///
+    /// # Unchecked
+    ///
+    /// This does not check that the resulting rotor is normalized. It is up to
+    /// the caller to provide normalized values or to normalize the resulting
+    /// rotor.
+    #[inline]
+    #[must_use]
+    pub const fn from_array(array: [T; 4]) -> Self {
+        Self(Vector::from_array(array))
+    }
+
+    /// Converts a rotor to a raw-element array `[xy, xz, yz, s]`.
+    ///
+    /// Unless you are familiar with rotor/quaternion math, avoid using this
+    /// function directly, and instead use higher level methods.
+    ///
+    /// Remember, plane fields are treated as
+    /// `plane_of_rotation * sin(angle/2)`, and `s` is treated as
+    /// `cos(angle/2)`.
+    #[inline]
+    #[must_use]
+    pub const fn to_array(self) -> [T; 4] {
+        self.0.to_array()
+    }
+
+    /// Returns a reference to a rotor's raw elements `[xy, xz, yz, s]`.
+    ///
+    /// Unless you are familiar with rotor/quaternion math, avoid using this
+    /// function directly, and instead use higher level methods.
+    ///
+    /// Remember, plane fields are treated as
+    /// `plane_of_rotation * sin(angle/2)`, and `s` is treated as
+    /// `cos(angle/2)`.
+    #[inline]
+    #[must_use]
+    pub const fn as_array(&self) -> &[T; 4] {
+        self.0.as_array()
+    }
+
+    /// Returns a mutable reference to a rotor's raw elements `[xy, xz, yz, s]`.
+    ///
+    /// Unless you are familiar with rotor/quaternion math, avoid using this
+    /// function directly, and instead use higher level methods.
+    ///
+    /// Remember, plane fields are treated as
+    /// `plane_of_rotation * sin(angle/2)`, and `s` is treated as
+    /// `cos(angle/2)`.
+    #[inline]
+    #[must_use]
+    pub const fn as_mut_array(&mut self) -> &mut [T; 4] {
+        self.0.as_mut_array()
+    }
+
+    /// Creates a rotor from a raw-element vector `(xy, xz, yz, s)`.
+    ///
+    /// Unless you are familiar with rotor/quaternion math, avoid using this
+    /// function directly, and instead use higher level constructors.
+    ///
+    /// Remember, plane fields are treated as
+    /// `plane_of_rotation * sin(angle/2)`, and `s` is treated as
+    /// `cos(angle/2)`.
+    ///
+    /// # Unchecked
+    ///
+    /// This does not check that the resulting rotor is normalized. It is up to
+    /// the caller to provide normalized values or to normalize the resulting
+    /// rotor.
+    #[inline]
+    #[must_use]
+    pub const fn from_vector(vector: Vector<4, T, A>) -> Self {
+        Self(vector)
+    }
+
+    /// Converts a rotor to a raw-element vector `(xy, xz, yz, s)`.
+    ///
+    /// Unless you are familiar with rotor/quaternion math, avoid using this
+    /// function directly, and instead use higher level methods.
+    ///
+    /// Remember, plane fields are treated as
+    /// `plane_of_rotation * sin(angle/2)`, and `s` is treated as
+    /// `cos(angle/2)`.
+    #[inline]
+    #[must_use]
+    pub const fn to_vector(self) -> Vector<4, T, A> {
+        self.0
+    }
+
+    /// Returns a reference to a rotor's fields as a raw-element vector
+    /// `(xy, xz, yz, s)`.
+    ///
+    /// Unless you are familiar with rotor/quaternion math, avoid using this
+    /// function directly, and instead use higher level methods.
+    ///
+    /// Remember, plane fields are treated as
+    /// `plane_of_rotation * sin(angle/2)`, and `s` is treated as
+    /// `cos(angle/2)`.
+    #[inline]
+    #[must_use]
+    pub const fn as_vector(&self) -> &Vector<4, T, A> {
+        &self.0
+    }
+
+    /// Returns a mutable reference to a rotor's fields as a raw-element vector
+    /// `(xy, xz, yz, s)`.
+    ///
+    /// Unless you are familiar with rotor/quaternion math, avoid using this
+    /// function directly, and instead use higher level methods.
+    ///
+    /// Remember, plane fields are treated as
+    /// `plane_of_rotation * sin(angle/2)`, and `s` is treated as
+    /// `cos(angle/2)`.
+    #[inline]
+    #[must_use]
+    pub const fn as_mut_vector(&mut self) -> &mut Vector<4, T, A> {
+        &mut self.0
     }
 }
