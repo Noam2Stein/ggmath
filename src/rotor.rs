@@ -1,9 +1,9 @@
-#[expect(unused_imports)]
 use core::ops::{Deref, DerefMut};
 
 use crate::{
-    Aligned, Alignment, Length, One, Scalar, Unaligned, Vector, Zero, length::TwoOrThree,
-    utils::transmute_generic,
+    Aligned, Alignment, Length, One, Scalar, Unaligned, Vector, Zero,
+    length::TwoOrThree,
+    utils::{transmute_generic, transmute_mut, transmute_ref},
 };
 
 /// A rotor representing rotation.
@@ -614,5 +614,103 @@ where
     #[must_use]
     pub const fn as_mut_vector(&mut self) -> &mut Vector<4, T, A> {
         &mut self.0
+    }
+}
+
+#[doc(hidden)]
+#[repr(C)]
+pub struct Rot2Fields<T> {
+    /// The first and only basis plane element, rotating `+X` to `+Y`.
+    ///
+    /// Equal to `sin(angle)`.
+    pub xy: T,
+    /// The scalar part of a rotor.
+    ///
+    /// Equal to `cos(angle)`.
+    pub s: T,
+}
+
+impl<T, A: Alignment> Deref for Rotor<2, T, A>
+where
+    T: Scalar,
+{
+    type Target = Rot2Fields<T>;
+
+    #[inline]
+    fn deref(&self) -> &Self::Target {
+        // SAFETY: `Rotor<2, T, A>` is guaranteed to begin with 2 consecutive
+        // values of `T`, and so begin with `Rot2Fields<T>`.
+        unsafe { transmute_ref::<Rotor<2, T, A>, Rot2Fields<T>>(self) }
+    }
+}
+
+impl<T, A: Alignment> DerefMut for Rotor<2, T, A>
+where
+    T: Scalar,
+{
+    #[inline]
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        // SAFETY: `Rotor<2, T, A>` is guaranteed to begin with 2 consecutive
+        // values of `T`, and so begin with `Rot2Fields<T>`.
+        unsafe { transmute_mut::<Rotor<2, T, A>, Rot2Fields<T>>(self) }
+    }
+}
+
+#[doc(hidden)]
+#[repr(C)]
+pub struct Rot3Fields<T> {
+    /// The first basis plane element, rotating `+X` to `+Y`.
+    ///
+    /// Unless you are familiar with rotor/quaternion math, avoid using this
+    /// field directly, and instead use higher level methods.
+    ///
+    /// Equal to `plane_of_rotation.xy * sin(angle/2)`.
+    pub xy: T,
+    /// The second basis plane element, rotating `+X` to `+Z`.
+    ///
+    /// Unless you are familiar with rotor/quaternion math, avoid using this
+    /// field directly, and instead use higher level methods.
+    ///
+    /// Equal to `plane_of_rotation.xz * sin(angle/2)`.
+    pub xz: T,
+    /// The third basis plane element, rotating `+Y` to `+Z`.
+    ///
+    /// Unless you are familiar with rotor/quaternion math, avoid using this
+    /// field directly, and instead use higher level methods.
+    ///
+    /// Equal to `plane_of_rotation.yz * sin(angle/2)`.
+    pub yz: T,
+    /// The scalar part of a rotor.
+    ///
+    /// Unless you are familiar with rotor/complex-number math, avoid using this
+    /// field directly, and instead use higher level methods.
+    ///
+    /// Equal to `cos(angle/2)`.
+    pub s: T,
+}
+
+impl<T, A: Alignment> Deref for Rotor<3, T, A>
+where
+    T: Scalar,
+{
+    type Target = Rot3Fields<T>;
+
+    #[inline]
+    fn deref(&self) -> &Self::Target {
+        // SAFETY: `Rotor<3, T, A>` is guaranteed to begin with 4 consecutive
+        // values of `T`, and so begin with `Rot3Fields<T>`.
+        unsafe { transmute_ref::<Rotor<3, T, A>, Rot3Fields<T>>(self) }
+    }
+}
+
+impl<T, A: Alignment> DerefMut for Rotor<3, T, A>
+where
+    T: Scalar,
+{
+    #[inline]
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        // SAFETY: `Rotor<3, T, A>` is guaranteed to begin with 4 consecutive
+        // values of `T`, and so begin with `Rot3Fields<T>`.
+        unsafe { transmute_mut::<Rotor<3, T, A>, Rot3Fields<T>>(self) }
     }
 }
