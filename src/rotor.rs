@@ -1,7 +1,7 @@
 #[expect(unused_imports)]
 use core::ops::{Deref, DerefMut};
 
-use crate::{Alignment, Length, Scalar, Unaligned, Vector, length::TwoOrThree};
+use crate::{Aligned, Alignment, Length, Scalar, Unaligned, Vector, length::TwoOrThree};
 
 /// A rotor representing rotation.
 ///
@@ -188,7 +188,7 @@ pub type Rot3<T> = Rotor<3, T, Unaligned>;
 ///
 /// Note that these fields are only exposed by implementing [`Deref`] and
 /// [`DerefMut`].
-pub type Rot2A<T> = Rotor<2, T, Unaligned>;
+pub type Rot2A<T> = Rotor<2, T, Aligned>;
 
 /// A 3D rotor representing 3D rotation.
 ///
@@ -227,4 +227,4 @@ pub type Rot2A<T> = Rotor<2, T, Unaligned>;
 ///
 /// Note that these fields are only exposed by implementing [`Deref`] and
 /// [`DerefMut`].
-pub type Rot3A<T> = Rotor<3, T, Unaligned>;
+pub type Rot3A<T> = Rotor<3, T, Aligned>;
