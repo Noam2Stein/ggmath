@@ -263,3 +263,54 @@ where
         _ => unreachable!(),
     };
 }
+
+impl<T, A: Alignment> Rotor<2, T, A>
+where
+    T: Scalar,
+{
+    /// Creates a 2D rotor from raw elements `xy, s`.
+    ///
+    /// Unless you are familiar with rotor/complex-number math, avoid using this
+    /// function directly, and instead use higher level constructors.
+    ///
+    /// Remember, in 2D, these fields are treated as `sin(angle), cos(angle)`,
+    /// not `sin(angle/2), cos(angle/2)`. This special case makes 2D rotors more
+    /// efficient. 3D rotors (and higher dimensional rotors, if those will ever
+    /// be supported) do use half-angle.
+    ///
+    /// # Unchecked
+    ///
+    /// This does not check that the resulting rotor is normalized. It is up to
+    /// the caller to provide normalized values or to normalize the resulting
+    /// rotor.
+    #[inline]
+    #[must_use]
+    pub const fn new(xy: T, s: T) -> Self {
+        Self(Vector::<2, T, A>::new(xy, s))
+    }
+}
+
+impl<T, A: Alignment> Rotor<3, T, A>
+where
+    T: Scalar,
+{
+    /// Creates a 3D rotor from raw elements `xy, xz, yz, s`.
+    ///
+    /// Unless you are familiar with rotor/quaternion math, avoid using this
+    /// function directly, and instead use higher level constructors.
+    ///
+    /// Remember, plane fields are treated as
+    /// `plane_of_rotation * sin(angle/2)`, and `s` is treated as
+    /// `cos(angle/2)`.
+    ///
+    /// # Unchecked
+    ///
+    /// This does not check that the resulting rotor is normalized. It is up to
+    /// the caller to provide normalized values or to normalize the resulting
+    /// rotor.
+    #[inline]
+    #[must_use]
+    pub const fn new(xy: T, xz: T, yz: T, s: T) -> Self {
+        Self(Vector::<4, T, A>::new(xy, xz, yz, s))
+    }
+}
