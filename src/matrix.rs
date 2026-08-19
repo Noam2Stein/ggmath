@@ -2879,7 +2879,7 @@ mod tests {
     fn test_from_projective() {
         for_types!(|T: PrimitiveNumber, A| {
             let projective =
-                Projective::<2, T, A>::from_row_fn(|r| Vector::from_fn(|c| T::as_from(r * 2 + c)));
+                Projective::<2, T, A>::from_row_fn(|r| Vector::from_fn(|c| T::as_from(r * 3 + c)));
             assert_eq!(
                 Matrix::<2, T, A>::from_projective(&projective),
                 Matrix::<2, T, A>::from_rows(&[
@@ -2889,7 +2889,7 @@ mod tests {
             );
 
             let projective =
-                Projective::<3, T, A>::from_row_fn(|r| Vector::from_fn(|c| T::as_from(r * 3 + c)));
+                Projective::<3, T, A>::from_row_fn(|r| Vector::from_fn(|c| T::as_from(r * 4 + c)));
             assert_eq!(
                 Matrix::<3, T, A>::from_projective(&projective),
                 Matrix::<3, T, A>::from_rows(&[

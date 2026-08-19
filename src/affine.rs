@@ -1021,50 +1021,6 @@ impl_mul_assign!(
     /// floating-point precision and integer panics.
 );
 
-macro_rules! impl_projective_mul_assign {
-    ($(#[$doc:meta])*) => {
-        impl<const N: usize, T, A: Alignment> MulAssign<Affine<N, T, A>> for Projective<N, T, A>
-        where
-            Length<N>: TwoOrThree,
-            T: Scalar + Add<Output = T> + Mul<Output = T> + Zero + One,
-        {
-            $(#[$doc])*
-            #[inline]
-            #[track_caller]
-            fn mul_assign(&mut self, rhs: Affine<N, T, A>) {
-                *self = &*self * &rhs
-            }
-        }
-
-        impl<const N: usize, T, A: Alignment> MulAssign<&Affine<N, T, A>> for Projective<N, T, A>
-        where
-            Length<N>: TwoOrThree,
-            T: Scalar + Add<Output = T> + Mul<Output = T> + Zero + One,
-        {
-            $(#[$doc])*
-            #[inline]
-            #[track_caller]
-            fn mul_assign(&mut self, rhs: &Affine<N, T, A>) {
-                *self = &*self * rhs
-            }
-        }
-    };
-}
-impl_projective_mul_assign!(
-    /// Projective-transform affine-transform multiplication, then assigned to
-    /// the projective transform.
-    ///
-    /// Because vectors are treated as row matrices, multiplication first
-    /// applies the left-hand side transform, then the right-hand side
-    /// transform.
-    ///
-    /// # Consistency
-    ///
-    /// For primitive types this operation is cross-platform deterministic and
-    /// fully consistent with scalar addition and multiplication, including
-    /// floating-point precision and integer panics.
-);
-
 #[cfg(test)]
 mod tests {
     extern crate std;
@@ -1604,18 +1560,6 @@ mod tests {
                 result *= right;
 
                 assert_test_eq!(result, left * right);
-            }
-        });
-    }
-
-    #[test]
-    fn test_projective_mul_assign() {
-        for_types!(|N: TwoOrThree, T: PrimitiveFloat, A| {
-            for (projective, affine) in random_iter::<(Projective<N, T, A>, Affine<N, T, A>)>() {
-                let mut result = projective;
-                result *= affine;
-
-                assert_test_eq!(result, projective * affine);
             }
         });
     }

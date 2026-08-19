@@ -1947,6 +1947,32 @@ macro_rules! impl_mul_affine {
                 self * &Projective::from_affine(rhs)
             }
         }
+
+        impl<const N: usize, T, A: Alignment> MulAssign<Affine<N, T, A>> for Projective<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Add<Output = T> + Mul<Output = T> + Zero + One,
+        {
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul_assign(&mut self, rhs: Affine<N, T, A>) {
+                *self = &*self * &rhs
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> MulAssign<&Affine<N, T, A>> for Projective<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Add<Output = T> + Mul<Output = T> + Zero + One,
+        {
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul_assign(&mut self, rhs: &Affine<N, T, A>) {
+                *self = &*self * rhs
+            }
+        }
     };
 }
 impl_mul_affine!(
