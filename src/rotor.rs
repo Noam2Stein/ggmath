@@ -350,6 +350,10 @@ impl<T, A: Alignment> Rotor<2, T, A>
 where
     T: Scalar,
 {
+    // Note about `new`: Because rotor fields are not obvious, it would be nice
+    // to have `Rot2 { xy: ..., s: ... }` syntax, however that is impossible to
+    // do with a const generic struct.
+
     /// Creates a 2D rotor from raw elements `xy, s`.
     ///
     /// Unless you are familiar with rotor/complex-number math, avoid using this
@@ -629,6 +633,10 @@ impl<T, A: Alignment> Rotor<3, T, A>
 where
     T: Scalar,
 {
+    // Note about `new`: Because rotor fields are not obvious, it would be nice
+    // to have `Rot3 { xy: ..., xz: ..., yz: ..., s: ... }` syntax, however that
+    // is impossible to do with a const generic struct.
+
     /// Creates a 3D rotor from raw elements `xy, xz, yz, s`.
     ///
     /// Unless you are familiar with rotor/quaternion math, avoid using this
