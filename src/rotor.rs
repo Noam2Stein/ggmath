@@ -3,18 +3,21 @@ use core::ops::{Deref, DerefMut};
 
 use crate::{Alignment, Length, Scalar, Unaligned, Vector, length::TwoOrThree};
 
-/// A const-generic rotor representing rotation.
+/// A rotor representing rotation.
 ///
-/// Rotors are an efficient representation of rotations, which make various
-/// operations faster and simpler than with matrices. You may already be
-/// familiar with quaternions, which are identical to 3D rotors.
+/// Rotors are a compact and efficient alternative to rotation matrices. If you
+/// are familiar with complex numbers and quaternions, you already know how to
+/// use rotors. This rotor type in 2D is mathematically equivalent to complex
+/// numbers, and 3D rotors are mathematically equivalent to quaternions.
 ///
-/// > Rotors come from Geometric Algebra. You do not need to understand any math
-/// > in order to use this type, but if you want to anyway, I recommend
-/// > [this resource](https://www.youtube.com/playlist?list=PLVuwZXwFua-0Ks3rRS4tIkswgUmDLqqRy).
+/// > If you are curious about the underlying math, rotors come from Geometric
+/// > Algebra. I recommend
+/// > [this resource](https://www.youtube.com/playlist?list=PLVuwZXwFua-0Ks3rRS4tIkswgUmDLqqRy)
+/// > for learning more.
 ///
 /// This rotor is intended to be normalized, but may denormalize due to floating
 /// point "error creep" which can occur when successive operations are applied.
+/// Use `rotor.normalize()` to maintain precision.
 ///
 /// # Type aliases
 ///
@@ -23,13 +26,14 @@ use crate::{Alignment, Length, Scalar, Unaligned, Vector, length::TwoOrThree};
 /// - [`Rot2A<T>`] for [`Rotor<2, T, Aligned>`].
 /// - [`Rot3A<T>`] for [`Rotor<3, T, Aligned>`].
 ///
-/// # Fields
+/// # Representation and Fields
 ///
-/// Unless you are familiar with rotor/complex-number math, you should avoid
-/// using these fields directly, and instead use higher level helper functions.
+/// Unless you are familiar with rotor/quaternion math, avoid using these fields
+/// directly, and instead use higher level helper functions.
 ///
-/// > You may have an easier time reading the [2D](Rot2#fields) and
-/// > [3D](Rot3#fields) documentation separately. This section explains fields
+/// > You may have an easier time reading documentation specific to
+/// > [2D](Rot2#representation-and-fields) and
+/// > [3D](Rot3#representation-and-fields) first. This section explains fields
 /// > in a dimension agnostic manner.
 ///
 /// This rotor contains a scalar field `s`, and all bivector fields, with
@@ -40,6 +44,11 @@ use crate::{Alignment, Length, Scalar, Unaligned, Vector, length::TwoOrThree};
 /// For all dimensions but 2D, bivector fields are
 /// `sin(angle/2) * plane_of_rotation`. For 2D, the bivector field `xy` is `sin(angle)`, and `s` is
 /// `cos(angle)`. This is mathematically incorrect, but is more efficient.
+///
+/// The scalar field `s` is always last in memory. This enables a trick where
+/// taking the bivector from a 3D rotor is a no-op with SIMD `vec4.xyz()`.
+///
+/// The bivector fields use lexicographical ordering.
 ///
 /// Note that these fields are only exposed by implementing [`Deref`] and
 /// [`DerefMut`].
@@ -52,11 +61,6 @@ use crate::{Alignment, Length, Scalar, Unaligned, Vector, length::TwoOrThree};
 /// If additional dimensions are ever supported, [`Rotor<N, T, A>`] would remain
 /// a transparent wrapper around [`Vector<rotor_len(N), T, A>`], where
 /// `rotor_len(N) = (N choose 2) + 1`.
-///
-/// The scalar field `s` is always last in memory. This enables a trick where
-/// taking the bivector from a 3D rotor is a no-op with SIMD `vec4.xyz()`.
-///
-/// The bivector fields use lexicographical ordering.
 #[expect(private_bounds)]
 pub struct Rotor<const N: usize, T, A: Alignment>(
     <Length<N> as TwoOrThree>::Select<Vector<2, T, A>, Vector<4, T, A>>,
