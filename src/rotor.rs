@@ -1,4 +1,8 @@
-use core::ops::{Add, Deref, DerefMut, Mul, Neg};
+use core::{
+    fmt::{Debug, Display},
+    hash::Hash,
+    ops::{Add, Deref, DerefMut, Mul, Neg},
+};
 
 use crate::{
     Aligned, Alignment, Length, One, Scalar, Unaligned, Vector, Zero,
@@ -526,6 +530,38 @@ where
     {
         self.0.length_squared()
     }
+
+    #[inline]
+    fn debug_backend(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+    where
+        T: Debug,
+    {
+        self.0.fmt(f)
+    }
+
+    #[inline]
+    fn display_backend(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+    where
+        T: Display,
+    {
+        self.0.fmt(f)
+    }
+
+    #[inline(always)]
+    fn eq_backend(&self, other: &Self) -> bool
+    where
+        T: PartialEq,
+    {
+        self.0 == other.0
+    }
+
+    #[inline(always)]
+    fn hash_backend<H: core::hash::Hasher>(&self, (state,): (&mut H,))
+    where
+        T: Hash,
+    {
+        self.0.hash(state);
+    }
 }
 
 impl<T, A: Alignment> Rotor<3, T, A>
@@ -704,6 +740,56 @@ where
     {
         self.0.length_squared()
     }
+
+    #[inline]
+    fn debug_backend(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+    where
+        T: Debug,
+    {
+        self.0.fmt(f)
+    }
+
+    #[inline]
+    fn display_backend(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result
+    where
+        T: Display,
+    {
+        self.0.fmt(f)
+    }
+
+    #[inline(always)]
+    fn eq_backend(&self, other: &Self) -> bool
+    where
+        T: PartialEq,
+    {
+        self.0 == other.0
+    }
+
+    #[inline(always)]
+    fn hash_backend<H: core::hash::Hasher>(&self, (state,): (&mut H,))
+    where
+        T: Hash,
+    {
+        self.0.hash(state);
+    }
+}
+
+impl<const N: usize, T, A: Alignment> Clone for Rotor<N, T, A>
+where
+    Length<N>: TwoOrThree,
+    T: Scalar,
+{
+    #[inline]
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+
+impl<const N: usize, T, A: Alignment> Copy for Rotor<N, T, A>
+where
+    Length<N>: TwoOrThree,
+    T: Scalar,
+{
 }
 
 #[doc(hidden)]
@@ -801,5 +887,70 @@ where
         // SAFETY: `Rotor<3, T, A>` is guaranteed to begin with 4 consecutive
         // values of `T`, and so begin with `Rot3Fields<T>`.
         unsafe { transmute_mut::<Rotor<3, T, A>, Rot3Fields<T>>(self) }
+    }
+}
+
+impl<const N: usize, T, A: Alignment> Debug for Rotor<N, T, A>
+where
+    Length<N>: TwoOrThree,
+    T: Scalar + Debug,
+{
+    #[inline]
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        specialize_23!(Rotor::<N, T, A>::debug_backend(self, f))
+    }
+}
+
+impl<const N: usize, T, A: Alignment> Display for Rotor<N, T, A>
+where
+    Length<N>: TwoOrThree,
+    T: Scalar + Display,
+{
+    #[inline]
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        specialize_23!(Rotor::<N, T, A>::display_backend(self, f))
+    }
+}
+
+impl<const N: usize, T, A: Alignment> PartialEq for Rotor<N, T, A>
+where
+    Length<N>: TwoOrThree,
+    T: Scalar + PartialEq,
+{
+    #[inline]
+    fn eq(&self, other: &Self) -> bool {
+        specialize_23!(Rotor::<N, T, A>::eq_backend(self, other))
+    }
+}
+
+impl<const N: usize, T, A: Alignment> Eq for Rotor<N, T, A>
+where
+    Length<N>: TwoOrThree,
+    T: Scalar + Eq,
+{
+}
+
+impl<const N: usize, T, A: Alignment> Hash for Rotor<N, T, A>
+where
+    Length<N>: TwoOrThree,
+    T: Scalar + Hash,
+{
+    #[inline]
+    fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
+        specialize_23!(Rotor::<N, T, A>::hash_backend(self, (state,)))
+    }
+}
+
+impl<const N: usize, T, A: Alignment> Default for Rotor<N, T, A>
+where
+    Length<N>: TwoOrThree,
+    T: Scalar + Zero + One,
+{
+    /// Returns [`IDENTITY`].
+    ///
+    /// [`IDENTITY`]: Self::IDENTITY
+    #[inline]
+    fn default() -> Self {
+        Self::IDENTITY
     }
 }
