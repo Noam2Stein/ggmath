@@ -1,7 +1,7 @@
 use core::{
     fmt::{Debug, Display},
     hash::Hash,
-    ops::{Add, AddAssign, Deref, DerefMut, Mul, MulAssign, Neg, Sub, SubAssign},
+    ops::{Add, AddAssign, Deref, DerefMut, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
 };
 
 use crate::{
@@ -627,6 +627,15 @@ where
             self.xy * rhs.xy + self.s * rhs.s,
         )
     }
+
+    #[inline(always)]
+    #[track_caller]
+    fn div_scalar_backend(self, rhs: T) -> Self
+    where
+        T: Div<Output = T>,
+    {
+        Self(self.0 / rhs)
+    }
 }
 
 impl<T, A: Alignment> Rotor<3, T, A>
@@ -894,6 +903,15 @@ where
         T: Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
     {
         specialize!(<T as RotorBackend<3, A>>::rotor_mul(self, rhs))
+    }
+
+    #[inline(always)]
+    #[track_caller]
+    fn div_scalar_backend(self, rhs: T) -> Self
+    where
+        T: Div<Output = T>,
+    {
+        Self(self.0 / rhs)
     }
 }
 
@@ -1589,6 +1607,105 @@ impl_mul!(
     ///
     /// The resulting rotor is equivalent to first applying the left rotor, then
     /// the right rotor.
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is cross-platform deterministic and
+    /// fully consistent with scalar addition and multiplication, including
+    /// floating-point precision and integer panics.
+);
+
+macro_rules! impl_div_scalar {
+    ($(#[$doc:meta])*) => {
+        impl<const N: usize, T, A: Alignment> Div<T> for Rotor<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Div<Output = T>,
+        {
+            type Output = Self;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn div(self, rhs: T) -> Self::Output {
+                specialize_23!(Rotor::<N, T, A>::div_scalar_backend(self, rhs))
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Div<&T> for Rotor<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Div<Output = T>,
+        {
+            type Output = Self;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn div(self, rhs: &T) -> Self::Output {
+                self / *rhs
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Div<T> for &Rotor<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Div<Output = T>,
+        {
+            type Output = Rotor<N, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn div(self, rhs: T) -> Self::Output {
+                *self / rhs
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Div<&T> for &Rotor<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Div<Output = T>,
+        {
+            type Output = Rotor<N, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn div(self, rhs: &T) -> Self::Output {
+                *self / *rhs
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> DivAssign<T> for Rotor<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Div<Output = T>,
+        {
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn div_assign(&mut self, rhs: T) {
+                *self = *self / rhs;
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> DivAssign<&T> for Rotor<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Div<Output = T>,
+        {
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn div_assign(&mut self, rhs: &T) {
+                *self = *self / *rhs;
+            }
+        }
+    };
+}
+impl_div_scalar!(
+    /// Divides every element by a uniform scalar.
     ///
     /// # Consistency
     ///
