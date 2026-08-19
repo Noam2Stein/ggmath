@@ -2,24 +2,27 @@
 //!
 //! - Vectors: [`Vec2<T>`], [`Vec3<T>`], [`Vec4<T>`]
 //! - Square Matrices: [`Mat2<T>`], [`Mat3<T>`], [`Mat4<T>`]
-//! - Quaternions: [`Quat<T>`]
 //! - Affine Transforms: [`Affine2<T>`], [`Affine3<T>`]
+//! - Projective Transforms: [`Proj2<T>`], [`Proj3<T>`]
+//! - Quaternions: [`Quat<T>`]
 //! - Masks: [`Mask2<T>`], [`Mask3<T>`], [`Mask4<T>`]
 //!
 //! SIMD variants:
 //!
 //! - Vectors: [`Vec2A<T>`], [`Vec3A<T>`], [`Vec4A<T>`]
 //! - Square Matrices: [`Mat2A<T>`], [`Mat3A<T>`], [`Mat4A<T>`]
-//! - Quaternions: [`QuatA<T>`]
 //! - Affine Transforms: [`Affine2A<T>`], [`Affine3A<T>`]
+//! - Projective Transforms: [`Proj2A<T>`], [`Proj3A<T>`]
+//! - Quaternions: [`QuatA<T>`]
 //! - Masks: [`Mask2A<T>`], [`Mask3A<T>`], [`Mask4A<T>`]
 //!
 //! Underlying generic types:
 //!
 //! - [`Vector<N, T, A>`]
 //! - [`Matrix<N, T, A>`]
-//! - [`Quaternion<T, A>`]
 //! - [`Affine<N, T, A>`]
+//! - [`Projective<N, T, A>`]
+//! - [`Quaternion<T, A>`]
 //! - [`Mask<N, T, A>`]
 //!
 //! # SIMD
@@ -62,25 +65,40 @@
 //! enable functionality for vectors, matrices, etc. For complete primitive
 //! generics, add the [`num-primitive`] crate as an optional dependency.
 //!
-//! # Affine transforms
+//! # Affine and Projective Transforms
 //!
-//! An affine transform contains a linear transformation and a translation
-//! vector. It can represent scale, rotation, shear and translation, but cannot
-//! represent projections. [`Affine2<T>`] is equivalent to [`Mat3<T>`], and
-//! [`Affine3<T>`] is equivalent to [`Mat4<T>`].
+//! Unlike many graphics math libraries, [`ggmath`] does not use [`Mat4`] to
+//! represent every kind of 3D transformation, nor [`Mat3`] for every kind of 2D
+//! transformation. Instead, there are three kinds of transforms, so that common
+//! transformations can use more efficient representations:
 //!
-//! Affine transforms take less memory than matrices and perform better for
-//! select operations (see [benchmark results]).
+//! - [`Matrix`] types represent linear transformations. They can represent
+//!   scale, rotation and shear, but not translation. Use these when translation
+//!   is not needed.
 //!
-//! | Type              | [`Affine2<f32>`] | [`Mat3<f32>`] | [`Affine2A<f32>`] | [`Mat3A<f32>`] |
-//! | ----------------- | ---------------- | ------------- | ----------------- | -------------- |
-//! | Size (bytes)      | 24               | 36            | 32                | 48             |
-//! | Alignment (bytes) | 4                | 4             | 16                | 16             |
+//! - [`Affine`] types contain a matrix and a translation vector. They can
+//!   represent any linear transformation, plus translation. Use these for the
+//!   transform of objects and cameras.
 //!
-//! | Type              | [`Affine3<f32>`] | [`Mat4<f32>`] | [`Affine3A<f32>`] | [`Mat4A<f32>`] |
-//! | ----------------- | ---------------- | ------------- | ----------------- | -------------- |
-//! | Size (bytes)      | 48               | 64            | 64                | 64             |
-//! | Alignment (bytes) | 4                | 4             | 16                | 16             |
+//! - [`Projective`] types are represented by homogeneous matrices (e.g.,
+//!   [`Proj3`] is represented by [`Mat4`], and [`Proj2`] is represented by
+//!   [`Mat3`]). They can represent any affine transformation, plus perspective
+//!   projection. Use these for projections and arguments to shaders.
+//!
+//! For performance, you should pick the smallest type that satisfies your
+//! requirements. Linear transforms (matrices) are more efficient than affine
+//! transforms, which are more efficient than projective transforms. See
+//! [benchmark results].
+//!
+//! | Type              | [`Mat2<f32>`] | [`Affine2<f32>`] | [`Proj2<f32>`] | [`Mat2A<f32>`] | [`Affine2A<f32>`] | [`Proj2A<f32>`] |
+//! | ----------------- | ------------- | ---------------- | -------------- | -------------- | ----------------- | --------------- |
+//! | Size (bytes)      | 16            | 24               | 36             | 16             | 32                | 48              |
+//! | Alignment (bytes) | 4             | 4                | 4              | 16             | 16                | 16              |
+//!
+//! | Type              | [`Mat3<f32>`] | [`Affine3<f32>`] | [`Proj3<f32>`] | [`Mat3A<f32>`] | [`Affine3A<f32>`] | [`Proj3A<f32>`] |
+//! | ----------------- | ------------- | ---------------- | -------------- | -------------- | ----------------- | --------------- |
+//! | Size (bytes)      | 36            | 48               | 64             | 48             | 64                | 64              |
+//! | Alignment (bytes) | 4             | 4                | 4              | 16             | 16                | 16              |
 //!
 //! > This table is true only for target architectures that have SIMD and are
 //! > supported.
@@ -128,7 +146,7 @@
 //! right-handed and left-handed coordinate systems.
 //!
 //! [`ggmath`] uses left-multiplication, meaning to transform a vector by a
-//! matrix (or quaternion) you write `vector * matrix` and not
+//! matrix (or any other transformation) you write `vector * matrix` and not
 //! `matrix * vector`. This means matrices are stored in row-major order.
 //!
 //! # Why another math crate?
@@ -238,6 +256,7 @@ pub use crate::{
     mask::{Mask, Mask2, Mask2A, Mask3, Mask3A, Mask4, Mask4A},
     matrix::{Mat2, Mat2A, Mat3, Mat3A, Mat4, Mat4A, Matrix},
     primitive_traits::{PrimitiveFloat, PrimitiveInteger, PrimitiveSigned, PrimitiveUnsigned},
+    projective::{Proj2, Proj2A, Proj3, Proj3A, Projective},
     quaternion::{Quat, QuatA, Quaternion},
     scalar::{CustomScalar, Scalar},
     vector::{Vec2, Vec2A, Vec3, Vec3A, Vec4, Vec4A, Vector},
@@ -253,6 +272,7 @@ mod length;
 mod mask;
 mod matrix;
 mod primitive_traits;
+mod projective;
 mod quaternion;
 mod scalar;
 mod third_party;

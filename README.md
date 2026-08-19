@@ -4,24 +4,27 @@ A fast linear algebra library for games and graphics.
 
 - Vectors: [`Vec2<T>`], [`Vec3<T>`], [`Vec4<T>`]
 - Square Matrices: [`Mat2<T>`], [`Mat3<T>`], [`Mat4<T>`]
-- Quaternions: [`Quat<T>`]
 - Affine Transforms: [`Affine2<T>`], [`Affine3<T>`]
+- Projective Transforms: [`Proj2<T>`], [`Proj3<T>`]
+- Quaternions: [`Quat<T>`]
 - Masks: [`Mask2<T>`], [`Mask3<T>`], [`Mask4<T>`]
 
 SIMD variants:
 
 - Vectors: [`Vec2A<T>`], [`Vec3A<T>`], [`Vec4A<T>`]
 - Square Matrices: [`Mat2A<T>`], [`Mat3A<T>`], [`Mat4A<T>`]
-- Quaternions: [`QuatA<T>`]
 - Affine Transforms: [`Affine2A<T>`], [`Affine3A<T>`]
+- Projective Transforms: [`Proj2A<T>`], [`Proj3A<T>`]
+- Quaternions: [`QuatA<T>`]
 - Masks: [`Mask2A<T>`], [`Mask3A<T>`], [`Mask4A<T>`]
 
 Underlying generic types:
 
 - [`Vector<N, T, A>`]
 - [`Matrix<N, T, A>`]
-- [`Quaternion<T, A>`]
 - [`Affine<N, T, A>`]
+- [`Projective<N, T, A>`]
+- [`Quaternion<T, A>`]
 - [`Mask<N, T, A>`]
 
 ## SIMD
@@ -63,25 +66,40 @@ functionality. These traits do not expose functions directly, they only enable
 functionality for vectors, matrices, etc. For complete primitive generics, add
 the [`num-primitive`] crate as an optional dependency.
 
-## Affine transforms
+## Affine and Projective Transforms
 
-An affine transform contains a linear transformation and a translation vector.
-It can represent scale, rotation, shear and translation, but cannot represent
-projections. [`Affine2<T>`] is equivalent to [`Mat3<T>`], and [`Affine3<T>`] is
-equivalent to [`Mat4<T>`].
+Unlike many graphics math libraries, [`ggmath`] does not use [`Mat4`] to
+represent every kind of 3D transformation, nor [`Mat3`] for every kind of 2D
+transformation. Instead, there are three kinds of transforms, so that common
+transformations can use more efficient representations:
 
-Affine transforms take less memory than matrices and perform better for select
-operations (see [benchmark results]).
+- [`Matrix`] types represent linear transformations. They can represent scale,
+  rotation and shear, but not translation. Use these when translation is not
+  needed.
 
-| Type              | [`Affine2<f32>`] | [`Mat3<f32>`] | [`Affine2A<f32>`] | [`Mat3A<f32>`] |
-| ----------------- | ---------------- | ------------- | ----------------- | -------------- |
-| Size (bytes)      | 24               | 36            | 32                | 48             |
-| Alignment (bytes) | 4                | 4             | 16                | 16             |
+- [`Affine`] types contain a matrix and a translation vector. They can represent
+  any linear transformation, plus translation. Use these for the transform of
+  objects and cameras.
 
-| Type              | [`Affine3<f32>`] | [`Mat4<f32>`] | [`Affine3A<f32>`] | [`Mat4A<f32>`] |
-| ----------------- | ---------------- | ------------- | ----------------- | -------------- |
-| Size (bytes)      | 48               | 64            | 64                | 64             |
-| Alignment (bytes) | 4                | 4             | 16                | 16             |
+- [`Projective`] types are represented by homogeneous matrices (e.g., [`Proj3`]
+  is represented by [`Mat4`], and [`Proj2`] is represented by [`Mat3`]). They
+  can represent any affine transformation, plus perspective projection. Use
+  these for projections and arguments to shaders.
+
+For performance, you should pick the smallest type that satisfies your
+requirements. Linear transforms (matrices) are more efficient than affine
+transforms, which are more efficient than projective transforms. See
+[benchmark results].
+
+| Type              | [`Mat2<f32>`] | [`Affine2<f32>`] | [`Proj2<f32>`] | [`Mat2A<f32>`] | [`Affine2A<f32>`] | [`Proj2A<f32>`] |
+| ----------------- | ------------- | ---------------- | -------------- | -------------- | ----------------- | --------------- |
+| Size (bytes)      | 16            | 24               | 36             | 16             | 32                | 48              |
+| Alignment (bytes) | 4             | 4                | 4              | 16             | 16                | 16              |
+
+| Type              | [`Mat3<f32>`] | [`Affine3<f32>`] | [`Proj3<f32>`] | [`Mat3A<f32>`] | [`Affine3A<f32>`] | [`Proj3A<f32>`] |
+| ----------------- | ------------- | ---------------- | -------------- | -------------- | ----------------- | --------------- |
+| Size (bytes)      | 36            | 48               | 64             | 48             | 64                | 64              |
+| Alignment (bytes) | 4             | 4                | 4              | 16             | 16                | 16              |
 
 > This table is true only for target architectures that have SIMD and are
 > supported.
@@ -128,8 +146,8 @@ fixed-point number support.
 and left-handed coordinate systems.
 
 [`ggmath`] uses left-multiplication, meaning to transform a vector by a matrix
-(or quaternion) you write `vector * matrix` and not `matrix * vector`. This
-means matrices are stored in row-major order.
+(or any other transformation) you write `vector * matrix` and not
+`matrix * vector`. This means matrices are stored in row-major order.
 
 ## Why another math crate?
 
@@ -223,9 +241,11 @@ it serves the same purpose as [`glam`] but with generics.
 [`Mat2<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Mat2.html
 [`Mat3<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Mat3.html
 [`Mat4<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Mat4.html
-[`Quat<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Quat.html
 [`Affine2<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Affine2.html
 [`Affine3<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Affine3.html
+[`Proj2<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Proj2.html
+[`Proj3<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Proj3.html
+[`Quat<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Quat.html
 [`Mask2<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Mask2.html
 [`Mask3<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Mask3.html
 [`Mask4<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Mask4.html
@@ -236,17 +256,20 @@ it serves the same purpose as [`glam`] but with generics.
 [`Mat2A<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Mat2A.html
 [`Mat3A<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Mat3A.html
 [`Mat4A<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Mat4A.html
-[`QuatA<T>`]: https://docs.rs/ggmath/latest/ggmath/type.QuatA.html
 [`Affine2A<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Affine2A.html
 [`Affine3A<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Affine3A.html
+[`Proj2A<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Proj2A.html
+[`Proj3A<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Proj3A.html
+[`QuatA<T>`]: https://docs.rs/ggmath/latest/ggmath/type.QuatA.html
 [`Mask2A<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Mask2A.html
 [`Mask3A<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Mask3A.html
 [`Mask4A<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Mask4A.html
 
 [`Vector<N, T, A>`]: https://docs.rs/ggmath/latest/ggmath/struct.Vector.html
 [`Matrix<N, T, A>`]: https://docs.rs/ggmath/latest/ggmath/struct.Matrix.html
-[`Quaternion<T, A>`]: https://docs.rs/ggmath/latest/ggmath/struct.Quaternion.html
 [`Affine<N, T, A>`]: https://docs.rs/ggmath/latest/ggmath/struct.Affine.html
+[`Projective<N, T, A>`]: https://docs.rs/ggmath/latest/ggmath/struct.Projective.html
+[`Quaternion<T, A>`]: https://docs.rs/ggmath/latest/ggmath/struct.Quaternion.html
 [`Mask<N, T, A>`]: https://docs.rs/ggmath/latest/ggmath/struct.Mask.html
 
 [`Vec3<f32>`]: https://docs.rs/ggmath/latest/ggmath/type.Vec3.html
@@ -264,11 +287,24 @@ it serves the same purpose as [`glam`] but with generics.
 [`PrimitiveUnsigned`]: https://docs.rs/ggmath/latest/ggmath/trait.PrimitiveUnsigned.html
 [`num-primitive`]: https://crates.io/crates/num-primitive
 
+[`Mat4`]: https://docs.rs/ggmath/latest/ggmath/type.Mat4.html
+[`Mat3`]: https://docs.rs/ggmath/latest/ggmath/type.Mat3.html
+[`Matrix`]: https://docs.rs/ggmath/latest/ggmath/struct.Matrix.html
+[`Affine`]: https://docs.rs/ggmath/latest/ggmath/struct.Affine.html
+[`Projective`]: https://docs.rs/ggmath/latest/ggmath/struct.Projective.html
+[`Proj3`]: https://docs.rs/ggmath/latest/ggmath/type.Proj3.html
+[`Proj2`]: https://docs.rs/ggmath/latest/ggmath/type.Proj2.html
 [benchmark results]: https://github.com/Noam2Stein/ggmath/blob/main/BENCH_RESULTS.md
+[`Mat2<f32>`]: https://docs.rs/ggmath/latest/ggmath/type.Mat2.html
 [`Affine2<f32>`]: https://docs.rs/ggmath/latest/ggmath/type.Affine2.html
-[`Affine3<f32>`]: https://docs.rs/ggmath/latest/ggmath/type.Affine3.html
+[`Proj2<f32>`]: https://docs.rs/ggmath/latest/ggmath/type.Proj2.html
+[`Mat2A<f32>`]: https://docs.rs/ggmath/latest/ggmath/type.Mat2A.html
 [`Affine2A<f32>`]: https://docs.rs/ggmath/latest/ggmath/type.Affine2A.html
+[`Proj2A<f32>`]: https://docs.rs/ggmath/latest/ggmath/type.Proj2A.html
+[`Affine3<f32>`]: https://docs.rs/ggmath/latest/ggmath/type.Affine3.html
+[`Proj3<f32>`]: https://docs.rs/ggmath/latest/ggmath/type.Proj3.html
 [`Affine3A<f32>`]: https://docs.rs/ggmath/latest/ggmath/type.Affine3A.html
+[`Proj3A<f32>`]: https://docs.rs/ggmath/latest/ggmath/type.Proj3A.html
 
 [`Mask3A<f32>`]: https://docs.rs/ggmath/latest/ggmath/type.Mask3A.html
 [`Vec3A<bool>`]: https://docs.rs/ggmath/latest/ggmath/type.Vec3A.html

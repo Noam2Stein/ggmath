@@ -10,7 +10,7 @@ where
 {
     /// An affine transform with all elements set to NaN (Not a Number).
     pub const NAN: Self =
-        Self::from_submatrix_translation(Matrix::<N, T, A>::NAN, Vector::<N, T, A>::NAN);
+        Self::from_matrix_translation(&Matrix::<N, T, A>::NAN, Vector::<N, T, A>::NAN);
 
     /// Returns `true` if any element is NaN.
     ///
@@ -36,7 +36,7 @@ where
     #[inline]
     #[must_use]
     pub fn is_nan(&self) -> bool {
-        self.submatrix.is_nan() || self.translation.is_nan()
+        self.matrix.is_nan() || self.translation.is_nan()
     }
 
     /// Returns `true` if all elements are neither infinite nor NaN.
@@ -63,7 +63,7 @@ where
     #[inline]
     #[must_use]
     pub fn is_finite(&self) -> bool {
-        self.submatrix.is_finite() && self.translation.is_finite()
+        self.matrix.is_finite() && self.translation.is_finite()
     }
 
     /// Returns the inverse of `self`.
@@ -79,20 +79,20 @@ where
     #[must_use]
     #[track_caller]
     pub fn inverse(&self) -> Self {
-        let submatrix = self.submatrix.inverse();
-        let translation = -self.translation * submatrix;
+        let matrix = self.matrix.inverse();
+        let translation = -self.translation * matrix;
 
-        Self::from_submatrix_translation(submatrix, translation)
+        Self::from_matrix_translation(&matrix, translation)
     }
 
     /// Returns the inverse of `self` or `None` if `self` is not invertable.
     #[inline]
     #[must_use]
     pub fn try_inverse(&self) -> Option<Self> {
-        let submatrix = self.submatrix.try_inverse()?;
-        let translation = -self.translation * submatrix;
+        let matrix = self.matrix.try_inverse()?;
+        let translation = -self.translation * matrix;
 
-        Some(Self::from_submatrix_translation(submatrix, translation))
+        Some(Self::from_matrix_translation(&matrix, translation))
     }
 
     /// Returns the inverse of `self` or `fallback` if `self` is not invertable.
@@ -118,7 +118,7 @@ where
     #[inline]
     #[must_use]
     pub fn abs_diff_eq(&self, other: &Self, max_abs_diff: T) -> bool {
-        self.submatrix.abs_diff_eq(&other.submatrix, max_abs_diff)
+        self.matrix.abs_diff_eq(&other.matrix, max_abs_diff)
             && self
                 .translation
                 .abs_diff_eq(other.translation, max_abs_diff)
@@ -136,7 +136,7 @@ where
     #[inline]
     #[must_use]
     pub fn from_angle(angle: T) -> Self {
-        Self::from_submatrix(Matrix::<2, T, A>::from_angle(angle))
+        Self::from_matrix(&Matrix::<2, T, A>::from_angle(angle))
     }
 
     /// Creates an affine transform containing a rotation of `angle`
@@ -146,7 +146,7 @@ where
     #[inline]
     #[must_use]
     pub fn from_angle_translation(angle: T, translation: Vector<2, T, A>) -> Self {
-        Self::from_submatrix_translation(Matrix::<2, T, A>::from_angle(angle), translation)
+        Self::from_matrix_translation(&Matrix::<2, T, A>::from_angle(angle), translation)
     }
 
     /// Creates an affine transform containing a non-uniform `scale` and
@@ -156,7 +156,7 @@ where
     #[inline]
     #[must_use]
     pub fn from_scale_angle(scale: Vector<2, T, A>, angle: T) -> Self {
-        Self::from_submatrix(Matrix::<2, T, A>::from_scale_angle(scale, angle))
+        Self::from_matrix(&Matrix::<2, T, A>::from_scale_angle(scale, angle))
     }
 
     /// Creates an affine transform containing a non-uniform `scale`, rotation
@@ -170,8 +170,8 @@ where
         angle: T,
         translation: Vector<2, T, A>,
     ) -> Self {
-        Self::from_submatrix_translation(
-            Matrix::<2, T, A>::from_scale_angle(scale, angle),
+        Self::from_matrix_translation(
+            &Matrix::<2, T, A>::from_scale_angle(scale, angle),
             translation,
         )
     }
@@ -190,7 +190,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn to_scale_angle(&self) -> (Vector<2, T, A>, T) {
-        self.submatrix.to_scale_angle()
+        self.matrix.to_scale_angle()
     }
 
     /// Returns the `scale`, `angle` and `translation` of `self`.
@@ -207,7 +207,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn to_scale_angle_translation(&self) -> (Vector<2, T, A>, T, Vector<2, T, A>) {
-        let (scale, angle) = self.submatrix.to_scale_angle();
+        let (scale, angle) = self.matrix.to_scale_angle();
         (scale, angle, self.translation)
     }
 }
@@ -223,7 +223,7 @@ where
     #[inline]
     #[must_use]
     pub fn from_rotation_x(angle: T) -> Self {
-        Self::from_submatrix(Matrix::<3, T, A>::from_rotation_x(angle))
+        Self::from_matrix(&Matrix::<3, T, A>::from_rotation_x(angle))
     }
 
     /// Creates an affine transform containing a 3D rotation from `angle` (in
@@ -233,7 +233,7 @@ where
     #[inline]
     #[must_use]
     pub fn from_rotation_y(angle: T) -> Self {
-        Self::from_submatrix(Matrix::<3, T, A>::from_rotation_y(angle))
+        Self::from_matrix(&Matrix::<3, T, A>::from_rotation_y(angle))
     }
 
     /// Creates an affine transform containing a 3D rotation from `angle` (in
@@ -243,7 +243,7 @@ where
     #[inline]
     #[must_use]
     pub fn from_rotation_z(angle: T) -> Self {
-        Self::from_submatrix(Matrix::<3, T, A>::from_rotation_z(angle))
+        Self::from_matrix(&Matrix::<3, T, A>::from_rotation_z(angle))
     }
 
     /// Creates an affine transform containing a 3D rotation from a quaternion.
@@ -257,7 +257,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn from_quat(quat: Quaternion<T, A>) -> Self {
-        Self::from_submatrix(Matrix::<3, T, A>::from_quat(quat))
+        Self::from_matrix(&Matrix::<3, T, A>::from_quat(quat))
     }
 
     /// Creates an affine transform containing a rotation from a rotation `axis`
@@ -274,7 +274,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn from_axis_angle(axis: Vector<3, T, A>, angle: T) -> Self {
-        Self::from_submatrix(Matrix::<3, T, A>::from_axis_angle(axis, angle))
+        Self::from_matrix(&Matrix::<3, T, A>::from_axis_angle(axis, angle))
     }
 
     /// Creates an affine transform containing a rotation from an Euler rotation
@@ -282,7 +282,7 @@ where
     #[inline]
     #[must_use]
     pub fn from_euler(order: EulerRot, a: T, b: T, c: T) -> Self {
-        Self::from_submatrix(Matrix::<3, T, A>::from_euler(order, a, b, c))
+        Self::from_matrix(&Matrix::<3, T, A>::from_euler(order, a, b, c))
     }
 
     /// Creates an affine transform containing a non-uniform `scale` and a 3D
@@ -297,7 +297,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn from_scale_rotation(scale: Vector<3, T, A>, rotation: Quaternion<T, A>) -> Self {
-        Self::from_submatrix(Matrix::<3, T, A>::from_scale_rotation(scale, rotation))
+        Self::from_matrix(&Matrix::<3, T, A>::from_scale_rotation(scale, rotation))
     }
 
     /// Creates an affine transform containing a 3D `rotation` and
@@ -315,7 +315,7 @@ where
         rotation: Quaternion<T, A>,
         translation: Vector<3, T, A>,
     ) -> Self {
-        Self::from_submatrix_translation(Matrix::<3, T, A>::from_quat(rotation), translation)
+        Self::from_matrix_translation(&Matrix::<3, T, A>::from_quat(rotation), translation)
     }
 
     /// Creates an affine transform containing a non-uniform `scale`, a 3D
@@ -334,8 +334,8 @@ where
         rotation: Quaternion<T, A>,
         translation: Vector<3, T, A>,
     ) -> Self {
-        Self::from_submatrix_translation(
-            Matrix::<3, T, A>::from_scale_rotation(scale, rotation),
+        Self::from_matrix_translation(
+            &Matrix::<3, T, A>::from_scale_rotation(scale, rotation),
             translation,
         )
     }
@@ -531,7 +531,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn to_euler(&self, order: EulerRot) -> (T, T, T) {
-        self.submatrix.to_euler(order)
+        self.matrix.to_euler(order)
     }
 
     /// Returns the `scale` and `rotation` of `self`.
@@ -548,7 +548,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn to_scale_rotation(&self) -> (Vector<3, T, A>, Quaternion<T, A>) {
-        self.submatrix.to_scale_rotation()
+        self.matrix.to_scale_rotation()
     }
 
     /// Returns the `scale`, `rotation` and `translation` of `self`.
@@ -567,7 +567,7 @@ where
     pub fn to_scale_rotation_translation(
         &self,
     ) -> (Vector<3, T, A>, Quaternion<T, A>, Vector<3, T, A>) {
-        let (scale, rotation) = self.submatrix.to_scale_rotation();
+        let (scale, rotation) = self.matrix.to_scale_rotation();
         (scale, rotation, self.translation)
     }
 }
@@ -575,7 +575,7 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{
-        Affine, Affine2, EulerRot, Matrix, Quaternion, Vec2, Vector,
+        Affine, Affine2, EulerRot, Matrix, Projective, Quaternion, Vec2, Vector,
         test_utils::{
             assert_debug_panic, assert_panic_test_eq, assert_test_eq, for_types, random_iter,
         },
@@ -586,7 +586,7 @@ mod tests {
         for_types!(|N, T: PrimitiveFloat, A| {
             assert_test_eq!(
                 Affine::<N, T, A>::NAN,
-                Affine::from_submatrix_translation(Matrix::<N, T, A>::NAN, Vector::<N, T, A>::NAN)
+                Affine::from_matrix_translation(&Matrix::<N, T, A>::NAN, Vector::<N, T, A>::NAN)
             );
         });
     }
@@ -671,22 +671,22 @@ mod tests {
     fn test_inverse() {
         for_types!(|N, T: PrimitiveFloat, A| {
             for affine in random_iter::<Affine<N, T, A>>() {
-                if affine.submatrix.determinant() == 0.0 {
+                if affine.matrix.determinant() == 0.0 {
                     assert_debug_panic!(affine.inverse());
                 }
 
                 if !affine.is_finite()
                     || affine
-                        .submatrix
+                        .matrix
                         .as_rows()
                         .iter()
                         .chain([&affine.translation])
                         .flatten()
                         .any(|x| x.abs() > 1e6)
                     || !(1e-2..=1e2).contains(
-                        &(affine.submatrix.determinant()
+                        &(affine.matrix.determinant()
                             / affine
-                                .submatrix
+                                .matrix
                                 .as_rows()
                                 .iter()
                                 .flatten()
@@ -702,10 +702,10 @@ mod tests {
                     affine * affine.inverse(),
                     Affine::IDENTITY,
                     abs <= affine
-                        .submatrix
+                        .matrix
                         .determinant()
                         .abs()
-                        .max(affine.submatrix.determinant().recip().abs())
+                        .max(affine.matrix.determinant().recip().abs())
                         * 1e-4,
                     0.0 = -0.0
                 );
@@ -820,29 +820,29 @@ mod tests {
     }
 
     #[test]
-    fn test_from_scale_angle() {
+    fn test_from_angle_translation() {
         for_types!(|T: PrimitiveFloat, A| {
-            for (scale, angle) in random_iter::<(Vector<2, T, A>, T)>() {
-                assert_panic_test_eq!(
-                    Affine::<2, T, A>::from_scale_angle(scale, angle),
-                    Affine::<2, T, A>::from_submatrix(Matrix::<2, T, A>::from_scale_angle(
-                        scale, angle
-                    ))
+            for (angle, translation) in random_iter::<(T, Vector<2, T, A>)>() {
+                assert_test_eq!(
+                    Affine::<2, T, A>::from_angle_translation(angle, translation),
+                    Affine::<2, T, A>::from_matrix_translation(
+                        &Matrix::<2, T, A>::from_angle(angle),
+                        translation
+                    )
                 );
             }
         });
     }
 
     #[test]
-    fn test_from_angle_translation() {
+    fn test_from_scale_angle() {
         for_types!(|T: PrimitiveFloat, A| {
-            for (angle, translation) in random_iter::<(T, Vector<2, T, A>)>() {
-                assert_test_eq!(
-                    Affine::<2, T, A>::from_angle_translation(angle, translation),
-                    Affine::<2, T, A>::from_submatrix_translation(
-                        Matrix::<2, T, A>::from_angle(angle),
-                        translation
-                    )
+            for (scale, angle) in random_iter::<(Vector<2, T, A>, T)>() {
+                assert_panic_test_eq!(
+                    Affine::<2, T, A>::from_scale_angle(scale, angle),
+                    Affine::<2, T, A>::from_matrix(&Matrix::<2, T, A>::from_scale_angle(
+                        scale, angle
+                    ))
                 );
             }
         });
@@ -856,8 +856,8 @@ mod tests {
             {
                 assert_test_eq!(
                     Affine::<2, T, A>::from_scale_angle_translation(scale, angle, translation),
-                    Affine::<2, T, A>::from_submatrix_translation(
-                        Matrix::<2, T, A>::from_scale_angle(scale, angle),
+                    Affine::<2, T, A>::from_matrix_translation(
+                        &Matrix::<2, T, A>::from_scale_angle(scale, angle),
                         translation
                     )
                 );
@@ -874,7 +874,7 @@ mod tests {
                 let affine =
                     Affine::<2, T, A>::from_scale_angle_translation(scale, angle, translation);
 
-                assert_panic_test_eq!(affine.to_scale_angle(), affine.submatrix.to_scale_angle());
+                assert_panic_test_eq!(affine.to_scale_angle(), affine.matrix.to_scale_angle());
             }
         });
     }
@@ -891,8 +891,8 @@ mod tests {
                 assert_panic_test_eq!(
                     affine.to_scale_angle_translation(),
                     (
-                        affine.submatrix.to_scale_angle().0,
-                        affine.submatrix.to_scale_angle().1,
+                        affine.matrix.to_scale_angle().0,
+                        affine.matrix.to_scale_angle().1,
                         affine.translation
                     )
                 );
@@ -905,9 +905,8 @@ mod tests {
         for_types!(|T: PrimitiveFloat, A| {
             for angle in random_iter::<T>() {
                 assert_test_eq!(
-                    Matrix::<4, T, A>::from_affine(&Affine::<3, T, A>::from_rotation_x(angle)),
-                    Matrix::<4, T, A>::from_rotation_x(angle),
-                    0.0 = -0.0
+                    Affine::<3, T, A>::from_rotation_x(angle),
+                    Affine::from_matrix(&Matrix::<3, T, A>::from_rotation_x(angle))
                 );
             }
         });
@@ -918,9 +917,8 @@ mod tests {
         for_types!(|T: PrimitiveFloat, A| {
             for angle in random_iter::<T>() {
                 assert_test_eq!(
-                    Matrix::<4, T, A>::from_affine(&Affine::<3, T, A>::from_rotation_y(angle)),
-                    Matrix::<4, T, A>::from_rotation_y(angle),
-                    0.0 = -0.0
+                    Affine::<3, T, A>::from_rotation_y(angle),
+                    Affine::from_matrix(&Matrix::<3, T, A>::from_rotation_y(angle))
                 );
             }
         });
@@ -931,9 +929,8 @@ mod tests {
         for_types!(|T: PrimitiveFloat, A| {
             for angle in random_iter::<T>() {
                 assert_test_eq!(
-                    Matrix::<4, T, A>::from_affine(&Affine::<3, T, A>::from_rotation_z(angle)),
-                    Matrix::<4, T, A>::from_rotation_z(angle),
-                    0.0 = -0.0
+                    Affine::<3, T, A>::from_rotation_z(angle),
+                    Affine::from_matrix(&Matrix::<3, T, A>::from_rotation_z(angle))
                 );
             }
         });
@@ -945,7 +942,7 @@ mod tests {
             for quat in random_iter::<Quaternion<T, A>>() {
                 assert_panic_test_eq!(
                     Affine::<3, T, A>::from_quat(quat),
-                    Affine::from_submatrix(Matrix::<3, T, A>::from_quat(quat))
+                    Affine::from_matrix(&Matrix::<3, T, A>::from_quat(quat))
                 );
             }
         });
@@ -957,7 +954,7 @@ mod tests {
             for (axis, angle) in random_iter::<(Vector<3, T, A>, T)>() {
                 assert_panic_test_eq!(
                     Affine::<3, T, A>::from_axis_angle(axis, angle),
-                    Affine::from_submatrix(Matrix::<3, T, A>::from_axis_angle(axis, angle))
+                    Affine::from_matrix(&Matrix::<3, T, A>::from_axis_angle(axis, angle))
                 );
             }
         });
@@ -969,10 +966,8 @@ mod tests {
             for order in EulerRot::values() {
                 for [a, b, c] in random_iter::<[T; 3]>() {
                     assert_test_eq!(
-                        Matrix::<4, T, A>::from_affine(&Affine::<3, T, A>::from_euler(
-                            order, a, b, c
-                        )),
-                        Matrix::<4, T, A>::from_euler(order, a, b, c)
+                        Affine::<3, T, A>::from_euler(order, a, b, c),
+                        Affine::from_matrix(&Matrix::<3, T, A>::from_euler(order, a, b, c))
                     );
                 }
             }
@@ -985,7 +980,7 @@ mod tests {
             for (scale, rotation) in random_iter::<(Vector<3, T, A>, Quaternion<T, A>)>() {
                 assert_panic_test_eq!(
                     Affine::<3, T, A>::from_scale_rotation(scale, rotation),
-                    Affine::from_submatrix(Matrix::<3, T, A>::from_scale_rotation(scale, rotation))
+                    Affine::from_matrix(&Matrix::<3, T, A>::from_scale_rotation(scale, rotation))
                 );
             }
         });
@@ -997,10 +992,10 @@ mod tests {
             for (rotation, translation) in random_iter::<(Quaternion<T, A>, Vector<3, T, A>)>() {
                 assert_panic_test_eq!(
                     Affine::<3, T, A>::from_rotation_translation(rotation, translation),
-                    Affine::<3, T, A>::from_matrix(Matrix::<4, T, A>::from_rotation_translation(
-                        rotation,
+                    Affine::<3, T, A>::from_matrix_translation(
+                        &Matrix::<3, T, A>::from_quat(rotation),
                         translation
-                    ))
+                    )
                 );
             }
         });
@@ -1018,12 +1013,9 @@ mod tests {
                         rotation,
                         translation
                     ),
-                    Affine::<3, T, A>::from_matrix(
-                        Matrix::<4, T, A>::from_scale_rotation_translation(
-                            scale,
-                            rotation,
-                            translation
-                        )
+                    Affine::<3, T, A>::from_matrix_translation(
+                        &Matrix::<3, T, A>::from_scale_rotation(scale, rotation),
+                        translation
                     )
                 );
             }
@@ -1035,16 +1027,20 @@ mod tests {
         for_types!(|T: PrimitiveFloat, A| {
             for [eye, dir, up] in random_iter::<[Vector<3, T, A>; 3]>() {
                 assert_panic_test_eq!(
-                    Matrix::<4, T, A>::from_affine(&Affine::<3, T, A>::look_to_lh(eye, dir, up)),
-                    Matrix::<4, T, A>::look_to_lh(eye, dir, up)
+                    Projective::<3, T, A>::from_affine(&Affine::<3, T, A>::look_to_lh(
+                        eye, dir, up
+                    )),
+                    Projective::<3, T, A>::look_to_lh(eye, dir, up)
                 );
 
                 let dir = dir.normalize_or(Vector::<3, T, A>::Z);
                 let up = up.normalize_or(Vector::<3, T, A>::Y);
 
                 assert_panic_test_eq!(
-                    Matrix::<4, T, A>::from_affine(&Affine::<3, T, A>::look_to_lh(eye, dir, up)),
-                    Matrix::<4, T, A>::look_to_lh(eye, dir, up)
+                    Projective::<3, T, A>::from_affine(&Affine::<3, T, A>::look_to_lh(
+                        eye, dir, up
+                    )),
+                    Projective::<3, T, A>::look_to_lh(eye, dir, up)
                 );
             }
         });
@@ -1055,16 +1051,20 @@ mod tests {
         for_types!(|T: PrimitiveFloat, A| {
             for [eye, dir, up] in random_iter::<[Vector<3, T, A>; 3]>() {
                 assert_panic_test_eq!(
-                    Matrix::<4, T, A>::from_affine(&Affine::<3, T, A>::look_to_rh(eye, dir, up)),
-                    Matrix::<4, T, A>::look_to_rh(eye, dir, up)
+                    Projective::<3, T, A>::from_affine(&Affine::<3, T, A>::look_to_rh(
+                        eye, dir, up
+                    )),
+                    Projective::<3, T, A>::look_to_rh(eye, dir, up)
                 );
 
                 let dir = dir.normalize_or(Vector::<3, T, A>::Z);
                 let up = up.normalize_or(Vector::<3, T, A>::Y);
 
                 assert_panic_test_eq!(
-                    Matrix::<4, T, A>::from_affine(&Affine::<3, T, A>::look_to_rh(eye, dir, up)),
-                    Matrix::<4, T, A>::look_to_rh(eye, dir, up)
+                    Projective::<3, T, A>::from_affine(&Affine::<3, T, A>::look_to_rh(
+                        eye, dir, up
+                    )),
+                    Projective::<3, T, A>::look_to_rh(eye, dir, up)
                 );
             }
         });
@@ -1075,15 +1075,19 @@ mod tests {
         for_types!(|T: PrimitiveFloat, A| {
             for [eye, center, up] in random_iter::<[Vector<3, T, A>; 3]>() {
                 assert_panic_test_eq!(
-                    Matrix::<4, T, A>::from_affine(&Affine::<3, T, A>::look_at_lh(eye, center, up)),
-                    Matrix::<4, T, A>::look_at_lh(eye, center, up)
+                    Projective::<3, T, A>::from_affine(&Affine::<3, T, A>::look_at_lh(
+                        eye, center, up
+                    )),
+                    Projective::<3, T, A>::look_at_lh(eye, center, up)
                 );
 
                 let up = up.normalize_or(Vector::<3, T, A>::Y);
 
                 assert_panic_test_eq!(
-                    Matrix::<4, T, A>::from_affine(&Affine::<3, T, A>::look_at_lh(eye, center, up)),
-                    Matrix::<4, T, A>::look_at_lh(eye, center, up)
+                    Projective::<3, T, A>::from_affine(&Affine::<3, T, A>::look_at_lh(
+                        eye, center, up
+                    )),
+                    Projective::<3, T, A>::look_at_lh(eye, center, up)
                 );
             }
         });
@@ -1094,15 +1098,19 @@ mod tests {
         for_types!(|T: PrimitiveFloat, A| {
             for [eye, center, up] in random_iter::<[Vector<3, T, A>; 3]>() {
                 assert_panic_test_eq!(
-                    Matrix::<4, T, A>::from_affine(&Affine::<3, T, A>::look_at_rh(eye, center, up)),
-                    Matrix::<4, T, A>::look_at_rh(eye, center, up)
+                    Projective::<3, T, A>::from_affine(&Affine::<3, T, A>::look_at_rh(
+                        eye, center, up
+                    )),
+                    Projective::<3, T, A>::look_at_rh(eye, center, up)
                 );
 
                 let up = up.normalize_or(Vector::<3, T, A>::Y);
 
                 assert_panic_test_eq!(
-                    Matrix::<4, T, A>::from_affine(&Affine::<3, T, A>::look_at_rh(eye, center, up)),
-                    Matrix::<4, T, A>::look_at_rh(eye, center, up)
+                    Projective::<3, T, A>::from_affine(&Affine::<3, T, A>::look_at_rh(
+                        eye, center, up
+                    )),
+                    Projective::<3, T, A>::look_at_rh(eye, center, up)
                 );
             }
         });
@@ -1115,10 +1123,7 @@ mod tests {
                 for [a, b, c] in random_iter::<[T; 3]>() {
                     let affine = Affine::<3, T, A>::from_euler(order, a, b, c);
 
-                    assert_panic_test_eq!(
-                        affine.to_euler(order),
-                        Matrix::<4, T, A>::from_affine(&affine).to_euler(order)
-                    );
+                    assert_panic_test_eq!(affine.to_euler(order), affine.matrix.to_euler(order));
                 }
             }
         });
@@ -1140,7 +1145,7 @@ mod tests {
 
                 assert_panic_test_eq!(
                     affine.to_scale_rotation(),
-                    affine.submatrix.to_scale_rotation()
+                    affine.matrix.to_scale_rotation()
                 );
             }
         });

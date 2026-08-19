@@ -141,7 +141,7 @@ where
     #[track_caller]
     pub fn lane(&self, lane: usize) -> Affine<N, T, A> {
         Affine {
-            submatrix: self.submatrix.lane(lane),
+            matrix: self.matrix.lane(lane),
             translation: self.translation.lane(lane),
         }
     }
@@ -183,7 +183,7 @@ where
     #[inline]
     #[track_caller]
     pub fn set_lane(&mut self, lane: usize, value: Affine<N, T, A>) {
-        self.submatrix.set_lane(lane, value.submatrix);
+        self.matrix.set_lane(lane, value.matrix);
         self.translation.set_lane(lane, value.translation);
     }
 
@@ -194,7 +194,7 @@ where
     #[inline]
     #[must_use]
     pub fn simd_eq(&self, other: &Self) -> Wide {
-        self.submatrix.simd_eq(&other.submatrix) & self.translation.simd_eq(other.translation)
+        self.matrix.simd_eq(&other.matrix) & self.translation.simd_eq(other.translation)
     }
 
     /// For each lane, returns `true` if `self` is not equal to `other`.
@@ -204,7 +204,7 @@ where
     #[inline]
     #[must_use]
     pub fn simd_ne(&self, other: &Self) -> Wide {
-        self.submatrix.simd_ne(&other.submatrix) | self.translation.simd_ne(other.translation)
+        self.matrix.simd_ne(&other.matrix) | self.translation.simd_ne(other.translation)
     }
 }
 
@@ -217,10 +217,10 @@ where
     #[inline(always)]
     fn from_lanes_backend(lanes: &[Affine<2, T, A>; LANES]) -> Self {
         Self::from_row_array(&[
-            Wide::new(core::array::from_fn(|lane| lanes[lane].submatrix.x_axis.x)),
-            Wide::new(core::array::from_fn(|lane| lanes[lane].submatrix.x_axis.y)),
-            Wide::new(core::array::from_fn(|lane| lanes[lane].submatrix.y_axis.x)),
-            Wide::new(core::array::from_fn(|lane| lanes[lane].submatrix.y_axis.y)),
+            Wide::new(core::array::from_fn(|lane| lanes[lane].matrix.x_axis.x)),
+            Wide::new(core::array::from_fn(|lane| lanes[lane].matrix.x_axis.y)),
+            Wide::new(core::array::from_fn(|lane| lanes[lane].matrix.y_axis.x)),
+            Wide::new(core::array::from_fn(|lane| lanes[lane].matrix.y_axis.y)),
             Wide::new(core::array::from_fn(|lane| lanes[lane].translation.x)),
             Wide::new(core::array::from_fn(|lane| lanes[lane].translation.y)),
         ])
@@ -236,15 +236,15 @@ where
     #[inline(always)]
     fn from_lanes_backend(lanes: &[Affine<3, T, A>; LANES]) -> Self {
         Self::from_row_array(&[
-            Wide::new(core::array::from_fn(|lane| lanes[lane].submatrix.x_axis.x)),
-            Wide::new(core::array::from_fn(|lane| lanes[lane].submatrix.x_axis.y)),
-            Wide::new(core::array::from_fn(|lane| lanes[lane].submatrix.x_axis.z)),
-            Wide::new(core::array::from_fn(|lane| lanes[lane].submatrix.y_axis.x)),
-            Wide::new(core::array::from_fn(|lane| lanes[lane].submatrix.y_axis.y)),
-            Wide::new(core::array::from_fn(|lane| lanes[lane].submatrix.y_axis.z)),
-            Wide::new(core::array::from_fn(|lane| lanes[lane].submatrix.z_axis.x)),
-            Wide::new(core::array::from_fn(|lane| lanes[lane].submatrix.z_axis.y)),
-            Wide::new(core::array::from_fn(|lane| lanes[lane].submatrix.z_axis.z)),
+            Wide::new(core::array::from_fn(|lane| lanes[lane].matrix.x_axis.x)),
+            Wide::new(core::array::from_fn(|lane| lanes[lane].matrix.x_axis.y)),
+            Wide::new(core::array::from_fn(|lane| lanes[lane].matrix.x_axis.z)),
+            Wide::new(core::array::from_fn(|lane| lanes[lane].matrix.y_axis.x)),
+            Wide::new(core::array::from_fn(|lane| lanes[lane].matrix.y_axis.y)),
+            Wide::new(core::array::from_fn(|lane| lanes[lane].matrix.y_axis.z)),
+            Wide::new(core::array::from_fn(|lane| lanes[lane].matrix.z_axis.x)),
+            Wide::new(core::array::from_fn(|lane| lanes[lane].matrix.z_axis.y)),
+            Wide::new(core::array::from_fn(|lane| lanes[lane].matrix.z_axis.z)),
             Wide::new(core::array::from_fn(|lane| lanes[lane].translation.x)),
             Wide::new(core::array::from_fn(|lane| lanes[lane].translation.y)),
             Wide::new(core::array::from_fn(|lane| lanes[lane].translation.z)),
@@ -261,22 +261,22 @@ where
     #[inline(always)]
     fn from_lanes_backend(lanes: &[Affine<4, T, A>; LANES]) -> Self {
         Self::from_row_array(&[
-            Wide::new(core::array::from_fn(|lane| lanes[lane].submatrix.x_axis.x)),
-            Wide::new(core::array::from_fn(|lane| lanes[lane].submatrix.x_axis.y)),
-            Wide::new(core::array::from_fn(|lane| lanes[lane].submatrix.x_axis.z)),
-            Wide::new(core::array::from_fn(|lane| lanes[lane].submatrix.x_axis.w)),
-            Wide::new(core::array::from_fn(|lane| lanes[lane].submatrix.y_axis.x)),
-            Wide::new(core::array::from_fn(|lane| lanes[lane].submatrix.y_axis.y)),
-            Wide::new(core::array::from_fn(|lane| lanes[lane].submatrix.y_axis.z)),
-            Wide::new(core::array::from_fn(|lane| lanes[lane].submatrix.y_axis.w)),
-            Wide::new(core::array::from_fn(|lane| lanes[lane].submatrix.z_axis.x)),
-            Wide::new(core::array::from_fn(|lane| lanes[lane].submatrix.z_axis.y)),
-            Wide::new(core::array::from_fn(|lane| lanes[lane].submatrix.z_axis.z)),
-            Wide::new(core::array::from_fn(|lane| lanes[lane].submatrix.z_axis.w)),
-            Wide::new(core::array::from_fn(|lane| lanes[lane].submatrix.w_axis.x)),
-            Wide::new(core::array::from_fn(|lane| lanes[lane].submatrix.w_axis.y)),
-            Wide::new(core::array::from_fn(|lane| lanes[lane].submatrix.w_axis.z)),
-            Wide::new(core::array::from_fn(|lane| lanes[lane].submatrix.w_axis.w)),
+            Wide::new(core::array::from_fn(|lane| lanes[lane].matrix.x_axis.x)),
+            Wide::new(core::array::from_fn(|lane| lanes[lane].matrix.x_axis.y)),
+            Wide::new(core::array::from_fn(|lane| lanes[lane].matrix.x_axis.z)),
+            Wide::new(core::array::from_fn(|lane| lanes[lane].matrix.x_axis.w)),
+            Wide::new(core::array::from_fn(|lane| lanes[lane].matrix.y_axis.x)),
+            Wide::new(core::array::from_fn(|lane| lanes[lane].matrix.y_axis.y)),
+            Wide::new(core::array::from_fn(|lane| lanes[lane].matrix.y_axis.z)),
+            Wide::new(core::array::from_fn(|lane| lanes[lane].matrix.y_axis.w)),
+            Wide::new(core::array::from_fn(|lane| lanes[lane].matrix.z_axis.x)),
+            Wide::new(core::array::from_fn(|lane| lanes[lane].matrix.z_axis.y)),
+            Wide::new(core::array::from_fn(|lane| lanes[lane].matrix.z_axis.z)),
+            Wide::new(core::array::from_fn(|lane| lanes[lane].matrix.z_axis.w)),
+            Wide::new(core::array::from_fn(|lane| lanes[lane].matrix.w_axis.x)),
+            Wide::new(core::array::from_fn(|lane| lanes[lane].matrix.w_axis.y)),
+            Wide::new(core::array::from_fn(|lane| lanes[lane].matrix.w_axis.z)),
+            Wide::new(core::array::from_fn(|lane| lanes[lane].matrix.w_axis.w)),
             Wide::new(core::array::from_fn(|lane| lanes[lane].translation.x)),
             Wide::new(core::array::from_fn(|lane| lanes[lane].translation.y)),
             Wide::new(core::array::from_fn(|lane| lanes[lane].translation.z)),

@@ -1,7 +1,9 @@
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    Affine, Alignment, Length, Mask, Matrix, Quaternion, Scalar, SupportedLength, Vector,
+    Affine, Alignment, Length, Mask, Matrix, Projective, Quaternion, Scalar, SupportedLength,
+    Vector,
+    length::TwoOrThree,
     utils::{transmute_generic, transmute_ref},
 };
 
@@ -97,30 +99,6 @@ where
     }
 }
 
-impl<T, A: Alignment> Serialize for Quaternion<T, A>
-where
-    T: Scalar + Serialize,
-{
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        self.to_array().serialize(serializer)
-    }
-}
-
-impl<'de, T, A: Alignment> Deserialize<'de> for Quaternion<T, A>
-where
-    T: Scalar + Deserialize<'de>,
-{
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        Ok(Self::from_array(Deserialize::deserialize(deserializer)?))
-    }
-}
-
 impl<const N: usize, T, A: Alignment> Serialize for Affine<N, T, A>
 where
     Length<N>: SupportedLength,
@@ -199,6 +177,92 @@ where
     }
 }
 
+impl<const N: usize, T, A: Alignment> Serialize for Projective<N, T, A>
+where
+    Length<N>: TwoOrThree,
+    T: Scalar + Serialize,
+{
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        match N {
+            // SAFETY: Because `N == 2`, `Projective<N, T, A>` and
+            // `Projective<2, T, A>` are the same type.
+            2 => unsafe {
+                transmute_ref::<Projective<N, T, A>, Projective<2, T, A>>(self)
+                    .as_rows()
+                    .serialize(serializer)
+            },
+
+            // SAFETY: Because `N == 3`, `Projective<N, T, A>` and
+            // `Projective<3, T, A>` are the same type.
+            3 => unsafe {
+                transmute_ref::<Projective<N, T, A>, Projective<3, T, A>>(self)
+                    .as_rows()
+                    .serialize(serializer)
+            },
+
+            _ => unreachable!(),
+        }
+    }
+}
+
+impl<'de, const N: usize, T, A: Alignment> Deserialize<'de> for Projective<N, T, A>
+where
+    Length<N>: TwoOrThree,
+    T: Scalar + Deserialize<'de>,
+{
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        Ok(match N {
+            // SAFETY: Because `N == 2`, `Projective<2, T, A>` and
+            // `Projective<N, T, A>` are the same type.
+            2 => unsafe {
+                transmute_generic::<Projective<2, T, A>, Projective<N, T, A>>(
+                    Projective::<2, T, A>::from_rows(&Deserialize::deserialize(deserializer)?),
+                )
+            },
+
+            // SAFETY: Because `N == 3`, `Projective<3, T, A>` and
+            // `Projective<N, T, A>` are the same type.
+            3 => unsafe {
+                transmute_generic::<Projective<3, T, A>, Projective<N, T, A>>(
+                    Projective::<3, T, A>::from_rows(&Deserialize::deserialize(deserializer)?),
+                )
+            },
+
+            _ => unreachable!(),
+        })
+    }
+}
+
+impl<T, A: Alignment> Serialize for Quaternion<T, A>
+where
+    T: Scalar + Serialize,
+{
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        self.to_array().serialize(serializer)
+    }
+}
+
+impl<'de, T, A: Alignment> Deserialize<'de> for Quaternion<T, A>
+where
+    T: Scalar + Deserialize<'de>,
+{
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        Ok(Self::from_array(Deserialize::deserialize(deserializer)?))
+    }
+}
+
 impl<const N: usize, T, A: Alignment> Serialize for Mask<N, T, A>
 where
     Length<N>: SupportedLength,
@@ -252,8 +316,8 @@ mod tests {
 
     use crate::{
         Affine, Affine2, Affine2A, Affine3, Affine3A, Aligned, Mask2, Mask2A, Mask3, Mask3A, Mask4,
-        Mask4A, Mat2, Mat2A, Mat3, Mat3A, Mat4, Mat4A, Quat, QuatA, Unaligned, Vec2, Vec2A, Vec3,
-        Vec3A, Vec4, Vec4A,
+        Mask4A, Mat2, Mat2A, Mat3, Mat3A, Mat4, Mat4A, Proj2, Proj2A, Proj3, Proj3A, Quat, QuatA,
+        Unaligned, Vec2, Vec2A, Vec3, Vec3A, Vec4, Vec4A,
     };
 
     #[test]
@@ -378,22 +442,9 @@ mod tests {
     }
 
     #[test]
-    fn test_quaternion() -> Result<(), Box<dyn Error>> {
-        let quat = QuatA::<i32>::from_xyzw(1, 2, 3, 4);
-        assert_eq!(quat, from_str(&to_string(&quat)?)?);
-        assert_eq!(quat.unalign(), from_str(&to_string(&quat)?)?);
-
-        let quat = Quat::<i32>::from_xyzw(1, 2, 3, 4);
-        assert_eq!(quat, from_str(&to_string(&quat)?)?);
-        assert_eq!(quat.align(), from_str(&to_string(&quat)?)?);
-
-        Ok(())
-    }
-
-    #[test]
     fn test_affine() -> Result<(), Box<dyn Error>> {
-        let affine = Affine2A::<i32>::from_submatrix_translation(
-            Mat2A::from_rows(&[Vec2A::new(1, 2), Vec2A::new(3, 4)]),
+        let affine = Affine2A::<i32>::from_matrix_translation(
+            &Mat2A::from_rows(&[Vec2A::new(1, 2), Vec2A::new(3, 4)]),
             Vec2A::new(5, 6),
         );
         assert_eq!(affine, from_str(&to_string(&affine)?)?);
@@ -403,8 +454,8 @@ mod tests {
         assert!(from_str::<Affine3<i32>>(&to_string(&affine)?).is_err());
         assert!(from_str::<Affine<4, i32, Unaligned>>(&to_string(&affine)?).is_err());
 
-        let affine = Affine3A::<i32>::from_submatrix_translation(
-            Mat3A::from_rows(&[
+        let affine = Affine3A::<i32>::from_matrix_translation(
+            &Mat3A::from_rows(&[
                 Vec3A::new(1, 2, 3),
                 Vec3A::new(4, 5, 6),
                 Vec3A::new(97, 8, 9),
@@ -418,8 +469,8 @@ mod tests {
         assert!(from_str::<Affine2<i32>>(&to_string(&affine)?).is_err());
         assert!(from_str::<Affine<4, i32, Unaligned>>(&to_string(&affine)?).is_err());
 
-        let affine = Affine::<4, i32, Aligned>::from_submatrix_translation(
-            Mat4A::from_rows(&[
+        let affine = Affine::<4, i32, Aligned>::from_matrix_translation(
+            &Mat4A::from_rows(&[
                 Vec4A::new(1, 2, 3, 4),
                 Vec4A::new(5, 6, 7, 8),
                 Vec4A::new(9, 10, 11, 12),
@@ -434,8 +485,8 @@ mod tests {
         assert!(from_str::<Affine2<i32>>(&to_string(&affine)?).is_err());
         assert!(from_str::<Affine3<i32>>(&to_string(&affine)?).is_err());
 
-        let affine = Affine2::<i32>::from_submatrix_translation(
-            Mat2::from_rows(&[Vec2::new(1, 2), Vec2::new(3, 4)]),
+        let affine = Affine2::<i32>::from_matrix_translation(
+            &Mat2::from_rows(&[Vec2::new(1, 2), Vec2::new(3, 4)]),
             Vec2::new(5, 6),
         );
         assert_eq!(affine, from_str(&to_string(&affine)?)?);
@@ -445,8 +496,8 @@ mod tests {
         assert!(from_str::<Affine3<i32>>(&to_string(&affine)?).is_err());
         assert!(from_str::<Affine<4, i32, Unaligned>>(&to_string(&affine)?).is_err());
 
-        let affine = Affine3::<i32>::from_submatrix_translation(
-            Mat3::from_rows(&[Vec3::new(1, 2, 3), Vec3::new(4, 5, 6), Vec3::new(97, 8, 9)]),
+        let affine = Affine3::<i32>::from_matrix_translation(
+            &Mat3::from_rows(&[Vec3::new(1, 2, 3), Vec3::new(4, 5, 6), Vec3::new(97, 8, 9)]),
             Vec3::new(10, 11, 12),
         );
         assert_eq!(affine, from_str(&to_string(&affine)?)?);
@@ -456,8 +507,8 @@ mod tests {
         assert!(from_str::<Affine2<i32>>(&to_string(&affine)?).is_err());
         assert!(from_str::<Affine<4, i32, Unaligned>>(&to_string(&affine)?).is_err());
 
-        let affine = Affine::<4, i32, Unaligned>::from_submatrix_translation(
-            Mat4::from_rows(&[
+        let affine = Affine::<4, i32, Unaligned>::from_matrix_translation(
+            &Mat4::from_rows(&[
                 Vec4::new(1, 2, 3, 4),
                 Vec4::new(5, 6, 7, 8),
                 Vec4::new(9, 10, 11, 12),
@@ -471,6 +522,63 @@ mod tests {
         assert!(from_str::<Affine3A<i32>>(&to_string(&affine)?).is_err());
         assert!(from_str::<Affine2<i32>>(&to_string(&affine)?).is_err());
         assert!(from_str::<Affine3<i32>>(&to_string(&affine)?).is_err());
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_projective() -> Result<(), Box<dyn Error>> {
+        let projective = Proj2A::<i32>::from_rows(&[
+            Vec3A::new(1, 2, 3),
+            Vec3A::new(4, 5, 6),
+            Vec3A::new(7, 8, 9),
+        ]);
+        assert_eq!(projective, from_str(&to_string(&projective)?)?);
+        assert_eq!(projective.unalign(), from_str(&to_string(&projective)?)?);
+        assert!(from_str::<Proj3A<i32>>(&to_string(&projective)?).is_err());
+        assert!(from_str::<Proj3<i32>>(&to_string(&projective)?).is_err());
+
+        let projective = Proj3A::<i32>::from_rows(&[
+            Vec4A::new(1, 2, 3, 4),
+            Vec4A::new(5, 6, 7, 8),
+            Vec4A::new(9, 10, 11, 12),
+            Vec4A::new(13, 14, 15, 16),
+        ]);
+        assert_eq!(projective, from_str(&to_string(&projective)?)?);
+        assert_eq!(projective.unalign(), from_str(&to_string(&projective)?)?);
+        assert!(from_str::<Proj2A<i32>>(&to_string(&projective)?).is_err());
+        assert!(from_str::<Proj2<i32>>(&to_string(&projective)?).is_err());
+
+        let projective =
+            Proj2::<i32>::from_rows(&[Vec3::new(1, 2, 3), Vec3::new(4, 5, 6), Vec3::new(7, 8, 9)]);
+        assert_eq!(projective, from_str(&to_string(&projective)?)?);
+        assert_eq!(projective.align(), from_str(&to_string(&projective)?)?);
+        assert!(from_str::<Proj3A<i32>>(&to_string(&projective)?).is_err());
+        assert!(from_str::<Proj3<i32>>(&to_string(&projective)?).is_err());
+
+        let projective = Proj3::<i32>::from_rows(&[
+            Vec4::new(1, 2, 3, 4),
+            Vec4::new(5, 6, 7, 8),
+            Vec4::new(9, 10, 11, 12),
+            Vec4::new(13, 14, 15, 16),
+        ]);
+        assert_eq!(projective, from_str(&to_string(&projective)?)?);
+        assert_eq!(projective.align(), from_str(&to_string(&projective)?)?);
+        assert!(from_str::<Proj2A<i32>>(&to_string(&projective)?).is_err());
+        assert!(from_str::<Proj2<i32>>(&to_string(&projective)?).is_err());
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_quaternion() -> Result<(), Box<dyn Error>> {
+        let quat = QuatA::<i32>::from_xyzw(1, 2, 3, 4);
+        assert_eq!(quat, from_str(&to_string(&quat)?)?);
+        assert_eq!(quat.unalign(), from_str(&to_string(&quat)?)?);
+
+        let quat = Quat::<i32>::from_xyzw(1, 2, 3, 4);
+        assert_eq!(quat, from_str(&to_string(&quat)?)?);
+        assert_eq!(quat.align(), from_str(&to_string(&quat)?)?);
 
         Ok(())
     }

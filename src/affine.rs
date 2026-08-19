@@ -5,8 +5,10 @@ use core::{
 };
 
 use crate::{
-    Aligned, Alignment, Length, Matrix, One, Scalar, SupportedLength, Unaligned, Vector, Zero,
-    utils::{transmute_mut, transmute_ref},
+    Aligned, Alignment, Length, Matrix, One, Projective, Scalar, SupportedLength, Unaligned,
+    Vector, Zero,
+    length::TwoOrThree,
+    utils::{specialize_23, transmute_mut, transmute_ref},
 };
 
 mod float;
@@ -23,10 +25,6 @@ mod wide_float;
 ///
 /// Contains a matrix and a translation vector.
 ///
-/// Prefer using affines over `N+1` matrices for affine transformations, because
-/// affines take less memory and perform better for select operations (see
-/// [benchmark results]).
-///
 /// # Type aliases
 ///
 /// - [`Affine2<T>`] for [`Affine<2, T, Unaligned>`].
@@ -40,7 +38,7 @@ where
     T: Scalar,
 {
     /// The part representing rotation, scaling and shear.
-    pub submatrix: Matrix<N, T, A>,
+    pub matrix: Matrix<N, T, A>,
     /// The part representing translation.
     pub translation: Vector<N, T, A>,
 }
@@ -50,16 +48,9 @@ where
 ///
 /// Contains a 2x2 matrix and a 2D translation vector.
 ///
-/// Prefer using [`Affine2<T>`] over [`Mat3<T>`] for affine transformations,
-/// because it takes less memory and performs better for select operations (see
-/// [benchmark results]).
-///
 /// # No SIMD alignment
 ///
 /// [`Affine2<T>`] does not have SIMD alignment, for that use [`Affine2A<T>`].
-///
-/// [`Mat3<T>`]: crate::Mat3
-/// [benchmark results]: https://github.com/Noam2Stein/ggmath/blob/main/BENCH_RESULTS.md
 pub type Affine2<T> = Affine<2, T, Unaligned>;
 
 /// A 3D affine transform which can represent translation, rotation, scaling and
@@ -67,16 +58,9 @@ pub type Affine2<T> = Affine<2, T, Unaligned>;
 ///
 /// Contains a 3x3 matrix and a 3D translation vector.
 ///
-/// Prefer using [`Affine3<T>`] over [`Mat4<T>`] for affine transformations,
-/// because it takes less memory and performs better for select operations (see
-/// [benchmark results]).
-///
 /// # No SIMD alignment
 ///
 /// [`Affine3<T>`] does not have SIMD alignment, for that use [`Affine3A<T>`].
-///
-/// [`Mat4<T>`]: crate::Mat4
-/// [benchmark results]: https://github.com/Noam2Stein/ggmath/blob/main/BENCH_RESULTS.md
 pub type Affine3<T> = Affine<3, T, Unaligned>;
 
 /// A 2D affine transform which can represent translation, rotation, scaling and
@@ -84,17 +68,10 @@ pub type Affine3<T> = Affine<3, T, Unaligned>;
 ///
 /// Contains a 2x2 matrix and a 2D translation vector.
 ///
-/// Prefer using [`Affine2A<T>`] over [`Mat3A<T>`] for affine transformations,
-/// because it takes less memory and performs better for select operations (see
-/// [benchmark results]).
-///
 /// # SIMD alignment
 ///
 /// For appropriate `T` types, [`Affine2A<T>`] has SIMD alignment. For no SIMD
 /// use [`Affine2<T>`].
-///
-/// [`Mat3A<T>`]: crate::Mat3A
-/// [benchmark results]: https://github.com/Noam2Stein/ggmath/blob/main/BENCH_RESULTS.md
 pub type Affine2A<T> = Affine<2, T, Aligned>;
 
 /// A 3D affine transform which can represent translation, rotation, scaling and
@@ -102,17 +79,10 @@ pub type Affine2A<T> = Affine<2, T, Aligned>;
 ///
 /// Contains a 3x3 matrix and a 3D translation vector.
 ///
-/// Prefer using [`Affine3A<T>`] over [`Mat4A<T>`] for affine transformations,
-/// because it takes less memory and performs better for select operations (see
-/// [benchmark results]).
-///
 /// # SIMD alignment
 ///
 /// For appropriate `T` types, [`Affine3A<T>`] has SIMD alignment. For no SIMD
 /// use [`Affine3<T>`].
-///
-/// [`Mat4A<T>`]: crate::Mat4A
-/// [benchmark results]: https://github.com/Noam2Stein/ggmath/blob/main/BENCH_RESULTS.md
 pub type Affine3A<T> = Affine<3, T, Aligned>;
 
 impl<const N: usize, T, A: Alignment> Affine<N, T, A>
@@ -126,7 +96,7 @@ where
     /// an affine transform with no transformation.
     ///
     /// [`IDENTITY`]: Self::IDENTITY
-    pub const ZERO: Self = Self::from_submatrix_translation(Matrix::ZERO, Vector::ZERO);
+    pub const ZERO: Self = Self::from_matrix_translation(&Matrix::ZERO, Vector::ZERO);
 }
 
 impl<const N: usize, T, A: Alignment> Affine<N, T, A>
@@ -135,7 +105,7 @@ where
     T: Scalar + Zero + One,
 {
     /// An affine transform with no transformation.
-    pub const IDENTITY: Self = Self::from_submatrix_translation(Matrix::IDENTITY, Vector::ZERO);
+    pub const IDENTITY: Self = Self::from_matrix_translation(&Matrix::IDENTITY, Vector::ZERO);
 }
 
 impl<const N: usize, T, A: Alignment> Affine<N, T, A>
@@ -167,7 +137,7 @@ where
         F: FnMut(usize) -> Vector<N, T, A>,
     {
         Self {
-            submatrix: Matrix::from_row_fn(&mut f),
+            matrix: Matrix::from_row_fn(&mut f),
             translation: f(N),
         }
     }
@@ -180,7 +150,7 @@ where
         T: Zero,
     {
         Self {
-            submatrix: Matrix::from_diagonal(scale),
+            matrix: Matrix::from_scale(scale),
             translation: Vector::ZERO,
         }
     }
@@ -193,37 +163,72 @@ where
         T: Zero + One,
     {
         Self {
-            submatrix: Matrix::IDENTITY,
+            matrix: Matrix::IDENTITY,
             translation,
         }
     }
 
-    /// Creates an affine transform from `submatrix` expressing rotation and
+    /// Creates an affine transform from `matrix` expressing rotation and
     /// scale, but not translation.
     #[inline]
     #[must_use]
-    pub const fn from_submatrix(submatrix: Matrix<N, T, A>) -> Self
+    pub const fn from_matrix(matrix: &Matrix<N, T, A>) -> Self
     where
         T: Zero,
     {
         Self {
-            submatrix,
+            matrix: *matrix,
             translation: Vector::ZERO,
         }
     }
 
-    /// Creates an affine transform from `translation` and `submatrix`
+    /// Creates an affine transform from `translation` and `matrix`
     /// expressing rotation and scale.
     #[inline]
     #[must_use]
-    pub const fn from_submatrix_translation(
-        submatrix: Matrix<N, T, A>,
+    pub const fn from_matrix_translation(
+        matrix: &Matrix<N, T, A>,
         translation: Vector<N, T, A>,
     ) -> Self {
         Self {
-            submatrix,
+            matrix: *matrix,
             translation,
         }
+    }
+
+    /// Creates an affine transform from a projective transform, discarding the
+    /// last column.
+    ///
+    /// The removed column is completely ignored, without checking for identity.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Affine2, Proj2, Vec2, Vec3};
+    /// #
+    /// let projective = Proj2::from_rows(&[
+    ///     Vec3::new(00, 01, 02),
+    ///     Vec3::new(10, 11, 12),
+    ///     Vec3::new(20, 21, 22),
+    /// ]);
+    ///
+    /// assert_eq!(
+    ///     Affine2::from_projective(&projective),
+    ///     Affine2::from_rows(&[
+    ///         Vec2::new(00, 01),
+    ///         Vec2::new(10, 11),
+    ///         Vec2::new(20, 21),
+    ///     ]),
+    /// );
+    /// ```
+    #[inline]
+    #[must_use]
+    #[expect(private_bounds)]
+    pub fn from_projective(projective: &Projective<N, T, A>) -> Self
+    where
+        Length<N>: TwoOrThree,
+    {
+        specialize_23!(Affine::<N, T, A>::from_projective_backend(projective))
     }
 
     /// Conversion between [`Aligned`] and [`Unaligned`] storage.
@@ -252,8 +257,8 @@ where
     #[inline]
     #[must_use]
     pub const fn to_alignment<A2: Alignment>(&self) -> Affine<N, T, A2> {
-        Affine::from_submatrix_translation(
-            self.submatrix.to_alignment(),
+        Affine::from_matrix_translation(
+            &self.matrix.to_alignment(),
             self.translation.to_alignment(),
         )
     }
@@ -304,7 +309,7 @@ where
     where
         T: Add<Output = T> + Mul<Output = T>,
     {
-        point * self.submatrix + self.translation
+        point * self.matrix + self.translation
     }
 
     /// Transforms the given vector applying scale and rotation, but not
@@ -320,7 +325,7 @@ where
     where
         T: Add<Output = T> + Mul<Output = T>,
     {
-        vector * self.submatrix
+        vector * self.matrix
     }
 }
 
@@ -333,7 +338,7 @@ where
     #[must_use]
     pub const fn from_rows(rows: &[Vector<2, T, A>; 3]) -> Self {
         Self {
-            submatrix: Matrix::from_rows(&[rows[0], rows[1]]),
+            matrix: Matrix::from_rows(&[rows[0], rows[1]]),
             translation: rows[2],
         }
     }
@@ -365,35 +370,6 @@ where
         ])
     }
 
-    /// Creates an affine transform from an affine transformation matrix,
-    /// discarding the last column.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::{Affine2, Mat3, Vec2, Vec3};
-    /// #
-    /// let matrix = Mat3::from_rows(&[
-    ///     Vec3::new(1.0, 2.0, 0.0),
-    ///     Vec3::new(3.0, 4.0, 0.0),
-    ///     Vec3::new(5.0, 6.0, 1.0),
-    /// ]);
-    ///
-    /// assert_eq!(
-    ///     Affine2::from_matrix(matrix),
-    ///     Affine2::from_rows(&[
-    ///         Vec2::new(1.0, 2.0),
-    ///         Vec2::new(3.0, 4.0),
-    ///         Vec2::new(5.0, 6.0),
-    ///     ]),
-    /// );
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn from_matrix(matrix: Matrix<3, T, A>) -> Self {
-        Self::from_rows(&[matrix[0].xy(), matrix[1].xy(), matrix[2].xy()])
-    }
-
     /// Returns a reference to the affine transform's rows.
     #[inline]
     #[must_use]
@@ -414,6 +390,77 @@ where
         unsafe { transmute_mut::<Affine<2, T, A>, [Vector<2, T, A>; 3]>(self) }
     }
 
+    /// Creates an `N+1`x`N+1` homogeneous transformation matrix from an
+    /// `N+1`x`N` affine transform.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Affine2, Mat3, Vec2, Vec3};
+    /// #
+    /// let affine = Affine2::from_rows(&[
+    ///     Vec2::new(2, 3),
+    ///     Vec2::new(4, 5),
+    ///     Vec2::new(6, 7),
+    /// ]);
+    ///
+    /// assert_eq!(
+    ///     affine.to_homogeneous(),
+    ///     Mat3::from_rows(&[
+    ///         Vec3::new(2, 3, 0),
+    ///         Vec3::new(4, 5, 0),
+    ///         Vec3::new(6, 7, 1),
+    ///     ]),
+    /// );
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn to_homogeneous(&self) -> Matrix<3, T, A>
+    where
+        T: Zero + One,
+    {
+        Matrix::from_rows(&[
+            self.matrix.x_axis.extend(T::ZERO),
+            self.matrix.y_axis.extend(T::ZERO),
+            self.translation.to_homogeneous(),
+        ])
+    }
+
+    /// Takes the `N+1`x`N` affine transform part of an `N+1`x`N+1` homogeneous
+    /// transformation matrix, discarding the last column.
+    ///
+    /// The removed column is completely ignored, without checking for identity.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Affine2, Mat3, Vec2, Vec3};
+    /// #
+    /// let homogeneous = Mat3::from_rows(&[
+    ///     Vec3::new(00, 01, 02),
+    ///     Vec3::new(10, 11, 12),
+    ///     Vec3::new(20, 21, 22),
+    /// ]);
+    ///
+    /// assert_eq!(
+    ///     Affine2::from_homogeneous(&homogeneous),
+    ///     Affine2::from_rows(&[
+    ///         Vec2::new(00, 01),
+    ///         Vec2::new(10, 11),
+    ///         Vec2::new(20, 21),
+    ///     ]),
+    /// );
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn from_homogeneous(homogeneous: &Matrix<3, T, A>) -> Self {
+        Self::from_rows(&[
+            homogeneous.x_axis.truncate(),
+            homogeneous.y_axis.truncate(),
+            homogeneous.z_axis.truncate(),
+        ])
+    }
+
     /// Returns a mutable reference to the affine transform's rows.
     ///
     /// This function has been renamed to [`as_mut_rows`].
@@ -424,6 +471,15 @@ where
     #[deprecated(since = "0.17.1", note = "renamed to `as_mut_rows`")]
     pub const fn as_rows_mut(&mut self) -> &mut [Vector<2, T, A>; 3] {
         self.as_mut_rows()
+    }
+
+    #[inline]
+    fn from_projective_backend(projective: &Projective<2, T, A>) -> Self {
+        Self::from_rows(&[
+            projective[0].truncate(),
+            projective[1].truncate(),
+            projective[2].truncate(),
+        ])
     }
 }
 
@@ -436,7 +492,7 @@ where
     #[must_use]
     pub const fn from_rows(rows: &[Vector<3, T, A>; 4]) -> Self {
         Self {
-            submatrix: Matrix::from_rows(&[rows[0], rows[1], rows[2]]),
+            matrix: Matrix::from_rows(&[rows[0], rows[1], rows[2]]),
             translation: rows[3],
         }
     }
@@ -469,40 +525,6 @@ where
         ])
     }
 
-    /// Creates an affine transform from an affine transformation matrix,
-    /// discarding the last column.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::{Affine2, Mat3, Vec2, Vec3};
-    /// #
-    /// let matrix = Mat3::from_rows(&[
-    ///     Vec3::new(1.0, 2.0, 0.0),
-    ///     Vec3::new(3.0, 4.0, 0.0),
-    ///     Vec3::new(5.0, 6.0, 1.0),
-    /// ]);
-    ///
-    /// assert_eq!(
-    ///     Affine2::from_matrix(matrix),
-    ///     Affine2::from_rows(&[
-    ///         Vec2::new(1.0, 2.0),
-    ///         Vec2::new(3.0, 4.0),
-    ///         Vec2::new(5.0, 6.0),
-    ///     ]),
-    /// );
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn from_matrix(matrix: Matrix<4, T, A>) -> Self {
-        Self::from_rows(&[
-            matrix[0].xyz(),
-            matrix[1].xyz(),
-            matrix[2].xyz(),
-            matrix[3].xyz(),
-        ])
-    }
-
     /// Returns a reference to the affine transform's rows.
     #[inline]
     #[must_use]
@@ -523,6 +545,79 @@ where
         unsafe { transmute_mut::<Affine<3, T, A>, [Vector<3, T, A>; 4]>(self) }
     }
 
+    /// Creates an `N+1`x`N+1` homogeneous transformation matrix from an
+    /// `N+1`x`N` affine transform.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Affine2, Mat3, Vec2, Vec3};
+    /// #
+    /// let affine = Affine2::from_rows(&[
+    ///     Vec2::new(2, 3),
+    ///     Vec2::new(4, 5),
+    ///     Vec2::new(6, 7),
+    /// ]);
+    ///
+    /// assert_eq!(
+    ///     affine.to_homogeneous(),
+    ///     Mat3::from_rows(&[
+    ///         Vec3::new(2, 3, 0),
+    ///         Vec3::new(4, 5, 0),
+    ///         Vec3::new(6, 7, 1),
+    ///     ]),
+    /// );
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn to_homogeneous(&self) -> Matrix<4, T, A>
+    where
+        T: Zero + One,
+    {
+        Matrix::from_rows(&[
+            self.matrix.x_axis.extend(T::ZERO),
+            self.matrix.y_axis.extend(T::ZERO),
+            self.matrix.z_axis.extend(T::ZERO),
+            self.translation.to_homogeneous(),
+        ])
+    }
+
+    /// Takes the `N+1`x`N` affine transform part of an `N+1`x`N+1` homogeneous
+    /// transformation matrix, discarding the last column.
+    ///
+    /// The removed column is completely ignored, without checking for identity.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Affine2, Mat3, Vec2, Vec3};
+    /// #
+    /// let homogeneous = Mat3::from_rows(&[
+    ///     Vec3::new(00, 01, 02),
+    ///     Vec3::new(10, 11, 12),
+    ///     Vec3::new(20, 21, 22),
+    /// ]);
+    ///
+    /// assert_eq!(
+    ///     Affine2::from_homogeneous(&homogeneous),
+    ///     Affine2::from_rows(&[
+    ///         Vec2::new(00, 01),
+    ///         Vec2::new(10, 11),
+    ///         Vec2::new(20, 21),
+    ///     ]),
+    /// );
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn from_homogeneous(homogeneous: &Matrix<4, T, A>) -> Self {
+        Self::from_rows(&[
+            homogeneous.x_axis.truncate(),
+            homogeneous.y_axis.truncate(),
+            homogeneous.z_axis.truncate(),
+            homogeneous.w_axis.truncate(),
+        ])
+    }
+
     /// Returns a mutable reference to the affine transform's rows.
     ///
     /// This function has been renamed to [`as_mut_rows`].
@@ -533,6 +628,16 @@ where
     #[deprecated(since = "0.17.1", note = "renamed to `as_mut_rows`")]
     pub const fn as_rows_mut(&mut self) -> &mut [Vector<3, T, A>; 4] {
         self.as_mut_rows()
+    }
+
+    #[inline]
+    fn from_projective_backend(projective: &Projective<3, T, A>) -> Self {
+        Self::from_rows(&[
+            projective[0].truncate(),
+            projective[1].truncate(),
+            projective[2].truncate(),
+            projective[3].truncate(),
+        ])
     }
 }
 
@@ -545,7 +650,7 @@ where
     #[must_use]
     pub const fn from_rows(rows: &[Vector<4, T, A>; 5]) -> Self {
         Self {
-            submatrix: Matrix::from_rows(&[rows[0], rows[1], rows[2], rows[3]]),
+            matrix: Matrix::from_rows(&[rows[0], rows[1], rows[2], rows[3]]),
             translation: rows[4],
         }
     }
@@ -647,17 +752,17 @@ where
     #[track_caller]
     fn index(&self, index: usize) -> &Self::Output {
         match (N, index) {
-            (2, 0) => &self.submatrix[0],
-            (2, 1) => &self.submatrix[1],
+            (2, 0) => &self.matrix[0],
+            (2, 1) => &self.matrix[1],
             (2, 2) => &self.translation,
-            (3, 0) => &self.submatrix[0],
-            (3, 1) => &self.submatrix[1],
-            (3, 2) => &self.submatrix[2],
+            (3, 0) => &self.matrix[0],
+            (3, 1) => &self.matrix[1],
+            (3, 2) => &self.matrix[2],
             (3, 3) => &self.translation,
-            (4, 0) => &self.submatrix[0],
-            (4, 1) => &self.submatrix[1],
-            (4, 2) => &self.submatrix[2],
-            (4, 3) => &self.submatrix[3],
+            (4, 0) => &self.matrix[0],
+            (4, 1) => &self.matrix[1],
+            (4, 2) => &self.matrix[2],
+            (4, 3) => &self.matrix[3],
             (4, 4) => &self.translation,
             _ => panic!("index out of bounds"),
         }
@@ -679,17 +784,17 @@ where
     #[track_caller]
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         match (N, index) {
-            (2, 0) => &mut self.submatrix[0],
-            (2, 1) => &mut self.submatrix[1],
+            (2, 0) => &mut self.matrix[0],
+            (2, 1) => &mut self.matrix[1],
             (2, 2) => &mut self.translation,
-            (3, 0) => &mut self.submatrix[0],
-            (3, 1) => &mut self.submatrix[1],
-            (3, 2) => &mut self.submatrix[2],
+            (3, 0) => &mut self.matrix[0],
+            (3, 1) => &mut self.matrix[1],
+            (3, 2) => &mut self.matrix[2],
             (3, 3) => &mut self.translation,
-            (4, 0) => &mut self.submatrix[0],
-            (4, 1) => &mut self.submatrix[1],
-            (4, 2) => &mut self.submatrix[2],
-            (4, 3) => &mut self.submatrix[3],
+            (4, 0) => &mut self.matrix[0],
+            (4, 1) => &mut self.matrix[1],
+            (4, 2) => &mut self.matrix[2],
+            (4, 3) => &mut self.matrix[3],
             (4, 4) => &mut self.translation,
             _ => panic!("index out of bounds"),
         }
@@ -706,21 +811,17 @@ where
             2 => write!(
                 f,
                 "[{:?}, {:?}, {:?}]",
-                self.submatrix[0], self.submatrix[1], self.translation
+                self.matrix[0], self.matrix[1], self.translation
             ),
             3 => write!(
                 f,
                 "[{:?}, {:?}, {:?}, {:?}]",
-                self.submatrix[0], self.submatrix[1], self.submatrix[2], self.translation
+                self.matrix[0], self.matrix[1], self.matrix[2], self.translation
             ),
             4 => write!(
                 f,
                 "[{:?}, {:?}, {:?}, {:?}, {:?}]",
-                self.submatrix[0],
-                self.submatrix[1],
-                self.submatrix[2],
-                self.submatrix[3],
-                self.translation
+                self.matrix[0], self.matrix[1], self.matrix[2], self.matrix[3], self.translation
             ),
             _ => unreachable!(),
         }
@@ -737,21 +838,17 @@ where
             2 => write!(
                 f,
                 "[{}, {}, {}]",
-                self.submatrix[0], self.submatrix[1], self.translation
+                self.matrix[0], self.matrix[1], self.translation
             ),
             3 => write!(
                 f,
                 "[{}, {}, {}, {}]",
-                self.submatrix[0], self.submatrix[1], self.submatrix[2], self.translation
+                self.matrix[0], self.matrix[1], self.matrix[2], self.translation
             ),
             4 => write!(
                 f,
                 "[{}, {}, {}, {}, {}]",
-                self.submatrix[0],
-                self.submatrix[1],
-                self.submatrix[2],
-                self.submatrix[3],
-                self.translation
+                self.matrix[0], self.matrix[1], self.matrix[2], self.matrix[3], self.translation
             ),
             _ => unreachable!(),
         }
@@ -765,7 +862,7 @@ where
 {
     #[inline]
     fn eq(&self, other: &Self) -> bool {
-        self.submatrix == other.submatrix && self.translation == other.translation
+        self.matrix == other.matrix && self.translation == other.translation
     }
 }
 
@@ -782,7 +879,7 @@ where
     T: Scalar + Hash,
 {
     fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
-        self.submatrix.hash(state);
+        self.matrix.hash(state);
         self.translation.hash(state);
     }
 }
@@ -859,9 +956,9 @@ macro_rules! impl_mul {
             #[inline]
             #[track_caller]
             fn mul(self, rhs: &Affine<N, T, A>) -> Self::Output {
-                Affine::from_submatrix_translation(
-                    self.submatrix * rhs.submatrix,
-                    self.translation * rhs.submatrix + rhs.translation,
+                Affine::from_matrix_translation(
+                    &(self.matrix * rhs.matrix),
+                    self.translation * rhs.matrix + rhs.translation,
                 )
             }
         }
@@ -873,182 +970,6 @@ impl_mul!(
     /// Because vectors are treated as row matrices, affine transform
     /// multiplication first applies the left-hand side transform, then the
     /// right-hand side transform.
-    ///
-    /// # Consistency
-    ///
-    /// For primitive types this operation is cross-platform deterministic and
-    /// fully consistent with scalar addition and multiplication, including
-    /// floating-point precision and integer panics.
-);
-
-macro_rules! impl_mul_matrix {
-    ($N:literal, $N2:literal, $(#[$doc:meta])*) => {
-        impl<T, A: Alignment> Mul<Matrix<$N2, T, A>> for Affine<$N, T, A>
-        where
-            T: Scalar + Add<Output = T> + Mul<Output = T> + Zero + One,
-        {
-            type Output = Matrix<$N2, T, A>;
-
-            $(#[$doc])*
-            #[inline]
-            #[track_caller]
-            fn mul(self, rhs: Matrix<$N2, T, A>) -> Self::Output {
-                &Matrix::<$N2, T, A>::from_affine(&self) * &rhs
-            }
-        }
-
-        impl<T, A: Alignment> Mul<&Matrix<$N2, T, A>> for Affine<$N, T, A>
-        where
-            T: Scalar + Add<Output = T> + Mul<Output = T> + Zero + One,
-        {
-            type Output = Matrix<$N2, T, A>;
-
-            $(#[$doc])*
-            #[inline]
-            #[track_caller]
-            fn mul(self, rhs: &Matrix<$N2, T, A>) -> Self::Output {
-                &Matrix::<$N2, T, A>::from_affine(&self) * rhs
-            }
-        }
-
-        impl<T, A: Alignment> Mul<Matrix<$N2, T, A>> for &Affine<$N, T, A>
-        where
-            T: Scalar + Add<Output = T> + Mul<Output = T> + Zero + One,
-        {
-            type Output = Matrix<$N2, T, A>;
-
-            $(#[$doc])*
-            #[inline]
-            #[track_caller]
-            fn mul(self, rhs: Matrix<$N2, T, A>) -> Self::Output {
-                &Matrix::<$N2, T, A>::from_affine(self) * &rhs
-            }
-        }
-
-        impl<T, A: Alignment> Mul<&Matrix<$N2, T, A>> for &Affine<$N, T, A>
-        where
-            T: Scalar + Add<Output = T> + Mul<Output = T> + Zero + One,
-        {
-            type Output = Matrix<$N2, T, A>;
-
-            $(#[$doc])*
-            #[inline]
-            #[track_caller]
-            fn mul(self, rhs: &Matrix<$N2, T, A>) -> Self::Output {
-                &Matrix::<$N2, T, A>::from_affine(self) * rhs
-            }
-        }
-    };
-}
-impl_mul_matrix!(
-    2,
-    3,
-    /// Affine-transform matrix multiplication.
-    ///
-    /// Because vectors are treated as row matrices, multiplication first
-    /// applies the left-hand side transform, then the right-hand side matrix.
-    ///
-    /// # Consistency
-    ///
-    /// For primitive types this operation is cross-platform deterministic and
-    /// fully consistent with scalar addition and multiplication, including
-    /// floating-point precision and integer panics.
-);
-impl_mul_matrix!(
-    3,
-    4,
-    /// Affine-transform matrix multiplication.
-    ///
-    /// Because vectors are treated as row matrices, multiplication first
-    /// applies the left-hand side transform, then the right-hand side matrix.
-    ///
-    /// # Consistency
-    ///
-    /// For primitive types this operation is cross-platform deterministic and
-    /// fully consistent with scalar addition and multiplication, including
-    /// floating-point precision and integer panics.
-);
-
-macro_rules! impl_matrix_mul {
-    ($N:literal, $N2:literal, $(#[$doc:meta])*) => {
-        impl<T, A: Alignment> Mul<Affine<$N, T, A>> for Matrix<$N2, T, A>
-        where
-            T: Scalar + Add<Output = T> + Mul<Output = T> + Zero + One,
-        {
-            type Output = Self;
-
-            $(#[$doc])*
-            #[inline]
-            #[track_caller]
-            fn mul(self, rhs: Affine<$N, T, A>) -> Self::Output {
-                &self * &Matrix::<$N2, T, A>::from_affine(&rhs)
-            }
-        }
-
-        impl<T, A: Alignment> Mul<&Affine<$N, T, A>> for Matrix<$N2, T, A>
-        where
-            T: Scalar + Add<Output = T> + Mul<Output = T> + Zero + One,
-        {
-            type Output = Self;
-
-            $(#[$doc])*
-            #[inline]
-            #[track_caller]
-            fn mul(self, rhs: &Affine<$N, T, A>) -> Self::Output {
-                &self * &Matrix::<$N2, T, A>::from_affine(rhs)
-            }
-        }
-
-        impl<T, A: Alignment> Mul<Affine<$N, T, A>> for &Matrix<$N2, T, A>
-        where
-            T: Scalar + Add<Output = T> + Mul<Output = T> + Zero + One,
-        {
-            type Output = Matrix<$N2, T, A>;
-
-            $(#[$doc])*
-            #[inline]
-            #[track_caller]
-            fn mul(self, rhs: Affine<$N, T, A>) -> Self::Output {
-                self * &Matrix::<$N2, T, A>::from_affine(&rhs)
-            }
-        }
-
-        impl<T, A: Alignment> Mul<&Affine<$N, T, A>> for &Matrix<$N2, T, A>
-        where
-            T: Scalar + Add<Output = T> + Mul<Output = T> + Zero + One,
-        {
-            type Output = Matrix<$N2, T, A>;
-
-            $(#[$doc])*
-            #[inline]
-            #[track_caller]
-            fn mul(self, rhs: &Affine<$N, T, A>) -> Self::Output {
-                self * &Matrix::<$N2, T, A>::from_affine(rhs)
-            }
-        }
-    };
-}
-impl_matrix_mul!(
-    2,
-    3,
-    /// Matrix affine transform multiplication.
-    ///
-    /// Because vectors are treated as row matrices, multiplication first
-    /// applies the left-hand side matrix, then the right-hand side transform.
-    ///
-    /// # Consistency
-    ///
-    /// For primitive types this operation is cross-platform deterministic and
-    /// fully consistent with scalar addition and multiplication, including
-    /// floating-point precision and integer panics.
-);
-impl_matrix_mul!(
-    3,
-    4,
-    /// Matrix affine transform multiplication.
-    ///
-    /// Because vectors are treated as row matrices, multiplication first
-    /// applies the left-hand side matrix, then the right-hand side transform.
     ///
     /// # Consistency
     ///
@@ -1100,64 +1021,6 @@ impl_mul_assign!(
     /// floating-point precision and integer panics.
 );
 
-macro_rules! impl_matrix_mul_assign {
-    ($N:literal, $N2:literal, $(#[$doc:meta])*) => {
-        impl<T, A: Alignment> MulAssign<Affine<$N, T, A>> for Matrix<$N2, T, A>
-        where
-            T: Scalar + Add<Output = T> + Mul<Output = T> + Zero + One,
-        {
-            $(#[$doc])*
-            #[inline]
-            #[track_caller]
-            fn mul_assign(&mut self, rhs: Affine<$N, T, A>) {
-                *self = &*self * &rhs
-            }
-        }
-
-        impl<T, A: Alignment> MulAssign<&Affine<$N, T, A>> for Matrix<$N2, T, A>
-        where
-            T: Scalar + Add<Output = T> + Mul<Output = T> + Zero + One,
-        {
-            $(#[$doc])*
-            #[inline]
-            #[track_caller]
-            fn mul_assign(&mut self, rhs: &Affine<$N, T, A>) {
-                *self = &*self * rhs
-            }
-        }
-    };
-}
-impl_matrix_mul_assign!(
-    2,
-    3,
-    /// Matrix affine-transform multiplication.
-    ///
-    /// Because vectors are treated as row matrices, affine transform
-    /// multiplication first applies the left-hand side matrix, then the
-    /// right-hand side transform.
-    ///
-    /// # Consistency
-    ///
-    /// For primitive types this operation is cross-platform deterministic and
-    /// fully consistent with scalar addition and multiplication, including
-    /// floating-point precision and integer panics.
-);
-impl_matrix_mul_assign!(
-    3,
-    4,
-    /// Matrix affine-transform multiplication.
-    ///
-    /// Because vectors are treated as row matrices, affine transform
-    /// multiplication first applies the left-hand side matrix, then the
-    /// right-hand side transform.
-    ///
-    /// # Consistency
-    ///
-    /// For primitive types this operation is cross-platform deterministic and
-    /// fully consistent with scalar addition and multiplication, including
-    /// floating-point precision and integer panics.
-);
-
 #[cfg(test)]
 mod tests {
     extern crate std;
@@ -1165,7 +1028,7 @@ mod tests {
     use std::format;
 
     use crate::{
-        Affine, Aligned, Mask, Matrix, Unaligned, Vector,
+        Affine, Aligned, Mask, Matrix, Projective, Unaligned, Vector,
         test_utils::{assert_panic, assert_test_eq, for_types, random_iter},
     };
 
@@ -1174,7 +1037,7 @@ mod tests {
         for_types!(|N, T: PrimitiveNumber, A| {
             assert_eq!(
                 Affine::<N, T, A>::ZERO,
-                Affine::from_submatrix_translation(Matrix::ZERO, Vector::ZERO)
+                Affine::from_matrix_translation(&Matrix::ZERO, Vector::ZERO)
             );
         });
     }
@@ -1184,7 +1047,7 @@ mod tests {
         for_types!(|N, T: PrimitiveNumber, A| {
             assert_eq!(
                 Affine::<N, T, A>::IDENTITY,
-                Affine::from_submatrix_translation(Matrix::IDENTITY, Vector::ZERO)
+                Affine::from_matrix_translation(&Matrix::IDENTITY, Vector::ZERO)
             );
         });
     }
@@ -1219,7 +1082,7 @@ mod tests {
 
             assert_eq!(
                 Affine::<N, T, A>::from_scale(scale),
-                Affine::from_submatrix(Matrix::from_diagonal(scale))
+                Affine::from_matrix(&Matrix::from_scale(scale))
             );
         });
     }
@@ -1231,19 +1094,47 @@ mod tests {
 
             assert_eq!(
                 Affine::<N, T, A>::from_translation(translation),
-                Affine::from_submatrix_translation(Matrix::IDENTITY, translation)
+                Affine::from_matrix_translation(&Matrix::IDENTITY, translation)
             );
         });
     }
 
     #[test]
-    fn test_from_submatrix() {
+    fn test_from_matrix() {
         for_types!(|N, T: PrimitiveNumber, A| {
-            let submatrix = Matrix::from_row_fn(|r| Vector::from_fn(|c| T::as_from(r * N + c)));
+            let matrix = Matrix::from_row_fn(|r| Vector::from_fn(|c| T::as_from(r * N + c)));
 
             assert_eq!(
-                Affine::<N, T, A>::from_submatrix(submatrix),
-                Affine::from_submatrix_translation(submatrix, Vector::ZERO)
+                Affine::<N, T, A>::from_matrix(&matrix),
+                Affine::from_matrix_translation(&matrix, Vector::ZERO)
+            );
+        });
+    }
+
+    #[test]
+    fn test_from_projective() {
+        for_types!(|T: PrimitiveNumber, A| {
+            let projective =
+                Projective::<2, T, A>::from_row_fn(|r| Vector::from_fn(|c| T::as_from(r * 2 + c)));
+            assert_eq!(
+                Affine::<2, T, A>::from_projective(&projective),
+                Affine::<2, T, A>::from_rows(&[
+                    projective.x_axis.truncate(),
+                    projective.y_axis.truncate(),
+                    projective.z_axis.truncate(),
+                ])
+            );
+
+            let projective =
+                Projective::<3, T, A>::from_row_fn(|r| Vector::from_fn(|c| T::as_from(r * 3 + c)));
+            assert_eq!(
+                Affine::<3, T, A>::from_projective(&projective),
+                Affine::<3, T, A>::from_rows(&[
+                    projective.x_axis.truncate(),
+                    projective.y_axis.truncate(),
+                    projective.z_axis.truncate(),
+                    projective.w_axis.truncate(),
+                ])
             );
         });
     }
@@ -1256,15 +1147,15 @@ mod tests {
 
             assert_eq!(
                 affine.to_alignment(),
-                Affine::<N, T, Aligned>::from_submatrix_translation(
-                    affine.submatrix.align(),
+                Affine::<N, T, Aligned>::from_matrix_translation(
+                    &affine.matrix.align(),
                     affine.translation.align()
                 )
             );
             assert_eq!(
                 affine.to_alignment(),
-                Affine::<N, T, Unaligned>::from_submatrix_translation(
-                    affine.submatrix.unalign(),
+                Affine::<N, T, Unaligned>::from_matrix_translation(
+                    &affine.matrix.unalign(),
                     affine.translation.unalign()
                 )
             );
@@ -1279,8 +1170,8 @@ mod tests {
 
             assert_eq!(
                 affine.align(),
-                Affine::<N, T, Aligned>::from_submatrix_translation(
-                    affine.submatrix.align(),
+                Affine::<N, T, Aligned>::from_matrix_translation(
+                    &affine.matrix.align(),
                     affine.translation.align()
                 )
             );
@@ -1295,8 +1186,8 @@ mod tests {
 
             assert_eq!(
                 affine.unalign(),
-                Affine::<N, T, Unaligned>::from_submatrix_translation(
-                    affine.submatrix.unalign(),
+                Affine::<N, T, Unaligned>::from_matrix_translation(
+                    &affine.matrix.unalign(),
                     affine.translation.unalign()
                 )
             );
@@ -1309,7 +1200,7 @@ mod tests {
             for (point, affine) in random_iter::<(Vector<N, T, A>, Affine<N, T, A>)>() {
                 assert_test_eq!(
                     affine.transform_point(point),
-                    point * affine.submatrix + affine.translation
+                    point * affine.matrix + affine.translation
                 );
             }
         });
@@ -1319,7 +1210,7 @@ mod tests {
     fn test_transform_vector() {
         for_types!(|N, T: PrimitiveFloat, A| {
             for (point, affine) in random_iter::<(Vector<N, T, A>, Affine<N, T, A>)>() {
-                assert_test_eq!(affine.transform_vector(point), point * affine.submatrix);
+                assert_test_eq!(affine.transform_vector(point), point * affine.matrix);
             }
         });
     }
@@ -1330,8 +1221,8 @@ mod tests {
             let rows = std::array::from_fn(|r| Vector::from_fn(|c| T::as_from(r * 2 + c)));
             assert_eq!(
                 Affine::<2, T, A>::from_rows(&rows),
-                Affine::<2, T, A>::from_submatrix_translation(
-                    Matrix::from_rows(&[rows[0], rows[1]]),
+                Affine::<2, T, A>::from_matrix_translation(
+                    &Matrix::from_rows(&[rows[0], rows[1]]),
                     rows[2]
                 )
             );
@@ -1339,8 +1230,8 @@ mod tests {
             let rows = std::array::from_fn(|r| Vector::from_fn(|c| T::as_from(r * 3 + c)));
             assert_eq!(
                 Affine::<3, T, A>::from_rows(&rows),
-                Affine::<3, T, A>::from_submatrix_translation(
-                    Matrix::from_rows(&[rows[0], rows[1], rows[2]]),
+                Affine::<3, T, A>::from_matrix_translation(
+                    &Matrix::from_rows(&[rows[0], rows[1], rows[2]]),
                     rows[3]
                 )
             );
@@ -1348,8 +1239,8 @@ mod tests {
             let rows = std::array::from_fn(|r| Vector::from_fn(|c| T::as_from(r * 4 + c)));
             assert_eq!(
                 Affine::<4, T, A>::from_rows(&rows),
-                Affine::<4, T, A>::from_submatrix_translation(
-                    Matrix::from_rows(&[rows[0], rows[1], rows[2], rows[3]]),
+                Affine::<4, T, A>::from_matrix_translation(
+                    &Matrix::from_rows(&[rows[0], rows[1], rows[2], rows[3]]),
                     rows[4]
                 )
             );
@@ -1395,41 +1286,6 @@ mod tests {
     }
 
     #[test]
-    fn test_from_matrix() {
-        for_types!(|T: PrimitiveNumber, A| {
-            let [x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l] =
-                std::array::from_fn(|i| T::as_from(i + 1));
-
-            assert_eq!(
-                Affine::<2, T, A>::from_matrix(Matrix::from_rows(&[
-                    Vector::<3, T, A>::new(x, y, z),
-                    Vector::<3, T, A>::new(w, a, b),
-                    Vector::<3, T, A>::new(c, d, e)
-                ])),
-                Affine::<2, T, A>::from_rows(&[
-                    Vector::<2, T, A>::new(x, y),
-                    Vector::<2, T, A>::new(w, a),
-                    Vector::<2, T, A>::new(c, d)
-                ])
-            );
-            assert_eq!(
-                Affine::<3, T, A>::from_matrix(Matrix::from_rows(&[
-                    Vector::<4, T, A>::new(x, y, z, w),
-                    Vector::<4, T, A>::new(a, b, c, d),
-                    Vector::<4, T, A>::new(e, f, g, h),
-                    Vector::<4, T, A>::new(i, j, k, l)
-                ])),
-                Affine::<3, T, A>::from_rows(&[
-                    Vector::<3, T, A>::new(x, y, z),
-                    Vector::<3, T, A>::new(a, b, c),
-                    Vector::<3, T, A>::new(e, f, g),
-                    Vector::<3, T, A>::new(i, j, k)
-                ])
-            );
-        });
-    }
-
-    #[test]
     fn test_as_rows() {
         for_types!(|T: PrimitiveNumber, A| {
             let rows = std::array::from_fn(|r| Vector::from_fn(|c| T::as_from(r * 2 + c)));
@@ -1458,13 +1314,84 @@ mod tests {
     }
 
     #[test]
+    fn test_to_homogeneous() {
+        for_types!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w, a, b, c, d, e, f, g, h] = std::array::from_fn(|i| T::as_from(i + 1));
+
+            assert_eq!(
+                Affine::<2, T, A>::from_rows(&[
+                    Vector::<2, T, A>::new(x, y),
+                    Vector::<2, T, A>::new(z, w),
+                    Vector::<2, T, A>::new(a, b)
+                ])
+                .to_homogeneous(),
+                Matrix::from_rows(&[
+                    Vector::<3, T, A>::new(x, y, T::ZERO),
+                    Vector::<3, T, A>::new(z, w, T::ZERO),
+                    Vector::<3, T, A>::new(a, b, T::ONE)
+                ])
+            );
+            assert_eq!(
+                Affine::<3, T, A>::from_rows(&[
+                    Vector::<3, T, A>::new(x, y, z),
+                    Vector::<3, T, A>::new(w, a, b),
+                    Vector::<3, T, A>::new(c, d, e),
+                    Vector::<3, T, A>::new(f, g, h)
+                ])
+                .to_homogeneous(),
+                Matrix::from_rows(&[
+                    Vector::<4, T, A>::new(x, y, z, T::ZERO),
+                    Vector::<4, T, A>::new(w, a, b, T::ZERO),
+                    Vector::<4, T, A>::new(c, d, e, T::ZERO),
+                    Vector::<4, T, A>::new(f, g, h, T::ONE)
+                ])
+            );
+        });
+    }
+
+    #[test]
+    fn test_from_homogeneous() {
+        for_types!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l] =
+                std::array::from_fn(|i| T::as_from(i + 1));
+
+            assert_eq!(
+                Affine::<2, T, A>::from_homogeneous(&Matrix::from_rows(&[
+                    Vector::<3, T, A>::new(x, y, z),
+                    Vector::<3, T, A>::new(w, a, b),
+                    Vector::<3, T, A>::new(c, d, e)
+                ])),
+                Affine::<2, T, A>::from_rows(&[
+                    Vector::<2, T, A>::new(x, y),
+                    Vector::<2, T, A>::new(w, a),
+                    Vector::<2, T, A>::new(c, d)
+                ])
+            );
+            assert_eq!(
+                Affine::<3, T, A>::from_homogeneous(&Matrix::from_rows(&[
+                    Vector::<4, T, A>::new(x, y, z, w),
+                    Vector::<4, T, A>::new(a, b, c, d),
+                    Vector::<4, T, A>::new(e, f, g, h),
+                    Vector::<4, T, A>::new(i, j, k, l)
+                ])),
+                Affine::<3, T, A>::from_rows(&[
+                    Vector::<3, T, A>::new(x, y, z),
+                    Vector::<3, T, A>::new(a, b, c),
+                    Vector::<3, T, A>::new(e, f, g),
+                    Vector::<3, T, A>::new(i, j, k)
+                ])
+            );
+        });
+    }
+
+    #[test]
     fn test_index() {
         for_types!(|N, T: PrimitiveNumber, A| {
             let affine =
                 Affine::<N, T, A>::from_row_fn(|r| Vector::from_fn(|c| T::as_from(r * N + c)));
 
             for i in 0..N {
-                assert_eq!(affine[i], affine.submatrix[i]);
+                assert_eq!(affine[i], affine.matrix[i]);
             }
             assert_eq!(affine[N], affine.translation);
             assert_panic!(affine[N + 1]);
@@ -1480,7 +1407,7 @@ mod tests {
                 Affine::<N, T, A>::from_row_fn(|r| Vector::from_fn(|c| T::as_from(r * N + c)));
 
             for i in 0..N {
-                assert_eq!(&mut affine.clone()[i], &mut affine.clone().submatrix[i]);
+                assert_eq!(&mut affine.clone()[i], &mut affine.clone().matrix[i]);
             }
             assert_eq!(&mut affine.clone()[N], &mut affine.clone().translation);
             assert_panic!(&mut affine.clone()[N + 1]);
@@ -1550,7 +1477,7 @@ mod tests {
 
                 assert_eq!(
                     affine == other,
-                    affine.submatrix == other.submatrix && affine.translation == other.translation
+                    affine.matrix == other.matrix && affine.translation == other.translation
                 );
             }
         });
@@ -1566,7 +1493,7 @@ mod tests {
 
                 assert_eq!(
                     affine != other,
-                    affine.submatrix != other.submatrix || affine.translation != other.translation
+                    affine.matrix != other.matrix || affine.translation != other.translation
                 );
             }
         });
@@ -1590,14 +1517,14 @@ mod tests {
                     || !affine_2.is_finite()
                     || vector.iter().any(|x| x.abs() > 1e10)
                     || affine_1
-                        .submatrix
+                        .matrix
                         .as_rows()
                         .iter()
                         .chain([&affine_1.translation])
                         .flatten()
                         .any(|x| x.abs() > 1e10)
                     || affine_2
-                        .submatrix
+                        .matrix
                         .as_rows()
                         .iter()
                         .chain([&affine_2.translation])
@@ -1626,44 +1553,6 @@ mod tests {
     }
 
     #[test]
-    fn test_mul_matrix() {
-        for_types!(|T: PrimitiveFloat, A| {
-            for (affine, matrix) in random_iter::<(Affine<2, T, A>, Matrix<3, T, A>)>() {
-                assert_test_eq!(
-                    affine * matrix,
-                    Matrix::<3, T, A>::from_affine(&affine) * matrix
-                );
-            }
-
-            for (affine, matrix) in random_iter::<(Affine<3, T, A>, Matrix<4, T, A>)>() {
-                assert_test_eq!(
-                    affine * matrix,
-                    Matrix::<4, T, A>::from_affine(&affine) * matrix
-                );
-            }
-        });
-    }
-
-    #[test]
-    fn test_matrix_mul() {
-        for_types!(|T: PrimitiveFloat, A| {
-            for (matrix, affine) in random_iter::<(Matrix<3, T, A>, Affine<2, T, A>)>() {
-                assert_test_eq!(
-                    matrix * affine,
-                    matrix * Matrix::<3, T, A>::from_affine(&affine)
-                );
-            }
-
-            for (matrix, affine) in random_iter::<(Matrix<4, T, A>, Affine<3, T, A>)>() {
-                assert_test_eq!(
-                    matrix * affine,
-                    matrix * Matrix::<4, T, A>::from_affine(&affine)
-                );
-            }
-        });
-    }
-
-    #[test]
     fn test_mul_assign() {
         for_types!(|N, T: PrimitiveFloat, A| {
             for [left, right] in random_iter::<[Affine<N, T, A>; 2]>() {
@@ -1671,25 +1560,6 @@ mod tests {
                 result *= right;
 
                 assert_test_eq!(result, left * right);
-            }
-        });
-    }
-
-    #[test]
-    fn test_matrix_mul_assign() {
-        for_types!(|T: PrimitiveFloat, A| {
-            for (matrix, affine) in random_iter::<(Matrix<3, T, A>, Affine<2, T, A>)>() {
-                let mut result = matrix;
-                result *= affine;
-
-                assert_test_eq!(result, matrix * affine);
-            }
-
-            for (matrix, affine) in random_iter::<(Matrix<4, T, A>, Affine<3, T, A>)>() {
-                let mut result = matrix;
-                result *= affine;
-
-                assert_test_eq!(result, matrix * affine);
             }
         });
     }

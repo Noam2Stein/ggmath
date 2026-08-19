@@ -9,8 +9,11 @@ use core::{
 };
 
 use crate::{
-    Affine, Aligned, Alignment, Length, One, Scalar, SupportedLength, Unaligned, Vector, Zero,
-    utils::{Repr3, Repr4, specialize, transmute_generic, transmute_mut, transmute_ref},
+    Aligned, Alignment, Length, One, Projective, Scalar, SupportedLength, Unaligned, Vector, Zero,
+    length::TwoOrThree,
+    utils::{
+        Repr3, Repr4, specialize, specialize_23, transmute_generic, transmute_mut, transmute_ref,
+    },
 };
 
 mod float;
@@ -24,8 +27,11 @@ mod wide_float;
 /// `A` controls SIMD alignment and is either [`Unaligned`] or [`Aligned`]. See
 /// [`Alignment`] for more details.
 ///
-/// Most constructors are dimension specific. See [`from_rows`] for raw
-/// construction.
+/// This represents an `N`-dimensional linear transformation, applied using
+/// `vector_n * self`.
+///
+/// If you need translation, use [`Affine`]. If you need projections, use
+/// [`Projective`].
 ///
 /// # Type aliases
 ///
@@ -63,7 +69,7 @@ mod wide_float;
 /// For `N = 3` and `N = 4` this type has the size and alignment of
 /// `[Vector<N, T, A>; N]`.
 ///
-/// [`from_rows`]: Self::from_rows
+/// [`Affine`]: crate::Affine
 #[repr(transparent)]
 pub struct Matrix<const N: usize, T, A: Alignment>(
     #[expect(clippy::type_complexity)]
@@ -79,8 +85,10 @@ where
 
 /// A 2x2 row-major matrix.
 ///
-/// This matrix can be used for 2D linear transformations (applied using
-/// `vec2 * self`).
+/// This represents a 2D linear transformation, applied using `vec2 * self`.
+///
+/// If you need translation, use [`Affine2`]. If you need 2D projections, use
+/// [`Proj2`].
 ///
 /// # No SIMD alignment
 ///
@@ -96,17 +104,21 @@ where
 ///
 /// Note that these fields are only exposed by implementing [`Deref`] and
 /// [`DerefMut`].
+///
+/// [`Affine2`]: crate::Affine2
+/// [`Proj2`]: crate::Proj2
 pub type Mat2<T> = Matrix<2, T, Unaligned>;
 
 /// A 3x3 row-major matrix.
 ///
-/// This matrix can be used for both 3D linear transformations (applied using
-/// `vec3 * self`) and 2D affine transformations (applied using
-/// `self.transform_point(vec2)` and `self.transform_vector(vec2)`).
+/// This represents a 3D linear transformation, applied using `vec3 * self`.
 ///
-/// For 2D affine transformations, consider using the [`Affine2<T>`] type which
-/// takes less memory than [`Mat3<T>`] and performs better for select operations
-/// (see [benchmark results]).
+/// If you need translation, use [`Affine3`]. If you need projections, use
+/// [`Proj3`].
+///
+/// Unlike many other libraries, here [`Mat3`] is not used for 2D affine and
+/// projective transformations. For that use the [`Affine2`] and [`Proj2`]
+/// types.
 ///
 /// # No SIMD alignment
 ///
@@ -126,19 +138,22 @@ pub type Mat2<T> = Matrix<2, T, Unaligned>;
 /// Note that these fields are only exposed by implementing [`Deref`] and
 /// [`DerefMut`].
 ///
-/// [`Affine2<T>`]: crate::Affine2
+/// [`Affine3`]: crate::Affine3
+/// [`Proj3`]: crate::Proj3
+/// [`Affine2`]: crate::Affine2
+/// [`Proj2`]: crate::Proj2
 /// [benchmark results]: https://github.com/Noam2Stein/ggmath/blob/main/BENCH_RESULTS.md
 pub type Mat3<T> = Matrix<3, T, Unaligned>;
 
 /// A 4x4 row-major matrix.
 ///
-/// This matrix can be used for both 3D affine transformations (applied using
-/// `self.transform_point(vec3)` and `self.transform_vector(vec3)`) and 3D
-/// projections (applied using `self.project_point(vec3)`).
+/// Unlike many other libraries, here [`Mat4`] is not used for 3D affine and
+/// projective transformations. For that use the [`Affine3`] and [`Proj3`]
+/// types.
 ///
-/// For 3D affine transformations, consider using the [`Affine3<T>`] type which
-/// takes less memory than [`Mat4<T>`] and performs better for select operations
-/// (see [benchmark results]).
+/// This represents a 4D linear transformation, applied using `vec4 * self`.
+/// Even though this type does not have many use cases, it is still useful for
+/// raw matrix operations and interop with other libraries.
 ///
 /// # No SIMD alignment
 ///
@@ -161,14 +176,17 @@ pub type Mat3<T> = Matrix<3, T, Unaligned>;
 /// Note that these fields are only exposed by implementing [`Deref`] and
 /// [`DerefMut`].
 ///
-/// [`Affine3<T>`]: crate::Affine3
+/// [`Affine3`]: crate::Affine3
+/// [`Proj3`]: crate::Proj3
 /// [benchmark results]: https://github.com/Noam2Stein/ggmath/blob/main/BENCH_RESULTS.md
 pub type Mat4<T> = Matrix<4, T, Unaligned>;
 
 /// A 2x2 row-major matrix.
 ///
-/// This matrix can be used for 2D linear transformations (applied using
-/// `vec2 * self`).
+/// This represents a 2D linear transformation, applied using `vec2 * self`.
+///
+/// If you need translation, use [`Affine2A`]. If you need 2D projections, use
+/// [`Proj2A`].
 ///
 /// # SIMD alignment
 ///
@@ -185,17 +203,21 @@ pub type Mat4<T> = Matrix<4, T, Unaligned>;
 ///
 /// Note that these fields are only exposed by implementing [`Deref`] and
 /// [`DerefMut`].
+///
+/// [`Affine2A`]: crate::Affine2A
+/// [`Proj2A`]: crate::Proj2A
 pub type Mat2A<T> = Matrix<2, T, Aligned>;
 
 /// A 3x3 row-major matrix.
 ///
-/// This matrix can be used for both 3D linear transformations (applied using
-/// `vec3 * self`) and 2D affine transformations (applied using
-/// `self.transform_point(vec2)` and `self.transform_vector(vec2)`).
+/// This represents a 3D linear transformation, applied using `vec3 * self`.
 ///
-/// For 2D affine transformations, consider using the [`Affine2A<T>`] type which
-/// takes less memory than [`Mat3A<T>`] and performs better for select
-/// operations (see [benchmark results]).
+/// If you need translation, use [`Affine3A`]. If you need projections, use
+/// [`Proj3A`].
+///
+/// Unlike many other libraries, here [`Mat3A`] is not used for 2D affine and
+/// projective transformations. For that use the [`Affine2A`] and [`Proj2A`]
+/// types.
 ///
 /// # SIMD alignment
 ///
@@ -216,19 +238,22 @@ pub type Mat2A<T> = Matrix<2, T, Aligned>;
 /// Note that these fields are only exposed by implementing [`Deref`] and
 /// [`DerefMut`].
 ///
-/// [`Affine2A<T>`]: crate::Affine2A
+/// [`Affine3A`]: crate::Affine3A
+/// [`Proj3A`]: crate::Proj3A
+/// [`Affine2A`]: crate::Affine2A
+/// [`Proj2A`]: crate::Proj2A
 /// [benchmark results]: https://github.com/Noam2Stein/ggmath/blob/main/BENCH_RESULTS.md
 pub type Mat3A<T> = Matrix<3, T, Aligned>;
 
 /// A 4x4 row-major matrix.
 ///
-/// This matrix can be used for both 3D affine transformations (applied using
-/// `self.transform_point(vec3)` and `self.transform_vector(vec3)`) and 3D
-/// projections (applied using `self.project_point(vec3)`).
+/// Unlike many other libraries, here [`Mat4A`] is not used for 3D affine and
+/// projective transformations. For that use the [`Affine3A`] and [`Proj3A`]
+/// types.
 ///
-/// For 3D affine transformations, consider using the [`Affine3A<T>`] type which
-/// performs better than [`Mat4A`] for select operations (see
-/// [benchmark results]).
+/// This represents a 4D linear transformation, applied using `vec4 * self`.
+/// Even though this type does not have many use cases, it is still useful for
+/// raw matrix operations and interop with other libraries.
 ///
 /// # SIMD alignment
 ///
@@ -252,7 +277,8 @@ pub type Mat3A<T> = Matrix<3, T, Aligned>;
 /// Note that these fields are only exposed by implementing [`Deref`] and
 /// [`DerefMut`].
 ///
-/// [`Affine3A<T>`]: crate::Affine3A
+/// [`Affine3A`]: crate::Affine3A
+/// [`Proj3A`]: crate::Proj3A
 /// [benchmark results]: https://github.com/Noam2Stein/ggmath/blob/main/BENCH_RESULTS.md
 pub type Mat4A<T> = Matrix<4, T, Aligned>;
 
@@ -386,6 +412,35 @@ where
 
             _ => unreachable!(),
         }
+    }
+
+    /// Creates a matrix from a non-uniform scale.
+    ///
+    /// This is identical to [`from_diagonal`]. Use whichever function that
+    /// makes your intentions clearer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Mat3, Vec3};
+    /// #
+    /// let matrix = Mat3::from_scale(Vec3::new(1, 2, 3));
+    ///
+    /// assert_eq!(matrix[0], Vec3::new(1, 0, 0));
+    /// assert_eq!(matrix[1], Vec3::new(0, 2, 0));
+    /// assert_eq!(matrix[2], Vec3::new(0, 0, 3));
+    ///
+    /// assert_eq!(Vec3::splat(2) * matrix, Vec3::new(2, 4, 6));
+    /// ```
+    ///
+    /// [`from_diagonal`]: Self::from_diagonal
+    #[inline]
+    #[must_use]
+    pub const fn from_scale(scale: Vector<N, T, A>) -> Self
+    where
+        T: Zero,
+    {
+        Self::from_diagonal(scale)
     }
 
     /// Conversion between [`Aligned`] and [`Unaligned`] storage.
@@ -728,16 +783,16 @@ where
     /// Returns a matrix that first applies scaling vector `scale` then applies
     /// `self`.
     ///
-    /// Equivalent to `Matrix::from_diagonal(scale) * self` but is faster. This
+    /// Equivalent to `Matrix::from_scale(scale) * self` but is faster. This
     /// may be inconsistent for NaNs and `-0.0`.
     #[inline]
     #[must_use]
     #[track_caller]
-    pub fn prepend_diagonal(&self, scale: Vector<N, T, A>) -> Self
+    pub fn prepend_scale(&self, scale: Vector<N, T, A>) -> Self
     where
         T: Mul<Output = T>,
     {
-        specialize!(Matrix::<N, T, A>::prepend_diagonal_backend(self, scale))
+        specialize!(Matrix::<N, T, A>::prepend_scale_backend(self, scale))
     }
 
     /// Returns the determinant of `self`.
@@ -750,11 +805,11 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use ggmath::{Mat3, Vec2};
+    /// # use ggmath::{Mat3, Vec3};
     /// #
-    /// let matrix = Mat3::from_scale(Vec2::new(2, 2));
+    /// let matrix = Mat3::from_scale(Vec3::splat(2));
     ///
-    /// assert_eq!(matrix.determinant(), 4);
+    /// assert_eq!(matrix.determinant(), 8);
     /// ```
     #[must_use]
     #[track_caller]
@@ -763,6 +818,41 @@ where
         T: Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
     {
         specialize!(Matrix::<N, T, A>::determinant_backend(self))
+    }
+
+    /// Returns the linear transformation part of a projective transform,
+    /// removing the last row and column.
+    ///
+    /// The removed row and column are completely ignored, without checking for
+    /// identity.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Mat2, Proj2, Vec2, Vec3};
+    /// #
+    /// let projective = Proj2::from_rows(&[
+    ///     Vec3::new(00, 01, 02),
+    ///     Vec3::new(10, 11, 12),
+    ///     Vec3::new(20, 21, 22),
+    /// ]);
+    ///
+    /// assert_eq!(
+    ///     Mat2::from_projective(&projective),
+    ///     Mat2::from_rows(&[
+    ///         Vec2::new(00, 01),
+    ///         Vec2::new(10, 11),
+    ///     ]),
+    /// );
+    /// ```
+    #[inline]
+    #[must_use]
+    #[expect(private_bounds)]
+    pub fn from_projective(projective: &Projective<N, T, A>) -> Self
+    where
+        Length<N>: TwoOrThree,
+    {
+        specialize_23!(Matrix::<N, T, A>::from_projective_backend(projective))
     }
 
     /// Returns a mutable reference to the matrix's rows.
@@ -801,6 +891,72 @@ where
         ])
     }
 
+    /// Creates an `N+1`x`N+1` homogeneous transformation matrix from an `N`x`N`
+    /// linear transformation matrix.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Mat2, Mat3, Vec2, Vec3};
+    /// #
+    /// let matrix = Mat2::from_rows(&[
+    ///     Vec2::new(2, 3),
+    ///     Vec2::new(4, 5),
+    /// ]);
+    ///
+    /// assert_eq!(
+    ///     matrix.to_homogeneous(),
+    ///     Mat3::from_rows(&[
+    ///         Vec3::new(2, 3, 0),
+    ///         Vec3::new(4, 5, 0),
+    ///         Vec3::new(0, 0, 1),
+    ///     ]),
+    /// );
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn to_homogeneous(&self) -> Matrix<3, T, A>
+    where
+        T: Zero + One,
+    {
+        Matrix::from_rows(&[
+            self.x_axis.extend(T::ZERO),
+            self.y_axis.extend(T::ZERO),
+            Vector::<3, T, A>::Z,
+        ])
+    }
+
+    /// Takes the `N`x`N` linear transformation part of an `N+1`x`N+1`
+    /// homogeneous transformation matrix, discarding the last row and column.
+    ///
+    /// The removed row and column are completely ignored, without checking for
+    /// identity.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Mat2, Mat3, Vec2, Vec3};
+    /// #
+    /// let homogeneous = Mat3::from_rows(&[
+    ///     Vec3::new(00, 01, 02),
+    ///     Vec3::new(10, 11, 12),
+    ///     Vec3::new(20, 21, 22),
+    /// ]);
+    ///
+    /// assert_eq!(
+    ///     Mat2::from_homogeneous(&homogeneous),
+    ///     Mat2::from_rows(&[
+    ///         Vec2::new(00, 01),
+    ///         Vec2::new(10, 11),
+    ///     ]),
+    /// );
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn from_homogeneous(homogeneous: &Matrix<3, T, A>) -> Self {
+        Self::from_rows(&[homogeneous.x_axis.truncate(), homogeneous.y_axis.truncate()])
+    }
+
     #[inline(always)]
     fn transpose_backend(&self) -> Self {
         Self(self.0.xzyw())
@@ -817,7 +973,7 @@ where
 
     #[track_caller]
     #[inline(always)]
-    fn prepend_diagonal_backend(&self, scale: Vector<2, T, A>) -> Self
+    fn prepend_scale_backend(&self, scale: Vector<2, T, A>) -> Self
     where
         T: Mul<Output = T>,
     {
@@ -831,6 +987,11 @@ where
         T: Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
     {
         self.x_axis.x * self.y_axis.y - self.x_axis.y * self.y_axis.x
+    }
+
+    #[inline(always)]
+    fn from_projective_backend(projective: &Projective<2, T, A>) -> Self {
+        Self::from_rows(&[projective.x_axis.truncate(), projective.y_axis.truncate()])
     }
 }
 
@@ -858,183 +1019,75 @@ where
         ])
     }
 
-    /// Creates an affine transformation matrix from the given 2D `scale`.
-    ///
-    /// The resulting matrix can be used to transform 2D points and vectors. See
-    /// [`transform_point`] and [`transform_vector`].
-    ///
-    /// [`transform_point`]: Self::transform_point
-    /// [`transform_vector`]: Self::transform_vector
-    #[inline]
-    #[must_use]
-    pub const fn from_scale(scale: Vector<2, T, A>) -> Self
-    where
-        T: Zero + One,
-    {
-        Self::from_rows(&[
-            Vector::<3, T, A>::new(scale.as_array()[0], T::ZERO, T::ZERO),
-            Vector::<3, T, A>::new(T::ZERO, scale.as_array()[1], T::ZERO),
-            Vector::<3, T, A>::Z,
-        ])
-    }
-
-    /// Creates an affine transformation matrix from the given 2D `translation`.
-    ///
-    /// The resulting matrix can be used to transform 2D points and vectors. See
-    /// [`transform_point`] and [`transform_vector`].
-    ///
-    /// [`transform_point`]: Self::transform_point
-    /// [`transform_vector`]: Self::transform_vector
-    #[inline]
-    #[must_use]
-    pub const fn from_translation(translation: Vector<2, T, A>) -> Self
-    where
-        T: Zero + One,
-    {
-        Self::from_rows(&[
-            Vector::<3, T, A>::X,
-            Vector::<3, T, A>::Y,
-            Vector::<3, T, A>::new(translation.as_array()[0], translation.as_array()[1], T::ONE),
-        ])
-    }
-
-    /// Creates an affine transformation matrix from the given 2x2 matrix.
-    ///
-    /// The resulting matrix can be used to transform 2D points and vectors. See
-    /// [`transform_point`] and [`transform_vector`].
-    ///
-    /// [`transform_point`]: Self::transform_point
-    /// [`transform_vector`]: Self::transform_vector
-    #[inline]
-    #[must_use]
-    pub const fn from_submatrix(submatrix: &Matrix<2, T, A>) -> Self
-    where
-        T: Zero + One,
-    {
-        Self::from_rows(&[
-            Vector::<3, T, A>::new(
-                submatrix.as_rows()[0].as_array()[0],
-                submatrix.as_rows()[0].as_array()[1],
-                T::ZERO,
-            ),
-            Vector::<3, T, A>::new(
-                submatrix.as_rows()[1].as_array()[0],
-                submatrix.as_rows()[1].as_array()[1],
-                T::ZERO,
-            ),
-            Vector::<3, T, A>::Z,
-        ])
-    }
-
-    /// Creates an affine transformation matrix from the given 2x2 matrix and 2D
-    /// `translation`.
-    ///
-    /// The resulting matrix can be used to transform 2D points and vectors. See
-    /// [`transform_point`] and [`transform_vector`].
-    ///
-    /// [`transform_point`]: Self::transform_point
-    /// [`transform_vector`]: Self::transform_vector
-    #[inline]
-    #[must_use]
-    pub const fn from_submatrix_translation(
-        submatrix: &Matrix<2, T, A>,
-        translation: Vector<2, T, A>,
-    ) -> Self
-    where
-        T: Zero + One,
-    {
-        Self::from_rows(&[
-            Vector::<3, T, A>::new(
-                submatrix.as_rows()[0].as_array()[0],
-                submatrix.as_rows()[0].as_array()[1],
-                T::ZERO,
-            ),
-            Vector::<3, T, A>::new(
-                submatrix.as_rows()[1].as_array()[0],
-                submatrix.as_rows()[1].as_array()[1],
-                T::ZERO,
-            ),
-            Vector::<3, T, A>::new(translation.as_array()[0], translation.as_array()[1], T::ONE),
-        ])
-    }
-
-    /// Creates an affine transformation matrix from an affine transform.
+    /// Creates an `N+1`x`N+1` homogeneous transformation matrix from an `N`x`N`
+    /// linear transformation matrix.
     ///
     /// # Examples
     ///
     /// ```
-    /// # use ggmath::{Affine2, Mat3, Vec2, Vec3};
+    /// # use ggmath::{Mat2, Mat3, Vec2, Vec3};
     /// #
-    /// let affine = Affine2::from_rows(&[
-    ///     Vec2::new(1.0, 2.0),
-    ///     Vec2::new(3.0, 4.0),
-    ///     Vec2::new(5.0, 6.0),
+    /// let matrix = Mat2::from_rows(&[
+    ///     Vec2::new(2, 3),
+    ///     Vec2::new(4, 5),
     /// ]);
     ///
     /// assert_eq!(
-    ///     Mat3::from_affine(&affine),
+    ///     matrix.to_homogeneous(),
     ///     Mat3::from_rows(&[
-    ///         Vec3::new(1.0, 2.0, 0.0),
-    ///         Vec3::new(3.0, 4.0, 0.0),
-    ///         Vec3::new(5.0, 6.0, 1.0),
+    ///         Vec3::new(2, 3, 0),
+    ///         Vec3::new(4, 5, 0),
+    ///         Vec3::new(0, 0, 1),
     ///     ]),
     /// );
     /// ```
     #[inline]
     #[must_use]
-    pub fn from_affine(affine: &Affine<2, T, A>) -> Self
+    pub fn to_homogeneous(&self) -> Matrix<4, T, A>
     where
         T: Zero + One,
     {
         Matrix::from_rows(&[
-            Vector::<3, T, A>::new(
-                affine.submatrix.x_axis.x,
-                affine.submatrix.x_axis.y,
-                T::ZERO,
-            ),
-            Vector::<3, T, A>::new(
-                affine.submatrix.y_axis.x,
-                affine.submatrix.y_axis.y,
-                T::ZERO,
-            ),
-            Vector::<3, T, A>::new(affine.translation.x, affine.translation.y, T::ONE),
+            self.x_axis.extend(T::ZERO),
+            self.y_axis.extend(T::ZERO),
+            self.z_axis.extend(T::ZERO),
+            Vector::<4, T, A>::W,
         ])
     }
 
-    /// Returns a 2x2 matrix discarding the third row and column.
-    #[inline]
-    #[must_use]
-    pub const fn submatrix(&self) -> Matrix<2, T, A> {
-        Matrix::from_rows(&[
-            Vector::<2, T, A>::new(
-                self.as_rows()[0].as_array()[0],
-                self.as_rows()[0].as_array()[1],
-            ),
-            Vector::<2, T, A>::new(
-                self.as_rows()[1].as_array()[0],
-                self.as_rows()[1].as_array()[1],
-            ),
-        ])
-    }
-
-    /// Returns the translation of an affine transformation matrix.
+    /// Takes the `N`x`N` linear transformation part of an `N+1`x`N+1`
+    /// homogeneous transformation matrix, discarding the last row and column.
+    ///
+    /// The removed row and column are completely ignored, without checking for
+    /// identity.
     ///
     /// # Examples
     ///
     /// ```
-    /// # use ggmath::{Mat3, Vec2, Vec3};
+    /// # use ggmath::{Mat2, Mat3, Vec2, Vec3};
     /// #
-    /// let matrix = Mat3::from_rows(&[
-    ///     Vec3::new(1, 0, 0),
-    ///     Vec3::new(0, 1, 0),
-    ///     Vec3::new(6, 8, 1),
+    /// let homogeneous = Mat3::from_rows(&[
+    ///     Vec3::new(00, 01, 02),
+    ///     Vec3::new(10, 11, 12),
+    ///     Vec3::new(20, 21, 22),
     /// ]);
-    /// assert_eq!(matrix.translation(), Vec2::new(6, 8));
+    ///
+    /// assert_eq!(
+    ///     Mat2::from_homogeneous(&homogeneous),
+    ///     Mat2::from_rows(&[
+    ///         Vec2::new(00, 01),
+    ///         Vec2::new(10, 11),
+    ///     ]),
+    /// );
     /// ```
     #[inline]
     #[must_use]
-    pub fn translation(&self) -> Vector<2, T, A> {
-        self.z_axis.truncate()
+    pub fn from_homogeneous(homogeneous: &Matrix<4, T, A>) -> Self {
+        Self::from_rows(&[
+            homogeneous.x_axis.truncate(),
+            homogeneous.y_axis.truncate(),
+            homogeneous.z_axis.truncate(),
+        ])
     }
 
     /// Returns a 2x2 matrix discarding the given `row` and `column`.
@@ -1084,7 +1137,7 @@ where
 
     #[track_caller]
     #[inline(always)]
-    fn prepend_diagonal_backend(&self, scale: Vector<3, T, A>) -> Self
+    fn prepend_scale_backend(&self, scale: Vector<3, T, A>) -> Self
     where
         T: Mul<Output = T>,
     {
@@ -1102,6 +1155,15 @@ where
         T: Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
     {
         self.x_axis.cross(self.y_axis).dot(self.z_axis)
+    }
+
+    #[inline(always)]
+    fn from_projective_backend(projective: &Projective<3, T, A>) -> Self {
+        Self::from_rows(&[
+            projective.x_axis.truncate(),
+            projective.y_axis.truncate(),
+            projective.z_axis.truncate(),
+        ])
     }
 }
 
@@ -1128,233 +1190,6 @@ where
             Vector::<4, T, A>::new(array[8], array[9], array[10], array[11]),
             Vector::<4, T, A>::new(array[12], array[13], array[14], array[15]),
         ])
-    }
-
-    /// Creates an affine transformation matrix from the given 3D `scale`.
-    ///
-    /// The resulting matrix can be used to transform 3D points and vectors. See
-    /// [`transform_point`] and [`transform_vector`].
-    ///
-    /// [`transform_point`]: Self::transform_point
-    /// [`transform_vector`]: Self::transform_vector
-    #[inline]
-    #[must_use]
-    pub const fn from_scale(scale: Vector<3, T, A>) -> Self
-    where
-        T: Zero + One,
-    {
-        Self::from_rows(&[
-            Vector::<4, T, A>::new(scale.as_array()[0], T::ZERO, T::ZERO, T::ZERO),
-            Vector::<4, T, A>::new(T::ZERO, scale.as_array()[1], T::ZERO, T::ZERO),
-            Vector::<4, T, A>::new(T::ZERO, T::ZERO, scale.as_array()[2], T::ZERO),
-            Vector::<4, T, A>::W,
-        ])
-    }
-
-    /// Creates an affine transformation matrix from the given 3D `translation`.
-    ///
-    /// The resulting matrix can be used to transform 3D points and vectors. See
-    /// [`transform_point`] and [`transform_vector`].
-    ///
-    /// [`transform_point`]: Self::transform_point
-    /// [`transform_vector`]: Self::transform_vector
-    #[inline]
-    #[must_use]
-    pub const fn from_translation(translation: Vector<3, T, A>) -> Self
-    where
-        T: Zero + One,
-    {
-        Self::from_rows(&[
-            Vector::<4, T, A>::X,
-            Vector::<4, T, A>::Y,
-            Vector::<4, T, A>::Z,
-            Vector::<4, T, A>::new(
-                translation.as_array()[0],
-                translation.as_array()[1],
-                translation.as_array()[2],
-                T::ONE,
-            ),
-        ])
-    }
-
-    /// Creates an affine transformation matrix from the given 3x3 matrix.
-    ///
-    /// The resulting matrix can be used to transform 3D points and vectors. See
-    /// [`transform_point`] and [`transform_vector`].
-    ///
-    /// [`transform_point`]: Self::transform_point
-    /// [`transform_vector`]: Self::transform_vector
-    #[inline]
-    #[must_use]
-    pub const fn from_submatrix(submatrix: &Matrix<3, T, A>) -> Self
-    where
-        T: Zero + One,
-    {
-        Self::from_rows(&[
-            Vector::<4, T, A>::new(
-                submatrix.as_rows()[0].as_array()[0],
-                submatrix.as_rows()[0].as_array()[1],
-                submatrix.as_rows()[0].as_array()[2],
-                T::ZERO,
-            ),
-            Vector::<4, T, A>::new(
-                submatrix.as_rows()[1].as_array()[0],
-                submatrix.as_rows()[1].as_array()[1],
-                submatrix.as_rows()[1].as_array()[2],
-                T::ZERO,
-            ),
-            Vector::<4, T, A>::new(
-                submatrix.as_rows()[2].as_array()[0],
-                submatrix.as_rows()[2].as_array()[1],
-                submatrix.as_rows()[2].as_array()[2],
-                T::ZERO,
-            ),
-            Vector::<4, T, A>::W,
-        ])
-    }
-
-    /// Creates an affine transformation matrix from the given 3x3 matrix and 3D
-    /// `translation`.
-    ///
-    /// The resulting matrix can be used to transform 3D points and vectors. See
-    /// [`transform_point`] and [`transform_vector`].
-    ///
-    /// [`transform_point`]: Self::transform_point
-    /// [`transform_vector`]: Self::transform_vector
-    #[inline]
-    #[must_use]
-    pub const fn from_submatrix_translation(
-        submatrix: &Matrix<3, T, A>,
-        translation: Vector<3, T, A>,
-    ) -> Self
-    where
-        T: Zero + One,
-    {
-        Self::from_rows(&[
-            Vector::<4, T, A>::new(
-                submatrix.as_rows()[0].as_array()[0],
-                submatrix.as_rows()[0].as_array()[1],
-                submatrix.as_rows()[0].as_array()[2],
-                T::ZERO,
-            ),
-            Vector::<4, T, A>::new(
-                submatrix.as_rows()[1].as_array()[0],
-                submatrix.as_rows()[1].as_array()[1],
-                submatrix.as_rows()[1].as_array()[2],
-                T::ZERO,
-            ),
-            Vector::<4, T, A>::new(
-                submatrix.as_rows()[2].as_array()[0],
-                submatrix.as_rows()[2].as_array()[1],
-                submatrix.as_rows()[2].as_array()[2],
-                T::ZERO,
-            ),
-            Vector::<4, T, A>::new(
-                translation.as_array()[0],
-                translation.as_array()[1],
-                translation.as_array()[2],
-                T::ONE,
-            ),
-        ])
-    }
-
-    /// Creates an affine transformation matrix from an affine transform.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::{Affine2, Mat3, Vec2, Vec3};
-    /// #
-    /// let affine = Affine2::from_rows(&[
-    ///     Vec2::new(1.0, 2.0),
-    ///     Vec2::new(3.0, 4.0),
-    ///     Vec2::new(5.0, 6.0),
-    /// ]);
-    ///
-    /// assert_eq!(
-    ///     Mat3::from_affine(&affine),
-    ///     Mat3::from_rows(&[
-    ///         Vec3::new(1.0, 2.0, 0.0),
-    ///         Vec3::new(3.0, 4.0, 0.0),
-    ///         Vec3::new(5.0, 6.0, 1.0),
-    ///     ]),
-    /// );
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn from_affine(affine: &Affine<3, T, A>) -> Self
-    where
-        T: Zero + One,
-    {
-        Self::from_rows(&[
-            Vector::<4, T, A>::new(
-                affine.submatrix.x_axis.x,
-                affine.submatrix.x_axis.y,
-                affine.submatrix.x_axis.z,
-                T::ZERO,
-            ),
-            Vector::<4, T, A>::new(
-                affine.submatrix.y_axis.x,
-                affine.submatrix.y_axis.y,
-                affine.submatrix.y_axis.z,
-                T::ZERO,
-            ),
-            Vector::<4, T, A>::new(
-                affine.submatrix.z_axis.x,
-                affine.submatrix.z_axis.y,
-                affine.submatrix.z_axis.z,
-                T::ZERO,
-            ),
-            Vector::<4, T, A>::new(
-                affine.translation.x,
-                affine.translation.y,
-                affine.translation.z,
-                T::ONE,
-            ),
-        ])
-    }
-
-    /// Returns a 3x3 matrix discarding the fourth row and column.
-    #[inline]
-    #[must_use]
-    pub const fn submatrix(&self) -> Matrix<3, T, A> {
-        Matrix::from_rows(&[
-            Vector::<3, T, A>::new(
-                self.as_rows()[0].as_array()[0],
-                self.as_rows()[0].as_array()[1],
-                self.as_rows()[0].as_array()[2],
-            ),
-            Vector::<3, T, A>::new(
-                self.as_rows()[1].as_array()[0],
-                self.as_rows()[1].as_array()[1],
-                self.as_rows()[1].as_array()[2],
-            ),
-            Vector::<3, T, A>::new(
-                self.as_rows()[2].as_array()[0],
-                self.as_rows()[2].as_array()[1],
-                self.as_rows()[2].as_array()[2],
-            ),
-        ])
-    }
-
-    /// Returns the translation of an affine transformation matrix.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::{Mat3, Vec2, Vec3};
-    /// #
-    /// let matrix = Mat3::from_rows(&[
-    ///     Vec3::new(1, 0, 0),
-    ///     Vec3::new(0, 1, 0),
-    ///     Vec3::new(6, 8, 1),
-    /// ]);
-    /// assert_eq!(matrix.translation(), Vec2::new(6, 8));
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn translation(&self) -> Vector<3, T, A> {
-        self.w_axis.truncate()
     }
 
     /// Returns a 3x3 matrix discarding the given `row` and `column`.
@@ -1413,7 +1248,7 @@ where
 
     #[track_caller]
     #[inline(always)]
-    fn prepend_diagonal_backend(&self, scale: Vector<4, T, A>) -> Self
+    fn prepend_scale_backend(&self, scale: Vector<4, T, A>) -> Self
     where
         T: Mul<Output = T>,
     {
@@ -2595,7 +2430,7 @@ mod tests {
     use std::format;
 
     use crate::{
-        Affine, Aligned, Mask, Mat2A, Mat3A, Mat4A, Matrix, Unaligned, Vec2A, Vec3A, Vec4A, Vector,
+        Aligned, Mask, Mat2A, Mat3A, Mat4A, Matrix, Projective, Unaligned, Vec3A, Vec4A, Vector,
         test_utils::{assert_panic, assert_test_eq, for_types, random_iter},
     };
 
@@ -2717,6 +2552,18 @@ mod tests {
                     Vector::<4, T, A>::new(T::as_from(0), T::as_from(0), z, T::as_from(0)),
                     Vector::<4, T, A>::new(T::as_from(0), T::as_from(0), T::as_from(0), w)
                 ])
+            );
+        });
+    }
+
+    #[test]
+    fn test_from_scale() {
+        for_types!(|N, T: PrimitiveNumber, A| {
+            let scale = Vector::from_fn(|i| T::as_from(i + 1));
+
+            assert_eq!(
+                Matrix::<N, T, A>::from_scale(scale),
+                Matrix::<N, T, A>::from_diagonal(scale)
             );
         });
     }
@@ -2969,7 +2816,7 @@ mod tests {
     }
 
     #[test]
-    fn test_prepend_diagonal() {
+    fn test_prepend_scale() {
         for_types!(|N, T: PrimitiveFloat, A| {
             for (scale, matrix) in random_iter::<(Vector<N, T, A>, Matrix<N, T, A>)>() {
                 if !scale.is_finite() || !matrix.is_finite() {
@@ -2977,8 +2824,8 @@ mod tests {
                 }
 
                 assert_test_eq!(
-                    matrix.prepend_diagonal(scale),
-                    Matrix::from_diagonal(scale) * matrix,
+                    matrix.prepend_scale(scale),
+                    Matrix::from_scale(scale) * matrix,
                     0.0 = -0.0
                 );
             }
@@ -3029,6 +2876,32 @@ mod tests {
     }
 
     #[test]
+    fn test_from_projective() {
+        for_types!(|T: PrimitiveNumber, A| {
+            let projective =
+                Projective::<2, T, A>::from_row_fn(|r| Vector::from_fn(|c| T::as_from(r * 3 + c)));
+            assert_eq!(
+                Matrix::<2, T, A>::from_projective(&projective),
+                Matrix::<2, T, A>::from_rows(&[
+                    projective.x_axis.truncate(),
+                    projective.y_axis.truncate(),
+                ])
+            );
+
+            let projective =
+                Projective::<3, T, A>::from_row_fn(|r| Vector::from_fn(|c| T::as_from(r * 4 + c)));
+            assert_eq!(
+                Matrix::<3, T, A>::from_projective(&projective),
+                Matrix::<3, T, A>::from_rows(&[
+                    projective.x_axis.truncate(),
+                    projective.y_axis.truncate(),
+                    projective.z_axis.truncate(),
+                ])
+            );
+        });
+    }
+
+    #[test]
     fn test_from_row_array() {
         for_types!(|T: PrimitiveNumber, A| {
             let [x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l] =
@@ -3061,186 +2934,70 @@ mod tests {
     }
 
     #[test]
-    fn test_from_scale() {
-        assert_eq!(
-            Mat3A::from_scale(Vec2A::new(2.0, 3.0)).transform_point(Vec2A::new(4.0, 5.0)),
-            Vec2A::new(8.0, 15.0)
-        );
-        assert_eq!(
-            Mat3A::from_scale(Vec2A::new(2.0, 3.0)).transform_vector(Vec2A::new(4.0, 5.0)),
-            Vec2A::new(8.0, 15.0)
-        );
+    fn test_to_homogeneous() {
+        for_types!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w, a, b, c, d, e] = std::array::from_fn(|i| T::as_from(i + 1));
 
-        assert_eq!(
-            Mat4A::from_scale(Vec3A::new(2.0, 3.0, 4.0)).transform_point(Vec3A::new(5.0, 6.0, 7.0)),
-            Vec3A::new(10.0, 18.0, 28.0)
-        );
-        assert_eq!(
-            Mat4A::from_scale(Vec3A::new(2.0, 3.0, 4.0))
-                .transform_vector(Vec3A::new(5.0, 6.0, 7.0)),
-            Vec3A::new(10.0, 18.0, 28.0)
-        );
-    }
-
-    #[test]
-    fn test_from_translation() {
-        assert_eq!(
-            Mat3A::from_translation(Vec2A::new(1.0, 2.0)).transform_point(Vec2A::new(3.0, 4.0)),
-            Vec2A::new(4.0, 6.0)
-        );
-        assert_eq!(
-            Mat3A::from_translation(Vec2A::new(1.0, 2.0)).transform_vector(Vec2A::new(3.0, 4.0)),
-            Vec2A::new(3.0, 4.0)
-        );
-
-        assert_eq!(
-            Mat4A::from_translation(Vec3A::new(1.0, 2.0, 3.0))
-                .transform_point(Vec3A::new(4.0, 5.0, 6.0)),
-            Vec3A::new(5.0, 7.0, 9.0)
-        );
-        assert_eq!(
-            Mat4A::from_translation(Vec3A::new(1.0, 2.0, 3.0))
-                .transform_vector(Vec3A::new(4.0, 5.0, 6.0)),
-            Vec3A::new(4.0, 5.0, 6.0)
-        );
-    }
-
-    #[test]
-    fn test_from_submatrix() {
-        assert_eq!(
-            Mat3A::from_submatrix(&Mat2A::from_rows(&[Vec2A::new(1, 2), Vec2A::new(3, 4)])),
-            Mat3A::from_rows(&[
-                Vec3A::new(1, 2, 0),
-                Vec3A::new(3, 4, 0),
-                Vec3A::new(0, 0, 1)
-            ])
-        );
-        assert_eq!(
-            Mat4A::from_submatrix(&Mat3A::from_rows(&[
-                Vec3A::new(1, 2, 3),
-                Vec3A::new(4, 5, 6),
-                Vec3A::new(7, 8, 9)
-            ])),
-            Mat4A::from_rows(&[
-                Vec4A::new(1, 2, 3, 0),
-                Vec4A::new(4, 5, 6, 0),
-                Vec4A::new(7, 8, 9, 0),
-                Vec4A::new(0, 0, 0, 1)
-            ])
-        );
-    }
-
-    #[test]
-    fn test_from_submatrix_translation() {
-        assert_eq!(
-            Mat3A::from_submatrix_translation(
-                &Mat2A::from_rows(&[Vec2A::new(1, 2), Vec2A::new(3, 4)]),
-                Vec2A::new(5, 6)
-            ),
-            Mat3A::from_rows(&[
-                Vec3A::new(1, 2, 0),
-                Vec3A::new(3, 4, 0),
-                Vec3A::new(5, 6, 1)
-            ])
-        );
-        assert_eq!(
-            Mat4A::from_submatrix_translation(
-                &Mat3A::from_rows(&[
-                    Vec3A::new(1, 2, 3),
-                    Vec3A::new(4, 5, 6),
-                    Vec3A::new(7, 8, 9)
-                ]),
-                Vec3A::new(10, 11, 12)
-            ),
-            Mat4A::from_rows(&[
-                Vec4A::new(1, 2, 3, 0),
-                Vec4A::new(4, 5, 6, 0),
-                Vec4A::new(7, 8, 9, 0),
-                Vec4A::new(10, 11, 12, 1)
-            ])
-        );
-    }
-
-    #[test]
-    fn test_from_affine() {
-        for_types!(|T: PrimitiveFloat, A| {
             assert_eq!(
-                Matrix::<3, T, A>::from_affine(&Affine::<2, T, A>::from_rows(&[
-                    Vector::<2, T, A>::new(1.0, 2.0),
-                    Vector::<2, T, A>::new(3.0, 4.0),
-                    Vector::<2, T, A>::new(5.0, 6.0)
-                ])),
+                Matrix::<2, T, A>::from_rows(&[
+                    Vector::<2, T, A>::new(x, y),
+                    Vector::<2, T, A>::new(z, w)
+                ])
+                .to_homogeneous(),
                 Matrix::from_rows(&[
-                    Vector::<3, T, A>::new(1.0, 2.0, 0.0),
-                    Vector::<3, T, A>::new(3.0, 4.0, 0.0),
-                    Vector::<3, T, A>::new(5.0, 6.0, 1.0)
+                    Vector::<3, T, A>::new(x, y, T::ZERO),
+                    Vector::<3, T, A>::new(z, w, T::ZERO),
+                    Vector::<3, T, A>::new(T::ZERO, T::ZERO, T::ONE)
                 ])
             );
             assert_eq!(
-                Matrix::<4, T, A>::from_affine(&Affine::<3, T, A>::from_rows(&[
-                    Vector::<3, T, A>::new(1.0, 2.0, 3.0),
-                    Vector::<3, T, A>::new(4.0, 5.0, 6.0),
-                    Vector::<3, T, A>::new(7.0, 8.0, 9.0),
-                    Vector::<3, T, A>::new(10.0, 11.0, 12.0)
-                ])),
-                Matrix::<4, T, A>::from_rows(&[
-                    Vector::<4, T, A>::new(1.0, 2.0, 3.0, 0.0),
-                    Vector::<4, T, A>::new(4.0, 5.0, 6.0, 0.0),
-                    Vector::<4, T, A>::new(7.0, 8.0, 9.0, 0.0),
-                    Vector::<4, T, A>::new(10.0, 11.0, 12.0, 1.0)
+                Matrix::<3, T, A>::from_rows(&[
+                    Vector::<3, T, A>::new(x, y, z),
+                    Vector::<3, T, A>::new(w, a, b),
+                    Vector::<3, T, A>::new(c, d, e)
+                ])
+                .to_homogeneous(),
+                Matrix::from_rows(&[
+                    Vector::<4, T, A>::new(x, y, z, T::ZERO),
+                    Vector::<4, T, A>::new(w, a, b, T::ZERO),
+                    Vector::<4, T, A>::new(c, d, e, T::ZERO),
+                    Vector::<4, T, A>::new(T::ZERO, T::ZERO, T::ZERO, T::ONE)
                 ])
             );
         });
     }
 
     #[test]
-    fn test_submatrix() {
-        assert_eq!(
-            Mat3A::from_rows(&[
-                Vec3A::new(1, 2, 3),
-                Vec3A::new(4, 5, 6),
-                Vec3A::new(7, 8, 9)
-            ])
-            .submatrix(),
-            Mat2A::from_rows(&[Vec2A::new(1, 2), Vec2A::new(4, 5)])
-        );
-        assert_eq!(
-            Mat4A::from_rows(&[
-                Vec4A::new(1, 2, 3, 4),
-                Vec4A::new(5, 6, 7, 8),
-                Vec4A::new(9, 10, 11, 12),
-                Vec4A::new(13, 14, 15, 16)
-            ])
-            .submatrix(),
-            Mat3A::from_rows(&[
-                Vec3A::new(1, 2, 3),
-                Vec3A::new(5, 6, 7),
-                Vec3A::new(9, 10, 11)
-            ])
-        );
-    }
+    fn test_from_homogeneous() {
+        for_types!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l] =
+                std::array::from_fn(|i| T::as_from(i + 1));
 
-    #[test]
-    fn test_translation() {
-        assert_eq!(
-            Mat3A::from_rows(&[
-                Vec3A::new(1, 2, 3),
-                Vec3A::new(4, 5, 6),
-                Vec3A::new(7, 8, 9)
-            ])
-            .translation(),
-            Vec2A::new(7, 8)
-        );
-        assert_eq!(
-            Mat4A::from_rows(&[
-                Vec4A::new(1, 2, 3, 4),
-                Vec4A::new(5, 6, 7, 8),
-                Vec4A::new(9, 10, 11, 12),
-                Vec4A::new(13, 14, 15, 16)
-            ])
-            .translation(),
-            Vec3A::new(13, 14, 15)
-        );
+            assert_eq!(
+                Matrix::<2, T, A>::from_homogeneous(&Matrix::from_rows(&[
+                    Vector::<3, T, A>::new(x, y, z),
+                    Vector::<3, T, A>::new(w, a, b),
+                    Vector::<3, T, A>::new(c, d, e)
+                ])),
+                Matrix::<2, T, A>::from_rows(&[
+                    Vector::<2, T, A>::new(x, y),
+                    Vector::<2, T, A>::new(w, a)
+                ])
+            );
+            assert_eq!(
+                Matrix::<3, T, A>::from_homogeneous(&Matrix::from_rows(&[
+                    Vector::<4, T, A>::new(x, y, z, w),
+                    Vector::<4, T, A>::new(a, b, c, d),
+                    Vector::<4, T, A>::new(e, f, g, h),
+                    Vector::<4, T, A>::new(i, j, k, l)
+                ])),
+                Matrix::<3, T, A>::from_rows(&[
+                    Vector::<3, T, A>::new(x, y, z),
+                    Vector::<3, T, A>::new(a, b, c),
+                    Vector::<3, T, A>::new(e, f, g)
+                ])
+            );
+        });
     }
 
     #[test]
