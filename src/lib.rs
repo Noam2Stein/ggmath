@@ -112,7 +112,7 @@
 //! same operations and performance characteristics.
 //!
 //! Rotors are provided in a manner that aims to make them easier to use than
-//! quaternions or complex-numbers.
+//! quaternions or complex numbers.
 //!
 //! # Masks
 //!
