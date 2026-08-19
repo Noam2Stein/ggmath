@@ -2,7 +2,7 @@
 use core::ops::{Deref, DerefMut};
 
 use crate::{
-    Alignment, Length, One, Scalar, Unaligned, Vector, Zero, length::TwoOrThree,
+    Aligned, Alignment, Length, One, Scalar, Unaligned, Vector, Zero, length::TwoOrThree,
     utils::transmute_generic,
 };
 
@@ -262,6 +262,48 @@ where
         },
         _ => unreachable!(),
     };
+}
+
+#[expect(private_bounds)]
+impl<const N: usize, T, A: Alignment> Rotor<N, T, A>
+where
+    Length<N>: TwoOrThree,
+    T: Scalar,
+{
+    /// Conversion between [`Aligned`] and [`Unaligned`] storage.
+    ///
+    /// See [`align`] and [`unalign`] for scenarios where the output alignment
+    /// is known.
+    ///
+    /// See [`Alignment`] for more details.
+    ///
+    /// [`align`]: Self::align
+    /// [`unalign`]: Self::unalign
+    #[inline]
+    #[must_use]
+    pub const fn to_alignment<A2: Alignment>(self) -> Rotor<N, T, A2> {
+        // SAFETY: The vector element count stays the same, and padding accepts
+        // all bit patterns and is guaranteed to be initialized.
+        unsafe { transmute_generic::<Rotor<N, T, A>, Rotor<N, T, A2>>(self) }
+    }
+
+    /// Conversion to [`Aligned`] storage.
+    ///
+    /// See [`Alignment`] for more information.
+    #[inline]
+    #[must_use]
+    pub const fn align(self) -> Rotor<N, T, Aligned> {
+        self.to_alignment()
+    }
+
+    /// Conversion to [`Unaligned`] storage.
+    ///
+    /// See [`Alignment`] for more details.
+    #[inline]
+    #[must_use]
+    pub const fn unalign(self) -> Rotor<N, T, Unaligned> {
+        self.to_alignment()
+    }
 }
 
 impl<T, A: Alignment> Rotor<2, T, A>
