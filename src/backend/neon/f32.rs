@@ -3,8 +3,8 @@ use core::{arch::aarch64::*, mem::transmute};
 #[allow(unused_imports, reason = "rustc incorrectly thinks this is unused")]
 use crate::utils::PrimitiveFloatUtils;
 use crate::{
-    Aligned, Mask, Mask3A, Mask4A, QuatA, Quaternion, Vec3A, Vec4A, Vector,
-    backend::{FloatVectorBackend, MaskBackend, QuaternionBackend, VectorBackend},
+    Aligned, Mask, Mask3A, Mask4A, QuatA, Quaternion, Rot3A, Rotor, Vec3A, Vec4A, Vector,
+    backend::{FloatVectorBackend, MaskBackend, QuaternionBackend, RotorBackend, VectorBackend},
     utils::{Repr4, safe_target_feature},
 };
 
@@ -262,6 +262,81 @@ unsafe impl VectorBackend<4, Aligned> for f32 {
         fn vector_ge_mask(vector: Vec4A<f32>, other: Vec4A<f32>) -> Mask4A<f32> {
             Mask(vcgeq_f32(vector.0, other.0))
         }
+    }
+}
+
+impl RotorBackend<3, Aligned> for f32 {
+    #[inline]
+    fn rotor_vector_mul(vector: Vec3A<f32>, rhs: Rot3A<f32>) -> Vec3A<f32> {
+        let vector_xyzz = vector.xyzz();
+        let vector_yxyx = vector.yxyx();
+        let rhs_wwwx = rhs.0.wwwx();
+        let rhs_yyxx = rhs.0.yyxx();
+        let rhs_zzzy = rhs.0.zzzy();
+        let rhs_xxxx = rhs.0.xxxx();
+        let rhs_yyyy = rhs.0.yyyy();
+
+        let f = rhs_wwwx * vector_xyzz
+            + Vec4A::new(1.0, 1.0, -1.0, 1.0)
+                * (rhs_zzzy * vector_xyzz - rhs_yyxx * vector_yxyx).wzyx();
+
+        rhs_wwwx.truncate() * f.truncate()
+            + Vec4A::new(1.0, 1.0, -1.0, -1.0).truncate() * rhs_zzzy.truncate() * f.wzy()
+            + Vec4A::new(1.0, -1.0, 1.0, -1.0).truncate() * rhs_xxxx.truncate() * f.yxw()
+            + Vec4A::new(1.0, -1.0, -1.0, 1.0).truncate() * rhs_yyyy.truncate() * f.zwx()
+    }
+
+    #[inline]
+    fn rotor_mul(rotor: Rot3A<f32>, rhs: Rot3A<f32>) -> Rot3A<f32> {
+        // This is the result of simplifying the multiplication of two rotors
+        // with our basis bivectors:
+        //
+        // xy0 * s1 + s0 * xy1 - xz0 * yz1 + yz0 * xz1
+        // xz0 * s1 + s0 * xz1 + xy0 * yz1 + yz0 * xy1
+        // yz0 * s1 + s0 * yz1 + xz0 * xy1 - xy0 * xz1
+        // s0 * s1 - xy0 * xy1 - xz0 * xz1 - yz0 * yz1
+
+        // In raw vector form, this is:
+        //
+        // x0 * w1 + w0 * x1 - y0 * z1 + z0 * y1
+        // y0 * w1 + w0 * y1 + x0 * z1 + z0 * x1
+        // z0 * w1 + w0 * z1 + y0 * x1 - x0 * y1
+        // w0 * w1 - x0 * x1 - y0 * y1 - z0 * z1
+
+        // Change the addition order to put subtracts at the end:
+        //
+        // x0 * w1 + w0 * x1 + z0 * y1 - y0 * z1
+        // y0 * w1 + w0 * y1 + x0 * z1 + z0 * x1
+        // z0 * w1 + w0 * z1 + y0 * x1 - x0 * y1
+        // w0 * w1 - x0 * x1 - y0 * y1 - z0 * z1
+
+        // Wrap negation:
+        //
+        // x0 * w1 + (w0 * x1 + z0 * y1 - y0 * z1)
+        // y0 * w1 + (w0 * y1 + x0 * z1 + z0 * x1)
+        // z0 * w1 + (w0 * z1 + y0 * x1 - x0 * y1)
+        // w0 * w1 - (x0 * x1 + y0 * y1 + z0 * z1)
+
+        // In swizzle notation, this is:
+        //
+        // a*b.wwww + (+++-)(a.wwwx*b.xyzx + a.zxyy*b.yzxy + (-+-+)a.yzxz*b.zxyz)
+
+        // This implementation uses 7 shuffles and 2 bitxors. I *think* this is
+        // the most efficient this operation can be.
+
+        const PPPN: Vec4A<f32> = Vec4A::new(0.0, 0.0, 0.0, -0.0);
+        const NPNP: Vec4A<f32> = Vec4A::new(-0.0, 0.0, -0.0, 0.0);
+
+        let coe1 = rotor.0 * rhs.0.wwww();
+        let coe2 = rotor.0.wwwx() * rhs.0.xyzx();
+        let coe3 = rotor.0.zxyy() * rhs.0.yzxy();
+        let coe4 = rotor.0.yzxz() * rhs.0.zxyz();
+
+        let neg_coe4 = Vec4A::<f32>::from_bits(NPNP.to_bits() ^ coe4.to_bits());
+        let coe123 = coe2 + coe3 + neg_coe4;
+        let neg_coe123 = Vec4A::<f32>::from_bits(PPPN.to_bits() ^ coe123.to_bits());
+
+        Rotor(coe1 + neg_coe123)
     }
 }
 

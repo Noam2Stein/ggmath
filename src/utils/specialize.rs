@@ -57,7 +57,7 @@ use crate::{
 /// [`ScalarBackend<N, A>`]: crate::ScalarBackend
 /// [`ScalarBackend`]: crate::ScalarBackend
 macro_rules! specialize {
-    (<$T:ty as $Backend:ident<$N:tt, $A:tt>>::$f:ident($($arg:expr),*$(,)?)) => {
+    (<$T:ty as $Backend:ident<$N:ident, $A:tt>>::$f:ident($($arg:expr),*$(,)?)) => {
         (const {
             $crate::utils::specialize_helper::<
                 $N,
@@ -76,6 +76,20 @@ macro_rules! specialize {
                 <$T as $Backend<2, $crate::Unaligned>>::$f,
                 <$T as $Backend<3, $crate::Unaligned>>::$f,
                 <$T as $Backend<4, $crate::Unaligned>>::$f,
+            )
+        })($($arg),*)
+    };
+    (<$T:ty as $Backend:ident<$N:literal, $A:tt>>::$f:ident($($arg:expr),*$(,)?)) => {
+        (const {
+            $crate::utils::specialize_n_helper::<
+                $N,
+                $A,
+                $crate::utils::specialize!(@fn($($arg),*)),
+                $crate::utils::specialize!(@fn($($arg),*)),
+                $crate::utils::specialize!(@fn($($arg),*)),
+            >(
+                <$T as $Backend<$N, $crate::Unaligned>>::$f,
+                <$T as $Backend<$N, $crate::Aligned>>::$f,
             )
         })($($arg),*)
     };
@@ -333,6 +347,28 @@ where
         (3, false) => unsafe { transmute_generic::<F3U, F>(f3u) },
 
         _ => unreachable!(),
+    }
+}
+
+/// A variant of [`specialize_helper`] that only specializes alignment, with a
+/// specific values for `N`.
+#[expect(private_bounds)]
+pub const fn specialize_n_helper<const N: usize, A: Alignment, Fu, Fa, F>(fu: Fu, fa: Fa) -> F
+where
+    Length<N>: TwoOrThree,
+    Fu: Specialize<F, N, N, Unaligned, A> + Copy,
+    Fa: Specialize<F, N, N, Aligned, A> + Copy,
+{
+    if A::IS_ALIGNED {
+        // SAFETY: `Fa` is guaranteed to be the same type as `F` as long as `A`
+        // is `Aligned`. Because `A::IS_ALIGNED` is true, `A` is guaranteed to
+        // be `Aligned`, so the types are the same.
+        unsafe { transmute_generic::<Fa, F>(fa) }
+    } else {
+        // SAFETY: `Fu` is guaranteed to be the same type as `F` as long as `A`
+        // is `Unaligned`. Because `A::IS_ALIGNED` is false, `A` is guaranteed
+        // to be `Unaligned`, so the types are the same.
+        unsafe { transmute_generic::<Fu, F>(fu) }
     }
 }
 

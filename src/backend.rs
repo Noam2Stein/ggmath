@@ -2,7 +2,8 @@ use core::ops::{Add, BitAnd, BitOr, BitXor, Div, Mul, Neg, Not, Rem, Shl, Shr, S
 
 use crate::{
     Aligned, Alignment, Length, Mask, PrimitiveFloat, PrimitiveInteger, PrimitiveSigned,
-    Quaternion, Scalar, SupportedLength, Unaligned, Vector,
+    Quaternion, Rotor, Scalar, SupportedLength, Unaligned, Vector,
+    length::TwoOrThree,
     utils::{PrimitiveFloatUtils, Repr2, Repr3, Repr4},
 };
 
@@ -154,6 +155,29 @@ where
     fn vector_ge_mask(vector: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Mask<N, Self, A>
     where
         Self: Scalar + PartialOrd;
+}
+
+pub(crate) trait RotorBackend<const N: usize, A: Alignment>
+where
+    Length<N>: TwoOrThree,
+{
+    #[track_caller]
+    fn rotor_vector_mul(vector: Vector<N, Self, A>, rhs: Rotor<N, Self, A>) -> Vector<N, Self, A>
+    where
+        Self: Scalar
+            + Neg<Output = Self>
+            + Add<Output = Self>
+            + Sub<Output = Self>
+            + Mul<Output = Self>;
+
+    #[track_caller]
+    fn rotor_mul(rotor: Rotor<N, Self, A>, rhs: Rotor<N, Self, A>) -> Rotor<N, Self, A>
+    where
+        Self: Scalar
+            + Neg<Output = Self>
+            + Add<Output = Self>
+            + Sub<Output = Self>
+            + Mul<Output = Self>;
 }
 
 pub(crate) trait QuaternionBackend<A: Alignment> {
@@ -1098,6 +1122,46 @@ where
             vector.y >= other.y,
             vector.z >= other.z,
             vector.w >= other.w,
+        )
+    }
+}
+
+impl<T, A: Alignment> RotorBackend<3, A> for T
+where
+    T: DefaultBackend<4, A>,
+{
+    #[inline]
+    fn rotor_vector_mul(vector: Vector<3, Self, A>, rhs: Rotor<3, Self, A>) -> Vector<3, Self, A>
+    where
+        Self: Neg<Output = Self> + Add<Output = Self> + Sub<Output = Self> + Mul<Output = Self>,
+    {
+        let fx = rhs.s * vector.x + rhs.xy * vector.y + rhs.xz * vector.z;
+        let fy = rhs.s * vector.y - rhs.xy * vector.x + rhs.yz * vector.z;
+        let fz = rhs.s * vector.z - rhs.xz * vector.x - rhs.yz * vector.y;
+        let fw = rhs.xy * vector.z - rhs.xz * vector.y + rhs.yz * vector.x;
+
+        Vector::<3, T, A>::new(
+            rhs.s * fx + rhs.xy * fy + rhs.xz * fz + rhs.yz * fw,
+            rhs.s * fy - rhs.xy * fx - rhs.xz * fw + rhs.yz * fz,
+            rhs.s * fz + rhs.xy * fw - rhs.xz * fx - rhs.yz * fy,
+        )
+    }
+
+    #[inline]
+    fn rotor_mul(rotor: Rotor<3, Self, A>, rhs: Rotor<3, Self, A>) -> Rotor<3, Self, A>
+    where
+        Self: Neg<Output = Self> + Add<Output = Self> + Sub<Output = Self> + Mul<Output = Self>,
+    {
+        let [xy0, xz0, yz0, s0] = rotor.to_array();
+        let [xy1, xz1, yz1, s1] = rhs.to_array();
+
+        // This is the result of simplifying the multiplication of two rotors
+        // with our basis bivectors
+        Rotor::<3, T, A>::new(
+            xy0 * s1 + s0 * xy1 - xz0 * yz1 + yz0 * xz1,
+            xz0 * s1 + s0 * xz1 + xy0 * yz1 + yz0 * xy1,
+            yz0 * s1 + s0 * yz1 + xz0 * xy1 - xy0 * xz1,
+            s0 * s1 - xy0 * xy1 - xz0 * xz1 - yz0 * yz1,
         )
     }
 }

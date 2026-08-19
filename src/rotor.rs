@@ -6,8 +6,9 @@ use core::{
 
 use crate::{
     Aligned, Alignment, Length, One, Scalar, Unaligned, Vector, Zero,
+    backend::RotorBackend,
     length::TwoOrThree,
-    utils::{specialize_23, transmute_generic, transmute_mut, transmute_ref},
+    utils::{specialize, specialize_23, transmute_generic, transmute_mut, transmute_ref},
 };
 
 /// A rotor representing rotation.
@@ -72,7 +73,7 @@ use crate::{
 /// `rotor_len(N) = (N choose 2) + 1`.
 #[expect(private_bounds)]
 pub struct Rotor<const N: usize, T, A: Alignment>(
-    <Length<N> as TwoOrThree>::Select<Vector<2, T, A>, Vector<4, T, A>>,
+    pub(crate) <Length<N> as TwoOrThree>::Select<Vector<2, T, A>, Vector<4, T, A>>,
 )
 where
     Length<N>: TwoOrThree,
@@ -598,6 +599,30 @@ where
     {
         Self(self.0 * rhs)
     }
+
+    #[inline(always)]
+    #[track_caller]
+    fn vector_mul_backend(vector: Vector<2, T, A>, rhs: Self) -> Vector<2, T, A>
+    where
+        T: Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
+    {
+        Vector::<2, T, A>::new(
+            vector.x * rhs.s - vector.y * rhs.xy,
+            vector.x * rhs.xy + vector.y * rhs.s,
+        )
+    }
+
+    #[inline(always)]
+    #[track_caller]
+    fn mul_backend(self, rhs: Self) -> Self
+    where
+        T: Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
+    {
+        Self::new(
+            self.xy * rhs.s + self.s * rhs.xy,
+            self.xy * rhs.xy + self.s * rhs.s,
+        )
+    }
 }
 
 impl<T, A: Alignment> Rotor<3, T, A>
@@ -843,6 +868,24 @@ where
         T: Mul<Output = T>,
     {
         Self(self.0 * rhs)
+    }
+
+    #[inline(always)]
+    #[track_caller]
+    fn vector_mul_backend(vector: Vector<3, T, A>, rhs: Self) -> Vector<3, T, A>
+    where
+        T: Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
+    {
+        specialize!(<T as RotorBackend<3, A>>::rotor_vector_mul(vector, rhs))
+    }
+
+    #[inline(always)]
+    #[track_caller]
+    fn mul_backend(self, rhs: Self) -> Self
+    where
+        T: Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
+    {
+        specialize!(<T as RotorBackend<3, A>>::rotor_mul(self, rhs))
     }
 }
 
@@ -1356,6 +1399,188 @@ macro_rules! impl_mul_scalar {
 }
 impl_mul_scalar!(
     /// Multiplies every element by a uniform scalar.
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is cross-platform deterministic and
+    /// fully consistent with scalar addition and multiplication, including
+    /// floating-point precision and integer panics.
+);
+
+macro_rules! impl_vector_mul {
+    ($(#[$doc:meta])*) => {
+        impl<const N: usize, T, A: Alignment> Mul<Rotor<N, T, A>> for Vector<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
+        {
+            type Output = Self;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: Rotor<N, T, A>) -> Self::Output {
+                specialize_23!(Rotor::<N, T, A>::vector_mul_backend(self, rhs))
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Mul<&Rotor<N, T, A>> for Vector<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
+        {
+            type Output = Self;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: &Rotor<N, T, A>) -> Self::Output {
+                self * *rhs
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Mul<Rotor<N, T, A>> for &Vector<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
+        {
+            type Output = Vector<N, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: Rotor<N, T, A>) -> Self::Output {
+                *self * rhs
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Mul<&Rotor<N, T, A>> for &Vector<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
+        {
+            type Output = Vector<N, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: &Rotor<N, T, A>) -> Self::Output {
+                *self * *rhs
+            }
+        }
+    };
+}
+impl_vector_mul!(
+    /// Transforms a vector by a rotor.
+    ///
+    /// If the rotor is normalized, this just rotates the vector. If the rotor
+    /// is not normalized, this also scales the vector by
+    /// `rotor.length_squared()`.
+    ///
+    /// Because the library uses left multiplication, vectors always go on the
+    /// left-hand side.
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is cross-platform deterministic and
+    /// fully consistent with scalar addition and multiplication, including
+    /// floating-point precision and integer panics.
+);
+
+macro_rules! impl_mul {
+    ($(#[$doc:meta])*) => {
+        impl<const N: usize, T, A: Alignment> Mul for Rotor<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
+        {
+            type Output = Self;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: Self) -> Self::Output {
+                specialize_23!(Rotor::<N, T, A>::mul_backend(self, rhs))
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Mul<&Rotor<N, T, A>> for Rotor<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
+        {
+            type Output = Self;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: &Rotor<N, T, A>) -> Self::Output {
+                self * *rhs
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Mul<Rotor<N, T, A>> for &Rotor<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
+        {
+            type Output = Rotor<N, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: Rotor<N, T, A>) -> Self::Output {
+                *self * rhs
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Mul<&Rotor<N, T, A>> for &Rotor<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
+        {
+            type Output = Rotor<N, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: &Rotor<N, T, A>) -> Self::Output {
+                *self * *rhs
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> MulAssign for Rotor<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
+        {
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul_assign(&mut self, rhs: Self) {
+                *self = *self * rhs;
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> MulAssign<&Rotor<N, T, A>> for Rotor<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
+        {
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul_assign(&mut self, rhs: &Rotor<N, T, A>) {
+                *self = *self * *rhs;
+            }
+        }
+    };
+}
+impl_mul!(
+    /// Multiplies two rotors.
+    ///
+    /// The resulting rotor is equivalent to first applying the left rotor, then
+    /// the right rotor.
     ///
     /// # Consistency
     ///
