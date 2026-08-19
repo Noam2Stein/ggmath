@@ -36,19 +36,21 @@ use crate::{Alignment, Length, Scalar, Unaligned, Vector, length::TwoOrThree};
 /// > [3D](Rot3#representation-and-fields) first. This section explains fields
 /// > in a dimension agnostic manner.
 ///
-/// This rotor contains a scalar field `s`, and all bivector fields, with
-/// increasing index order signs. For 2D this is: `xy, s`. For 3D, this is
-/// `xy, xz, yz, s`. If additional dimensions are ever supported, the pattern
-/// would continue, for example, for 4D, `xy, xz, xw, yz, yw, zw, s`.
+/// A rotor stores one value for each basis plane of rotation, followed by a
+/// scalar value `s`, which is always last in memory.
 ///
-/// For all dimensions but 2D, bivector fields are
-/// `sin(angle/2) * plane_of_rotation`. For 2D, the bivector field `xy` is `sin(angle)`, and `s` is
-/// `cos(angle)`. This is mathematically incorrect, but is more efficient.
+/// In 2D there is only one plane of rotation, `xy`. In 3D there are three
+/// basis planes of rotation, `xy, xz, yz`. If additional dimensions are ever
+/// supported, the pattern would continue with `N choose 2` basis planes, signs
+/// determined by increasing index order, and planes stored in lexicographical
+/// order. For example, in 4D this would be `xy, xz, xw, yz, yw, zw`.
 ///
-/// The scalar field `s` is always last in memory. This enables a trick where
-/// taking the bivector from a 3D rotor is a no-op with SIMD `vec4.xyz()`.
-///
-/// The bivector fields use lexicographical ordering.
+/// In three dimensions or more, plane fields store
+/// `plane_of_rotation * sin(angle/2)`, and `s` stores `cos(angle/2)`. The
+/// half-angle is necessary to correctly handle vectors outside the plane of
+/// rotation. In 2D, however, the entire vector space is the plane of rotation,
+/// thus we make 2D a special case and optimize the representation: `xy` stores
+/// `sin(angle)` and `s` stores `cos(angle)`.
 ///
 /// Note that these fields are only exposed by implementing [`Deref`] and
 /// [`DerefMut`].
