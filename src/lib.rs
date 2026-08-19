@@ -4,7 +4,7 @@
 //! - Square Matrices: [`Mat2<T>`], [`Mat3<T>`], [`Mat4<T>`]
 //! - Affine Transforms: [`Affine2<T>`], [`Affine3<T>`]
 //! - Projective Transforms: [`Proj2<T>`], [`Proj3<T>`]
-//! - Quaternions: [`Quat<T>`]
+//! - Rotors: [`Rot2<T>`], [`Rot3<T>`]
 //! - Masks: [`Mask2<T>`], [`Mask3<T>`], [`Mask4<T>`]
 //!
 //! SIMD variants:
@@ -13,7 +13,7 @@
 //! - Square Matrices: [`Mat2A<T>`], [`Mat3A<T>`], [`Mat4A<T>`]
 //! - Affine Transforms: [`Affine2A<T>`], [`Affine3A<T>`]
 //! - Projective Transforms: [`Proj2A<T>`], [`Proj3A<T>`]
-//! - Quaternions: [`QuatA<T>`]
+//! - Rotors: [`Rot2A<T>`], [`Rot3A<T>`]
 //! - Masks: [`Mask2A<T>`], [`Mask3A<T>`], [`Mask4A<T>`]
 //!
 //! Underlying generic types:
@@ -22,7 +22,7 @@
 //! - [`Matrix<N, T, A>`]
 //! - [`Affine<N, T, A>`]
 //! - [`Projective<N, T, A>`]
-//! - [`Quaternion<T, A>`]
+//! - [`Rotor<N, T, A>`]
 //! - [`Mask<N, T, A>`]
 //!
 //! # SIMD
@@ -102,6 +102,17 @@
 //!
 //! > This table is true only for target architectures that have SIMD and are
 //! > supported.
+//!
+//! # Rotors
+//!
+//! Rotors are a compact and efficient alternative to rotation matrices.
+//!
+//! 3D rotors are mathematically equivalent to quaternions, and this library's
+//! 2D rotors are mathematically equivalent to complex numbers. They have the
+//! same operations and performance characteristics.
+//!
+//! Rotors are provided in a manner that aims to make them easier to use than
+//! quaternions or complex-numbers.
 //!
 //! # Masks
 //!
