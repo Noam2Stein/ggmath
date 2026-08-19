@@ -2,6 +2,7 @@ use core::{
     fmt::{Debug, Display},
     hash::Hash,
     ops::{Add, AddAssign, Deref, DerefMut, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
+    panic::{RefUnwindSafe, UnwindSafe},
 };
 
 use crate::{
@@ -1713,3 +1714,42 @@ impl_div_scalar!(
     /// fully consistent with scalar addition and multiplication, including
     /// floating-point precision and integer panics.
 );
+
+// SAFETY: Rotors are equivalent to consecutive values of `T` plus padding.
+// Because `T` is `Send` the list also is, and the padding is `Send` too.
+unsafe impl<const N: usize, T, A: Alignment> Send for Rotor<N, T, A>
+where
+    Length<N>: TwoOrThree,
+    T: Scalar + Send,
+{
+}
+
+// SAFETY: Rotors are equivalent to consecutive values of `T` plus padding.
+// Because `T` is `Sync` the list also is, and the padding is `Sync` too.
+unsafe impl<const N: usize, T, A: Alignment> Sync for Rotor<N, T, A>
+where
+    Length<N>: TwoOrThree,
+    T: Scalar + Sync,
+{
+}
+
+impl<const N: usize, T, A: Alignment> Unpin for Rotor<N, T, A>
+where
+    Length<N>: TwoOrThree,
+    T: Scalar + Unpin,
+{
+}
+
+impl<const N: usize, T, A: Alignment> UnwindSafe for Rotor<N, T, A>
+where
+    Length<N>: TwoOrThree,
+    T: Scalar + UnwindSafe,
+{
+}
+
+impl<const N: usize, T, A: Alignment> RefUnwindSafe for Rotor<N, T, A>
+where
+    Length<N>: TwoOrThree,
+    T: Scalar + RefUnwindSafe,
+{
+}
