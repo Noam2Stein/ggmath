@@ -1,7 +1,7 @@
 use core::{
     fmt::{Debug, Display},
     hash::Hash,
-    ops::{Add, Deref, DerefMut, Mul, Neg},
+    ops::{Add, AddAssign, Deref, DerefMut, Mul, MulAssign, Neg, Sub, SubAssign},
 };
 
 use crate::{
@@ -562,6 +562,42 @@ where
     {
         self.0.hash(state);
     }
+
+    #[inline(always)]
+    #[track_caller]
+    fn neg_backend(self) -> Self
+    where
+        T: Neg<Output = T>,
+    {
+        Self(-self.0)
+    }
+
+    #[inline(always)]
+    #[track_caller]
+    fn add_backend(self, rhs: Self) -> Self
+    where
+        T: Add<Output = T>,
+    {
+        Self(self.0 + rhs.0)
+    }
+
+    #[inline(always)]
+    #[track_caller]
+    fn sub_backend(self, rhs: Self) -> Self
+    where
+        T: Sub<Output = T>,
+    {
+        Self(self.0 - rhs.0)
+    }
+
+    #[inline(always)]
+    #[track_caller]
+    fn mul_scalar_backend(self, rhs: T) -> Self
+    where
+        T: Mul<Output = T>,
+    {
+        Self(self.0 * rhs)
+    }
 }
 
 impl<T, A: Alignment> Rotor<3, T, A>
@@ -772,6 +808,42 @@ where
     {
         self.0.hash(state);
     }
+
+    #[inline(always)]
+    #[track_caller]
+    fn neg_backend(self) -> Self
+    where
+        T: Neg<Output = T>,
+    {
+        Self(-self.0)
+    }
+
+    #[inline(always)]
+    #[track_caller]
+    fn add_backend(self, rhs: Self) -> Self
+    where
+        T: Add<Output = T>,
+    {
+        Self(self.0 + rhs.0)
+    }
+
+    #[inline(always)]
+    #[track_caller]
+    fn sub_backend(self, rhs: Self) -> Self
+    where
+        T: Sub<Output = T>,
+    {
+        Self(self.0 - rhs.0)
+    }
+
+    #[inline(always)]
+    #[track_caller]
+    fn mul_scalar_backend(self, rhs: T) -> Self
+    where
+        T: Mul<Output = T>,
+    {
+        Self(self.0 * rhs)
+    }
 }
 
 impl<const N: usize, T, A: Alignment> Clone for Rotor<N, T, A>
@@ -954,3 +1026,340 @@ where
         Self::IDENTITY
     }
 }
+
+macro_rules! impl_neg {
+    ($(#[$doc:meta])*) => {
+        impl<const N: usize, T, A: Alignment> Neg for Rotor<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Neg<Output = T>,
+        {
+            type Output = Self;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn neg(self) -> Self::Output {
+                specialize_23!(Rotor::<N, T, A>::neg_backend(self))
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Neg for &Rotor<N, T, A>
+        where
+        Length<N>: TwoOrThree,
+        T: Scalar + Neg<Output = T>,
+        {
+            type Output = Rotor<N, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn neg(self) -> Self::Output {
+                -*self
+            }
+        }
+    };
+}
+impl_neg!(
+    /// Negates the sign of each element.
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is fully consistent with the scalar
+    /// operation, including integer panics.
+);
+
+macro_rules! impl_add {
+    ($(#[$doc:meta])*) => {
+        impl<const N: usize, T, A: Alignment> Add for Rotor<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Add<Output = T>,
+        {
+            type Output = Self;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn add(self, rhs: Self) -> Self::Output {
+                specialize_23!(Rotor::<N, T, A>::add_backend(self, rhs))
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Add<&Rotor<N, T, A>> for Rotor<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Add<Output = T>,
+        {
+            type Output = Self;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn add(self, rhs: &Self) -> Self::Output {
+                self + *rhs
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Add<Rotor<N, T, A>> for &Rotor<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Add<Output = T>,
+        {
+            type Output = Rotor<N, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn add(self, rhs: Rotor<N, T, A>) -> Self::Output {
+                *self + rhs
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Add for &Rotor<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Add<Output = T>,
+        {
+            type Output = Rotor<N, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn add(self, rhs: Self) -> Self::Output {
+                *self + *rhs
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> AddAssign for Rotor<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Add<Output = T>,
+        {
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn add_assign(&mut self, rhs: Self) {
+                *self = *self + rhs;
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> AddAssign<&Rotor<N, T, A>> for Rotor<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Add<Output = T>,
+        {
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn add_assign(&mut self, rhs: &Self) {
+                *self = *self + rhs;
+            }
+        }
+    };
+}
+impl_add!(
+    /// Adds each element of a rotor to another rotor.
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is fully consistent with the scalar
+    /// operation, including floating-point precision and integer panics.
+);
+
+macro_rules! impl_sub {
+    ($(#[$doc:meta])*) => {
+        impl<const N: usize, T, A: Alignment> Sub for Rotor<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Sub<Output = T>,
+        {
+            type Output = Self;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn sub(self, rhs: Self) -> Self::Output {
+                specialize_23!(Rotor::<N, T, A>::sub_backend(self, rhs))
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Sub<&Rotor<N, T, A>> for Rotor<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Sub<Output = T>,
+        {
+            type Output = Self;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn sub(self, rhs: &Self) -> Self::Output {
+                self - *rhs
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Sub<Rotor<N, T, A>> for &Rotor<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Sub<Output = T>,
+        {
+            type Output = Rotor<N, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn sub(self, rhs: Rotor<N, T, A>) -> Self::Output {
+                *self - rhs
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Sub for &Rotor<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Sub<Output = T>,
+        {
+            type Output = Rotor<N, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn sub(self, rhs: Self) -> Self::Output {
+                *self - *rhs
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> SubAssign for Rotor<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Sub<Output = T>,
+        {
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn sub_assign(&mut self, rhs: Self) {
+                *self = *self - rhs;
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> SubAssign<&Rotor<N, T, A>> for Rotor<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Sub<Output = T>,
+        {
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn sub_assign(&mut self, rhs: &Self) {
+                *self = *self - rhs;
+            }
+        }
+    };
+}
+impl_sub!(
+    /// Subtracts each element of a rotor from another rotor.
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is fully consistent with the scalar
+    /// operation, including floating-point precision and integer panics.
+);
+
+macro_rules! impl_mul_scalar {
+    ($(#[$doc:meta])*) => {
+        impl<const N: usize, T, A: Alignment> Mul<T> for Rotor<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Mul<Output = T>,
+        {
+            type Output = Self;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: T) -> Self::Output {
+                specialize_23!(Rotor::<N, T, A>::mul_scalar_backend(self, rhs))
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Mul<&T> for Rotor<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Mul<Output = T>,
+        {
+            type Output = Self;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: &T) -> Self::Output {
+                self * *rhs
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Mul<T> for &Rotor<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Mul<Output = T>,
+        {
+            type Output = Rotor<N, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: T) -> Self::Output {
+                *self * rhs
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Mul<&T> for &Rotor<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Mul<Output = T>,
+        {
+            type Output = Rotor<N, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: &T) -> Self::Output {
+                *self * *rhs
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> MulAssign<T> for Rotor<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Mul<Output = T>,
+        {
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul_assign(&mut self, rhs: T) {
+                *self = *self * rhs;
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> MulAssign<&T> for Rotor<N, T, A>
+        where
+            Length<N>: TwoOrThree,
+            T: Scalar + Mul<Output = T>,
+        {
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul_assign(&mut self, rhs: &T) {
+                *self = *self * *rhs;
+            }
+        }
+    };
+}
+impl_mul_scalar!(
+    /// Multiplies every element by a uniform scalar.
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is cross-platform deterministic and
+    /// fully consistent with scalar addition and multiplication, including
+    /// floating-point precision and integer panics.
+);
