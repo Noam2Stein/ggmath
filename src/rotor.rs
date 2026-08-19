@@ -186,36 +186,38 @@ pub type Rot2A<T> = Rotor<2, T, Unaligned>;
 
 /// A 3D rotor representing 3D rotation.
 ///
-/// Rotors are an efficient representation of rotations, which make various
-/// operations faster and simpler than with matrices. You may already be
-/// familiar with quaternions, which are identical to 3D rotors.
+/// Rotors are a compact and efficient alternative to rotation matrices. If you
+/// are familiar with quaternions, you already know how to use rotors. A 3D
+/// rotor is mathematically equivalent to a quaternion.
 ///
-/// > Rotors come from Geometric Algebra. You do not need to understand any math
-/// > in order to use this type, but if you want to anyway, I recommend
-/// > [this resource](https://www.youtube.com/playlist?list=PLVuwZXwFua-0Ks3rRS4tIkswgUmDLqqRy).
+/// > If you are curious about the underlying math, rotors come from Geometric
+/// > Algebra. I recommend
+/// > [this resource](https://www.youtube.com/playlist?list=PLVuwZXwFua-0Ks3rRS4tIkswgUmDLqqRy)
+/// > for learning more.
 ///
 /// This rotor is intended to be normalized, but may denormalize due to floating
 /// point "error creep" which can occur when successive operations are applied.
+/// Use `rotor.normalize()` to maintain precision.
 ///
 /// # SIMD alignment
 ///
 /// For appropriate `T` types, [`Rot3A<T>`] has SIMD alignment. For no SIMD use
 /// [`Rot3<T>`].
 ///
-/// # Fields
+/// # Representation and Fields
 ///
-/// Unless you are familiar with rotor/quaternion math, you should avoid using
-/// these fields directly, and instead use higher level helper functions.
+/// Unless you are familiar with rotor/quaternion math, avoid using these fields
+/// directly, and instead use higher level helper functions.
 ///
-/// `plane` and `angle` refer to plane-angle/axis-angle rotation.
+/// This type stores four elements, with this order in memory:
 ///
-/// - `xy: T = plane.xy * sin(angle * 0.5)`
-/// - `xz: T = plane.xz * sin(angle * 0.5)`
-/// - `yz: T = plane.yz * sin(angle * 0.5)`
+/// - `xy: T = plane_of_rotation.xy * sin(angle * 0.5)`
+/// - `xz: T = plane_of_rotation.xz * sin(angle * 0.5)`
+/// - `yz: T = plane_of_rotation.yz * sin(angle * 0.5)`
 /// - `s: T = cos(angle * 0.5)`
 ///
-/// Note that this does not follow the right-hand rule. This stores
-/// `xy, xz, yz`, while the right-hand rule would mean storing `yz, zx, xy`.
+/// This representation uses lexicographical ordering `xy, xz, yz`, which
+/// differs from right-hand rule conventions that might expect `yz, zx, xy`.
 ///
 /// Note that these fields are only exposed by implementing [`Deref`] and
 /// [`DerefMut`].
