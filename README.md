@@ -110,7 +110,7 @@ Rotors are a compact and efficient alternative to rotation matrices.
 
 3D rotors are mathematically equivalent to quaternions, and this library's 2D
 rotors are mathematically equivalent to complex numbers. They have the same
-operations and performance characteristics.
+representation, operations and performance characteristics.
 
 Rotors are provided in a manner that aims to make them easier to use than
 quaternions or complex numbers.
