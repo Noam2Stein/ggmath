@@ -17,6 +17,8 @@ use crate::{
 
 mod generic;
 
+mod float;
+
 /// A rotor used to represent rotation.
 ///
 /// A rotor is a mathematical object used to represent rotations. In comparison
