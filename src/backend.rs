@@ -1135,15 +1135,19 @@ where
     where
         Self: Neg<Output = Self> + Add<Output = Self> + Sub<Output = Self> + Mul<Output = Self>,
     {
-        let fx = rhs.s * vector.x + rhs.xy * vector.y + rhs.xz * vector.z;
-        let fy = rhs.s * vector.y - rhs.xy * vector.x + rhs.yz * vector.z;
-        let fz = rhs.s * vector.z - rhs.xz * vector.x - rhs.yz * vector.y;
-        let fw = rhs.xy * vector.z - rhs.xz * vector.y + rhs.yz * vector.x;
+        // This is the expansion of the geometric product `R^(-1)vR`. We
+        // intentionally use `R^(-1)vR` and not `RvR^(-1)` so that the rotor is
+        // `e^(B/2)` and not `e^(-B/2)`.
+
+        let fx = rhs.s * vector.x - rhs.xy * vector.y - rhs.xz * vector.z;
+        let fy = rhs.s * vector.y + rhs.xy * vector.x - rhs.yz * vector.z;
+        let fz = rhs.s * vector.z + rhs.xz * vector.x + rhs.yz * vector.y;
+        let fw = -rhs.xy * vector.z + rhs.xz * vector.y - rhs.yz * vector.x;
 
         Vector::<3, T, A>::new(
-            rhs.s * fx + rhs.xy * fy + rhs.xz * fz + rhs.yz * fw,
-            rhs.s * fy - rhs.xy * fx - rhs.xz * fw + rhs.yz * fz,
-            rhs.s * fz + rhs.xy * fw - rhs.xz * fx - rhs.yz * fy,
+            rhs.s * fx - rhs.xy * fy - rhs.xz * fz - rhs.yz * fw,
+            rhs.s * fy + rhs.xy * fx + rhs.xz * fw - rhs.yz * fz,
+            rhs.s * fz - rhs.xy * fw + rhs.xz * fx + rhs.yz * fy,
         )
     }
 
@@ -1152,16 +1156,12 @@ where
     where
         Self: Neg<Output = Self> + Add<Output = Self> + Sub<Output = Self> + Mul<Output = Self>,
     {
-        let [xy0, xz0, yz0, s0] = rotor.to_array();
-        let [xy1, xz1, yz1, s1] = rhs.to_array();
-
-        // This is the result of simplifying the multiplication of two rotors
-        // with our basis bivectors
+        // Compute the geometric product `(rotor)(rhs)`.
         Rotor::<3, T, A>::new(
-            xy0 * s1 + s0 * xy1 - xz0 * yz1 + yz0 * xz1,
-            xz0 * s1 + s0 * xz1 + xy0 * yz1 + yz0 * xy1,
-            yz0 * s1 + s0 * yz1 + xz0 * xy1 - xy0 * xz1,
-            s0 * s1 - xy0 * xy1 - xz0 * xz1 - yz0 * yz1,
+            rotor.xy * rhs.s + rotor.s * rhs.xy + rotor.yz * rhs.xz - rotor.xz * rhs.yz,
+            rotor.xz * rhs.s + rotor.s * rhs.xz - rotor.yz * rhs.xy + rotor.xy * rhs.yz,
+            rotor.yz * rhs.s + rotor.s * rhs.yz + rotor.xz * rhs.xy - rotor.xy * rhs.xz,
+            rotor.s * rhs.s - rotor.xy * rhs.xy - rotor.xz * rhs.xz - rotor.yz * rhs.yz,
         )
     }
 }
