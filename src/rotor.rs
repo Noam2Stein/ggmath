@@ -12,7 +12,7 @@ use crate::{
     utils::{specialize, specialize_23, transmute_generic, transmute_mut, transmute_ref},
 };
 
-/// A rotor, used to represent rotation.
+/// A rotor used to represent rotation.
 ///
 /// A rotor is a mathematical object used to represent rotations. In comparison
 /// to rotation matrices and Euler angles, rotors are more compact and
@@ -59,8 +59,8 @@ use crate::{
 /// order. For example, in 4D this would be `xy, xz, xw, yz, yw, zw`.
 ///
 /// Plane elements store `plane_of_rotation * sin(angle/2)`, and `s` stores
-/// `cos(angle/2)`. The half angle is necessary to correctly handle vectors
-/// outside the plane of rotation in 3D, and still has benefits in 2D.
+/// `cos(angle/2)`. Even though the half angle looks odd, its benefits are what
+/// make rotors a useful and efficient object.
 ///
 /// > In advanced Geometric Algebra terms, the precise definition of this type
 /// > is `R = e^(B/2)`, with vector multiplication `R~vR`. This differs from the
@@ -85,7 +85,7 @@ where
     Length<N>: TwoOrThree,
     T: Scalar;
 
-/// A 2D rotor, used to represent 2D rotation.
+/// A 2D rotor used to represent 2D rotation.
 ///
 /// A rotor is a mathematical object used to represent rotations. In comparison
 /// to rotation matrices and Euler angles, rotors are more compact and
@@ -119,8 +119,8 @@ where
 /// - `xy: T = sin(angle/2)`
 /// - `s: T = cos(angle/2)`
 ///
-/// While technically 2D rotation can be stored as `sin(angle), cos(angle)`, the
-/// half angle has benefits that make worthwhile, even in 2D.
+/// Even though the half angle looks odd, its benefits are what make rotors a
+/// useful and efficient object.
 ///
 /// > In advanced Geometric Algebra terms, the precise definition of this type
 /// > is `R = e^(B/2)`, with vector multiplication `R~vR`. This differs from the
@@ -130,7 +130,7 @@ where
 /// [`DerefMut`].
 pub type Rot2<T> = Rotor<2, T, Unaligned>;
 
-/// A 3D rotor, used to represent 3D rotation.
+/// A 3D rotor used to represent 3D rotation.
 ///
 /// A rotor is a mathematical object used to represent rotations. In comparison
 /// to rotation matrices and Euler angles, rotors are more compact and
@@ -169,10 +169,8 @@ pub type Rot2<T> = Rotor<2, T, Unaligned>;
 /// Each plane element rotates one axis to another (e.g., `xy` rotates `+X` to
 /// `+Y`). This representation uses lexicographical ordering `xy, xz, yz`, which
 /// differs from right-hand rule conventions that might expect `yz, zx, xy`
-/// (which is `x, y, z` in axis angle notation).
-///
-/// The half angle is necessary to correctly handle vectors outside the plane of
-/// rotation.
+/// (which is `x, y, z` in axis angle notation). Even though the half angle
+/// looks odd, its benefits are what make rotors a useful and efficient object.
 ///
 /// > In advanced Geometric Algebra terms, the precise definition of this type
 /// > is `R = e^(B/2)`, with vector multiplication `R~vR`. This differs from the
@@ -182,7 +180,7 @@ pub type Rot2<T> = Rotor<2, T, Unaligned>;
 /// [`DerefMut`].
 pub type Rot3<T> = Rotor<3, T, Unaligned>;
 
-/// A 2D rotor, used to represent 2D rotation.
+/// A 2D rotor used to represent 2D rotation.
 ///
 /// A rotor is a mathematical object used to represent rotations. In comparison
 /// to rotation matrices and Euler angles, rotors are more compact and
@@ -217,8 +215,8 @@ pub type Rot3<T> = Rotor<3, T, Unaligned>;
 /// - `xy: T = sin(angle/2)`
 /// - `s: T = cos(angle/2)`
 ///
-/// While technically 2D rotation can be stored as `sin(angle), cos(angle)`, the
-/// half angle has benefits that make worthwhile, even in 2D.
+/// Even though the half angle looks odd, its benefits are what make rotors a
+/// useful and efficient object.
 ///
 /// > In advanced Geometric Algebra terms, the precise definition of this type
 /// > is `R = e^(B/2)`, with vector multiplication `R~vR`. This differs from the
@@ -228,7 +226,7 @@ pub type Rot3<T> = Rotor<3, T, Unaligned>;
 /// [`DerefMut`].
 pub type Rot2A<T> = Rotor<2, T, Aligned>;
 
-/// A 3D rotor, used to represent 3D rotation.
+/// A 3D rotor used to represent 3D rotation.
 ///
 /// A rotor is a mathematical object used to represent rotations. In comparison
 /// to rotation matrices and Euler angles, rotors are more compact and
@@ -268,10 +266,8 @@ pub type Rot2A<T> = Rotor<2, T, Aligned>;
 /// Each plane element rotates one axis to another (e.g., `xy` rotates `+X` to
 /// `+Y`). This representation uses lexicographical ordering `xy, xz, yz`, which
 /// differs from right-hand rule conventions that might expect `yz, zx, xy`
-/// (which is `x, y, z` in axis angle notation).
-///
-/// The half angle is necessary to correctly handle vectors outside the plane of
-/// rotation.
+/// (which is `x, y, z` in axis angle notation). Even though the half angle
+/// looks odd, its benefits are what make rotors a useful and efficient object.
 ///
 /// > In advanced Geometric Algebra terms, the precise definition of this type
 /// > is `R = e^(B/2)`, with vector multiplication `R~vR`. This differs from the
