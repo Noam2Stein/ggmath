@@ -12,13 +12,16 @@ use crate::{
     utils::{specialize, specialize_23, transmute_generic, transmute_mut, transmute_ref},
 };
 
-/// A rotor representing rotation.
+/// A rotor used to represent rotation.
 ///
-/// Rotors are a compact and efficient representation of rotations, alternative
-/// to matrices. If you are familiar with complex numbers and quaternions, you
-/// already know how to use rotors. This library's 2D rotor is mathematically
-/// equivalent to complex numbers, and 3D rotors are mathematically equivalent
-/// to quaternions.
+/// A rotor is a mathematical object used to represent rotations. In comparison
+/// to rotation matrices and Euler angles, rotors are more compact and
+/// efficient, and avoid common issues in 3D, such as the infamous gimbal lock.
+///
+/// If you are familiar with quaternions, you already know how to use rotors.
+/// Rotors work the same way as quaternions, resolve to the same math, have
+/// equal performance, etc. However rotors tend to be easier to understand, and
+/// extend better to 2D.
 ///
 /// > If you are curious about the underlying math, rotors come from Geometric
 /// > Algebra. I recommend
@@ -39,7 +42,7 @@ use crate::{
 /// # Representation and Fields
 ///
 /// Unless you are familiar with rotor/quaternion math, avoid using raw rotor
-/// elements directly, and instead use higher level helper functions.
+/// elements directly. Instead, use higher level helper functions.
 ///
 /// > You may have an easier time reading documentation specific to
 /// > [2D](Rot2#representation-and-fields) and
@@ -55,17 +58,13 @@ use crate::{
 /// determined by increasing index order, and planes stored in lexicographical
 /// order. For example, in 4D this would be `xy, xz, xw, yz, yw, zw`.
 ///
-/// In three dimensions or more, plane fields store
-/// `plane_of_rotation * sin(angle/2)`, and `s` stores `cos(angle/2)`. The
-/// half-angle is necessary to correctly handle vectors outside the plane of
-/// rotation. In 2D, however, the entire vector space is the plane of rotation,
-/// thus we make 2D a special case and optimize the representation: `xy` stores
-/// `sin(angle)` and `s` stores `cos(angle)`.
+/// Plane elements store `plane_of_rotation * sin(angle/2)`, and `s` stores
+/// `cos(angle/2)`. Even though the half angle looks odd, its benefits are what
+/// make rotors a useful and efficient object.
 ///
-/// In Geometric Algebra terms, this type is precisely defined as `R = e^B` with
-/// vector multiplication `vR` for `N <= 2`, and `R = e^(B/2)` with vector
-/// multiplication `R~vR` for `N >= 3`. Note that the latter differs from the
-/// traditional rotor convention, `R = e^(-B/2)` and `RvR~`.
+/// > In advanced Geometric Algebra terms, the precise definition of this type
+/// > is `R = e^(B/2)`, with vector multiplication `R~vR`. This differs from the
+/// > traditional rotor convention, `R = e^(-B/2)` and `RvR~`.
 ///
 /// Note that these fields are only exposed by implementing [`Deref`] and
 /// [`DerefMut`].
@@ -86,12 +85,16 @@ where
     Length<N>: TwoOrThree,
     T: Scalar;
 
-/// A 2D rotor representing 2D rotation.
+/// A 2D rotor used to represent 2D rotation.
 ///
-/// Rotors are a compact and efficient representation of rotations, alternative
-/// to matrices. If you are familiar with complex numbers, you already know how
-/// to use rotors. This library's 2D rotor is mathematically equivalent to
-/// complex numbers.
+/// A rotor is a mathematical object used to represent rotations. In comparison
+/// to rotation matrices and Euler angles, rotors are more compact and
+/// efficient, and avoid common issues in 3D, such as the infamous gimbal lock.
+///
+/// If you are familiar with quaternions, you already know how to use rotors.
+/// Rotors work the same way as quaternions, resolve to the same math, have
+/// equal performance, etc. However rotors tend to be easier to understand, and
+/// extend better to 2D.
 ///
 /// > If you are curious about the underlying math, rotors come from Geometric
 /// > Algebra. I recommend
@@ -108,33 +111,35 @@ where
 ///
 /// # Representation and Fields
 ///
-/// Unless you are familiar with rotor/complex-number math, avoid using these
-/// fields directly, and instead use higher level helper functions.
+/// Unless you are familiar with rotor/quaternion math, avoid using raw rotor
+/// elements directly. Instead, use higher level helper functions.
 ///
 /// This type stores two elements, with this order in memory:
 ///
-/// - `xy: T = sin(angle)`
-/// - `s: T = cos(angle)`
+/// - `xy: T = sin(angle/2)`
+/// - `s: T = cos(angle/2)`
 ///
-/// Note that mathematically, this representation is incorrect. The correct
-/// representation is `sin(angle/2), cos(angle/2)`. In three dimensions or more,
-/// the half-angle is necessary to correctly handle vectors outside the plane of
-/// rotation. In 2D, however, the entire vector space is the plane of rotation,
-/// so the rotor can be represented directly by `sin(angle), cos(angle)`. This
-/// trick makes many operations more efficient.
+/// Even though the half angle looks odd, its benefits are what make rotors a
+/// useful and efficient object.
 ///
-/// In Geometric Algebra terms, this type is precisely defined as `R = e^B` with
-/// vector multiplication `vR`.
+/// > In advanced Geometric Algebra terms, the precise definition of this type
+/// > is `R = e^(B/2)`, with vector multiplication `R~vR`. This differs from the
+/// > traditional rotor convention, `R = e^(-B/2)` and `RvR~`.
 ///
 /// Note that these fields are only exposed by implementing [`Deref`] and
 /// [`DerefMut`].
 pub type Rot2<T> = Rotor<2, T, Unaligned>;
 
-/// A 3D rotor representing 3D rotation.
+/// A 3D rotor used to represent 3D rotation.
 ///
-/// Rotors are a compact and efficient representation of rotations, alternative
-/// to matrices. If you are familiar with quaternions, you already know how to
-/// use rotors. A 3D rotor is mathematically equivalent to a quaternion.
+/// A rotor is a mathematical object used to represent rotations. In comparison
+/// to rotation matrices and Euler angles, rotors are more compact and
+/// efficient, and avoid common issues in 3D, such as the infamous gimbal lock.
+///
+/// If you are familiar with quaternions, you already know how to use rotors.
+/// Rotors work the same way as quaternions, resolve to the same math, have
+/// equal performance, etc. However rotors tend to be easier to understand, and
+/// extend better to 2D.
 ///
 /// > If you are curious about the underlying math, rotors come from Geometric
 /// > Algebra. I recommend
@@ -151,8 +156,8 @@ pub type Rot2<T> = Rotor<2, T, Unaligned>;
 ///
 /// # Representation and Fields
 ///
-/// Unless you are familiar with rotor/quaternion math, avoid using these fields
-/// directly, and instead use higher level helper functions.
+/// Unless you are familiar with rotor/quaternion math, avoid using raw rotor
+/// elements directly. Instead, use higher level helper functions.
 ///
 /// This type stores four elements, with this order in memory:
 ///
@@ -164,22 +169,27 @@ pub type Rot2<T> = Rotor<2, T, Unaligned>;
 /// Each plane element rotates one axis to another (e.g., `xy` rotates `+X` to
 /// `+Y`). This representation uses lexicographical ordering `xy, xz, yz`, which
 /// differs from right-hand rule conventions that might expect `yz, zx, xy`
-/// (which is `x, y, z` in axis angle notation).
+/// (which is `x, y, z` in axis angle notation). Even though the half angle
+/// looks odd, its benefits are what make rotors a useful and efficient object.
 ///
-/// In Geometric Algebra terms, this type is precisely defined as `R = e^(B/2)`
-/// with vector multiplication `R~vR`. This differs from the traditional
-/// convention, `R = e^(-B/2)` and `RvR~`.
+/// > In advanced Geometric Algebra terms, the precise definition of this type
+/// > is `R = e^(B/2)`, with vector multiplication `R~vR`. This differs from the
+/// > traditional rotor convention, `R = e^(-B/2)` and `RvR~`.
 ///
 /// Note that these fields are only exposed by implementing [`Deref`] and
 /// [`DerefMut`].
 pub type Rot3<T> = Rotor<3, T, Unaligned>;
 
-/// A 2D rotor representing 2D rotation.
+/// A 2D rotor used to represent 2D rotation.
 ///
-/// Rotors are a compact and efficient representation of rotations, alternative
-/// to matrices. If you are familiar with complex numbers, you already know how
-/// to use rotors. This library's 2D rotor is mathematically equivalent to
-/// complex numbers.
+/// A rotor is a mathematical object used to represent rotations. In comparison
+/// to rotation matrices and Euler angles, rotors are more compact and
+/// efficient, and avoid common issues in 3D, such as the infamous gimbal lock.
+///
+/// If you are familiar with quaternions, you already know how to use rotors.
+/// Rotors work the same way as quaternions, resolve to the same math, have
+/// equal performance, etc. However rotors tend to be easier to understand, and
+/// extend better to 2D.
 ///
 /// > If you are curious about the underlying math, rotors come from Geometric
 /// > Algebra. I recommend
@@ -197,33 +207,35 @@ pub type Rot3<T> = Rotor<3, T, Unaligned>;
 ///
 /// # Representation and Fields
 ///
-/// Unless you are familiar with rotor/complex-number math, avoid using these
-/// fields directly, and instead use higher level helper functions.
+/// Unless you are familiar with rotor/quaternion math, avoid using raw rotor
+/// elements directly. Instead, use higher level helper functions.
 ///
 /// This type stores two elements, with this order in memory:
 ///
-/// - `xy: T = sin(angle)`
-/// - `s: T = cos(angle)`
+/// - `xy: T = sin(angle/2)`
+/// - `s: T = cos(angle/2)`
 ///
-/// Note that mathematically, this representation is incorrect. The correct
-/// representation is `sin(angle/2), cos(angle/2)`. In three dimensions or more,
-/// the half-angle is necessary to correctly handle vectors outside the plane of
-/// rotation. In 2D, however, the entire vector space is the plane of rotation,
-/// so the rotor can be represented directly by `sin(angle), cos(angle)`. This
-/// trick makes many operations more efficient.
+/// Even though the half angle looks odd, its benefits are what make rotors a
+/// useful and efficient object.
 ///
-/// In Geometric Algebra terms, this type is precisely defined as `R = e^B` with
-/// vector multiplication `vR`.
+/// > In advanced Geometric Algebra terms, the precise definition of this type
+/// > is `R = e^(B/2)`, with vector multiplication `R~vR`. This differs from the
+/// > traditional rotor convention, `R = e^(-B/2)` and `RvR~`.
 ///
 /// Note that these fields are only exposed by implementing [`Deref`] and
 /// [`DerefMut`].
 pub type Rot2A<T> = Rotor<2, T, Aligned>;
 
-/// A 3D rotor representing 3D rotation.
+/// A 3D rotor used to represent 3D rotation.
 ///
-/// Rotors are a compact and efficient representation of rotations, alternative
-/// to matrices. If you are familiar with quaternions, you already know how to
-/// use rotors. A 3D rotor is mathematically equivalent to a quaternion.
+/// A rotor is a mathematical object used to represent rotations. In comparison
+/// to rotation matrices and Euler angles, rotors are more compact and
+/// efficient, and avoid common issues in 3D, such as the infamous gimbal lock.
+///
+/// If you are familiar with quaternions, you already know how to use rotors.
+/// Rotors work the same way as quaternions, resolve to the same math, have
+/// equal performance, etc. However rotors tend to be easier to understand, and
+/// extend better to 2D.
 ///
 /// > If you are curious about the underlying math, rotors come from Geometric
 /// > Algebra. I recommend
@@ -241,8 +253,8 @@ pub type Rot2A<T> = Rotor<2, T, Aligned>;
 ///
 /// # Representation and Fields
 ///
-/// Unless you are familiar with rotor/quaternion math, avoid using these fields
-/// directly, and instead use higher level helper functions.
+/// Unless you are familiar with rotor/quaternion math, avoid using raw rotor
+/// elements directly. Instead, use higher level helper functions.
 ///
 /// This type stores four elements, with this order in memory:
 ///
@@ -254,11 +266,12 @@ pub type Rot2A<T> = Rotor<2, T, Aligned>;
 /// Each plane element rotates one axis to another (e.g., `xy` rotates `+X` to
 /// `+Y`). This representation uses lexicographical ordering `xy, xz, yz`, which
 /// differs from right-hand rule conventions that might expect `yz, zx, xy`
-/// (which is `x, y, z` in axis angle notation).
+/// (which is `x, y, z` in axis angle notation). Even though the half angle
+/// looks odd, its benefits are what make rotors a useful and efficient object.
 ///
-/// In Geometric Algebra terms, this type is precisely defined as `R = e^(B/2)`
-/// with vector multiplication `R~vR`. This differs from the traditional
-/// convention, `R = e^(-B/2)` and `RvR~`.
+/// > In advanced Geometric Algebra terms, the precise definition of this type
+/// > is `R = e^(B/2)`, with vector multiplication `R~vR`. This differs from the
+/// > traditional rotor convention, `R = e^(-B/2)` and `RvR~`.
 ///
 /// Note that these fields are only exposed by implementing [`Deref`] and
 /// [`DerefMut`].
@@ -383,13 +396,8 @@ where
 
     /// Creates a 2D rotor from raw elements `xy, s`.
     ///
-    /// Unless you are familiar with rotor/complex-number math, avoid using this
-    /// function directly, and instead use higher level constructors.
-    ///
-    /// Remember, in 2D, these fields are treated as `sin(angle), cos(angle)`,
-    /// not `sin(angle/2), cos(angle/2)`. This special case makes 2D rotors more
-    /// efficient. 3D rotors (and higher dimensional rotors, if those will ever
-    /// be supported) do use half-angle.
+    /// Unless you are familiar with rotor/quaternion math, avoid using raw
+    /// rotor elements directly. Instead, use higher level helper functions.
     ///
     /// # Unchecked
     ///
@@ -404,13 +412,8 @@ where
 
     /// Creates a rotor from a raw-element array `[xy, s]`.
     ///
-    /// Unless you are familiar with rotor/complex-number math, avoid using this
-    /// function directly, and instead use higher level constructors.
-    ///
-    /// Remember, in 2D, these fields are treated as `sin(angle), cos(angle)`,
-    /// not `sin(angle/2), cos(angle/2)`. This special case makes 2D rotors more
-    /// efficient. 3D rotors (and higher dimensional rotors, if those will ever
-    /// be supported) do use half-angle.
+    /// Unless you are familiar with rotor/quaternion math, avoid using raw
+    /// rotor elements directly. Instead, use higher level helper functions.
     ///
     /// # Unchecked
     ///
@@ -425,13 +428,8 @@ where
 
     /// Converts a rotor to a raw-element array `[xy, s]`.
     ///
-    /// Unless you are familiar with rotor/complex-number math, avoid using this
-    /// function directly, and instead use higher level methods.
-    ///
-    /// Remember, in 2D, these fields are treated as `sin(angle), cos(angle)`,
-    /// not `sin(angle/2), cos(angle/2)`. This special case makes 2D rotors more
-    /// efficient. 3D rotors (and higher dimensional rotors, if those will ever
-    /// be supported) do use half-angle.
+    /// Unless you are familiar with rotor/quaternion math, avoid using raw
+    /// rotor elements directly. Instead, use higher level helper functions.
     #[inline]
     #[must_use]
     pub const fn to_array(self) -> [T; 2] {
@@ -440,13 +438,8 @@ where
 
     /// Returns a reference to a rotor's raw elements `[xy, s]`.
     ///
-    /// Unless you are familiar with rotor/complex-number math, avoid using this
-    /// function directly, and instead use higher level methods.
-    ///
-    /// Remember, in 2D, these fields are treated as `sin(angle), cos(angle)`,
-    /// not `sin(angle/2), cos(angle/2)`. This special case makes 2D rotors more
-    /// efficient. 3D rotors (and higher dimensional rotors, if those will ever
-    /// be supported) do use half-angle.
+    /// Unless you are familiar with rotor/quaternion math, avoid using raw
+    /// rotor elements directly. Instead, use higher level helper functions.
     #[inline]
     #[must_use]
     pub const fn as_array(&self) -> &[T; 2] {
@@ -455,13 +448,8 @@ where
 
     /// Returns a mutable reference to a rotor's raw elements `[xy, s]`.
     ///
-    /// Unless you are familiar with rotor/complex-number math, avoid using this
-    /// function directly, and instead use higher level methods.
-    ///
-    /// Remember, in 2D, these fields are treated as `sin(angle), cos(angle)`,
-    /// not `sin(angle/2), cos(angle/2)`. This special case makes 2D rotors more
-    /// efficient. 3D rotors (and higher dimensional rotors, if those will ever
-    /// be supported) do use half-angle.
+    /// Unless you are familiar with rotor/quaternion math, avoid using raw
+    /// rotor elements directly. Instead, use higher level helper functions.
     #[inline]
     #[must_use]
     pub const fn as_mut_array(&mut self) -> &mut [T; 2] {
@@ -470,13 +458,8 @@ where
 
     /// Creates a rotor from a raw-element vector `(xy, s)`.
     ///
-    /// Unless you are familiar with rotor/complex-number math, avoid using this
-    /// function directly, and instead use higher level constructors.
-    ///
-    /// Remember, in 2D, these fields are treated as `sin(angle), cos(angle)`,
-    /// not `sin(angle/2), cos(angle/2)`. This special case makes 2D rotors more
-    /// efficient. 3D rotors (and higher dimensional rotors, if those will ever
-    /// be supported) do use half-angle.
+    /// Unless you are familiar with rotor/quaternion math, avoid using raw
+    /// rotor elements directly. Instead, use higher level helper functions.
     ///
     /// # Unchecked
     ///
@@ -491,13 +474,8 @@ where
 
     /// Converts a rotor to a raw-element vector `(xy, s)`.
     ///
-    /// Unless you are familiar with rotor/complex-number math, avoid using this
-    /// function directly, and instead use higher level methods.
-    ///
-    /// Remember, in 2D, these fields are treated as `sin(angle), cos(angle)`,
-    /// not `sin(angle/2), cos(angle/2)`. This special case makes 2D rotors more
-    /// efficient. 3D rotors (and higher dimensional rotors, if those will ever
-    /// be supported) do use half-angle.
+    /// Unless you are familiar with rotor/quaternion math, avoid using raw
+    /// rotor elements directly. Instead, use higher level helper functions.
     #[inline]
     #[must_use]
     pub const fn to_vector(self) -> Vector<2, T, A> {
@@ -507,13 +485,8 @@ where
     /// Returns a reference to a rotor's fields as a raw-element vector
     /// `(xy, s)`.
     ///
-    /// Unless you are familiar with rotor/complex-number math, avoid using this
-    /// function directly, and instead use higher level methods.
-    ///
-    /// Remember, in 2D, these fields are treated as `sin(angle), cos(angle)`,
-    /// not `sin(angle/2), cos(angle/2)`. This special case makes 2D rotors more
-    /// efficient. 3D rotors (and higher dimensional rotors, if those will ever
-    /// be supported) do use half-angle.
+    /// Unless you are familiar with rotor/quaternion math, avoid using raw
+    /// rotor elements directly. Instead, use higher level helper functions.
     #[inline]
     #[must_use]
     pub const fn as_vector(&self) -> &Vector<2, T, A> {
@@ -523,13 +496,8 @@ where
     /// Returns a mutable reference to a rotor's fields as a raw-element vector
     /// `(xy, s)`.
     ///
-    /// Unless you are familiar with rotor/complex-number math, avoid using this
-    /// function directly, and instead use higher level methods.
-    ///
-    /// Remember, in 2D, these fields are treated as `sin(angle), cos(angle)`,
-    /// not `sin(angle/2), cos(angle/2)`. This special case makes 2D rotors more
-    /// efficient. 3D rotors (and higher dimensional rotors, if those will ever
-    /// be supported) do use half-angle.
+    /// Unless you are familiar with rotor/quaternion math, avoid using raw
+    /// rotor elements directly. Instead, use higher level helper functions.
     #[inline]
     #[must_use]
     pub const fn as_mut_vector(&mut self) -> &mut Vector<2, T, A> {
@@ -637,10 +605,11 @@ where
     where
         T: Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
     {
-        Vector::<2, T, A>::new(
-            vector.x * rhs.s - vector.y * rhs.xy,
-            vector.x * rhs.xy + vector.y * rhs.s,
-        )
+        let fx = rhs.s * rhs.s - rhs.xy * rhs.xy;
+        let fy = rhs.xy * rhs.s;
+        let fy = fy + fy;
+
+        Vector::<2, T, A>::new(fx * vector.x - fy * vector.y, fy * vector.x + fx * vector.y)
     }
 
     #[inline(always)]
@@ -675,12 +644,8 @@ where
 
     /// Creates a 3D rotor from raw elements `xy, xz, yz, s`.
     ///
-    /// Unless you are familiar with rotor/quaternion math, avoid using this
-    /// function directly, and instead use higher level constructors.
-    ///
-    /// Remember, plane fields are treated as
-    /// `plane_of_rotation * sin(angle/2)`, and `s` is treated as
-    /// `cos(angle/2)`.
+    /// Unless you are familiar with rotor/quaternion math, avoid using raw
+    /// rotor elements directly. Instead, use higher level helper functions.
     ///
     /// # Unchecked
     ///
@@ -695,12 +660,8 @@ where
 
     /// Creates a rotor from a raw-element array `[xy, xz, yz, s]`.
     ///
-    /// Unless you are familiar with rotor/quaternion math, avoid using this
-    /// function directly, and instead use higher level constructors.
-    ///
-    /// Remember, plane fields are treated as
-    /// `plane_of_rotation * sin(angle/2)`, and `s` is treated as
-    /// `cos(angle/2)`.
+    /// Unless you are familiar with rotor/quaternion math, avoid using raw
+    /// rotor elements directly. Instead, use higher level helper functions.
     ///
     /// # Unchecked
     ///
@@ -715,12 +676,8 @@ where
 
     /// Converts a rotor to a raw-element array `[xy, xz, yz, s]`.
     ///
-    /// Unless you are familiar with rotor/quaternion math, avoid using this
-    /// function directly, and instead use higher level methods.
-    ///
-    /// Remember, plane fields are treated as
-    /// `plane_of_rotation * sin(angle/2)`, and `s` is treated as
-    /// `cos(angle/2)`.
+    /// Unless you are familiar with rotor/quaternion math, avoid using raw
+    /// rotor elements directly. Instead, use higher level helper functions.
     #[inline]
     #[must_use]
     pub const fn to_array(self) -> [T; 4] {
@@ -729,12 +686,8 @@ where
 
     /// Returns a reference to a rotor's raw elements `[xy, xz, yz, s]`.
     ///
-    /// Unless you are familiar with rotor/quaternion math, avoid using this
-    /// function directly, and instead use higher level methods.
-    ///
-    /// Remember, plane fields are treated as
-    /// `plane_of_rotation * sin(angle/2)`, and `s` is treated as
-    /// `cos(angle/2)`.
+    /// Unless you are familiar with rotor/quaternion math, avoid using raw
+    /// rotor elements directly. Instead, use higher level helper functions.
     #[inline]
     #[must_use]
     pub const fn as_array(&self) -> &[T; 4] {
@@ -743,12 +696,8 @@ where
 
     /// Returns a mutable reference to a rotor's raw elements `[xy, xz, yz, s]`.
     ///
-    /// Unless you are familiar with rotor/quaternion math, avoid using this
-    /// function directly, and instead use higher level methods.
-    ///
-    /// Remember, plane fields are treated as
-    /// `plane_of_rotation * sin(angle/2)`, and `s` is treated as
-    /// `cos(angle/2)`.
+    /// Unless you are familiar with rotor/quaternion math, avoid using raw
+    /// rotor elements directly. Instead, use higher level helper functions.
     #[inline]
     #[must_use]
     pub const fn as_mut_array(&mut self) -> &mut [T; 4] {
@@ -757,12 +706,8 @@ where
 
     /// Creates a rotor from a raw-element vector `(xy, xz, yz, s)`.
     ///
-    /// Unless you are familiar with rotor/quaternion math, avoid using this
-    /// function directly, and instead use higher level constructors.
-    ///
-    /// Remember, plane fields are treated as
-    /// `plane_of_rotation * sin(angle/2)`, and `s` is treated as
-    /// `cos(angle/2)`.
+    /// Unless you are familiar with rotor/quaternion math, avoid using raw
+    /// rotor elements directly. Instead, use higher level helper functions.
     ///
     /// # Unchecked
     ///
@@ -777,12 +722,8 @@ where
 
     /// Converts a rotor to a raw-element vector `(xy, xz, yz, s)`.
     ///
-    /// Unless you are familiar with rotor/quaternion math, avoid using this
-    /// function directly, and instead use higher level methods.
-    ///
-    /// Remember, plane fields are treated as
-    /// `plane_of_rotation * sin(angle/2)`, and `s` is treated as
-    /// `cos(angle/2)`.
+    /// Unless you are familiar with rotor/quaternion math, avoid using raw
+    /// rotor elements directly. Instead, use higher level helper functions.
     #[inline]
     #[must_use]
     pub const fn to_vector(self) -> Vector<4, T, A> {
@@ -792,12 +733,8 @@ where
     /// Returns a reference to a rotor's fields as a raw-element vector
     /// `(xy, xz, yz, s)`.
     ///
-    /// Unless you are familiar with rotor/quaternion math, avoid using this
-    /// function directly, and instead use higher level methods.
-    ///
-    /// Remember, plane fields are treated as
-    /// `plane_of_rotation * sin(angle/2)`, and `s` is treated as
-    /// `cos(angle/2)`.
+    /// Unless you are familiar with rotor/quaternion math, avoid using raw
+    /// rotor elements directly. Instead, use higher level helper functions.
     #[inline]
     #[must_use]
     pub const fn as_vector(&self) -> &Vector<4, T, A> {
@@ -807,12 +744,8 @@ where
     /// Returns a mutable reference to a rotor's fields as a raw-element vector
     /// `(xy, xz, yz, s)`.
     ///
-    /// Unless you are familiar with rotor/quaternion math, avoid using this
-    /// function directly, and instead use higher level methods.
-    ///
-    /// Remember, plane fields are treated as
-    /// `plane_of_rotation * sin(angle/2)`, and `s` is treated as
-    /// `cos(angle/2)`.
+    /// Unless you are familiar with rotor/quaternion math, avoid using raw
+    /// rotor elements directly. Instead, use higher level helper functions.
     #[inline]
     #[must_use]
     pub const fn as_mut_vector(&mut self) -> &mut Vector<4, T, A> {
@@ -965,11 +898,17 @@ where
 pub struct Rot2Fields<T> {
     /// The first and only basis plane element, rotating `+X` to `+Y`.
     ///
-    /// Equal to `sin(angle)`.
+    /// Unless you are familiar with rotor/quaternion math, avoid using raw
+    /// rotor elements directly. Instead, use higher level helper functions.
+    ///
+    /// Equal to `sin(angle/2)`.
     pub xy: T,
     /// The scalar part of a rotor.
     ///
-    /// Equal to `cos(angle)`.
+    /// Unless you are familiar with rotor/quaternion math, avoid using raw
+    /// rotor elements directly. Instead, use higher level helper functions.
+    ///
+    /// Equal to `cos(angle/2)`.
     pub s: T,
 }
 
@@ -1004,29 +943,29 @@ where
 pub struct Rot3Fields<T> {
     /// The first basis plane element, rotating `+X` to `+Y`.
     ///
-    /// Unless you are familiar with rotor/quaternion math, avoid using this
-    /// field directly, and instead use higher level methods.
+    /// Unless you are familiar with rotor/quaternion math, avoid using raw
+    /// rotor elements directly. Instead, use higher level helper functions.
     ///
     /// Equal to `plane_of_rotation.xy * sin(angle/2)`.
     pub xy: T,
     /// The second basis plane element, rotating `+X` to `+Z`.
     ///
-    /// Unless you are familiar with rotor/quaternion math, avoid using this
-    /// field directly, and instead use higher level methods.
+    /// Unless you are familiar with rotor/quaternion math, avoid using raw
+    /// rotor elements directly. Instead, use higher level helper functions.
     ///
     /// Equal to `plane_of_rotation.xz * sin(angle/2)`.
     pub xz: T,
     /// The third basis plane element, rotating `+Y` to `+Z`.
     ///
-    /// Unless you are familiar with rotor/quaternion math, avoid using this
-    /// field directly, and instead use higher level methods.
+    /// Unless you are familiar with rotor/quaternion math, avoid using raw
+    /// rotor elements directly. Instead, use higher level helper functions.
     ///
     /// Equal to `plane_of_rotation.yz * sin(angle/2)`.
     pub yz: T,
     /// The scalar part of a rotor.
     ///
-    /// Unless you are familiar with rotor/complex-number math, avoid using this
-    /// field directly, and instead use higher level methods.
+    /// Unless you are familiar with rotor/quaternion math, avoid using raw
+    /// rotor elements directly. Instead, use higher level helper functions.
     ///
     /// Equal to `cos(angle/2)`.
     pub s: T,
@@ -2093,10 +2032,11 @@ mod tests {
         for_types!(|T: PrimitiveFloat, A| {
             for (vector, angle) in random_iter::<(Vector<2, T, A>, T)>() {
                 let angle = angle % 6.0;
-                let (sin, cos) = PrimitiveFloatUtils::sin_cos(angle);
+                let (half_sin, half_cos) = PrimitiveFloatUtils::sin_cos(angle / 2.0);
                 assert_test_eq!(
-                    vector * Rotor::<2, T, A>::new(sin, cos),
+                    vector * Rotor::<2, T, A>::new(half_sin, half_cos),
                     vector.rotate(angle),
+                    abs <= vector.length() * 1e-5 + 1e-5,
                     0.0 = -0.0
                 );
             }
@@ -2108,19 +2048,19 @@ mod tests {
                     assert_test_eq!(
                         vector * Rotor::<3, T, A>::new(half_sin, 0.0, 0.0, half_cos),
                         vector.rotate_z(angle),
-                        abs <= vector.length() * 1e-5,
+                        abs <= vector.length() * 1e-5 + 1e-5,
                         0.0 = -0.0
                     );
                     assert_test_eq!(
                         vector * Rotor::<3, T, A>::new(0.0, half_sin, 0.0, half_cos),
                         vector.rotate_y(-angle),
-                        abs <= vector.length() * 1e-5,
+                        abs <= vector.length() * 1e-5 + 1e-5,
                         0.0 = -0.0
                     );
                     assert_test_eq!(
                         vector * Rotor::<3, T, A>::new(0.0, 0.0, half_sin, half_cos),
                         vector.rotate_x(angle),
-                        abs <= vector.length() * 1e-5,
+                        abs <= vector.length() * 1e-5 + 1e-5,
                         0.0 = -0.0
                     );
                 }
