@@ -1,5 +1,5 @@
 use crate::{
-    Affine, Aligned, Alignment, Length, Mask, Matrix, Projective, Quaternion, Scalar,
+    Affine, Aligned, Alignment, Length, Mask, Matrix, Projective, Quaternion, Rotor, Scalar,
     SupportedLength, Unaligned, Vector, length::TwoOrThree, utils::transmute_generic,
 };
 
@@ -57,7 +57,7 @@ use crate::{
 /// [`ScalarBackend<N, A>`]: crate::ScalarBackend
 /// [`ScalarBackend`]: crate::ScalarBackend
 macro_rules! specialize {
-    (<$T:ty as $Backend:ident<$N:tt, $A:tt>>::$f:ident($($arg:expr),*$(,)?)) => {
+    (<$T:ty as $Backend:ident<$N:ident, $A:tt>>::$f:ident($($arg:expr),*$(,)?)) => {
         (const {
             $crate::utils::specialize_helper::<
                 $N,
@@ -76,6 +76,20 @@ macro_rules! specialize {
                 <$T as $Backend<2, $crate::Unaligned>>::$f,
                 <$T as $Backend<3, $crate::Unaligned>>::$f,
                 <$T as $Backend<4, $crate::Unaligned>>::$f,
+            )
+        })($($arg),*)
+    };
+    (<$T:ty as $Backend:ident<$N:literal, $A:tt>>::$f:ident($($arg:expr),*$(,)?)) => {
+        (const {
+            $crate::utils::specialize_n_helper::<
+                $N,
+                $A,
+                $crate::utils::specialize!(@fn($($arg),*)),
+                $crate::utils::specialize!(@fn($($arg),*)),
+                $crate::utils::specialize!(@fn($($arg),*)),
+            >(
+                <$T as $Backend<$N, $crate::Unaligned>>::$f,
+                <$T as $Backend<$N, $crate::Aligned>>::$f,
             )
         })($($arg),*)
     };
@@ -336,6 +350,28 @@ where
     }
 }
 
+/// A variant of [`specialize_helper`] that only specializes alignment, with a
+/// specific values for `N`.
+#[expect(private_bounds)]
+pub const fn specialize_n_helper<const N: usize, A: Alignment, Fu, Fa, F>(fu: Fu, fa: Fa) -> F
+where
+    Length<N>: TwoOrThree,
+    Fu: Specialize<F, N, N, Unaligned, A> + Copy,
+    Fa: Specialize<F, N, N, Aligned, A> + Copy,
+{
+    if A::IS_ALIGNED {
+        // SAFETY: `Fa` is guaranteed to be the same type as `F` as long as `A`
+        // is `Aligned`. Because `A::IS_ALIGNED` is true, `A` is guaranteed to
+        // be `Aligned`, so the types are the same.
+        unsafe { transmute_generic::<Fa, F>(fa) }
+    } else {
+        // SAFETY: `Fu` is guaranteed to be the same type as `F` as long as `A`
+        // is `Unaligned`. Because `A::IS_ALIGNED` is false, `A` is guaranteed
+        // to be `Unaligned`, so the types are the same.
+        unsafe { transmute_generic::<Fu, F>(fu) }
+    }
+}
+
 /// Staticly guarantees the soundness of [`specialize_helper`].
 ///
 /// This trait is implemented when `Self` and `T2` are the same type assuming
@@ -488,6 +524,36 @@ where
 // SAFETY: `N == N2`, `A == A2` => `&'a Projective<N, T, A> == &'a Projective<N2, T, A2>`
 unsafe impl<'a, T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<&'a mut Projective<N2, T, A2>, N, N2, A, A2> for &'a mut Projective<N, T, A>
+where
+    T: Scalar,
+    Length<N>: TwoOrThree,
+    Length<N2>: TwoOrThree,
+{
+}
+
+// SAFETY: `N == N2`, `A == A2` => `Rotor<N, T, A> == Rotor<N2, T, A2>`
+unsafe impl<T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
+    Specialize<Rotor<N2, T, A2>, N, N2, A, A2> for Rotor<N, T, A>
+where
+    T: Scalar,
+    Length<N>: TwoOrThree,
+    Length<N2>: TwoOrThree,
+{
+}
+
+// SAFETY: `N == N2`, `A == A2` => `&'a Rotor<N, T, A> == &'a Rotor<N2, T, A2>`
+unsafe impl<'a, T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
+    Specialize<&'a Rotor<N2, T, A2>, N, N2, A, A2> for &'a Rotor<N, T, A>
+where
+    T: Scalar,
+    Length<N>: TwoOrThree,
+    Length<N2>: TwoOrThree,
+{
+}
+
+// SAFETY: `N == N2`, `A == A2` => `&'a Rotor<N, T, A> == &'a Rotor<N2, T, A2>`
+unsafe impl<'a, T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
+    Specialize<&'a mut Rotor<N2, T, A2>, N, N2, A, A2> for &'a mut Rotor<N, T, A>
 where
     T: Scalar,
     Length<N>: TwoOrThree,

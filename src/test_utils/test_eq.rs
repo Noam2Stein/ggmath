@@ -6,7 +6,7 @@ use std::{
 };
 
 use crate::{
-    Affine, Alignment, Length, Matrix, PrimitiveInteger, Projective, Quaternion, Scalar,
+    Affine, Alignment, Length, Matrix, PrimitiveInteger, Projective, Quaternion, Rotor, Scalar,
     SupportedLength, Vector, length::TwoOrThree, utils::specialize_23,
 };
 
@@ -1118,6 +1118,145 @@ macro_rules! projective_backend {
 }
 projective_backend!(2);
 projective_backend!(3);
+
+impl<const N: usize, T, A: Alignment> TestEq for Rotor<N, T, A>
+where
+    Length<N>: TwoOrThree,
+    T: Scalar + TestEq,
+{
+    fn eq(
+        &self,
+        expected: &Self,
+        zero_eq_neg_zero: bool,
+        infinity_eq_nan: bool,
+        quat_eq_neg_quat: bool,
+    ) -> bool {
+        specialize_23!(Rotor::<N, T, A>::test_eq_backend(
+            self,
+            expected,
+            zero_eq_neg_zero,
+            infinity_eq_nan,
+            quat_eq_neg_quat,
+        ))
+    }
+}
+
+impl<const N: usize, T, A: Alignment> TestEqAbs for Rotor<N, T, A>
+where
+    Length<N>: TwoOrThree,
+    T: Scalar + TestEqAbs,
+{
+    fn eq(
+        &self,
+        expected: &Self,
+        tol: &Self,
+        zero_eq_neg_zero: bool,
+        infinity_eq_nan: bool,
+        quat_eq_neg_quat: bool,
+    ) -> bool {
+        specialize_23!(Rotor::<N, T, A>::test_eq_abs_backend(
+            self,
+            expected,
+            tol,
+            zero_eq_neg_zero,
+            infinity_eq_nan,
+            quat_eq_neg_quat,
+        ))
+    }
+}
+
+impl<const N: usize, T, A: Alignment> TestEqAbs<T> for Rotor<N, T, A>
+where
+    Length<N>: TwoOrThree,
+    T: Scalar + TestEqAbs,
+{
+    fn eq(
+        &self,
+        expected: &Self,
+        tol: &T,
+        zero_eq_neg_zero: bool,
+        infinity_eq_nan: bool,
+        quat_eq_neg_quat: bool,
+    ) -> bool {
+        specialize_23!(Rotor::<N, T, A>::test_eq_abs_scalar_backend(
+            self,
+            expected,
+            *tol,
+            zero_eq_neg_zero,
+            infinity_eq_nan,
+            quat_eq_neg_quat,
+        ))
+    }
+}
+
+macro_rules! rotor_backend {
+    ($N:literal) => {
+        impl<T, A: Alignment> Rotor<$N, T, A>
+        where
+            T: Scalar,
+        {
+            fn test_eq_backend(
+                &self,
+                expected: &Self,
+                zero_eq_neg_zero: bool,
+                infinity_eq_nan: bool,
+                quat_eq_neg_quat: bool,
+            ) -> bool
+            where
+                T: TestEq,
+            {
+                self.0.eq(
+                    &expected.0,
+                    zero_eq_neg_zero,
+                    infinity_eq_nan,
+                    quat_eq_neg_quat,
+                )
+            }
+
+            fn test_eq_abs_backend(
+                &self,
+                expected: &Self,
+                tol: &Self,
+                zero_eq_neg_zero: bool,
+                infinity_eq_nan: bool,
+                quat_eq_neg_quat: bool,
+            ) -> bool
+            where
+                T: TestEqAbs,
+            {
+                self.0.eq(
+                    &expected.0,
+                    &tol.0,
+                    zero_eq_neg_zero,
+                    infinity_eq_nan,
+                    quat_eq_neg_quat,
+                )
+            }
+
+            fn test_eq_abs_scalar_backend(
+                &self,
+                expected: &Self,
+                tol: T,
+                zero_eq_neg_zero: bool,
+                infinity_eq_nan: bool,
+                quat_eq_neg_quat: bool,
+            ) -> bool
+            where
+                T: TestEqAbs,
+            {
+                self.0.eq(
+                    &expected.0,
+                    &tol,
+                    zero_eq_neg_zero,
+                    infinity_eq_nan,
+                    quat_eq_neg_quat,
+                )
+            }
+        }
+    };
+}
+rotor_backend!(2);
+rotor_backend!(3);
 
 impl<T, A: Alignment> TestEq for Quaternion<T, A>
 where

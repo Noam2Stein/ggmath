@@ -2,7 +2,8 @@ use core::ops::{Add, BitAnd, BitOr, BitXor, Div, Mul, Neg, Not, Rem, Shl, Shr, S
 
 use crate::{
     Aligned, Alignment, Length, Mask, PrimitiveFloat, PrimitiveInteger, PrimitiveSigned,
-    Quaternion, Scalar, SupportedLength, Unaligned, Vector,
+    Quaternion, Rotor, Scalar, SupportedLength, Unaligned, Vector,
+    length::TwoOrThree,
     utils::{PrimitiveFloatUtils, Repr2, Repr3, Repr4},
 };
 
@@ -154,6 +155,29 @@ where
     fn vector_ge_mask(vector: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Mask<N, Self, A>
     where
         Self: Scalar + PartialOrd;
+}
+
+pub(crate) trait RotorBackend<const N: usize, A: Alignment>
+where
+    Length<N>: TwoOrThree,
+{
+    #[track_caller]
+    fn rotor_vector_mul(vector: Vector<N, Self, A>, rhs: Rotor<N, Self, A>) -> Vector<N, Self, A>
+    where
+        Self: Scalar
+            + Neg<Output = Self>
+            + Add<Output = Self>
+            + Sub<Output = Self>
+            + Mul<Output = Self>;
+
+    #[track_caller]
+    fn rotor_mul(rotor: Rotor<N, Self, A>, rhs: Rotor<N, Self, A>) -> Rotor<N, Self, A>
+    where
+        Self: Scalar
+            + Neg<Output = Self>
+            + Add<Output = Self>
+            + Sub<Output = Self>
+            + Mul<Output = Self>;
 }
 
 pub(crate) trait QuaternionBackend<A: Alignment> {
@@ -1098,6 +1122,46 @@ where
             vector.y >= other.y,
             vector.z >= other.z,
             vector.w >= other.w,
+        )
+    }
+}
+
+impl<T, A: Alignment> RotorBackend<3, A> for T
+where
+    T: DefaultBackend<4, A>,
+{
+    #[inline]
+    fn rotor_vector_mul(vector: Vector<3, Self, A>, rhs: Rotor<3, Self, A>) -> Vector<3, Self, A>
+    where
+        Self: Neg<Output = Self> + Add<Output = Self> + Sub<Output = Self> + Mul<Output = Self>,
+    {
+        // This is the expansion of the geometric product `R^(-1)vR`. We
+        // intentionally use `R^(-1)vR` and not `RvR^(-1)` so that the rotor is
+        // `e^(B/2)` and not `e^(-B/2)`.
+
+        let fx = rhs.s * vector.x - rhs.xy * vector.y - rhs.xz * vector.z;
+        let fy = rhs.s * vector.y + rhs.xy * vector.x - rhs.yz * vector.z;
+        let fz = rhs.s * vector.z + rhs.xz * vector.x + rhs.yz * vector.y;
+        let fw = -rhs.xy * vector.z + rhs.xz * vector.y - rhs.yz * vector.x;
+
+        Vector::<3, T, A>::new(
+            rhs.s * fx - rhs.xy * fy - rhs.xz * fz - rhs.yz * fw,
+            rhs.s * fy + rhs.xy * fx + rhs.xz * fw - rhs.yz * fz,
+            rhs.s * fz - rhs.xy * fw + rhs.xz * fx + rhs.yz * fy,
+        )
+    }
+
+    #[inline]
+    fn rotor_mul(rotor: Rotor<3, Self, A>, rhs: Rotor<3, Self, A>) -> Rotor<3, Self, A>
+    where
+        Self: Neg<Output = Self> + Add<Output = Self> + Sub<Output = Self> + Mul<Output = Self>,
+    {
+        // Compute the geometric product `(rotor)(rhs)`.
+        Rotor::<3, T, A>::new(
+            rotor.xy * rhs.s + rotor.s * rhs.xy + rotor.yz * rhs.xz - rotor.xz * rhs.yz,
+            rotor.xz * rhs.s + rotor.s * rhs.xz - rotor.yz * rhs.xy + rotor.xy * rhs.yz,
+            rotor.yz * rhs.s + rotor.s * rhs.yz + rotor.xz * rhs.xy - rotor.xy * rhs.xz,
+            rotor.s * rhs.s - rotor.xy * rhs.xy - rotor.xz * rhs.xz - rotor.yz * rhs.yz,
         )
     }
 }

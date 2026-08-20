@@ -6,8 +6,8 @@ use core::arch::x86_64::*;
 #[allow(unused_imports, reason = "rustc incorrectly thinks this is unused")]
 use crate::utils::PrimitiveFloatUtils;
 use crate::{
-    Aligned, Mask, Mask3A, Mask4A, QuatA, Quaternion, Vec3A, Vec4A, Vector,
-    backend::{FloatVectorBackend, MaskBackend, QuaternionBackend, VectorBackend},
+    Aligned, Mask, Mask3A, Mask4A, QuatA, Quaternion, Rot3A, Vec3A, Vec4A, Vector,
+    backend::{FloatVectorBackend, MaskBackend, QuaternionBackend, RotorBackend, VectorBackend},
     utils::safe_target_feature,
 };
 
@@ -265,6 +265,40 @@ unsafe impl VectorBackend<4, Aligned> for f32 {
         fn vector_ge_mask(vector: Vec4A<f32>, other: Vec4A<f32>) -> Mask4A<f32> {
             Mask(_mm_cmpge_ps(vector.0, other.0))
         }
+    }
+}
+
+impl RotorBackend<3, Aligned> for f32 {
+    #[inline]
+    fn rotor_vector_mul(vector: Vec3A<f32>, rhs: Rot3A<f32>) -> Vec3A<f32> {
+        // TODO: Optimize this
+
+        // This is the expansion of the geometric product `R^(-1)vR`. We
+        // intentionally use `R^(-1)vR` and not `RvR^(-1)` so that the rotor is
+        // `e^(B/2)` and not `e^(-B/2)`.
+
+        let fx = rhs.s * vector.x - rhs.xy * vector.y - rhs.xz * vector.z;
+        let fy = rhs.s * vector.y + rhs.xy * vector.x - rhs.yz * vector.z;
+        let fz = rhs.s * vector.z + rhs.xz * vector.x + rhs.yz * vector.y;
+        let fw = -rhs.xy * vector.z + rhs.xz * vector.y - rhs.yz * vector.x;
+
+        Vec3A::new(
+            rhs.s * fx - rhs.xy * fy - rhs.xz * fz - rhs.yz * fw,
+            rhs.s * fy + rhs.xy * fx + rhs.xz * fw - rhs.yz * fz,
+            rhs.s * fz - rhs.xy * fw + rhs.xz * fx + rhs.yz * fy,
+        )
+    }
+
+    #[inline]
+    fn rotor_mul(rotor: Rot3A<f32>, rhs: Rot3A<f32>) -> Rot3A<f32> {
+        // TODO: Optimize this
+        // Compute the geometric product `(rotor)(rhs)`.
+        Rot3A::new(
+            rotor.xy * rhs.s + rotor.s * rhs.xy + rotor.yz * rhs.xz - rotor.xz * rhs.yz,
+            rotor.xz * rhs.s + rotor.s * rhs.xz - rotor.yz * rhs.xy + rotor.xy * rhs.yz,
+            rotor.yz * rhs.s + rotor.s * rhs.yz + rotor.xz * rhs.xy - rotor.xy * rhs.xz,
+            rotor.s * rhs.s - rotor.xy * rhs.xy - rotor.xz * rhs.xz - rotor.yz * rhs.yz,
+        )
     }
 }
 
