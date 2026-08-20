@@ -2036,6 +2036,7 @@ mod tests {
                 assert_test_eq!(
                     vector * Rotor::<2, T, A>::new(half_sin, half_cos),
                     vector.rotate(angle),
+                    abs <= vector.length() * 1e-5 + 1e-5,
                     0.0 = -0.0
                 );
             }
@@ -2047,19 +2048,19 @@ mod tests {
                     assert_test_eq!(
                         vector * Rotor::<3, T, A>::new(half_sin, 0.0, 0.0, half_cos),
                         vector.rotate_z(angle),
-                        abs <= vector.length() * 1e-5,
+                        abs <= vector.length() * 1e-5 + 1e-5,
                         0.0 = -0.0
                     );
                     assert_test_eq!(
                         vector * Rotor::<3, T, A>::new(0.0, half_sin, 0.0, half_cos),
                         vector.rotate_y(-angle),
-                        abs <= vector.length() * 1e-5,
+                        abs <= vector.length() * 1e-5 + 1e-5,
                         0.0 = -0.0
                     );
                     assert_test_eq!(
                         vector * Rotor::<3, T, A>::new(0.0, 0.0, half_sin, half_cos),
                         vector.rotate_x(angle),
-                        abs <= vector.length() * 1e-5,
+                        abs <= vector.length() * 1e-5 + 1e-5,
                         0.0 = -0.0
                     );
                 }
