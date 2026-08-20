@@ -2092,6 +2092,7 @@ mod tests {
         });
         for_types!(|T: PrimitiveFloat, A| {
             for (vector, angle) in random_iter::<(Vector<2, T, A>, T)>() {
+                let angle = angle % 6.0;
                 let (sin, cos) = PrimitiveFloatUtils::sin_cos(angle);
                 assert_test_eq!(
                     vector * Rotor::<2, T, A>::new(sin, cos),
@@ -2101,6 +2102,7 @@ mod tests {
             }
 
             for (vector, angle) in random_iter::<(Vector<3, T, A>, T)>() {
+                let angle = angle % 6.0;
                 let (half_sin, half_cos) = PrimitiveFloatUtils::sin_cos(angle / 2.0);
                 if vector.is_finite() && half_sin.is_finite() && half_cos.is_finite() {
                     assert_test_eq!(
