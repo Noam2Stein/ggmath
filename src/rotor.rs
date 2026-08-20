@@ -37,13 +37,13 @@ use crate::{
 ///
 /// # Representation and Fields
 ///
-/// Unless you are familiar with rotor/quaternion math, avoid using these fields
-/// directly, and instead use higher level helper functions.
+/// Unless you are familiar with rotor/quaternion math, avoid using raw rotor
+/// elements directly, and instead use higher level helper functions.
 ///
 /// > You may have an easier time reading documentation specific to
 /// > [2D](Rot2#representation-and-fields) and
-/// > [3D](Rot3#representation-and-fields) first. This section explains fields
-/// > in a dimension agnostic manner.
+/// > [3D](Rot3#representation-and-fields) first. This section explains the
+/// > representation in a dimension agnostic manner.
 ///
 /// A rotor stores one value for each basis plane of rotation, followed by a
 /// scalar value `s`, which is always last in memory.
@@ -60,6 +60,11 @@ use crate::{
 /// rotation. In 2D, however, the entire vector space is the plane of rotation,
 /// thus we make 2D a special case and optimize the representation: `xy` stores
 /// `sin(angle)` and `s` stores `cos(angle)`.
+///
+/// In Geometric Algebra terms, this type is precisely defined as `R = e^B` with
+/// vector multiplication `vR` for `N <= 2`, and `R = e^(B/2)` with vector
+/// multiplication `R~vR` for `N >= 3`. Note that the latter differs from the
+/// traditional rotor convention, `R = e^(-B/2)` and `RvR~`.
 ///
 /// Note that these fields are only exposed by implementing [`Deref`] and
 /// [`DerefMut`].
@@ -116,6 +121,9 @@ where
 /// so the rotor can be represented directly by `sin(angle), cos(angle)`. This
 /// trick makes many operations more efficient.
 ///
+/// In Geometric Algebra terms, this type is precisely defined as `R = e^B` with
+/// vector multiplication `vR`.
+///
 /// Note that these fields are only exposed by implementing [`Deref`] and
 /// [`DerefMut`].
 pub type Rot2<T> = Rotor<2, T, Unaligned>;
@@ -146,13 +154,19 @@ pub type Rot2<T> = Rotor<2, T, Unaligned>;
 ///
 /// This type stores four elements, with this order in memory:
 ///
-/// - `xy: T = plane_of_rotation.xy * sin(angle * 0.5)`
-/// - `xz: T = plane_of_rotation.xz * sin(angle * 0.5)`
-/// - `yz: T = plane_of_rotation.yz * sin(angle * 0.5)`
-/// - `s: T = cos(angle * 0.5)`
+/// - `xy: T = plane_of_rotation.xy * sin(angle/2)`
+/// - `xz: T = plane_of_rotation.xz * sin(angle/2)`
+/// - `yz: T = plane_of_rotation.yz * sin(angle/2)`
+/// - `s: T = cos(angle/2)`
 ///
-/// This representation uses lexicographical ordering `xy, xz, yz`, which
-/// differs from right-hand rule conventions that might expect `yz, zx, xy`.
+/// Each plane element rotates one axis to another (e.g., `xy` rotates `+X` to
+/// `+Y`). This representation uses lexicographical ordering `xy, xz, yz`, which
+/// differs from right-hand rule conventions that might expect `yz, zx, xy`
+/// (which is `x, y, z` in axis angle notation).
+///
+/// In Geometric Algebra terms, this type is precisely defined as `R = e^(B/2)`
+/// with vector multiplication `R~vR`. This differs from the traditional
+/// convention, `R = e^(-B/2)` and `RvR~`.
 ///
 /// Note that these fields are only exposed by implementing [`Deref`] and
 /// [`DerefMut`].
@@ -195,6 +209,9 @@ pub type Rot3<T> = Rotor<3, T, Unaligned>;
 /// so the rotor can be represented directly by `sin(angle), cos(angle)`. This
 /// trick makes many operations more efficient.
 ///
+/// In Geometric Algebra terms, this type is precisely defined as `R = e^B` with
+/// vector multiplication `vR`.
+///
 /// Note that these fields are only exposed by implementing [`Deref`] and
 /// [`DerefMut`].
 pub type Rot2A<T> = Rotor<2, T, Aligned>;
@@ -226,13 +243,19 @@ pub type Rot2A<T> = Rotor<2, T, Aligned>;
 ///
 /// This type stores four elements, with this order in memory:
 ///
-/// - `xy: T = plane_of_rotation.xy * sin(angle * 0.5)`
-/// - `xz: T = plane_of_rotation.xz * sin(angle * 0.5)`
-/// - `yz: T = plane_of_rotation.yz * sin(angle * 0.5)`
-/// - `s: T = cos(angle * 0.5)`
+/// - `xy: T = plane_of_rotation.xy * sin(angle/2)`
+/// - `xz: T = plane_of_rotation.xz * sin(angle/2)`
+/// - `yz: T = plane_of_rotation.yz * sin(angle/2)`
+/// - `s: T = cos(angle/2)`
 ///
-/// This representation uses lexicographical ordering `xy, xz, yz`, which
-/// differs from right-hand rule conventions that might expect `yz, zx, xy`.
+/// Each plane element rotates one axis to another (e.g., `xy` rotates `+X` to
+/// `+Y`). This representation uses lexicographical ordering `xy, xz, yz`, which
+/// differs from right-hand rule conventions that might expect `yz, zx, xy`
+/// (which is `x, y, z` in axis angle notation).
+///
+/// In Geometric Algebra terms, this type is precisely defined as `R = e^(B/2)`
+/// with vector multiplication `R~vR`. This differs from the traditional
+/// convention, `R = e^(-B/2)` and `RvR~`.
 ///
 /// Note that these fields are only exposed by implementing [`Deref`] and
 /// [`DerefMut`].
