@@ -14,10 +14,11 @@ use crate::{
 
 /// A rotor representing rotation.
 ///
-/// Rotors are a compact and efficient alternative to rotation matrices. If you
-/// are familiar with complex numbers and quaternions, you already know how to
-/// use rotors. This rotor type in 2D is mathematically equivalent to complex
-/// numbers, and 3D rotors are mathematically equivalent to quaternions.
+/// Rotors are a compact and efficient representation of rotations, alternative
+/// to matrices. If you are familiar with complex numbers and quaternions, you
+/// already know how to use rotors. This library's 2D rotor is mathematically
+/// equivalent to complex numbers, and 3D rotors are mathematically equivalent
+/// to quaternions.
 ///
 /// > If you are curious about the underlying math, rotors come from Geometric
 /// > Algebra. I recommend
@@ -87,9 +88,10 @@ where
 
 /// A 2D rotor representing 2D rotation.
 ///
-/// Rotors are a compact and efficient alternative to rotation matrices. If you
-/// are familiar with complex numbers, you already know how to use rotors. This
-/// 2D rotor type is mathematically equivalent to complex numbers.
+/// Rotors are a compact and efficient representation of rotations, alternative
+/// to matrices. If you are familiar with complex numbers, you already know how
+/// to use rotors. This library's 2D rotor is mathematically equivalent to
+/// complex numbers.
 ///
 /// > If you are curious about the underlying math, rotors come from Geometric
 /// > Algebra. I recommend
@@ -130,9 +132,9 @@ pub type Rot2<T> = Rotor<2, T, Unaligned>;
 
 /// A 3D rotor representing 3D rotation.
 ///
-/// Rotors are a compact and efficient alternative to rotation matrices. If you
-/// are familiar with quaternions, you already know how to use rotors. A 3D
-/// rotor is mathematically equivalent to a quaternion.
+/// Rotors are a compact and efficient representation of rotations, alternative
+/// to matrices. If you are familiar with quaternions, you already know how to
+/// use rotors. A 3D rotor is mathematically equivalent to a quaternion.
 ///
 /// > If you are curious about the underlying math, rotors come from Geometric
 /// > Algebra. I recommend
@@ -174,9 +176,10 @@ pub type Rot3<T> = Rotor<3, T, Unaligned>;
 
 /// A 2D rotor representing 2D rotation.
 ///
-/// Rotors are a compact and efficient alternative to rotation matrices. If you
-/// are familiar with complex numbers, you already know how to use rotors. This
-/// 2D rotor type is mathematically equivalent to complex numbers.
+/// Rotors are a compact and efficient representation of rotations, alternative
+/// to matrices. If you are familiar with complex numbers, you already know how
+/// to use rotors. This library's 2D rotor is mathematically equivalent to
+/// complex numbers.
 ///
 /// > If you are curious about the underlying math, rotors come from Geometric
 /// > Algebra. I recommend
@@ -218,9 +221,9 @@ pub type Rot2A<T> = Rotor<2, T, Aligned>;
 
 /// A 3D rotor representing 3D rotation.
 ///
-/// Rotors are a compact and efficient alternative to rotation matrices. If you
-/// are familiar with quaternions, you already know how to use rotors. A 3D
-/// rotor is mathematically equivalent to a quaternion.
+/// Rotors are a compact and efficient representation of rotations, alternative
+/// to matrices. If you are familiar with quaternions, you already know how to
+/// use rotors. A 3D rotor is mathematically equivalent to a quaternion.
 ///
 /// > If you are curious about the underlying math, rotors come from Geometric
 /// > Algebra. I recommend
