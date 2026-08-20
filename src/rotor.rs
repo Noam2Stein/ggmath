@@ -12,13 +12,16 @@ use crate::{
     utils::{specialize, specialize_23, transmute_generic, transmute_mut, transmute_ref},
 };
 
-/// A rotor representing rotation.
+/// A rotor, used to represent rotation.
 ///
-/// Rotors are a compact and efficient representation of rotations, alternative
-/// to matrices. If you are familiar with complex numbers and quaternions, you
-/// already know how to use rotors. This library's 2D rotor is mathematically
-/// equivalent to complex numbers, and 3D rotors are mathematically equivalent
-/// to quaternions.
+/// A rotor is a mathematical object used to represent rotations. In comparison
+/// to rotation matrices and Euler angles, rotors are more compact and
+/// efficient, and avoid common issues in 3D, such as the infamous gimbal lock.
+///
+/// If you are familiar with quaternions, you already know how to use rotors.
+/// Rotors work the same way as quaternions, resolve to the same math, have
+/// equal performance, etc. However rotors tend to be easier to understand, and
+/// extend better to 2D.
 ///
 /// > If you are curious about the underlying math, rotors come from Geometric
 /// > Algebra. I recommend
@@ -39,7 +42,7 @@ use crate::{
 /// # Representation and Fields
 ///
 /// Unless you are familiar with rotor/quaternion math, avoid using raw rotor
-/// elements directly, and instead use higher level helper functions.
+/// elements directly. Instead, use higher level helper functions.
 ///
 /// > You may have an easier time reading documentation specific to
 /// > [2D](Rot2#representation-and-fields) and
@@ -55,17 +58,13 @@ use crate::{
 /// determined by increasing index order, and planes stored in lexicographical
 /// order. For example, in 4D this would be `xy, xz, xw, yz, yw, zw`.
 ///
-/// In three dimensions or more, plane fields store
-/// `plane_of_rotation * sin(angle/2)`, and `s` stores `cos(angle/2)`. The
-/// half-angle is necessary to correctly handle vectors outside the plane of
-/// rotation. In 2D, however, the entire vector space is the plane of rotation,
-/// thus we make 2D a special case and optimize the representation: `xy` stores
-/// `sin(angle)` and `s` stores `cos(angle)`.
+/// Plane elements store `plane_of_rotation * sin(angle/2)`, and `s` stores
+/// `cos(angle/2)`. The half angle is necessary to correctly handle vectors
+/// outside the plane of rotation in 3D, and still has benefits in 2D.
 ///
-/// In Geometric Algebra terms, this type is precisely defined as `R = e^B` with
-/// vector multiplication `vR` for `N <= 2`, and `R = e^(B/2)` with vector
-/// multiplication `R~vR` for `N >= 3`. Note that the latter differs from the
-/// traditional rotor convention, `R = e^(-B/2)` and `RvR~`.
+/// > In advanced Geometric Algebra terms, the precise definition of this type
+/// > is `R = e^(B/2)`, with vector multiplication `R~vR`. This differs from the
+/// > traditional rotor convention, `R = e^(-B/2)` and `RvR~`.
 ///
 /// Note that these fields are only exposed by implementing [`Deref`] and
 /// [`DerefMut`].
@@ -86,12 +85,16 @@ where
     Length<N>: TwoOrThree,
     T: Scalar;
 
-/// A 2D rotor representing 2D rotation.
+/// A 2D rotor, used to represent 2D rotation.
 ///
-/// Rotors are a compact and efficient representation of rotations, alternative
-/// to matrices. If you are familiar with complex numbers, you already know how
-/// to use rotors. This library's 2D rotor is mathematically equivalent to
-/// complex numbers.
+/// A rotor is a mathematical object used to represent rotations. In comparison
+/// to rotation matrices and Euler angles, rotors are more compact and
+/// efficient, and avoid common issues in 3D, such as the infamous gimbal lock.
+///
+/// If you are familiar with quaternions, you already know how to use rotors.
+/// Rotors work the same way as quaternions, resolve to the same math, have
+/// equal performance, etc. However rotors tend to be easier to understand, and
+/// extend better to 2D.
 ///
 /// > If you are curious about the underlying math, rotors come from Geometric
 /// > Algebra. I recommend
@@ -108,33 +111,35 @@ where
 ///
 /// # Representation and Fields
 ///
-/// Unless you are familiar with rotor/complex-number math, avoid using these
-/// fields directly, and instead use higher level helper functions.
+/// Unless you are familiar with rotor/quaternion math, avoid using raw rotor
+/// elements directly. Instead, use higher level helper functions.
 ///
 /// This type stores two elements, with this order in memory:
 ///
-/// - `xy: T = sin(angle)`
-/// - `s: T = cos(angle)`
+/// - `xy: T = sin(angle/2)`
+/// - `s: T = cos(angle/2)`
 ///
-/// Note that mathematically, this representation is incorrect. The correct
-/// representation is `sin(angle/2), cos(angle/2)`. In three dimensions or more,
-/// the half-angle is necessary to correctly handle vectors outside the plane of
-/// rotation. In 2D, however, the entire vector space is the plane of rotation,
-/// so the rotor can be represented directly by `sin(angle), cos(angle)`. This
-/// trick makes many operations more efficient.
+/// While technically 2D rotation can be stored as `sin(angle), cos(angle)`, the
+/// half angle has benefits that make worthwhile, even in 2D.
 ///
-/// In Geometric Algebra terms, this type is precisely defined as `R = e^B` with
-/// vector multiplication `vR`.
+/// > In advanced Geometric Algebra terms, the precise definition of this type
+/// > is `R = e^(B/2)`, with vector multiplication `R~vR`. This differs from the
+/// > traditional rotor convention, `R = e^(-B/2)` and `RvR~`.
 ///
 /// Note that these fields are only exposed by implementing [`Deref`] and
 /// [`DerefMut`].
 pub type Rot2<T> = Rotor<2, T, Unaligned>;
 
-/// A 3D rotor representing 3D rotation.
+/// A 3D rotor, used to represent 3D rotation.
 ///
-/// Rotors are a compact and efficient representation of rotations, alternative
-/// to matrices. If you are familiar with quaternions, you already know how to
-/// use rotors. A 3D rotor is mathematically equivalent to a quaternion.
+/// A rotor is a mathematical object used to represent rotations. In comparison
+/// to rotation matrices and Euler angles, rotors are more compact and
+/// efficient, and avoid common issues in 3D, such as the infamous gimbal lock.
+///
+/// If you are familiar with quaternions, you already know how to use rotors.
+/// Rotors work the same way as quaternions, resolve to the same math, have
+/// equal performance, etc. However rotors tend to be easier to understand, and
+/// extend better to 2D.
 ///
 /// > If you are curious about the underlying math, rotors come from Geometric
 /// > Algebra. I recommend
@@ -151,8 +156,8 @@ pub type Rot2<T> = Rotor<2, T, Unaligned>;
 ///
 /// # Representation and Fields
 ///
-/// Unless you are familiar with rotor/quaternion math, avoid using these fields
-/// directly, and instead use higher level helper functions.
+/// Unless you are familiar with rotor/quaternion math, avoid using raw rotor
+/// elements directly. Instead, use higher level helper functions.
 ///
 /// This type stores four elements, with this order in memory:
 ///
@@ -166,20 +171,27 @@ pub type Rot2<T> = Rotor<2, T, Unaligned>;
 /// differs from right-hand rule conventions that might expect `yz, zx, xy`
 /// (which is `x, y, z` in axis angle notation).
 ///
-/// In Geometric Algebra terms, this type is precisely defined as `R = e^(B/2)`
-/// with vector multiplication `R~vR`. This differs from the traditional
-/// convention, `R = e^(-B/2)` and `RvR~`.
+/// The half angle is necessary to correctly handle vectors outside the plane of
+/// rotation.
+///
+/// > In advanced Geometric Algebra terms, the precise definition of this type
+/// > is `R = e^(B/2)`, with vector multiplication `R~vR`. This differs from the
+/// > traditional rotor convention, `R = e^(-B/2)` and `RvR~`.
 ///
 /// Note that these fields are only exposed by implementing [`Deref`] and
 /// [`DerefMut`].
 pub type Rot3<T> = Rotor<3, T, Unaligned>;
 
-/// A 2D rotor representing 2D rotation.
+/// A 2D rotor, used to represent 2D rotation.
 ///
-/// Rotors are a compact and efficient representation of rotations, alternative
-/// to matrices. If you are familiar with complex numbers, you already know how
-/// to use rotors. This library's 2D rotor is mathematically equivalent to
-/// complex numbers.
+/// A rotor is a mathematical object used to represent rotations. In comparison
+/// to rotation matrices and Euler angles, rotors are more compact and
+/// efficient, and avoid common issues in 3D, such as the infamous gimbal lock.
+///
+/// If you are familiar with quaternions, you already know how to use rotors.
+/// Rotors work the same way as quaternions, resolve to the same math, have
+/// equal performance, etc. However rotors tend to be easier to understand, and
+/// extend better to 2D.
 ///
 /// > If you are curious about the underlying math, rotors come from Geometric
 /// > Algebra. I recommend
@@ -197,33 +209,35 @@ pub type Rot3<T> = Rotor<3, T, Unaligned>;
 ///
 /// # Representation and Fields
 ///
-/// Unless you are familiar with rotor/complex-number math, avoid using these
-/// fields directly, and instead use higher level helper functions.
+/// Unless you are familiar with rotor/quaternion math, avoid using raw rotor
+/// elements directly. Instead, use higher level helper functions.
 ///
 /// This type stores two elements, with this order in memory:
 ///
-/// - `xy: T = sin(angle)`
-/// - `s: T = cos(angle)`
+/// - `xy: T = sin(angle/2)`
+/// - `s: T = cos(angle/2)`
 ///
-/// Note that mathematically, this representation is incorrect. The correct
-/// representation is `sin(angle/2), cos(angle/2)`. In three dimensions or more,
-/// the half-angle is necessary to correctly handle vectors outside the plane of
-/// rotation. In 2D, however, the entire vector space is the plane of rotation,
-/// so the rotor can be represented directly by `sin(angle), cos(angle)`. This
-/// trick makes many operations more efficient.
+/// While technically 2D rotation can be stored as `sin(angle), cos(angle)`, the
+/// half angle has benefits that make worthwhile, even in 2D.
 ///
-/// In Geometric Algebra terms, this type is precisely defined as `R = e^B` with
-/// vector multiplication `vR`.
+/// > In advanced Geometric Algebra terms, the precise definition of this type
+/// > is `R = e^(B/2)`, with vector multiplication `R~vR`. This differs from the
+/// > traditional rotor convention, `R = e^(-B/2)` and `RvR~`.
 ///
 /// Note that these fields are only exposed by implementing [`Deref`] and
 /// [`DerefMut`].
 pub type Rot2A<T> = Rotor<2, T, Aligned>;
 
-/// A 3D rotor representing 3D rotation.
+/// A 3D rotor, used to represent 3D rotation.
 ///
-/// Rotors are a compact and efficient representation of rotations, alternative
-/// to matrices. If you are familiar with quaternions, you already know how to
-/// use rotors. A 3D rotor is mathematically equivalent to a quaternion.
+/// A rotor is a mathematical object used to represent rotations. In comparison
+/// to rotation matrices and Euler angles, rotors are more compact and
+/// efficient, and avoid common issues in 3D, such as the infamous gimbal lock.
+///
+/// If you are familiar with quaternions, you already know how to use rotors.
+/// Rotors work the same way as quaternions, resolve to the same math, have
+/// equal performance, etc. However rotors tend to be easier to understand, and
+/// extend better to 2D.
 ///
 /// > If you are curious about the underlying math, rotors come from Geometric
 /// > Algebra. I recommend
@@ -241,8 +255,8 @@ pub type Rot2A<T> = Rotor<2, T, Aligned>;
 ///
 /// # Representation and Fields
 ///
-/// Unless you are familiar with rotor/quaternion math, avoid using these fields
-/// directly, and instead use higher level helper functions.
+/// Unless you are familiar with rotor/quaternion math, avoid using raw rotor
+/// elements directly. Instead, use higher level helper functions.
 ///
 /// This type stores four elements, with this order in memory:
 ///
@@ -256,9 +270,12 @@ pub type Rot2A<T> = Rotor<2, T, Aligned>;
 /// differs from right-hand rule conventions that might expect `yz, zx, xy`
 /// (which is `x, y, z` in axis angle notation).
 ///
-/// In Geometric Algebra terms, this type is precisely defined as `R = e^(B/2)`
-/// with vector multiplication `R~vR`. This differs from the traditional
-/// convention, `R = e^(-B/2)` and `RvR~`.
+/// The half angle is necessary to correctly handle vectors outside the plane of
+/// rotation.
+///
+/// > In advanced Geometric Algebra terms, the precise definition of this type
+/// > is `R = e^(B/2)`, with vector multiplication `R~vR`. This differs from the
+/// > traditional rotor convention, `R = e^(-B/2)` and `RvR~`.
 ///
 /// Note that these fields are only exposed by implementing [`Deref`] and
 /// [`DerefMut`].

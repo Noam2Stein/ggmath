@@ -105,15 +105,19 @@
 //!
 //! # Rotors
 //!
-//! Rotors are a compact and efficient representation of rotations, alternative
-//! to matrices.
+//! A rotor is a mathematical object used to represent rotations. In comparison
+//! to rotation matrices and Euler angles, rotors are more compact and
+//! efficient, and avoid common issues in 3D, such as the infamous gimbal lock.
 //!
-//! 3D rotors are mathematically equivalent to quaternions, and this library's
-//! 2D rotors are mathematically equivalent to complex numbers. They have the
-//! same representation, operations and performance characteristics.
+//! If you are familiar with quaternions, you already know how to use rotors.
+//! Rotors work the same way as quaternions, resolve to the same math, have
+//! equal performance, etc. However rotors tend to be easier to understand, and
+//! extend better to 2D.
 //!
-//! [`ggmath`] provides rotors in a manner that aims to make them easier to use
-//! than quaternions or complex numbers.
+//! > If you are curious about the underlying math, rotors come from Geometric
+//! > Algebra. I recommend
+//! > [this resource](https://www.youtube.com/playlist?list=PLVuwZXwFua-0Ks3rRS4tIkswgUmDLqqRy)
+//! > for learning more.
 //!
 //! # Masks
 //!
