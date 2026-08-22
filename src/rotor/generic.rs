@@ -15,6 +15,33 @@ use crate::{
 impl<const N: usize, T, A: Alignment> Rotor<N, T, A>
 where
     Length<N>: TwoOrThree,
+    T: Scalar + Zero,
+{
+    /// A rotor with all elements set to zero.
+    ///
+    /// This is intentionally not exposed to the public API, as it does not
+    /// represent a valid rotation.
+    pub(crate) const ZERO: Self = match N {
+        // SAFETY: We are transmuting a type to itself
+        2 => unsafe {
+            transmute_generic::<Rotor<2, T, A>, Rotor<N, T, A>>(Rotor::<2, T, A>(
+                Vector::<2, T, A>::ZERO,
+            ))
+        },
+        // SAFETY: We are transmuting a type to itself
+        3 => unsafe {
+            transmute_generic::<Rotor<3, T, A>, Rotor<N, T, A>>(Rotor::<3, T, A>(
+                Vector::<4, T, A>::ZERO,
+            ))
+        },
+        _ => unreachable!(),
+    };
+}
+
+#[expect(private_bounds)]
+impl<const N: usize, T, A: Alignment> Rotor<N, T, A>
+where
+    Length<N>: TwoOrThree,
     T: Scalar + Zero + One,
 {
     /// A rotor that keeps all vectors unchanged.
