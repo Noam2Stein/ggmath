@@ -1,7 +1,9 @@
 use wide::{f32x4, f32x8, f32x16, f64x2, f64x4, f64x8};
 
 use crate::{
-    Alignment, EulerRot, Length, Matrix, Quaternion, SupportedLength, Vector, utils::specialize,
+    Alignment, EulerRot, Length, Matrix, Projective, Quaternion, SupportedLength, Vector,
+    length::TwoOrThree,
+    utils::{specialize, specialize_23},
 };
 
 macro_rules! impl_wide_float {
@@ -12,6 +14,21 @@ macro_rules! impl_wide_float {
         {
             /// A matrix with all elements set to NaN (Not a Number).
             pub const NAN: Self = Self::from_rows(&[Vector::<N, $Wide, A>::NAN; N]);
+
+            /// Converts a projective transform to a linear transformation
+            /// matrix.
+            ///
+            /// This assumes `projective` does not contain projections. If there
+            /// is translation, it is ignored.
+            #[inline]
+            #[must_use]
+            #[expect(private_bounds)]
+            pub fn from_projective(projective: &Projective<N, $Wide, A>) -> Self
+            where
+                Length<N>: TwoOrThree,
+            {
+                specialize_23!(Matrix::<N, $Wide, A>::from_projective_backend(projective))
+            }
 
             /// For each lane, returns `true` if any element is NaN.
             #[inline]
@@ -144,6 +161,11 @@ macro_rules! impl_wide_float {
                 let angle = (-self.y_axis.x).atan2(self.y_axis.y);
 
                 (scale, angle)
+            }
+
+            #[inline(always)]
+            fn from_projective_backend(projective: &Projective<2, $Wide, A>) -> Self {
+                Self::from_rows(&[projective.x_axis.truncate(), projective.y_axis.truncate()])
             }
 
             #[inline(always)]
@@ -535,6 +557,15 @@ macro_rules! impl_wide_float {
             }
 
             #[inline(always)]
+            fn from_projective_backend(projective: &Projective<3, $Wide, A>) -> Self {
+                Self::from_rows(&[
+                    projective.x_axis.truncate(),
+                    projective.y_axis.truncate(),
+                    projective.z_axis.truncate(),
+                ])
+            }
+
+            #[inline(always)]
             fn is_nan_backend(&self) -> $Wide {
                 self.x_axis.is_nan() | self.y_axis.is_nan() | self.z_axis.is_nan()
             }
@@ -810,8 +841,10 @@ impl_wide_float!(f64x8, f64);
 
 #[cfg(test)]
 mod tests {
+    use wide::f32x4;
+
     use crate::{
-        EulerRot, Mat2, Mat3, Mat4, Matrix, Quat, Unaligned, Vec2, Vec3, Vector,
+        EulerRot, Mat2, Mat3, Mat4, Matrix, Projective, Quat, Unaligned, Vec2, Vec3, Vector,
         test_utils::{assert_test_eq, assert_test_eq_or_panic, for_types, random_iter},
     };
 
@@ -822,6 +855,20 @@ mod tests {
                 Matrix::<N, Wide, Unaligned>::NAN,
                 Matrix::from_rows(&[Vector::<N, Wide, Unaligned>::NAN; N])
             );
+        });
+    }
+
+    #[test]
+    fn test_from_projective() {
+        for_types!(|N: TwoOrThree| {
+            for projective in random_iter::<Projective<N, f32x4, Unaligned>>() {
+                assert_test_eq_or_panic!(
+                    Matrix::<N, f32x4, Unaligned>::from_projective(&projective),
+                    Matrix::from_lane_fn(|lane| Matrix::<N, f32, Unaligned>::from_projective(
+                        &projective.lane(lane)
+                    ))
+                );
+            }
         });
     }
 

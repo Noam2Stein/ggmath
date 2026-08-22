@@ -1,7 +1,8 @@
 use crate::{
-    Alignment, EulerRot, FloatExt, Length, Matrix, PrimitiveFloat, Quaternion, SupportedLength,
-    Vector,
-    utils::{PrimitiveFloatUtils, specialize},
+    Alignment, EulerRot, FloatExt, Length, Matrix, PrimitiveFloat, Projective, Quaternion,
+    SupportedLength, Vector,
+    length::TwoOrThree,
+    utils::{PrimitiveFloatUtils, specialize, specialize_23},
 };
 
 impl<const N: usize, T, A: Alignment> Matrix<N, T, A>
@@ -11,6 +12,48 @@ where
 {
     /// A matrix with all elements set to NaN (Not a Number).
     pub const NAN: Self = Self::from_rows(&[Vector::<N, T, A>::NAN; N]);
+
+    /// Converts a projective transform to a linear transformation matrix.
+    ///
+    /// This assumes `projective` does not contain projections. If there is
+    /// translation, it is ignored.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if the last column of `projective` is not approximately
+    /// `(0, 0, ..., 1)`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Mat2, Proj2, Vec2, Vec3};
+    /// #
+    /// let projective = Proj2::from_rows(&[
+    ///     Vec3::new(11.0, 12.0, 0.0),
+    ///     Vec3::new(21.0, 22.0, 0.0),
+    ///     Vec3::new(5.0, 8.0, 1.0),
+    /// ]);
+    ///
+    /// assert_eq!(
+    ///     Mat2::<f32>::from_projective(&projective),
+    ///     Mat2::from_rows(&[
+    ///         Vec2::new(11.0, 12.0),
+    ///         Vec2::new(21.0, 22.0),
+    ///     ]),
+    /// );
+    /// ```
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    #[expect(private_bounds)]
+    pub fn from_projective(projective: &Projective<N, T, A>) -> Self
+    where
+        Length<N>: TwoOrThree,
+    {
+        specialize_23!(Matrix::<N, T, A>::from_projective_backend(projective))
+    }
 
     /// Returns `true` if any element is NaN.
     ///
@@ -265,6 +308,18 @@ where
         let angle = PrimitiveFloatUtils::atan2(-self.y_axis.x, self.y_axis.y);
 
         (scale, angle)
+    }
+
+    #[inline(always)]
+    #[track_caller]
+    fn from_projective_backend(projective: &Projective<2, T, A>) -> Self {
+        debug_assert!(
+            projective
+                .column(2)
+                .abs_diff_eq(Vector::<3, T, A>::Z, T::as_from(1e-4))
+        );
+
+        Self::from_rows(&[projective.x_axis.truncate(), projective.y_axis.truncate()])
     }
 
     #[inline(always)]
@@ -835,6 +890,22 @@ where
     }
 
     #[inline(always)]
+    #[track_caller]
+    fn from_projective_backend(projective: &Projective<3, T, A>) -> Self {
+        debug_assert!(
+            projective
+                .column(3)
+                .abs_diff_eq(Vector::<4, T, A>::W, T::as_from(1e-4))
+        );
+
+        Self::from_rows(&[
+            projective.x_axis.truncate(),
+            projective.y_axis.truncate(),
+            projective.z_axis.truncate(),
+        ])
+    }
+
+    #[inline(always)]
     fn is_nan_backend(&self) -> bool {
         self.x_axis.is_nan() || self.y_axis.is_nan() || self.z_axis.is_nan()
     }
@@ -1037,7 +1108,7 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{
-        EulerRot, FloatExt, Matrix, Quaternion, Vector,
+        EulerRot, FloatExt, Matrix, Projective, Quaternion, Vector,
         test_utils::{assert_debug_panic, assert_test_eq, for_types, random_iter},
     };
 
@@ -1048,6 +1119,55 @@ mod tests {
                 Matrix::<N, T, A>::NAN,
                 Matrix::from_rows(&[Vector::<N, T, A>::NAN; N])
             );
+        });
+    }
+
+    #[test]
+    fn test_from_projective() {
+        for_types!(|T: PrimitiveFloat, A| {
+            let projective = Projective::<2, T, A>::from_rows(&[
+                Vector::<3, T, A>::new(0.9, 0.2, 1e-5),
+                Vector::<3, T, A>::new(0.1, 0.8, 1e-5),
+                Vector::<3, T, A>::new(5.3, 3.2, 1.0 + 1e-5),
+            ]);
+            assert_eq!(
+                Matrix::<2, T, A>::from_projective(&projective),
+                Matrix::<2, T, A>::from_rows(&[
+                    projective.x_axis.truncate(),
+                    projective.y_axis.truncate(),
+                ])
+            );
+
+            let projective = Projective::<3, T, A>::from_rows(&[
+                Vector::<4, T, A>::new(0.9, 0.2, 0.1, 1e-5),
+                Vector::<4, T, A>::new(0.1, 0.8, 0.3, 1e-5),
+                Vector::<4, T, A>::new(0.2, 0.1, 0.8, 1e-5),
+                Vector::<4, T, A>::new(5.3, 3.2, 9.8, 1.0 + 1e-5),
+            ]);
+            assert_eq!(
+                Matrix::<3, T, A>::from_projective(&projective),
+                Matrix::<3, T, A>::from_rows(&[
+                    projective.x_axis.truncate(),
+                    projective.y_axis.truncate(),
+                    projective.z_axis.truncate(),
+                ])
+            );
+
+            assert_debug_panic!(Matrix::<2, T, A>::from_projective(
+                &Projective::<2, T, A>::from_rows(&[
+                    Vector::<3, T, A>::new(0.9, 0.2, 2.0),
+                    Vector::<3, T, A>::new(0.1, 0.8, 0.0),
+                    Vector::<3, T, A>::new(5.3, 3.2, 1.0),
+                ])
+            ));
+            assert_debug_panic!(Matrix::<3, T, A>::from_projective(
+                &Projective::<3, T, A>::from_rows(&[
+                    Vector::<4, T, A>::new(0.9, 0.2, 0.1, 2.0),
+                    Vector::<4, T, A>::new(0.1, 0.8, 0.3, 3.1),
+                    Vector::<4, T, A>::new(0.2, 0.1, 0.8, 0.0),
+                    Vector::<4, T, A>::new(5.3, 3.2, 9.8, 1.0),
+                ])
+            ));
         });
     }
 
