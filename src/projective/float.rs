@@ -2583,7 +2583,7 @@ mod tests {
             {
                 assert_panic_test_eq!(
                     projective.to_scale_rotation_translation(),
-                    Affine::from_projective(&projective).to_scale_rotation_translation()
+                    Affine::<3, T, A>::from_projective(&projective).to_scale_rotation_translation()
                 );
             }
         });

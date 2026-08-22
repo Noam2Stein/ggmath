@@ -1270,7 +1270,9 @@ mod tests {
                         [
                             (projective, point),
                             (
-                                Projective::from_affine(&Affine::from_projective(&projective)),
+                                Projective::from_affine(
+                                    &Affine::<N, Wide, Unaligned>::from_projective(&projective),
+                                ),
                                 point,
                             ),
                         ]
@@ -1295,7 +1297,9 @@ mod tests {
                         [
                             (projective, vector),
                             (
-                                Projective::from_affine(&Affine::from_projective(&projective)),
+                                Projective::from_affine(
+                                    &Affine::<N, Wide, Unaligned>::from_projective(&projective),
+                                ),
                                 vector,
                             ),
                         ]

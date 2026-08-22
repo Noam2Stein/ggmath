@@ -5,10 +5,8 @@ use core::{
 };
 
 use crate::{
-    Aligned, Alignment, Length, Matrix, One, Projective, Scalar, SupportedLength, Unaligned,
-    Vector, Zero,
-    length::TwoOrThree,
-    utils::{specialize_23, transmute_mut, transmute_ref},
+    Aligned, Alignment, Length, Matrix, One, Scalar, SupportedLength, Unaligned, Vector, Zero,
+    utils::{transmute_mut, transmute_ref},
 };
 
 mod float;
@@ -194,41 +192,6 @@ where
             matrix: *matrix,
             translation,
         }
-    }
-
-    /// Creates an affine transform from a projective transform, discarding the
-    /// last column.
-    ///
-    /// The removed column is completely ignored, without checking for identity.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::{Affine2, Proj2, Vec2, Vec3};
-    /// #
-    /// let projective = Proj2::from_rows(&[
-    ///     Vec3::new(00, 01, 02),
-    ///     Vec3::new(10, 11, 12),
-    ///     Vec3::new(20, 21, 22),
-    /// ]);
-    ///
-    /// assert_eq!(
-    ///     Affine2::from_projective(&projective),
-    ///     Affine2::from_rows(&[
-    ///         Vec2::new(00, 01),
-    ///         Vec2::new(10, 11),
-    ///         Vec2::new(20, 21),
-    ///     ]),
-    /// );
-    /// ```
-    #[inline]
-    #[must_use]
-    #[expect(private_bounds)]
-    pub fn from_projective(projective: &Projective<N, T, A>) -> Self
-    where
-        Length<N>: TwoOrThree,
-    {
-        specialize_23!(Affine::<N, T, A>::from_projective_backend(projective))
     }
 
     /// Conversion between [`Aligned`] and [`Unaligned`] storage.
@@ -472,15 +435,6 @@ where
     pub const fn as_rows_mut(&mut self) -> &mut [Vector<2, T, A>; 3] {
         self.as_mut_rows()
     }
-
-    #[inline]
-    fn from_projective_backend(projective: &Projective<2, T, A>) -> Self {
-        Self::from_rows(&[
-            projective[0].truncate(),
-            projective[1].truncate(),
-            projective[2].truncate(),
-        ])
-    }
 }
 
 impl<T, A: Alignment> Affine<3, T, A>
@@ -628,16 +582,6 @@ where
     #[deprecated(since = "0.17.1", note = "renamed to `as_mut_rows`")]
     pub const fn as_rows_mut(&mut self) -> &mut [Vector<3, T, A>; 4] {
         self.as_mut_rows()
-    }
-
-    #[inline]
-    fn from_projective_backend(projective: &Projective<3, T, A>) -> Self {
-        Self::from_rows(&[
-            projective[0].truncate(),
-            projective[1].truncate(),
-            projective[2].truncate(),
-            projective[3].truncate(),
-        ])
     }
 }
 
@@ -1028,7 +972,7 @@ mod tests {
     use std::format;
 
     use crate::{
-        Affine, Aligned, Mask, Matrix, Projective, Unaligned, Vector,
+        Affine, Aligned, Mask, Matrix, Unaligned, Vector,
         test_utils::{assert_panic, assert_test_eq, for_types, random_iter},
     };
 
@@ -1107,34 +1051,6 @@ mod tests {
             assert_eq!(
                 Affine::<N, T, A>::from_matrix(&matrix),
                 Affine::from_matrix_translation(&matrix, Vector::ZERO)
-            );
-        });
-    }
-
-    #[test]
-    fn test_from_projective() {
-        for_types!(|T: PrimitiveNumber, A| {
-            let projective =
-                Projective::<2, T, A>::from_row_fn(|r| Vector::from_fn(|c| T::as_from(r * 2 + c)));
-            assert_eq!(
-                Affine::<2, T, A>::from_projective(&projective),
-                Affine::<2, T, A>::from_rows(&[
-                    projective.x_axis.truncate(),
-                    projective.y_axis.truncate(),
-                    projective.z_axis.truncate(),
-                ])
-            );
-
-            let projective =
-                Projective::<3, T, A>::from_row_fn(|r| Vector::from_fn(|c| T::as_from(r * 3 + c)));
-            assert_eq!(
-                Affine::<3, T, A>::from_projective(&projective),
-                Affine::<3, T, A>::from_rows(&[
-                    projective.x_axis.truncate(),
-                    projective.y_axis.truncate(),
-                    projective.z_axis.truncate(),
-                    projective.w_axis.truncate(),
-                ])
             );
         });
     }
