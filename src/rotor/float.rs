@@ -133,22 +133,22 @@ where
     #[inline]
     #[must_use]
     #[track_caller]
-    pub fn from_projective(_projective: &Projective<N, T, A>) -> Self {
-        todo!()
+    pub fn from_projective(projective: &Projective<N, T, A>) -> Self {
+        specialize_23!(Rotor::<N, T, A>::from_projective_backend(projective))
     }
 
     /// Returns `true` if any element is NaN.
     #[inline]
     #[must_use]
     pub fn is_nan(self) -> bool {
-        todo!()
+        specialize_23!(Rotor::<N, T, A>::is_nan_backend(self))
     }
 
     /// Returns `true` if all elements are neither infinite nor NaN.
     #[inline]
     #[must_use]
     pub fn is_finite(self) -> bool {
-        todo!()
+        specialize_23!(Rotor::<N, T, A>::is_finite_backend(self))
     }
 
     /// Returns the inverse of a rotor.
@@ -397,7 +397,61 @@ where
     #[inline(always)]
     #[track_caller]
     fn from_matrix_backend(matrix: &Matrix<2, T, A>) -> Self {
-        todo!()
+        debug_assert!(
+            matrix
+                .x_axis
+                .length_squared()
+                .abs_diff_eq(T::ONE, T::as_from(1e-4))
+                && matrix
+                    .y_axis
+                    .length_squared()
+                    .abs_diff_eq(T::ONE, T::as_from(1e-4))
+                && matrix
+                    .x_axis
+                    .wedge(matrix.y_axis)
+                    .abs_diff_eq(T::ONE, T::as_from(1e-4)),
+            "not a rotation matrix: Rotor::from_matrix({matrix:?})"
+        );
+
+        Self::new(matrix.x_axis.y, matrix.x_axis.x + T::ONE).normalize()
+    }
+
+    #[inline(always)]
+    #[track_caller]
+    fn from_projective_backend(projective: &Projective<2, T, A>) -> Self {
+        debug_assert!(
+            projective
+                .column(2)
+                .abs_diff_eq(Vector::<3, T, A>::Z, T::as_from(1e-4))
+                && projective
+                    .x_axis
+                    .truncate()
+                    .length_squared()
+                    .abs_diff_eq(T::ONE, T::as_from(1e-4))
+                && projective
+                    .y_axis
+                    .truncate()
+                    .length_squared()
+                    .abs_diff_eq(T::ONE, T::as_from(1e-4))
+                && projective
+                    .x_axis
+                    .truncate()
+                    .wedge(projective.y_axis.truncate())
+                    .abs_diff_eq(T::ONE, T::as_from(1e-4)),
+            "not a rotation: Rotor::from_projective({projective:?})"
+        );
+
+        Self::new(projective.x_axis.y, projective.x_axis.x + T::ONE).normalize()
+    }
+
+    #[inline(always)]
+    fn is_nan_backend(self) -> bool {
+        self.0.is_nan()
+    }
+
+    #[inline(always)]
+    fn is_finite_backend(self) -> bool {
+        self.0.is_finite()
     }
 
     #[inline(always)]
@@ -588,6 +642,92 @@ where
                 Self::new(xy - yx, xz - zx, yz - zy, four_wsq) * inv4w
             }
         }
+    }
+
+    #[inline(always)]
+    #[track_caller]
+    fn from_projective_backend(projective: &Projective<3, T, A>) -> Self {
+        // Ported from https://github.com/bitshifter/glam-rs `Quat::from_rotation_axes`
+        // Based on https://github.com/microsoft/DirectXMath `XMQuaternionRotationMatrix`
+
+        debug_assert!(
+            projective
+                .column(3)
+                .abs_diff_eq(Vector::<4, T, A>::W, T::as_from(1e-4))
+                && projective
+                    .x_axis
+                    .truncate()
+                    .length_squared()
+                    .abs_diff_eq(T::ONE, T::as_from(1e-4))
+                && projective
+                    .y_axis
+                    .truncate()
+                    .length_squared()
+                    .abs_diff_eq(T::ONE, T::as_from(1e-4))
+                && projective
+                    .x_axis
+                    .truncate()
+                    .dot(projective.y_axis.truncate())
+                    .abs_diff_eq(T::ZERO, T::as_from(1e-4))
+                && projective
+                    .x_axis
+                    .truncate()
+                    .cross(projective.y_axis.truncate())
+                    .abs_diff_eq(projective.z_axis.truncate(), T::as_from(1e-4)),
+            "not a rotation: Rotor::from_projective({projective:?})"
+        );
+
+        let [xx, xy, xz, _] = projective.x_axis.to_array();
+        let [yx, yy, yz, _] = projective.y_axis.to_array();
+        let [zx, zy, zz, _] = projective.z_axis.to_array();
+
+        if zz <= T::ZERO {
+            // x^2 + y^2 >= z^2 + w^2
+            let dif10 = yy - xx;
+            let omm22 = T::ONE - zz;
+
+            if dif10 <= T::ZERO {
+                // x^2 >= y^2
+                let four_xsq = omm22 - dif10;
+                let inv4x = T::as_from(0.5) / PrimitiveFloatUtils::sqrt(four_xsq);
+
+                Self::new(xz + zx, -xy - yx, four_xsq, yz - zy) * inv4x
+            } else {
+                // y^2 >= x^2
+                let four_ysq = omm22 + dif10;
+                let inv4y = T::as_from(0.5) / PrimitiveFloatUtils::sqrt(four_ysq);
+
+                Self::new(yz + zy, -four_ysq, xy + yx, zx - xz) * inv4y
+            }
+        } else {
+            // z^2 + w^2 >= x^2 + y^2
+            let sum10 = yy + xx;
+            let opm22 = T::ONE + zz;
+
+            if sum10 <= T::ZERO {
+                // z^2 >= w^2
+                let four_zsq = opm22 - sum10;
+                let inv4z = T::as_from(0.5) / PrimitiveFloatUtils::sqrt(four_zsq);
+
+                Self::new(four_zsq, -yz - zy, xz + zx, xy - yx) * inv4z
+            } else {
+                // w^2 >= z^2
+                let four_wsq = opm22 + sum10;
+                let inv4w = T::as_from(0.5) / PrimitiveFloatUtils::sqrt(four_wsq);
+
+                Self::new(xy - yx, xz - zx, yz - zy, four_wsq) * inv4w
+            }
+        }
+    }
+
+    #[inline(always)]
+    fn is_nan_backend(self) -> bool {
+        self.0.is_nan()
+    }
+
+    #[inline(always)]
+    fn is_finite_backend(self) -> bool {
+        self.0.is_finite()
     }
 
     #[inline(always)]
