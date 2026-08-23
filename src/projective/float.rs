@@ -1,7 +1,7 @@
 use crate::{
     Alignment, EulerRot, Length, Matrix, PrimitiveFloat, Projective, Quaternion, Vector,
     length::TwoOrThree,
-    utils::{PrimitiveFloatUtils, specialize_23, transmute_generic},
+    utils::{specialize_23, transmute_generic},
 };
 
 #[expect(private_bounds)]
@@ -237,7 +237,7 @@ where
     #[inline]
     #[must_use]
     pub fn from_angle(angle: T) -> Self {
-        let (sin, cos) = PrimitiveFloatUtils::sin_cos(angle);
+        let (sin, cos) = angle.sin_cos();
         Self::from_rows(&[
             Vector::<3, T, A>::new(cos, sin, T::ZERO),
             Vector::<3, T, A>::new(-sin, cos, T::ZERO),
@@ -252,7 +252,7 @@ where
     #[inline]
     #[must_use]
     pub fn from_scale_angle(scale: Vector<2, T, A>, angle: T) -> Self {
-        let (sin, cos) = PrimitiveFloatUtils::sin_cos(angle);
+        let (sin, cos) = angle.sin_cos();
         Self::from_rows(&[
             Vector::<3, T, A>::new(cos * scale.x, sin * scale.x, T::ZERO),
             Vector::<3, T, A>::new(-sin * scale.y, cos * scale.y, T::ZERO),
@@ -267,7 +267,7 @@ where
     #[inline]
     #[must_use]
     pub fn from_angle_translation(angle: T, translation: Vector<2, T, A>) -> Self {
-        let (sin, cos) = PrimitiveFloatUtils::sin_cos(angle);
+        let (sin, cos) = angle.sin_cos();
         Self::from_rows(&[
             Vector::<3, T, A>::new(cos, sin, T::ZERO),
             Vector::<3, T, A>::new(-sin, cos, T::ZERO),
@@ -286,7 +286,7 @@ where
         angle: T,
         translation: Vector<2, T, A>,
     ) -> Self {
-        let (sin, cos) = PrimitiveFloatUtils::sin_cos(angle);
+        let (sin, cos) = angle.sin_cos();
         Self::from_rows(&[
             Vector::<3, T, A>::new(cos * scale.x, sin * scale.x, T::ZERO),
             Vector::<3, T, A>::new(-sin * scale.y, cos * scale.y, T::ZERO),
@@ -414,7 +414,7 @@ where
     #[inline]
     #[must_use]
     pub fn from_rotation_x(angle: T) -> Self {
-        let (sin, cos) = PrimitiveFloatUtils::sin_cos(angle);
+        let (sin, cos) = angle.sin_cos();
         Self::from_rows(&[
             Vector::<4, T, A>::X,
             Vector::<4, T, A>::new(T::ZERO, cos, sin, T::ZERO),
@@ -430,7 +430,7 @@ where
     #[inline]
     #[must_use]
     pub fn from_rotation_y(angle: T) -> Self {
-        let (sin, cos) = PrimitiveFloatUtils::sin_cos(angle);
+        let (sin, cos) = angle.sin_cos();
         Self::from_rows(&[
             Vector::<4, T, A>::new(cos, T::ZERO, -sin, T::ZERO),
             Vector::<4, T, A>::Y,
@@ -446,7 +446,7 @@ where
     #[inline]
     #[must_use]
     pub fn from_rotation_z(angle: T) -> Self {
-        let (sin, cos) = PrimitiveFloatUtils::sin_cos(angle);
+        let (sin, cos) = angle.sin_cos();
         Self::from_rows(&[
             Vector::<4, T, A>::new(cos, sin, T::ZERO, T::ZERO),
             Vector::<4, T, A>::new(-sin, cos, T::ZERO, T::ZERO),
@@ -517,7 +517,7 @@ where
             "axis is not normalized: from_axis_angle({axis:?}, {angle:?})"
         );
 
-        let (sin, cos) = PrimitiveFloatUtils::sin_cos(angle);
+        let (sin, cos) = angle.sin_cos();
         let [xsin, ysin, zsin] = (axis * sin).to_array();
         let [x, y, z] = axis.to_array();
         let [x2, y2, z2] = (axis * axis).to_array();
@@ -823,7 +823,7 @@ where
             "near_plane < 0 or far_plane < near_plane"
         );
 
-        let (sin, cos) = PrimitiveFloatUtils::sin_cos(vertical_fov * T::as_from(0.5));
+        let (sin, cos) = (vertical_fov * T::as_from(0.5)).sin_cos();
         let height_recip = cos / sin;
         let width_recip = height_recip / aspect_ratio;
         let depth_scale = far_plane / (far_plane - near_plane);
@@ -856,7 +856,7 @@ where
             "near_plane < 0 or far_plane < near_plane"
         );
 
-        let (sin, cos) = PrimitiveFloatUtils::sin_cos(vertical_fov * T::as_from(0.5));
+        let (sin, cos) = (vertical_fov * T::as_from(0.5)).sin_cos();
         let height_recip = cos / sin;
         let width_recip = height_recip / aspect_ratio;
         let neg_depth_scale = far_plane / (near_plane - far_plane);
@@ -895,7 +895,7 @@ where
             "near_plane < 0 or far_plane < near_plane"
         );
 
-        let (sin, cos) = PrimitiveFloatUtils::sin_cos(vertical_fov * T::as_from(0.5));
+        let (sin, cos) = (vertical_fov * T::as_from(0.5)).sin_cos();
         let height_recip = cos / sin;
         let width_recip = height_recip / aspect_ratio;
         let depth_recip = (near_plane - far_plane).recip();
@@ -936,7 +936,7 @@ where
     pub fn perspective_infinite_lh(vertical_fov: T, aspect_ratio: T, near_plane: T) -> Self {
         debug_assert!(near_plane > T::ZERO, "near_plane < 0");
 
-        let (sin, cos) = PrimitiveFloatUtils::sin_cos(vertical_fov * T::as_from(0.5));
+        let (sin, cos) = (vertical_fov * T::as_from(0.5)).sin_cos();
         let height_recip = cos / sin;
         let width_recip = height_recip / aspect_ratio;
 
@@ -966,7 +966,7 @@ where
     pub fn perspective_infinite_rh(vertical_fov: T, aspect_ratio: T, near_plane: T) -> Self {
         debug_assert!(near_plane > T::ZERO, "near_plane < 0");
 
-        let (sin, cos) = PrimitiveFloatUtils::sin_cos(vertical_fov * T::as_from(0.5));
+        let (sin, cos) = (vertical_fov * T::as_from(0.5)).sin_cos();
         let height_recip = cos / sin;
         let width_recip = height_recip / aspect_ratio;
 
@@ -999,7 +999,7 @@ where
     ) -> Self {
         debug_assert!(near_plane > T::ZERO, "near_plane < 0");
 
-        let (sin, cos) = PrimitiveFloatUtils::sin_cos(vertical_fov * T::as_from(0.5));
+        let (sin, cos) = (vertical_fov * T::as_from(0.5)).sin_cos();
         let height_recip = cos / sin;
         let width_recip = height_recip / aspect_ratio;
 
@@ -1032,7 +1032,7 @@ where
     ) -> Self {
         debug_assert!(near_plane > T::ZERO, "near_plane < 0");
 
-        let (sin, cos) = PrimitiveFloatUtils::sin_cos(vertical_fov * T::as_from(0.5));
+        let (sin, cos) = (vertical_fov * T::as_from(0.5)).sin_cos();
         let height_recip = cos / sin;
         let width_recip = height_recip / aspect_ratio;
 
