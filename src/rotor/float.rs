@@ -1,5 +1,6 @@
 use crate::{
-    Affine, Alignment, FloatExt, Length, Matrix, PrimitiveFloat, Projective, Rotor, Vector,
+    Affine, Alignment, EulerRot, FloatExt, Length, Matrix, PrimitiveFloat, Projective, Rotor,
+    Vector,
     length::TwoOrThree,
     utils::{PrimitiveFloatUtils, specialize_23, transmute_generic},
 };
@@ -516,6 +517,301 @@ impl<T, A: Alignment> Rotor<3, T, A>
 where
     T: PrimitiveFloat,
 {
+    /// Creates a rotor from an `angle` (in radians) rotating `+X` to `+Y`.
+    #[inline]
+    #[must_use]
+    pub fn from_rotation_xy(angle: T) -> Self {
+        let (sin, cos) = PrimitiveFloatUtils::sin_cos(angle * T::as_from(0.5));
+        Self::new(sin, T::ZERO, T::ZERO, cos)
+    }
+
+    /// Creates a rotor from an `angle` (in radians) rotating `+X` to `+Z`.
+    #[inline]
+    #[must_use]
+    pub fn from_rotation_xz(angle: T) -> Self {
+        let (sin, cos) = PrimitiveFloatUtils::sin_cos(angle * T::as_from(0.5));
+        Self::new(T::ZERO, sin, T::ZERO, cos)
+    }
+
+    /// Creates a rotor from an `angle` (in radians) rotating `+Y` to `+Z`.
+    #[inline]
+    #[must_use]
+    pub fn from_rotation_yz(angle: T) -> Self {
+        let (sin, cos) = PrimitiveFloatUtils::sin_cos(angle * T::as_from(0.5));
+        Self::new(T::ZERO, T::ZERO, sin, cos)
+    }
+
+    /// Creates a rotor from a rotation `axis` and `angle` (in radians), using
+    /// the right-hand rule.
+    ///
+    /// This assumes `axis` is normalized.
+    ///
+    /// If you are using this to initialize a static rotation, consider using
+    /// [`from_rotation_arc`] instead. That function makes it clearer what
+    /// direction the rotation happens in, whereas this function requires
+    /// remembering the right-hand rule.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `axis` is not normalized.
+    ///
+    /// [`from_rotation_arc`]: Self::from_rotation_arc
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn from_axis_angle(axis: Vector<3, T, A>, angle: T) -> Self {
+        debug_assert!(
+            axis.is_normalized(),
+            "axis is not normalized: Rotor::from_axis_angle({axis:?}, {angle:?})"
+        );
+
+        let (sin, cos) = PrimitiveFloatUtils::sin_cos(angle * T::as_from(0.5));
+        let xyz = axis * sin;
+        Self::new(xyz.z, -xyz.y, xyz.x, cos)
+    }
+
+    /// Creates a rotor that rotates `scaled_axis.length()` radians around
+    /// `scaled_axis.normalize()`, using the right-hand rule.
+    ///
+    /// If you are using this to initialize a static rotation, consider using
+    /// [`from_rotation_arc`] instead. That function makes it clearer what
+    /// direction the rotation happens in, whereas this function requires
+    /// remembering the right-hand rule.
+    #[inline]
+    #[must_use]
+    pub fn from_scaled_axis(scaled_axis: Vector<3, T, A>) -> Self {
+        let (axis, angle) = scaled_axis.normalize_and_length();
+        if angle == T::ZERO {
+            Self::IDENTITY
+        } else {
+            let (sin, cos) = PrimitiveFloatUtils::sin_cos(angle * T::as_from(0.5));
+            let xyz = axis * sin;
+            Self::new(xyz.z, -xyz.y, xyz.x, cos)
+        }
+    }
+
+    /// Creates a rotor from an Euler rotation order/sequence and angles (in
+    /// radians).
+    #[inline]
+    #[must_use]
+    pub fn from_euler(order: EulerRot, a: T, b: T, c: T) -> Self {
+        // Ported from https://github.com/bitshifter/glam-rs.
+
+        // Based on Ken Shoemake. 1994. Euler angle conversion. Graphics gems IV.
+        // Academic Press Professional, Inc., USA, 222–229.
+
+        let order = order.properties();
+        let (i, j, k) = order.axes_indices();
+
+        let mut angles = if order.frame_static {
+            Vector::<3, T, A>::new(a, b, c)
+        } else {
+            Vector::<3, T, A>::new(c, b, a)
+        };
+
+        if order.parity_even {
+            angles.y = -angles.y;
+        }
+
+        let ti = angles.x * T::as_from(0.5);
+        let tj = angles.y * T::as_from(0.5);
+        let th = angles.z * T::as_from(0.5);
+        let (si, ci) = PrimitiveFloatUtils::sin_cos(ti);
+        let (sj, cj) = PrimitiveFloatUtils::sin_cos(tj);
+        let (sh, ch) = PrimitiveFloatUtils::sin_cos(th);
+        let cc = ci * ch;
+        let cs = ci * sh;
+        let sc = si * ch;
+        let ss = si * sh;
+
+        let parity = if !order.parity_even {
+            T::ONE
+        } else {
+            T::NEG_ONE
+        };
+
+        let mut result = Vector::ZERO;
+
+        if order.initial_repeated {
+            result[i] = cj * (cs + sc);
+            result[j] = sj * (cc + ss) * parity;
+            result[k] = sj * (cs - sc);
+            result[3] = cj * (cc - ss);
+        } else {
+            result[i] = cj * sc - sj * cs;
+            result[j] = (cj * ss + sj * cc) * parity;
+            result[k] = cj * cs - sj * sc;
+            result[3] = cj * cc + sj * ss;
+        }
+
+        Self(result)
+    }
+
+    /// Creates a quaternion from a facing direction and an up direction.
+    ///
+    /// For a left-handed view coordinate system with `+X=right`, `+Y=up` and
+    /// `+Z=forward`.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if:
+    ///
+    /// - `dir` or `up` are not normalized
+    /// - `dir` and `up` are parallel
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn look_to_lh(dir: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
+        Self::from_matrix(&Matrix::<3, T, A>::look_to_lh(dir, up))
+    }
+
+    /// Creates a quaternion from a facing direction and an up direction.
+    ///
+    /// For a right-handed view coordinate system with `+X=right`, `+Y=up` and
+    /// `+Z=back`.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if:
+    ///
+    /// - `dir` or `up` are not normalized
+    /// - `dir` and `up` are parallel
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn look_to_rh(dir: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
+        Self::from_matrix(&Matrix::<3, T, A>::look_to_rh(dir, up))
+    }
+
+    /// Creates a quaternion from a camera position, a focal point and an up
+    /// direction.
+    ///
+    /// For a left-handed view coordinate system with `+X=right`, `+Y=up` and
+    /// `+Z=forward`.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if:
+    ///
+    /// - `up` is not normalized
+    /// - `center` is equal to `eye`
+    /// - The resulting forward direction is parallel to `up`
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn look_at_lh(eye: Vector<3, T, A>, center: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
+        Self::from_matrix(&Matrix::<3, T, A>::look_at_lh(eye, center, up))
+    }
+
+    /// Creates a quaternion from a camera position, a focal point and an up
+    /// direction.
+    ///
+    /// For a right-handed view coordinate system with `+X=right`, `+Y=up` and
+    /// `+Z=back`.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if:
+    ///
+    /// - `up` is not normalized
+    /// - `center` is equal to `eye`
+    /// - The resulting forward direction is parallel to `up`
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn look_at_rh(eye: Vector<3, T, A>, center: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
+        Self::from_matrix(&Matrix::<3, T, A>::look_at_rh(eye, center, up))
+    }
+
+    /// Converts the quaternion `self` to a normalized rotation axis and an
+    /// angle (in radians).
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` is not normalized.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_axis_angle(self) -> (Vector<3, T, A>, T) {
+        debug_assert!(
+            self.is_normalized(),
+            "quaternion is not normalized: {self:?}.to_axis_angle()"
+        );
+
+        let xyz = Vector::<3, T, A>::new(self.x, self.y, self.z);
+        let length = xyz.length();
+
+        if length >= T::as_from(1e-8) {
+            let axis = xyz / length;
+            let angle = PrimitiveFloatUtils::atan2(length, self.w) * T::as_from(2.0);
+
+            (axis, angle)
+        } else {
+            (Vector::<3, T, A>::X, T::ZERO)
+        }
+    }
+
+    /// Converts the quaternion `self` to a rotation axis scaled by an angle (in
+    /// radians).
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` is not normalized.
+    #[inline]
+    #[must_use]
+    pub fn to_scaled_axis(self) -> Vector<3, T, A> {
+        debug_assert!(
+            self.is_normalized(),
+            "quaternion is not normalized: {self:?}.to_scaled_axis()"
+        );
+
+        let xyz = Vector::<3, T, A>::new(self.x, self.y, self.z);
+        let length = xyz.length();
+
+        if length >= T::as_from(1e-8) {
+            let axis = xyz / length;
+            let angle = PrimitiveFloatUtils::atan2(length, self.w) * T::as_from(2.0);
+
+            axis * angle
+        } else {
+            Vector::ZERO
+        }
+    }
+
+    /// Returns the Euler angles forming `self` for the given Euler rotation
+    /// order/sequence.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` is not normalized.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_euler(self, order: EulerRot) -> (T, T, T) {
+        debug_assert!(
+            self.is_normalized(),
+            "quaternion is not normalized: {self:?}.to_euler({order:?})"
+        );
+
+        Matrix::<3, T, A>::from_quat(self).to_euler(order)
+    }
+
     #[inline(always)]
     #[track_caller]
     fn from_rotation_arc_backend(from: Vector<3, T, A>, to: Vector<3, T, A>) -> Self {
