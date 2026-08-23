@@ -67,6 +67,7 @@ mod wide_float;
 /// `[Vector<N, T, A>; N]`.
 ///
 /// [`Affine`]: crate::Affine
+/// [`Projective`]: crate::Projective
 #[repr(transparent)]
 pub struct Matrix<const N: usize, T, A: Alignment>(
     #[expect(clippy::type_complexity)]
