@@ -242,7 +242,7 @@ where
     /// ]);
     ///
     /// assert_eq!(
-    ///     Affine2::from_homogeneous(&homogeneous),
+    ///     Affine2::<f32>::from_homogeneous(&homogeneous),
     ///     Affine2::from_rows(&[
     ///         Vec2::new(11.0, 12.0),
     ///         Vec2::new(21.0, 22.0),
@@ -472,7 +472,7 @@ where
     /// ]);
     ///
     /// assert_eq!(
-    ///     Affine2::from_homogeneous(&homogeneous),
+    ///     Affine2::<f32>::from_homogeneous(&homogeneous),
     ///     Affine2::from_rows(&[
     ///         Vec2::new(11.0, 12.0),
     ///         Vec2::new(21.0, 22.0),
