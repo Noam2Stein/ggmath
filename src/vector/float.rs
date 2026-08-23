@@ -2020,17 +2020,14 @@ where
 
 #[cfg(test)]
 mod tests {
-    #[cfg(feature = "num-primitive")]
-    use num_primitive::PrimitiveFloat;
 
-    #[cfg(not(feature = "num-primitive"))]
-    use crate::utils::PrimitiveFloatUtils;
     use crate::{
         FloatExt, Mask, Vec2A, Vec3A, Vector,
         test_utils::{
             assert_debug_panic, assert_panic_test_eq, assert_test_eq, assert_test_eq_or_panic,
             for_types, random_iter,
         },
+        utils::PrimitiveFloatUtils,
     };
 
     #[test]

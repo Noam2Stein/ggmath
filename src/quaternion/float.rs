@@ -818,17 +818,14 @@ where
 
 #[cfg(test)]
 mod tests {
-    #[cfg(feature = "num-primitive")]
-    use num_primitive::PrimitiveFloat;
 
-    #[cfg(not(feature = "num-primitive"))]
-    use crate::utils::PrimitiveFloatUtils;
     use crate::{
         EulerRot, FloatExt, Matrix, QuatA, Quaternion, Vector,
         test_utils::{
             assert_debug_panic, assert_panic_test_eq, assert_test_eq, for_types, random_iter,
             test_eq,
         },
+        utils::PrimitiveFloatUtils,
     };
 
     #[test]
