@@ -310,7 +310,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn to_scale_angle(&self) -> (Vector<2, T, A>, T) {
-        Matrix::from_projective(self).to_scale_angle()
+        Matrix::<2, T, A>::from_projective(self).to_scale_angle()
     }
 
     /// Returns the `scale`, `angle` and `translation` of `self`.
@@ -1270,7 +1270,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn to_euler(&self, order: EulerRot) -> (T, T, T) {
-        Matrix::from_projective(self).to_euler(order)
+        Matrix::<3, T, A>::from_projective(self).to_euler(order)
     }
 
     /// Returns the `scale` and `rotation` of `self`.
@@ -1287,7 +1287,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn to_scale_rotation(&self) -> (Vector<3, T, A>, Quaternion<T, A>) {
-        Matrix::from_projective(self).to_scale_rotation()
+        Matrix::<3, T, A>::from_projective(self).to_scale_rotation()
     }
 
     /// Returns the `scale`, `rotation` and `translation` of `self`.
@@ -2538,7 +2538,7 @@ mod tests {
                 {
                     assert_panic_test_eq!(
                         projective.to_euler(order),
-                        Matrix::from_projective(&projective).to_euler(order)
+                        Matrix::<3, T, A>::from_projective(&projective).to_euler(order)
                     );
                 }
             }
@@ -2561,7 +2561,7 @@ mod tests {
             {
                 assert_panic_test_eq!(
                     projective.to_scale_rotation(),
-                    Matrix::from_projective(&projective).to_scale_rotation()
+                    Matrix::<3, T, A>::from_projective(&projective).to_scale_rotation()
                 );
             }
         });
@@ -2583,7 +2583,7 @@ mod tests {
             {
                 assert_panic_test_eq!(
                     projective.to_scale_rotation_translation(),
-                    Affine::from_projective(&projective).to_scale_rotation_translation()
+                    Affine::<3, T, A>::from_projective(&projective).to_scale_rotation_translation()
                 );
             }
         });

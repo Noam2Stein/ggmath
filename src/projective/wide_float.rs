@@ -236,7 +236,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn to_scale_angle(&self) -> (Vector<2, $Wide, A>, $Wide) {
-                Matrix::from_projective(self).to_scale_angle()
+                Matrix::<2, $Wide, A>::from_projective(self).to_scale_angle()
             }
 
             /// Returns the `scale`, `angle` and `translation` of `self`.
@@ -1063,7 +1063,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn to_euler(&self, order: EulerRot) -> ($Wide, $Wide, $Wide) {
-                Matrix::from_projective(self).to_euler(order)
+                Matrix::<3, $Wide, A>::from_projective(self).to_euler(order)
             }
 
             /// For each lane, returns the `scale` and `rotation` of `self`.
@@ -1074,7 +1074,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn to_scale_rotation(&self) -> (Vector<3, $Wide, A>, Quaternion<$Wide, A>) {
-                Matrix::from_projective(self).to_scale_rotation()
+                Matrix::<3, $Wide, A>::from_projective(self).to_scale_rotation()
             }
 
             /// For each lane, returns the `scale`, `rotation` and `translation`
@@ -1270,7 +1270,9 @@ mod tests {
                         [
                             (projective, point),
                             (
-                                Projective::from_affine(&Affine::from_projective(&projective)),
+                                Projective::from_affine(
+                                    &Affine::<N, Wide, Unaligned>::from_projective(&projective),
+                                ),
                                 point,
                             ),
                         ]
@@ -1295,7 +1297,9 @@ mod tests {
                         [
                             (projective, vector),
                             (
-                                Projective::from_affine(&Affine::from_projective(&projective)),
+                                Projective::from_affine(
+                                    &Affine::<N, Wide, Unaligned>::from_projective(&projective),
+                                ),
                                 vector,
                             ),
                         ]
