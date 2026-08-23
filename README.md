@@ -63,8 +63,7 @@ The underlying types are generic over:
 The traits [`PrimitiveFloat`], [`PrimitiveInteger`], [`PrimitiveSigned`] and
 [`PrimitiveUnsigned`] give generic contexts access to most primitive
 functionality. These traits do not expose functions directly, they only enable
-functionality for vectors, matrices, etc. For complete primitive generics, add
-the [`num-primitive`] crate as an optional dependency.
+functionality for vectors, matrices, etc.
 
 ## Affine and Projective Transforms
 
@@ -285,7 +284,6 @@ it serves the same purpose as [`glam`] but with generics.
 [`PrimitiveInteger`]: https://docs.rs/ggmath/latest/ggmath/trait.PrimitiveInteger.html
 [`PrimitiveSigned`]: https://docs.rs/ggmath/latest/ggmath/trait.PrimitiveSigned.html
 [`PrimitiveUnsigned`]: https://docs.rs/ggmath/latest/ggmath/trait.PrimitiveUnsigned.html
-[`num-primitive`]: https://crates.io/crates/num-primitive
 
 [`Mat4`]: https://docs.rs/ggmath/latest/ggmath/type.Mat4.html
 [`Mat3`]: https://docs.rs/ggmath/latest/ggmath/type.Mat3.html
