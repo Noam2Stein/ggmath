@@ -389,41 +389,6 @@ where
         ])
     }
 
-    /// Takes the `N+1`x`N` affine transform part of an `N+1`x`N+1` homogeneous
-    /// transformation matrix, discarding the last column.
-    ///
-    /// The removed column is completely ignored, without checking for identity.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::{Affine2, Mat3, Vec2, Vec3};
-    /// #
-    /// let homogeneous = Mat3::from_rows(&[
-    ///     Vec3::new(00, 01, 02),
-    ///     Vec3::new(10, 11, 12),
-    ///     Vec3::new(20, 21, 22),
-    /// ]);
-    ///
-    /// assert_eq!(
-    ///     Affine2::from_homogeneous(&homogeneous),
-    ///     Affine2::from_rows(&[
-    ///         Vec2::new(00, 01),
-    ///         Vec2::new(10, 11),
-    ///         Vec2::new(20, 21),
-    ///     ]),
-    /// );
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn from_homogeneous(homogeneous: &Matrix<3, T, A>) -> Self {
-        Self::from_rows(&[
-            homogeneous.x_axis.truncate(),
-            homogeneous.y_axis.truncate(),
-            homogeneous.z_axis.truncate(),
-        ])
-    }
-
     /// Returns a mutable reference to the affine transform's rows.
     ///
     /// This function has been renamed to [`as_mut_rows`].
@@ -533,42 +498,6 @@ where
             self.matrix.y_axis.extend(T::ZERO),
             self.matrix.z_axis.extend(T::ZERO),
             self.translation.to_homogeneous(),
-        ])
-    }
-
-    /// Takes the `N+1`x`N` affine transform part of an `N+1`x`N+1` homogeneous
-    /// transformation matrix, discarding the last column.
-    ///
-    /// The removed column is completely ignored, without checking for identity.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::{Affine2, Mat3, Vec2, Vec3};
-    /// #
-    /// let homogeneous = Mat3::from_rows(&[
-    ///     Vec3::new(00, 01, 02),
-    ///     Vec3::new(10, 11, 12),
-    ///     Vec3::new(20, 21, 22),
-    /// ]);
-    ///
-    /// assert_eq!(
-    ///     Affine2::from_homogeneous(&homogeneous),
-    ///     Affine2::from_rows(&[
-    ///         Vec2::new(00, 01),
-    ///         Vec2::new(10, 11),
-    ///         Vec2::new(20, 21),
-    ///     ]),
-    /// );
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn from_homogeneous(homogeneous: &Matrix<4, T, A>) -> Self {
-        Self::from_rows(&[
-            homogeneous.x_axis.truncate(),
-            homogeneous.y_axis.truncate(),
-            homogeneous.z_axis.truncate(),
-            homogeneous.w_axis.truncate(),
         ])
     }
 
@@ -1260,41 +1189,6 @@ mod tests {
                     Vector::<4, T, A>::new(w, a, b, T::ZERO),
                     Vector::<4, T, A>::new(c, d, e, T::ZERO),
                     Vector::<4, T, A>::new(f, g, h, T::ONE)
-                ])
-            );
-        });
-    }
-
-    #[test]
-    fn test_from_homogeneous() {
-        for_types!(|T: PrimitiveNumber, A| {
-            let [x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l] =
-                std::array::from_fn(|i| T::as_from(i + 1));
-
-            assert_eq!(
-                Affine::<2, T, A>::from_homogeneous(&Matrix::from_rows(&[
-                    Vector::<3, T, A>::new(x, y, z),
-                    Vector::<3, T, A>::new(w, a, b),
-                    Vector::<3, T, A>::new(c, d, e)
-                ])),
-                Affine::<2, T, A>::from_rows(&[
-                    Vector::<2, T, A>::new(x, y),
-                    Vector::<2, T, A>::new(w, a),
-                    Vector::<2, T, A>::new(c, d)
-                ])
-            );
-            assert_eq!(
-                Affine::<3, T, A>::from_homogeneous(&Matrix::from_rows(&[
-                    Vector::<4, T, A>::new(x, y, z, w),
-                    Vector::<4, T, A>::new(a, b, c, d),
-                    Vector::<4, T, A>::new(e, f, g, h),
-                    Vector::<4, T, A>::new(i, j, k, l)
-                ])),
-                Affine::<3, T, A>::from_rows(&[
-                    Vector::<3, T, A>::new(x, y, z),
-                    Vector::<3, T, A>::new(a, b, c),
-                    Vector::<3, T, A>::new(e, f, g),
-                    Vector::<3, T, A>::new(i, j, k)
                 ])
             );
         });

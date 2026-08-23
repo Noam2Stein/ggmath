@@ -151,6 +151,20 @@ macro_rules! impl_wide_float {
                 )
             }
 
+            /// Takes the `N+1`x`N` affine transform part of an `N+1`x`N+1`
+            /// homogeneous transformation matrix, removing the last column.
+            ///
+            /// This assumes `homogeneous` does not contain projections.
+            #[inline]
+            #[must_use]
+            pub fn from_homogeneous(homogeneous: &Matrix<3, $Wide, A>) -> Self {
+                Self::from_rows(&[
+                    homogeneous.x_axis.truncate(),
+                    homogeneous.y_axis.truncate(),
+                    homogeneous.z_axis.truncate(),
+                ])
+            }
+
             /// For each lane, returns the `scale` and `angle` of `self`.
             ///
             /// `self` must be reversible and not contain shearing. Otherwise
@@ -313,6 +327,21 @@ macro_rules! impl_wide_float {
                     &Matrix::<3, $Wide, A>::from_scale_rotation(scale, rotation),
                     translation,
                 )
+            }
+
+            /// Takes the `N+1`x`N` affine transform part of an `N+1`x`N+1`
+            /// homogeneous transformation matrix, removing the last column.
+            ///
+            /// This assumes `homogeneous` does not contain projections.
+            #[inline]
+            #[must_use]
+            pub fn from_homogeneous(homogeneous: &Matrix<4, $Wide, A>) -> Self {
+                Self::from_rows(&[
+                    homogeneous.x_axis.truncate(),
+                    homogeneous.y_axis.truncate(),
+                    homogeneous.z_axis.truncate(),
+                    homogeneous.w_axis.truncate(),
+                ])
             }
 
             /// Creates a left-handed view transform from a camera position, a
@@ -566,7 +595,7 @@ mod tests {
 
     use crate::{
         Affine, Affine2, Affine3, EulerRot, Mat3, Matrix, Projective, Quat, Unaligned, Vec2, Vec3,
-        Vector,
+        Vec4, Vector,
         test_utils::{assert_test_eq, assert_test_eq_or_panic, for_types, random_iter},
     };
 
@@ -745,6 +774,37 @@ mod tests {
                     0.0 = -0.0
                 );
             }
+        });
+    }
+
+    #[test]
+    fn test_from_homogeneous() {
+        for_types!(|Wide: WideFloat| {
+            let [x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l] =
+                std::array::from_fn(|i| Wide::splat(i as T + 1.0));
+
+            assert_eq!(
+                Affine2::<Wide>::from_homogeneous(&Matrix::from_rows(&[
+                    Vec3::new(x, y, z),
+                    Vec3::new(w, a, b),
+                    Vec3::new(c, d, e)
+                ])),
+                Affine2::from_rows(&[Vec2::new(x, y), Vec2::new(w, a), Vec2::new(c, d)])
+            );
+            assert_eq!(
+                Affine3::<Wide>::from_homogeneous(&Matrix::from_rows(&[
+                    Vec4::new(x, y, z, w),
+                    Vec4::new(a, b, c, d),
+                    Vec4::new(e, f, g, h),
+                    Vec4::new(i, j, k, l)
+                ])),
+                Affine3::from_rows(&[
+                    Vec3::new(x, y, z),
+                    Vec3::new(a, b, c),
+                    Vec3::new(e, f, g),
+                    Vec3::new(i, j, k)
+                ])
+            );
         });
     }
 
