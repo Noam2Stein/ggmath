@@ -257,7 +257,7 @@ where
             homogeneous
                 .column(2)
                 .abs_diff_eq(Vector::<3, T, A>::Z, T::as_from(1e-4)),
-            "input contains projection: Affine::from_homogeneous({homogeneous})"
+            "input contains projection: Affine::from_homogeneous({homogeneous:?})"
         );
 
         Self::from_rows(&[
@@ -309,7 +309,7 @@ where
             projective
                 .column(2)
                 .abs_diff_eq(Vector::<3, T, A>::Z, T::as_from(1e-4)),
-            "input contains projection: Affine::from_projective({projective})"
+            "input contains projection: Affine::from_projective({projective:?})"
         );
 
         Self::from_rows(&[
@@ -487,7 +487,7 @@ where
             homogeneous
                 .column(3)
                 .abs_diff_eq(Vector::<4, T, A>::W, T::as_from(1e-4)),
-            "input contains projection: Affine::from_homogeneous({homogeneous})"
+            "input contains projection: Affine::from_homogeneous({homogeneous:?})"
         );
 
         Self::from_rows(&[
@@ -736,7 +736,7 @@ where
             projective
                 .column(3)
                 .abs_diff_eq(Vector::<4, T, A>::W, T::as_from(1e-4)),
-            "input contains projection: Affine::from_projective({projective})"
+            "input contains projection: Affine::from_projective({projective:?})"
         );
 
         Self::from_rows(&[
