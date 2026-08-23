@@ -277,6 +277,48 @@ where
         ])
     }
 
+    /// Takes the `N`x`N` linear transformation part of an `N+1`x`N+1`
+    /// homogeneous transformation matrix, removing the last row and column.
+    ///
+    /// This assumes `homogeneous` does not contain projections. If there is
+    /// translation, it is ignored.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the last column of `homogeneous` is not approximately
+    /// `(0, 0, ..., 1)`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Mat2, Mat3, Vec2, Vec3};
+    /// #
+    /// let homogeneous = Mat3::from_rows(&[
+    ///     Vec3::new(11.0, 12.0, 0.0),
+    ///     Vec3::new(21.0, 22.0, 0.0),
+    ///     Vec3::new(5.0, 8.0, 1.0),
+    /// ]);
+    ///
+    /// assert_eq!(
+    ///     Mat2::from_homogeneous(&homogeneous),
+    ///     Mat2::from_rows(&[
+    ///         Vec2::new(11.0, 12.0),
+    ///         Vec2::new(21.0, 22.0),
+    ///     ]),
+    /// );
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn from_homogeneous(homogeneous: &Matrix<3, T, A>) -> Self {
+        debug_assert!(
+            homogeneous
+                .column(2)
+                .abs_diff_eq(Vector::<3, T, A>::Z, T::as_from(1e-4))
+        );
+
+        Self::from_rows(&[homogeneous.x_axis.truncate(), homogeneous.y_axis.truncate()])
+    }
+
     /// Returns the `scale` and `angle` of `self`.
     ///
     /// `self` must not contain shearing. Otherwise the result is unspecified.
@@ -584,6 +626,52 @@ where
             rotation_x * scale.x,
             rotation_y * scale.y,
             rotation_z * scale.z,
+        ])
+    }
+
+    /// Takes the `N`x`N` linear transformation part of an `N+1`x`N+1`
+    /// homogeneous transformation matrix, removing the last row and column.
+    ///
+    /// This assumes `homogeneous` does not contain projections. If there is
+    /// translation, it is ignored.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the last column of `homogeneous` is not approximately
+    /// `(0, 0, ..., 1)`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Mat2, Mat3, Vec2, Vec3};
+    /// #
+    /// let homogeneous = Mat3::from_rows(&[
+    ///     Vec3::new(11.0, 12.0, 0.0),
+    ///     Vec3::new(21.0, 22.0, 0.0),
+    ///     Vec3::new(5.0, 8.0, 1.0),
+    /// ]);
+    ///
+    /// assert_eq!(
+    ///     Mat2::from_homogeneous(&homogeneous),
+    ///     Mat2::from_rows(&[
+    ///         Vec2::new(11.0, 12.0),
+    ///         Vec2::new(21.0, 22.0),
+    ///     ]),
+    /// );
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn from_homogeneous(homogeneous: &Matrix<4, T, A>) -> Self {
+        debug_assert!(
+            homogeneous
+                .column(3)
+                .abs_diff_eq(Vector::<4, T, A>::W, T::as_from(1e-4))
+        );
+
+        Self::from_rows(&[
+            homogeneous.x_axis.truncate(),
+            homogeneous.y_axis.truncate(),
+            homogeneous.z_axis.truncate(),
         ])
     }
 
@@ -1107,6 +1195,8 @@ where
 
 #[cfg(test)]
 mod tests {
+    extern crate std;
+
     use crate::{
         EulerRot, FloatExt, Matrix, Projective, Quaternion, Vector,
         test_utils::{assert_debug_panic, assert_test_eq, for_types, random_iter},
@@ -1431,6 +1521,39 @@ mod tests {
                     0.0 = -0.0
                 );
             }
+        });
+    }
+
+    #[test]
+    fn test_from_homogeneous() {
+        for_types!(|T: PrimitiveFloat, A| {
+            let [x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l] =
+                std::array::from_fn(|i| i as T + 1.0);
+
+            assert_eq!(
+                Matrix::<2, T, A>::from_homogeneous(&Matrix::from_rows(&[
+                    Vector::<3, T, A>::new(x, y, z),
+                    Vector::<3, T, A>::new(w, a, b),
+                    Vector::<3, T, A>::new(c, d, e)
+                ])),
+                Matrix::<2, T, A>::from_rows(&[
+                    Vector::<2, T, A>::new(x, y),
+                    Vector::<2, T, A>::new(w, a)
+                ])
+            );
+            assert_eq!(
+                Matrix::<3, T, A>::from_homogeneous(&Matrix::from_rows(&[
+                    Vector::<4, T, A>::new(x, y, z, w),
+                    Vector::<4, T, A>::new(a, b, c, d),
+                    Vector::<4, T, A>::new(e, f, g, h),
+                    Vector::<4, T, A>::new(i, j, k, l)
+                ])),
+                Matrix::<3, T, A>::from_rows(&[
+                    Vector::<3, T, A>::new(x, y, z),
+                    Vector::<3, T, A>::new(a, b, c),
+                    Vector::<3, T, A>::new(e, f, g)
+                ])
+            );
         });
     }
 

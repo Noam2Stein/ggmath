@@ -888,37 +888,6 @@ where
         ])
     }
 
-    /// Takes the `N`x`N` linear transformation part of an `N+1`x`N+1`
-    /// homogeneous transformation matrix, discarding the last row and column.
-    ///
-    /// The removed row and column are completely ignored, without checking for
-    /// identity.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::{Mat2, Mat3, Vec2, Vec3};
-    /// #
-    /// let homogeneous = Mat3::from_rows(&[
-    ///     Vec3::new(00, 01, 02),
-    ///     Vec3::new(10, 11, 12),
-    ///     Vec3::new(20, 21, 22),
-    /// ]);
-    ///
-    /// assert_eq!(
-    ///     Mat2::from_homogeneous(&homogeneous),
-    ///     Mat2::from_rows(&[
-    ///         Vec2::new(00, 01),
-    ///         Vec2::new(10, 11),
-    ///     ]),
-    /// );
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn from_homogeneous(homogeneous: &Matrix<3, T, A>) -> Self {
-        Self::from_rows(&[homogeneous.x_axis.truncate(), homogeneous.y_axis.truncate()])
-    }
-
     #[inline(always)]
     fn transpose_backend(&self) -> Self {
         Self(self.0.xzyw())
@@ -1009,41 +978,6 @@ where
             self.y_axis.extend(T::ZERO),
             self.z_axis.extend(T::ZERO),
             Vector::<4, T, A>::W,
-        ])
-    }
-
-    /// Takes the `N`x`N` linear transformation part of an `N+1`x`N+1`
-    /// homogeneous transformation matrix, discarding the last row and column.
-    ///
-    /// The removed row and column are completely ignored, without checking for
-    /// identity.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::{Mat2, Mat3, Vec2, Vec3};
-    /// #
-    /// let homogeneous = Mat3::from_rows(&[
-    ///     Vec3::new(00, 01, 02),
-    ///     Vec3::new(10, 11, 12),
-    ///     Vec3::new(20, 21, 22),
-    /// ]);
-    ///
-    /// assert_eq!(
-    ///     Mat2::from_homogeneous(&homogeneous),
-    ///     Mat2::from_rows(&[
-    ///         Vec2::new(00, 01),
-    ///         Vec2::new(10, 11),
-    ///     ]),
-    /// );
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn from_homogeneous(homogeneous: &Matrix<4, T, A>) -> Self {
-        Self::from_rows(&[
-            homogeneous.x_axis.truncate(),
-            homogeneous.y_axis.truncate(),
-            homogeneous.z_axis.truncate(),
         ])
     }
 
@@ -2884,39 +2818,6 @@ mod tests {
                     Vector::<4, T, A>::new(w, a, b, T::ZERO),
                     Vector::<4, T, A>::new(c, d, e, T::ZERO),
                     Vector::<4, T, A>::new(T::ZERO, T::ZERO, T::ZERO, T::ONE)
-                ])
-            );
-        });
-    }
-
-    #[test]
-    fn test_from_homogeneous() {
-        for_types!(|T: PrimitiveNumber, A| {
-            let [x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l] =
-                std::array::from_fn(|i| T::as_from(i + 1));
-
-            assert_eq!(
-                Matrix::<2, T, A>::from_homogeneous(&Matrix::from_rows(&[
-                    Vector::<3, T, A>::new(x, y, z),
-                    Vector::<3, T, A>::new(w, a, b),
-                    Vector::<3, T, A>::new(c, d, e)
-                ])),
-                Matrix::<2, T, A>::from_rows(&[
-                    Vector::<2, T, A>::new(x, y),
-                    Vector::<2, T, A>::new(w, a)
-                ])
-            );
-            assert_eq!(
-                Matrix::<3, T, A>::from_homogeneous(&Matrix::from_rows(&[
-                    Vector::<4, T, A>::new(x, y, z, w),
-                    Vector::<4, T, A>::new(a, b, c, d),
-                    Vector::<4, T, A>::new(e, f, g, h),
-                    Vector::<4, T, A>::new(i, j, k, l)
-                ])),
-                Matrix::<3, T, A>::from_rows(&[
-                    Vector::<3, T, A>::new(x, y, z),
-                    Vector::<3, T, A>::new(a, b, c),
-                    Vector::<3, T, A>::new(e, f, g)
                 ])
             );
         });
