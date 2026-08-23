@@ -1093,35 +1093,47 @@ mod tests {
     #[test]
     fn test_from_homogeneous() {
         for_types!(|T: PrimitiveFloat, A| {
-            let [x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l] =
-                std::array::from_fn(|i| i as T + 1.0);
-
+            let homogeneous = Matrix::from_rows(&[
+                Vector::<3, T, A>::new(0.9, 0.2, 1e-5),
+                Vector::<3, T, A>::new(0.1, 0.8, 1e-5),
+                Vector::<3, T, A>::new(5.3, 3.2, 1.0 + 1e-5),
+            ]);
             assert_eq!(
-                Affine::<2, T, A>::from_homogeneous(&Matrix::from_rows(&[
-                    Vector::<3, T, A>::new(x, y, z),
-                    Vector::<3, T, A>::new(w, a, b),
-                    Vector::<3, T, A>::new(c, d, e)
-                ])),
+                Affine::<2, T, A>::from_homogeneous(&homogeneous),
                 Affine::<2, T, A>::from_rows(&[
-                    Vector::<2, T, A>::new(x, y),
-                    Vector::<2, T, A>::new(w, a),
-                    Vector::<2, T, A>::new(c, d)
+                    homogeneous.x_axis.truncate(),
+                    homogeneous.y_axis.truncate(),
+                    homogeneous.z_axis.truncate(),
                 ])
             );
+
+            let homogeneous = Matrix::from_rows(&[
+                Vector::<4, T, A>::new(0.9, 0.2, 0.1, 1e-5),
+                Vector::<4, T, A>::new(0.1, 0.8, 0.3, 1e-5),
+                Vector::<4, T, A>::new(0.2, 0.1, 0.8, 1e-5),
+                Vector::<4, T, A>::new(5.3, 3.2, 9.8, 1.0 + 1e-5),
+            ]);
             assert_eq!(
-                Affine::<3, T, A>::from_homogeneous(&Matrix::from_rows(&[
-                    Vector::<4, T, A>::new(x, y, z, w),
-                    Vector::<4, T, A>::new(a, b, c, d),
-                    Vector::<4, T, A>::new(e, f, g, h),
-                    Vector::<4, T, A>::new(i, j, k, l)
-                ])),
+                Affine::<3, T, A>::from_homogeneous(&homogeneous),
                 Affine::<3, T, A>::from_rows(&[
-                    Vector::<3, T, A>::new(x, y, z),
-                    Vector::<3, T, A>::new(a, b, c),
-                    Vector::<3, T, A>::new(e, f, g),
-                    Vector::<3, T, A>::new(i, j, k)
+                    homogeneous.x_axis.truncate(),
+                    homogeneous.y_axis.truncate(),
+                    homogeneous.z_axis.truncate(),
+                    homogeneous.w_axis.truncate(),
                 ])
             );
+
+            assert_debug_panic!(Affine::<2, T, A>::from_homogeneous(&Matrix::from_rows(&[
+                Vector::<3, T, A>::new(0.9, 0.2, 2.0),
+                Vector::<3, T, A>::new(0.1, 0.8, 0.0),
+                Vector::<3, T, A>::new(5.3, 3.2, 1.0),
+            ])));
+            assert_debug_panic!(Affine::<3, T, A>::from_homogeneous(&Matrix::from_rows(&[
+                Vector::<4, T, A>::new(0.9, 0.2, 0.1, 2.0),
+                Vector::<4, T, A>::new(0.1, 0.8, 0.3, 3.1),
+                Vector::<4, T, A>::new(0.2, 0.1, 0.8, 0.0),
+                Vector::<4, T, A>::new(5.3, 3.2, 9.8, 1.0),
+            ])));
         });
     }
 

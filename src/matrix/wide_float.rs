@@ -874,7 +874,7 @@ mod tests {
     use wide::f32x4;
 
     use crate::{
-        EulerRot, Mat2, Mat3, Mat4, Matrix, Projective, Quat, Unaligned, Vec2, Vec3, Vec4, Vector,
+        EulerRot, Mat2, Mat3, Mat4, Matrix, Projective, Quat, Unaligned, Vec2, Vec3, Vector,
         test_utils::{assert_test_eq, assert_test_eq_or_panic, for_types, random_iter},
     };
 
@@ -1054,28 +1054,18 @@ mod tests {
 
     #[test]
     fn test_from_homogeneous() {
-        for_types!(|Wide: WideFloat| {
-            let [x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l] =
-                std::array::from_fn(|i| Wide::splat(i as T + 1.0));
-
-            assert_eq!(
-                Mat2::<Wide>::from_homogeneous(&Matrix::from_rows(&[
-                    Vec3::new(x, y, z),
-                    Vec3::new(w, a, b),
-                    Vec3::new(c, d, e)
-                ])),
-                Mat2::from_rows(&[Vec2::new(x, y), Vec2::new(w, a)])
+        for homogeneous in random_iter::<Mat3<f32x4>>() {
+            assert_test_eq_or_panic!(
+                Mat2::<f32x4>::from_homogeneous(&homogeneous),
+                Matrix::from_lane_fn(|lane| Mat2::<f32>::from_homogeneous(&homogeneous.lane(lane)))
             );
-            assert_eq!(
-                Mat3::<Wide>::from_homogeneous(&Matrix::from_rows(&[
-                    Vec4::new(x, y, z, w),
-                    Vec4::new(a, b, c, d),
-                    Vec4::new(e, f, g, h),
-                    Vec4::new(i, j, k, l)
-                ])),
-                Mat3::from_rows(&[Vec3::new(x, y, z), Vec3::new(a, b, c), Vec3::new(e, f, g)])
+        }
+        for homogeneous in random_iter::<Mat4<f32x4>>() {
+            assert_test_eq_or_panic!(
+                Mat3::<f32x4>::from_homogeneous(&homogeneous),
+                Matrix::from_lane_fn(|lane| Mat3::<f32>::from_homogeneous(&homogeneous.lane(lane)))
             );
-        });
+        }
     }
 
     #[test]
