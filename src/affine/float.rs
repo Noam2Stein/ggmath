@@ -236,17 +236,17 @@ where
     /// # use ggmath::{Affine2, Mat3, Vec2, Vec3};
     /// #
     /// let homogeneous = Mat3::from_rows(&[
-    ///     Vec3::new(00, 01, 02),
-    ///     Vec3::new(10, 11, 12),
-    ///     Vec3::new(20, 21, 22),
+    ///     Vec3::new(11.0, 12.0, 0.0),
+    ///     Vec3::new(21.0, 22.0, 0.0),
+    ///     Vec3::new(5.0, 8.0, 1.0),
     /// ]);
     ///
     /// assert_eq!(
     ///     Affine2::from_homogeneous(&homogeneous),
     ///     Affine2::from_rows(&[
-    ///         Vec2::new(00, 01),
-    ///         Vec2::new(10, 11),
-    ///         Vec2::new(20, 21),
+    ///         Vec2::new(11.0, 12.0),
+    ///         Vec2::new(21.0, 22.0),
+    ///         Vec2::new(5.0, 8.0),
     ///     ]),
     /// );
     /// ```
@@ -466,17 +466,17 @@ where
     /// # use ggmath::{Affine2, Mat3, Vec2, Vec3};
     /// #
     /// let homogeneous = Mat3::from_rows(&[
-    ///     Vec3::new(00, 01, 02),
-    ///     Vec3::new(10, 11, 12),
-    ///     Vec3::new(20, 21, 22),
+    ///     Vec3::new(11.0, 12.0, 0.0),
+    ///     Vec3::new(21.0, 22.0, 0.0),
+    ///     Vec3::new(5.0, 8.0, 1.0),
     /// ]);
     ///
     /// assert_eq!(
     ///     Affine2::from_homogeneous(&homogeneous),
     ///     Affine2::from_rows(&[
-    ///         Vec2::new(00, 01),
-    ///         Vec2::new(10, 11),
-    ///         Vec2::new(20, 21),
+    ///         Vec2::new(11.0, 12.0),
+    ///         Vec2::new(21.0, 22.0),
+    ///         Vec2::new(5.0, 8.0),
     ///     ]),
     /// );
     /// ```
