@@ -1,12 +1,15 @@
 use core::{
     fmt::{Debug, Display},
     hash::Hash,
+    mem::MaybeUninit,
     ops::{Add, Deref, DerefMut, Index, IndexMut, Mul, MulAssign},
+    panic::{RefUnwindSafe, UnwindSafe},
 };
 
 use crate::{
     Aligned, Alignment, Length, Matrix, One, Scalar, SupportedLength, Unaligned, Vector, Zero,
-    utils::{transmute_mut, transmute_ref},
+    backend::AffineBackend,
+    utils::{transmute_generic, transmute_mut, transmute_ref},
 };
 
 mod float;
@@ -54,7 +57,21 @@ mod wide_float;
 /// [`Mat2A`]: crate::Mat2A
 /// [`Vec4A`]: crate::Vec4A
 #[repr(C)]
-pub struct Affine<const N: usize, T, A: Alignment>(Matrix<N, T, A>, Vector<N, T, A>)
+pub struct Affine<const N: usize, T, A: Alignment>(
+    #[expect(clippy::type_complexity)]
+    pub(crate)  <A as Alignment>::Select<
+        <Length<N> as SupportedLength>::Select<
+            <T as AffineBackend<2, Aligned>>::Inner,
+            <T as AffineBackend<3, Aligned>>::Inner,
+            <T as AffineBackend<4, Aligned>>::Inner,
+        >,
+        <Length<N> as SupportedLength>::Select<
+            <T as AffineBackend<2, Unaligned>>::Inner,
+            <T as AffineBackend<3, Unaligned>>::Inner,
+            <T as AffineBackend<4, Unaligned>>::Inner,
+        >,
+    >,
+)
 where
     Length<N>: SupportedLength,
     T: Scalar;
@@ -226,7 +243,47 @@ where
         matrix: &Matrix<N, T, A>,
         translation: Vector<N, T, A>,
     ) -> Self {
-        Self(*matrix, translation)
+        if const {
+            size_of::<Affine<N, T, A>>()
+                == size_of::<Matrix<N, T, A>>() + size_of::<Vector<N, T, A>>()
+        } {
+            #[repr(C)]
+            struct Inner<const N: usize, T, A: Alignment>(Matrix<N, T, A>, Vector<N, T, A>)
+            where
+                Length<N>: SupportedLength,
+                T: Scalar;
+
+            // SAFETY: We checked that there is no padding that needs to be
+            // initialized. These types are guaranteed to simply consist of
+            // six values of `T`.
+            unsafe {
+                transmute_generic::<Inner<N, T, A>, Affine<N, T, A>>(Inner(*matrix, translation))
+            }
+        } else if const { N == 2 && A::IS_ALIGNED && size_of::<Affine<N, T, A>>() == size_of::<T>() * 8 }
+        {
+            #[repr(C)]
+            struct Inner<const N: usize, T, A: Alignment>(
+                Matrix<N, T, A>,
+                Vector<N, T, A>,
+                MaybeUninit<Vector<N, T, A>>,
+            )
+            where
+                Length<N>: SupportedLength,
+                T: Scalar;
+
+            // SAFETY: We checked that `Affine` "contains" exactly eight
+            // elements of `T` (including padding). We zeroed the padding, which
+            // is guaranteed to accept all bit-patterns.
+            unsafe {
+                transmute_generic::<Inner<N, T, A>, Affine<N, T, A>>(Inner(
+                    *matrix,
+                    translation,
+                    MaybeUninit::zeroed(),
+                ))
+            }
+        } else {
+            unreachable!()
+        }
     }
 
     /// Conversion between [`Aligned`] and [`Unaligned`] storage.
@@ -255,7 +312,13 @@ where
     #[inline]
     #[must_use]
     pub const fn to_alignment<A2: Alignment>(&self) -> Affine<N, T, A2> {
-        Affine(self.0.to_alignment(), self.1.to_alignment())
+        // SAFETY: Just like in `Deref`, this operation is sound.
+        let fields = unsafe { transmute_ref::<Affine<N, T, A>, AffineFields<N, T, A>>(self) };
+
+        Affine::from_matrix_translation(
+            &fields.matrix.to_alignment(),
+            fields.translation.to_alignment(),
+        )
     }
 
     /// Conversion to [`Aligned`] storage.
@@ -961,6 +1024,43 @@ impl_mul_assign!(
     /// floating-point precision and integer panics.
 );
 
+// SAFETY: The matrix and vector are `Send`, and so is the padding.
+unsafe impl<const N: usize, T, A: Alignment> Send for Affine<N, T, A>
+where
+    Length<N>: SupportedLength,
+    T: Scalar + Send,
+{
+}
+
+// SAFETY: The matrix and vector are `Sync`, and so is the padding.
+unsafe impl<const N: usize, T, A: Alignment> Sync for Affine<N, T, A>
+where
+    Length<N>: SupportedLength,
+    T: Scalar + Sync,
+{
+}
+
+impl<const N: usize, T, A: Alignment> Unpin for Affine<N, T, A>
+where
+    Length<N>: SupportedLength,
+    T: Scalar + Unpin,
+{
+}
+
+impl<const N: usize, T, A: Alignment> UnwindSafe for Affine<N, T, A>
+where
+    Length<N>: SupportedLength,
+    T: Scalar + UnwindSafe,
+{
+}
+
+impl<const N: usize, T, A: Alignment> RefUnwindSafe for Affine<N, T, A>
+where
+    Length<N>: SupportedLength,
+    T: Scalar + RefUnwindSafe,
+{
+}
+
 #[cfg(test)]
 mod tests {
     extern crate std;
@@ -968,9 +1068,37 @@ mod tests {
     use std::format;
 
     use crate::{
-        Affine, Aligned, Mask, Matrix, Unaligned, Vector,
+        Affine, Affine2, Affine2A, Affine3, Affine3A, Aligned, Mask, Mat2A, Matrix, Unaligned,
+        Vec3A, Vec4A, Vector,
         test_utils::{assert_panic, assert_test_eq, for_types, random_iter},
     };
+
+    #[test]
+    fn test_layout() {
+        for_types!(|T: PrimitiveNumber| {
+            assert_eq!(size_of::<Affine2<T>>(), size_of::<T>() * 6);
+            assert_eq!(align_of::<Affine2<T>>(), align_of::<T>());
+
+            assert_eq!(size_of::<Affine3<T>>(), size_of::<T>() * 12);
+            assert_eq!(align_of::<Affine3<T>>(), align_of::<T>());
+
+            assert_eq!(size_of::<Affine<4, T, Unaligned>>(), size_of::<T>() * 20);
+            assert_eq!(align_of::<Affine<4, T, Unaligned>>(), align_of::<T>());
+
+            if align_of::<Mat2A<T>>() == size_of::<Mat2A<T>>() {
+                assert_eq!(size_of::<Affine2A<T>>(), size_of::<T>() * 8);
+            } else {
+                assert_eq!(size_of::<Affine2A<T>>(), size_of::<T>() * 6);
+            }
+            assert_eq!(align_of::<Affine2A<T>>(), align_of::<Mat2A<T>>());
+
+            assert_eq!(size_of::<Affine3A<T>>(), size_of::<Vec3A<T>>() * 4);
+            assert_eq!(align_of::<Affine3A<T>>(), align_of::<Vec3A<T>>());
+
+            assert_eq!(size_of::<Affine<4, T, Aligned>>(), size_of::<T>() * 20);
+            assert_eq!(align_of::<Affine<4, T, Aligned>>(), align_of::<Vec4A<T>>());
+        });
+    }
 
     #[test]
     fn test_zero() {
