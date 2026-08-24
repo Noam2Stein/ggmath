@@ -15,20 +15,34 @@ use crate::{
     utils::{Repr2, Repr3, Repr4, specialize, transmute_generic, transmute_mut, transmute_ref},
 };
 
-mod bool;
+// These submodules have empty lines between them so that rustfmt does not
+// incorrectly reorder them. The order is important since it impacts the order
+// of `impl` blocks in rustdoc's output.
+
 mod float;
+
 mod integer;
+
 mod signed;
-mod swizzle;
+
 mod unsigned;
+
+mod bool;
+
+mod swizzle;
+
 #[cfg(feature = "wide")]
 mod wide;
+
 #[cfg(feature = "wide")]
 mod wide_float;
+
 #[cfg(feature = "wide")]
 mod wide_integer;
+
 #[cfg(feature = "wide")]
 mod wide_signed;
+
 #[cfg(feature = "wide")]
 mod wide_unsigned;
 
