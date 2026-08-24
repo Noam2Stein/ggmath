@@ -2,7 +2,7 @@ use crate::{
     Alignment, EulerRot, FloatExt, Length, Matrix, PrimitiveFloat, Projective, Quaternion,
     SupportedLength, Vector,
     length::TwoOrThree,
-    utils::{PrimitiveFloatUtils, specialize, specialize_23},
+    utils::{specialize, specialize_23},
 };
 
 impl<const N: usize, T, A: Alignment> Matrix<N, T, A>
@@ -256,7 +256,7 @@ where
     #[inline]
     #[must_use]
     pub fn from_angle(angle: T) -> Self {
-        let (sin, cos) = PrimitiveFloatUtils::sin_cos(angle);
+        let (sin, cos) = angle.sin_cos();
         Self::from_rows(&[
             Vector::<2, T, A>::new(cos, sin),
             Vector::<2, T, A>::new(-sin, cos),
@@ -270,7 +270,7 @@ where
     #[inline]
     #[must_use]
     pub fn from_scale_angle(scale: Vector<2, T, A>, angle: T) -> Self {
-        let (sin, cos) = PrimitiveFloatUtils::sin_cos(angle);
+        let (sin, cos) = angle.sin_cos();
         Self::from_rows(&[
             Vector::<2, T, A>::new(cos * scale.x, sin * scale.x),
             Vector::<2, T, A>::new(-sin * scale.y, cos * scale.y),
@@ -348,7 +348,7 @@ where
             "matrix contains shearing or determinant is zero: {self:?}.to_scale_angle()"
         );
 
-        let angle = PrimitiveFloatUtils::atan2(-self.y_axis.x, self.y_axis.y);
+        let angle = (-self.y_axis.x).atan2(self.y_axis.y);
 
         (scale, angle)
     }
@@ -432,7 +432,7 @@ where
     #[inline]
     #[must_use]
     pub fn from_rotation_x(angle: T) -> Self {
-        let (sin, cos) = PrimitiveFloatUtils::sin_cos(angle);
+        let (sin, cos) = angle.sin_cos();
         Self::from_rows(&[
             Vector::<3, T, A>::X,
             Vector::<3, T, A>::new(T::ZERO, cos, sin),
@@ -447,7 +447,7 @@ where
     #[inline]
     #[must_use]
     pub fn from_rotation_y(angle: T) -> Self {
-        let (sin, cos) = PrimitiveFloatUtils::sin_cos(angle);
+        let (sin, cos) = angle.sin_cos();
         Self::from_rows(&[
             Vector::<3, T, A>::new(cos, T::ZERO, -sin),
             Vector::<3, T, A>::Y,
@@ -462,7 +462,7 @@ where
     #[inline]
     #[must_use]
     pub fn from_rotation_z(angle: T) -> Self {
-        let (sin, cos) = PrimitiveFloatUtils::sin_cos(angle);
+        let (sin, cos) = angle.sin_cos();
         Self::from_rows(&[
             Vector::<3, T, A>::new(cos, sin, T::ZERO),
             Vector::<3, T, A>::new(-sin, cos, T::ZERO),
@@ -531,7 +531,7 @@ where
             "axis is not normalized: from_axis_angle({axis:?}, {angle:?})"
         );
 
-        let (sin, cos) = PrimitiveFloatUtils::sin_cos(angle);
+        let (sin, cos) = angle.sin_cos();
         let [xsin, ysin, zsin] = (axis * sin).to_array();
         let [x, y, z] = axis.to_array();
         let [x2, y2, z2] = (axis * axis).to_array();
@@ -571,9 +571,9 @@ where
             angles = -angles;
         }
 
-        let (si, ci) = PrimitiveFloatUtils::sin_cos(angles.x);
-        let (sj, cj) = PrimitiveFloatUtils::sin_cos(angles.y);
-        let (sh, ch) = PrimitiveFloatUtils::sin_cos(angles.z);
+        let (si, ci) = angles.x.sin_cos();
+        let (sj, cj) = angles.y.sin_cos();
+        let (sh, ch) = angles.z.sin_cos();
 
         let cc = ci * ch;
         let cs = ci * sh;
@@ -894,26 +894,26 @@ where
 
         let mut ea = Vector::<3, T, A>::ZERO;
         if order.initial_repeated {
-            let sy = PrimitiveFloatUtils::sqrt(self[i][j] * self[i][j] + self[i][k] * self[i][k]);
+            let sy = (self[i][j] * self[i][j] + self[i][k] * self[i][k]).sqrt();
 
             if sy > T::as_from(16.0) * T::EPSILON {
-                ea.x = PrimitiveFloatUtils::atan2(self[i][j], self[i][k]);
-                ea.y = PrimitiveFloatUtils::atan2(sy, self[i][i]);
-                ea.z = PrimitiveFloatUtils::atan2(self[j][i], -self[k][i]);
+                ea.x = self[i][j].atan2(self[i][k]);
+                ea.y = sy.atan2(self[i][i]);
+                ea.z = self[j][i].atan2(-self[k][i]);
             } else {
-                ea.x = PrimitiveFloatUtils::atan2(-self[j][k], self[j][j]);
-                ea.y = PrimitiveFloatUtils::atan2(sy, self[i][i]);
+                ea.x = (-self[j][k]).atan2(self[j][j]);
+                ea.y = sy.atan2(self[i][i]);
             }
         } else {
-            let cy = PrimitiveFloatUtils::sqrt(self[i][i] * self[i][i] + self[j][i] * self[j][i]);
+            let cy = (self[i][i] * self[i][i] + self[j][i] * self[j][i]).sqrt();
 
             if cy > T::as_from(16.0) * T::EPSILON {
-                ea.x = PrimitiveFloatUtils::atan2(self[k][j], self[k][k]);
-                ea.y = PrimitiveFloatUtils::atan2(-self[k][i], cy);
-                ea.z = PrimitiveFloatUtils::atan2(self[j][i], self[i][i]);
+                ea.x = self[k][j].atan2(self[k][k]);
+                ea.y = (-self[k][i]).atan2(cy);
+                ea.z = self[j][i].atan2(self[i][i]);
             } else {
-                ea.x = PrimitiveFloatUtils::atan2(-self[j][k], self[j][j]);
-                ea.y = PrimitiveFloatUtils::atan2(-self[k][i], cy);
+                ea.x = (-self[j][k]).atan2(self[j][j]);
+                ea.y = (-self[k][i]).atan2(cy);
             }
         }
 

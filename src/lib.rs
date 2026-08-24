@@ -62,8 +62,7 @@
 //! The traits [`PrimitiveFloat`], [`PrimitiveInteger`], [`PrimitiveSigned`] and
 //! [`PrimitiveUnsigned`] give generic contexts access to most primitive
 //! functionality. These traits do not expose functions directly, they only
-//! enable functionality for vectors, matrices, etc. For complete primitive
-//! generics, add the [`num-primitive`] crate as an optional dependency.
+//! enable functionality for vectors, matrices, etc.
 //!
 //! # Affine and Projective Transforms
 //!
@@ -218,7 +217,6 @@
 //! - [`wide`]: Implements functionality for SoA types.
 //!
 //! [`ggmath`]: crate
-//! [`num-primitive`]: https://crates.io/crates/num-primitive
 //!
 //! [benchmark results]: https://github.com/Noam2Stein/ggmath/blob/main/BENCH_RESULTS.md
 //!

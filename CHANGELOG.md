@@ -50,6 +50,12 @@ stabilized, which should not affect most users.
 - Added missing `#[inline]` and `#[must_use]` attributes for
   `Vector::from_homogeneous`
 
+### Removed
+
+- Removed the optional dependency `num-primitive`. If you want access to both
+  `ggmath` primitive functionality and the `num-primitive` API, the better
+  pattern is to define your own `Primitive*` traits.
+
 ## [0.17.1] - 2026-07-26
 
 ### Changed

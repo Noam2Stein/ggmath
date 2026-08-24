@@ -8,63 +8,45 @@ use crate::PrimitiveUnsigned;
 pub(crate) trait PrimitiveFloatUtils: Sized {
     type Bits: PrimitiveUnsigned;
 
-    #[cfg(not(feature = "num-primitive"))]
     const MIN: Self;
 
-    #[cfg(not(feature = "num-primitive"))]
     const MAX: Self;
 
-    #[cfg(not(feature = "num-primitive"))]
     const NAN: Self;
 
-    #[cfg(not(feature = "num-primitive"))]
     const INFINITY: Self;
 
-    #[cfg(not(feature = "num-primitive"))]
     const NEG_INFINITY: Self;
 
-    #[cfg(not(feature = "num-primitive"))]
     const EPSILON: Self;
 
-    #[cfg(not(feature = "num-primitive"))]
     const PI: Self;
 
     #[cfg(test)]
-    #[cfg(not(feature = "num-primitive"))]
     const TAU: Self;
 
-    #[cfg(not(feature = "num-primitive"))]
     #[expect(clippy::wrong_self_convention)]
     fn is_nan(self) -> bool;
 
-    #[cfg(not(feature = "num-primitive"))]
     #[expect(clippy::wrong_self_convention)]
     fn is_finite(self) -> bool;
 
-    #[cfg(not(feature = "num-primitive"))]
     #[expect(clippy::wrong_self_convention)]
     fn is_sign_positive(self) -> bool;
 
-    #[cfg(not(feature = "num-primitive"))]
     #[expect(clippy::wrong_self_convention)]
     fn is_sign_negative(self) -> bool;
 
-    #[cfg(not(feature = "num-primitive"))]
     fn recip(self) -> Self;
 
-    #[cfg(not(feature = "num-primitive"))]
     fn min(self, other: Self) -> Self;
 
-    #[cfg(not(feature = "num-primitive"))]
     fn clamp(self, min: Self, max: Self) -> Self;
 
-    #[cfg(not(feature = "num-primitive"))]
     fn abs(self) -> Self;
 
-    #[cfg(not(feature = "num-primitive"))]
     fn signum(self) -> Self;
 
-    #[cfg(not(feature = "num-primitive"))]
     fn copysign(self, sign: Self) -> Self;
 
     fn floor(self) -> Self;
@@ -109,53 +91,38 @@ pub(crate) trait PrimitiveFloatUtils: Sized {
 
     fn sin_cos(self) -> (Self, Self);
 
-    #[cfg(not(feature = "num-primitive"))]
     fn as_from(value: f64) -> Self;
 }
 
 /// An internal trait that wraps primitive-integer functions used in generic
 /// contexts.
 pub(crate) trait PrimitiveIntegerUtils: Sized {
-    #[cfg(not(feature = "num-primitive"))]
     fn checked_add(self, rhs: Self) -> Option<Self>;
 
-    #[cfg(not(feature = "num-primitive"))]
     fn checked_sub(self, rhs: Self) -> Option<Self>;
 
-    #[cfg(not(feature = "num-primitive"))]
     fn checked_mul(self, rhs: Self) -> Option<Self>;
 
-    #[cfg(not(feature = "num-primitive"))]
     fn checked_div(self, rhs: Self) -> Option<Self>;
 
-    #[cfg(not(feature = "num-primitive"))]
     fn checked_rem(self, rhs: Self) -> Option<Self>;
 
-    #[cfg(not(feature = "num-primitive"))]
     fn saturating_add(self, rhs: Self) -> Self;
 
-    #[cfg(not(feature = "num-primitive"))]
     fn saturating_sub(self, rhs: Self) -> Self;
 
-    #[cfg(not(feature = "num-primitive"))]
     fn saturating_mul(self, rhs: Self) -> Self;
 
-    #[cfg(not(feature = "num-primitive"))]
     fn saturating_div(self, rhs: Self) -> Self;
 
-    #[cfg(not(feature = "num-primitive"))]
     fn wrapping_add(self, rhs: Self) -> Self;
 
-    #[cfg(not(feature = "num-primitive"))]
     fn wrapping_sub(self, rhs: Self) -> Self;
 
-    #[cfg(not(feature = "num-primitive"))]
     fn wrapping_mul(self, rhs: Self) -> Self;
 
-    #[cfg(not(feature = "num-primitive"))]
     fn wrapping_div(self, rhs: Self) -> Self;
 
-    #[cfg(not(feature = "num-primitive"))]
     fn wrapping_rem(self, rhs: Self) -> Self;
 }
 
@@ -164,17 +131,13 @@ pub(crate) trait PrimitiveIntegerUtils: Sized {
 pub(crate) trait PrimitiveSignedUtils: Sized {
     type Unsigned: PrimitiveUnsigned;
 
-    #[cfg(not(feature = "num-primitive"))]
     fn wrapping_abs(self) -> Self;
 
-    #[cfg(not(feature = "num-primitive"))]
     fn signum(self) -> Self;
 
-    #[cfg(not(feature = "num-primitive"))]
     #[expect(clippy::wrong_self_convention)]
     fn is_positive(self) -> bool;
 
-    #[cfg(not(feature = "num-primitive"))]
     #[expect(clippy::wrong_self_convention)]
     fn is_negative(self) -> bool;
 }
@@ -184,86 +147,68 @@ macro_rules! impl_float {
         impl PrimitiveFloatUtils for $T {
             type Bits = $UnsignedT;
 
-            #[cfg(not(feature = "num-primitive"))]
             const MIN: Self = Self::MIN;
 
-            #[cfg(not(feature = "num-primitive"))]
             const MAX: Self = Self::MAX;
 
-            #[cfg(not(feature = "num-primitive"))]
             const NAN: Self = Self::NAN;
 
-            #[cfg(not(feature = "num-primitive"))]
             const INFINITY: Self = Self::INFINITY;
 
-            #[cfg(not(feature = "num-primitive"))]
             const NEG_INFINITY: Self = Self::NEG_INFINITY;
 
-            #[cfg(not(feature = "num-primitive"))]
             const EPSILON: Self = Self::EPSILON;
 
-            #[cfg(not(feature = "num-primitive"))]
             const PI: Self = core::$T::consts::PI;
 
             #[cfg(test)]
-            #[cfg(not(feature = "num-primitive"))]
             const TAU: Self = core::$T::consts::TAU;
 
-            #[cfg(not(feature = "num-primitive"))]
             #[inline(always)]
             fn is_nan(self) -> bool {
                 self.is_nan()
             }
 
-            #[cfg(not(feature = "num-primitive"))]
             #[inline(always)]
             fn is_finite(self) -> bool {
                 self.is_finite()
             }
 
-            #[cfg(not(feature = "num-primitive"))]
             #[inline(always)]
             fn is_sign_positive(self) -> bool {
                 self.is_sign_positive()
             }
 
-            #[cfg(not(feature = "num-primitive"))]
             #[inline(always)]
             fn is_sign_negative(self) -> bool {
                 self.is_sign_negative()
             }
 
-            #[cfg(not(feature = "num-primitive"))]
             #[inline(always)]
             fn recip(self) -> Self {
                 self.recip()
             }
 
-            #[cfg(not(feature = "num-primitive"))]
             #[inline(always)]
             fn min(self, other: Self) -> Self {
                 self.min(other)
             }
 
-            #[cfg(not(feature = "num-primitive"))]
             #[inline(always)]
             fn clamp(self, min: Self, max: Self) -> Self {
                 self.clamp(min, max)
             }
 
-            #[cfg(not(feature = "num-primitive"))]
             #[inline(always)]
             fn abs(self) -> Self {
                 self.abs()
             }
 
-            #[cfg(not(feature = "num-primitive"))]
             #[inline(always)]
             fn signum(self) -> Self {
                 self.signum()
             }
 
-            #[cfg(not(feature = "num-primitive"))]
             #[inline(always)]
             fn copysign(self, sign: Self) -> Self {
                 self.copysign(sign)
@@ -529,7 +474,6 @@ macro_rules! impl_float {
                 Libm::<$T>::sincos(self)
             }
 
-            #[cfg(not(feature = "num-primitive"))]
             #[inline(always)]
             fn as_from(value: f64) -> Self {
                 value as Self
@@ -543,85 +487,71 @@ impl_float!(f64, u64);
 macro_rules! impl_integer {
     ($T:ident) => {
         impl PrimitiveIntegerUtils for $T {
-            #[cfg(not(feature = "num-primitive"))]
             #[inline(always)]
             fn checked_add(self, rhs: Self) -> Option<Self> {
                 self.checked_add(rhs)
             }
 
-            #[cfg(not(feature = "num-primitive"))]
             #[inline(always)]
             fn checked_sub(self, rhs: Self) -> Option<Self> {
                 self.checked_sub(rhs)
             }
 
-            #[cfg(not(feature = "num-primitive"))]
             #[inline(always)]
             fn checked_mul(self, rhs: Self) -> Option<Self> {
                 self.checked_mul(rhs)
             }
 
-            #[cfg(not(feature = "num-primitive"))]
             #[inline(always)]
             fn checked_div(self, rhs: Self) -> Option<Self> {
                 self.checked_div(rhs)
             }
 
-            #[cfg(not(feature = "num-primitive"))]
             #[inline(always)]
             fn checked_rem(self, rhs: Self) -> Option<Self> {
                 self.checked_rem(rhs)
             }
 
-            #[cfg(not(feature = "num-primitive"))]
             #[inline(always)]
             fn saturating_add(self, rhs: Self) -> Self {
                 self.saturating_add(rhs)
             }
 
-            #[cfg(not(feature = "num-primitive"))]
             #[inline(always)]
             fn saturating_sub(self, rhs: Self) -> Self {
                 self.saturating_sub(rhs)
             }
 
-            #[cfg(not(feature = "num-primitive"))]
             #[inline(always)]
             fn saturating_mul(self, rhs: Self) -> Self {
                 self.saturating_mul(rhs)
             }
 
-            #[cfg(not(feature = "num-primitive"))]
             #[inline(always)]
             fn saturating_div(self, rhs: Self) -> Self {
                 self.saturating_div(rhs)
             }
 
-            #[cfg(not(feature = "num-primitive"))]
             #[inline(always)]
             fn wrapping_add(self, rhs: Self) -> Self {
                 self.wrapping_add(rhs)
             }
 
-            #[cfg(not(feature = "num-primitive"))]
             #[inline(always)]
             fn wrapping_sub(self, rhs: Self) -> Self {
                 self.wrapping_sub(rhs)
             }
 
-            #[cfg(not(feature = "num-primitive"))]
             #[inline(always)]
             fn wrapping_mul(self, rhs: Self) -> Self {
                 self.wrapping_mul(rhs)
             }
 
-            #[cfg(not(feature = "num-primitive"))]
             #[inline(always)]
             fn wrapping_div(self, rhs: Self) -> Self {
                 self.wrapping_div(rhs)
             }
 
-            #[cfg(not(feature = "num-primitive"))]
             #[inline(always)]
             fn wrapping_rem(self, rhs: Self) -> Self {
                 self.wrapping_rem(rhs)
@@ -647,25 +577,21 @@ macro_rules! impl_signed {
         impl PrimitiveSignedUtils for $T {
             type Unsigned = $UnsignedT;
 
-            #[cfg(not(feature = "num-primitive"))]
             #[inline(always)]
             fn wrapping_abs(self) -> Self {
                 self.wrapping_abs()
             }
 
-            #[cfg(not(feature = "num-primitive"))]
             #[inline(always)]
             fn signum(self) -> Self {
                 self.signum()
             }
 
-            #[cfg(not(feature = "num-primitive"))]
             #[inline(always)]
             fn is_positive(self) -> bool {
                 self.is_positive()
             }
 
-            #[cfg(not(feature = "num-primitive"))]
             #[inline(always)]
             fn is_negative(self) -> bool {
                 self.is_negative()

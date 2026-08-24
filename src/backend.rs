@@ -3,7 +3,7 @@ use core::ops::{Add, BitAnd, BitOr, BitXor, Div, Mul, Neg, Not, Rem, Shl, Shr, S
 use crate::{
     Aligned, Alignment, Length, Mask, PrimitiveFloat, PrimitiveInteger, PrimitiveSigned,
     Quaternion, Scalar, SupportedLength, Unaligned, Vector,
-    utils::{PrimitiveFloatUtils, Repr2, Repr3, Repr4},
+    utils::{Repr2, Repr3, Repr4},
 };
 
 cfg_select! {
@@ -1593,34 +1593,22 @@ where
 
     #[inline]
     fn vector_floor(vector: Vector<2, Self, A>) -> Vector<2, Self, A> {
-        Vector::<2, Self, A>::new(
-            PrimitiveFloatUtils::floor(vector.x),
-            PrimitiveFloatUtils::floor(vector.y),
-        )
+        Vector::<2, Self, A>::new(vector.x.floor(), vector.y.floor())
     }
 
     #[inline]
     fn vector_ceil(vector: Vector<2, Self, A>) -> Vector<2, Self, A> {
-        Vector::<2, Self, A>::new(
-            PrimitiveFloatUtils::ceil(vector.x),
-            PrimitiveFloatUtils::ceil(vector.y),
-        )
+        Vector::<2, Self, A>::new(vector.x.ceil(), vector.y.ceil())
     }
 
     #[inline]
     fn vector_round(vector: Vector<2, Self, A>) -> Vector<2, Self, A> {
-        Vector::<2, Self, A>::new(
-            PrimitiveFloatUtils::round(vector.x),
-            PrimitiveFloatUtils::round(vector.y),
-        )
+        Vector::<2, Self, A>::new(vector.x.round(), vector.y.round())
     }
 
     #[inline]
     fn vector_trunc(vector: Vector<2, Self, A>) -> Vector<2, Self, A> {
-        Vector::<2, Self, A>::new(
-            PrimitiveFloatUtils::trunc(vector.x),
-            PrimitiveFloatUtils::trunc(vector.y),
-        )
+        Vector::<2, Self, A>::new(vector.x.trunc(), vector.y.trunc())
     }
 
     #[inline]
@@ -1629,10 +1617,7 @@ where
         a: Vector<2, Self, A>,
         b: Vector<2, Self, A>,
     ) -> Vector<2, Self, A> {
-        Vector::<2, Self, A>::new(
-            PrimitiveFloatUtils::mul_add(vector.x, a.x, b.x),
-            PrimitiveFloatUtils::mul_add(vector.y, a.y, b.y),
-        )
+        Vector::<2, Self, A>::new(vector.x.mul_add(a.x, b.x), vector.y.mul_add(a.y, b.y))
     }
 
     #[inline]
@@ -1640,10 +1625,7 @@ where
         vector: Vector<2, Self, A>,
         rhs: Vector<2, Self, A>,
     ) -> Vector<2, Self, A> {
-        Vector::<2, Self, A>::new(
-            PrimitiveFloatUtils::div_euclid(vector.x, rhs.x),
-            PrimitiveFloatUtils::div_euclid(vector.y, rhs.y),
-        )
+        Vector::<2, Self, A>::new(vector.x.div_euclid(rhs.x), vector.y.div_euclid(rhs.y))
     }
 
     #[inline]
@@ -1651,112 +1633,73 @@ where
         vector: Vector<2, Self, A>,
         rhs: Vector<2, Self, A>,
     ) -> Vector<2, Self, A> {
-        Vector::<2, Self, A>::new(
-            PrimitiveFloatUtils::rem_euclid(vector.x, rhs.x),
-            PrimitiveFloatUtils::rem_euclid(vector.y, rhs.y),
-        )
+        Vector::<2, Self, A>::new(vector.x.rem_euclid(rhs.x), vector.y.rem_euclid(rhs.y))
     }
 
     #[inline]
     fn vector_powf(vector: Vector<2, Self, A>, n: Self) -> Vector<2, Self, A> {
-        Vector::<2, Self, A>::new(
-            PrimitiveFloatUtils::powf(vector.x, n),
-            PrimitiveFloatUtils::powf(vector.y, n),
-        )
+        Vector::<2, Self, A>::new(vector.x.powf(n), vector.y.powf(n))
     }
 
     #[inline]
     fn vector_sqrt(vector: Vector<2, Self, A>) -> Vector<2, Self, A> {
-        Vector::<2, Self, A>::new(
-            PrimitiveFloatUtils::sqrt(vector.x),
-            PrimitiveFloatUtils::sqrt(vector.y),
-        )
+        Vector::<2, Self, A>::new(vector.x.sqrt(), vector.y.sqrt())
     }
 
     #[inline]
     fn vector_exp(vector: Vector<2, Self, A>) -> Vector<2, Self, A> {
-        Vector::<2, Self, A>::new(
-            PrimitiveFloatUtils::exp(vector.x),
-            PrimitiveFloatUtils::exp(vector.y),
-        )
+        Vector::<2, Self, A>::new(vector.x.exp(), vector.y.exp())
     }
 
     #[inline]
     fn vector_exp2(vector: Vector<2, Self, A>) -> Vector<2, Self, A> {
-        Vector::<2, Self, A>::new(
-            PrimitiveFloatUtils::exp2(vector.x),
-            PrimitiveFloatUtils::exp2(vector.y),
-        )
+        Vector::<2, Self, A>::new(vector.x.exp2(), vector.y.exp2())
     }
 
     #[inline]
     fn vector_ln(vector: Vector<2, Self, A>) -> Vector<2, Self, A> {
-        Vector::<2, Self, A>::new(
-            PrimitiveFloatUtils::ln(vector.x),
-            PrimitiveFloatUtils::ln(vector.y),
-        )
+        Vector::<2, Self, A>::new(vector.x.ln(), vector.y.ln())
     }
 
     #[inline]
     fn vector_log2(vector: Vector<2, Self, A>) -> Vector<2, Self, A> {
-        Vector::<2, Self, A>::new(
-            PrimitiveFloatUtils::log2(vector.x),
-            PrimitiveFloatUtils::log2(vector.y),
-        )
+        Vector::<2, Self, A>::new(vector.x.log2(), vector.y.log2())
     }
 
     #[inline]
     fn vector_sin(vector: Vector<2, Self, A>) -> Vector<2, Self, A> {
-        Vector::<2, Self, A>::new(
-            PrimitiveFloatUtils::sin(vector.x),
-            PrimitiveFloatUtils::sin(vector.y),
-        )
+        Vector::<2, Self, A>::new(vector.x.sin(), vector.y.sin())
     }
 
     #[inline]
     fn vector_cos(vector: Vector<2, Self, A>) -> Vector<2, Self, A> {
-        Vector::<2, Self, A>::new(
-            PrimitiveFloatUtils::cos(vector.x),
-            PrimitiveFloatUtils::cos(vector.y),
-        )
+        Vector::<2, Self, A>::new(vector.x.cos(), vector.y.cos())
     }
 
     #[inline]
     fn vector_tan(vector: Vector<2, Self, A>) -> Vector<2, Self, A> {
-        Vector::<2, Self, A>::new(
-            PrimitiveFloatUtils::tan(vector.x),
-            PrimitiveFloatUtils::tan(vector.y),
-        )
+        Vector::<2, Self, A>::new(vector.x.tan(), vector.y.tan())
     }
 
     #[inline]
     fn vector_asin(vector: Vector<2, Self, A>) -> Vector<2, Self, A> {
-        Vector::<2, Self, A>::new(
-            PrimitiveFloatUtils::asin(vector.x),
-            PrimitiveFloatUtils::asin(vector.y),
-        )
+        Vector::<2, Self, A>::new(vector.x.asin(), vector.y.asin())
     }
 
     #[inline]
     fn vector_acos(vector: Vector<2, Self, A>) -> Vector<2, Self, A> {
-        Vector::<2, Self, A>::new(
-            PrimitiveFloatUtils::acos(vector.x),
-            PrimitiveFloatUtils::acos(vector.y),
-        )
+        Vector::<2, Self, A>::new(vector.x.acos(), vector.y.acos())
     }
 
     #[inline]
     fn vector_atan(vector: Vector<2, Self, A>) -> Vector<2, Self, A> {
-        Vector::<2, Self, A>::new(
-            PrimitiveFloatUtils::atan(vector.x),
-            PrimitiveFloatUtils::atan(vector.y),
-        )
+        Vector::<2, Self, A>::new(vector.x.atan(), vector.y.atan())
     }
 
     #[inline]
     fn vector_sin_cos(vector: Vector<2, Self, A>) -> (Vector<2, Self, A>, Vector<2, Self, A>) {
-        let x_sin_cos = PrimitiveFloatUtils::sin_cos(vector.x);
-        let y_sin_cos = PrimitiveFloatUtils::sin_cos(vector.y);
+        let x_sin_cos = vector.x.sin_cos();
+        let y_sin_cos = vector.y.sin_cos();
 
         (
             Vector::<2, Self, A>::new(x_sin_cos.0, y_sin_cos.0),
@@ -1888,38 +1831,22 @@ where
 
     #[inline]
     fn vector_floor(vector: Vector<3, Self, A>) -> Vector<3, Self, A> {
-        Vector::<3, Self, A>::new(
-            PrimitiveFloatUtils::floor(vector.x),
-            PrimitiveFloatUtils::floor(vector.y),
-            PrimitiveFloatUtils::floor(vector.z),
-        )
+        Vector::<3, Self, A>::new(vector.x.floor(), vector.y.floor(), vector.z.floor())
     }
 
     #[inline]
     fn vector_ceil(vector: Vector<3, Self, A>) -> Vector<3, Self, A> {
-        Vector::<3, Self, A>::new(
-            PrimitiveFloatUtils::ceil(vector.x),
-            PrimitiveFloatUtils::ceil(vector.y),
-            PrimitiveFloatUtils::ceil(vector.z),
-        )
+        Vector::<3, Self, A>::new(vector.x.ceil(), vector.y.ceil(), vector.z.ceil())
     }
 
     #[inline]
     fn vector_round(vector: Vector<3, Self, A>) -> Vector<3, Self, A> {
-        Vector::<3, Self, A>::new(
-            PrimitiveFloatUtils::round(vector.x),
-            PrimitiveFloatUtils::round(vector.y),
-            PrimitiveFloatUtils::round(vector.z),
-        )
+        Vector::<3, Self, A>::new(vector.x.round(), vector.y.round(), vector.z.round())
     }
 
     #[inline]
     fn vector_trunc(vector: Vector<3, Self, A>) -> Vector<3, Self, A> {
-        Vector::<3, Self, A>::new(
-            PrimitiveFloatUtils::trunc(vector.x),
-            PrimitiveFloatUtils::trunc(vector.y),
-            PrimitiveFloatUtils::trunc(vector.z),
-        )
+        Vector::<3, Self, A>::new(vector.x.trunc(), vector.y.trunc(), vector.z.trunc())
     }
 
     #[inline]
@@ -1929,9 +1856,9 @@ where
         b: Vector<3, Self, A>,
     ) -> Vector<3, Self, A> {
         Vector::<3, Self, A>::new(
-            PrimitiveFloatUtils::mul_add(vector.x, a.x, b.x),
-            PrimitiveFloatUtils::mul_add(vector.y, a.y, b.y),
-            PrimitiveFloatUtils::mul_add(vector.z, a.z, b.z),
+            vector.x.mul_add(a.x, b.x),
+            vector.y.mul_add(a.y, b.y),
+            vector.z.mul_add(a.z, b.z),
         )
     }
 
@@ -1941,9 +1868,9 @@ where
         rhs: Vector<3, Self, A>,
     ) -> Vector<3, Self, A> {
         Vector::<3, Self, A>::new(
-            PrimitiveFloatUtils::div_euclid(vector.x, rhs.x),
-            PrimitiveFloatUtils::div_euclid(vector.y, rhs.y),
-            PrimitiveFloatUtils::div_euclid(vector.z, rhs.z),
+            vector.x.div_euclid(rhs.x),
+            vector.y.div_euclid(rhs.y),
+            vector.z.div_euclid(rhs.z),
         )
     }
 
@@ -1953,125 +1880,77 @@ where
         rhs: Vector<3, Self, A>,
     ) -> Vector<3, Self, A> {
         Vector::<3, Self, A>::new(
-            PrimitiveFloatUtils::rem_euclid(vector.x, rhs.x),
-            PrimitiveFloatUtils::rem_euclid(vector.y, rhs.y),
-            PrimitiveFloatUtils::rem_euclid(vector.z, rhs.z),
+            vector.x.rem_euclid(rhs.x),
+            vector.y.rem_euclid(rhs.y),
+            vector.z.rem_euclid(rhs.z),
         )
     }
 
     #[inline]
     fn vector_powf(vector: Vector<3, Self, A>, n: Self) -> Vector<3, Self, A> {
-        Vector::<3, Self, A>::new(
-            PrimitiveFloatUtils::powf(vector.x, n),
-            PrimitiveFloatUtils::powf(vector.y, n),
-            PrimitiveFloatUtils::powf(vector.z, n),
-        )
+        Vector::<3, Self, A>::new(vector.x.powf(n), vector.y.powf(n), vector.z.powf(n))
     }
 
     #[inline]
     fn vector_sqrt(vector: Vector<3, Self, A>) -> Vector<3, Self, A> {
-        Vector::<3, Self, A>::new(
-            PrimitiveFloatUtils::sqrt(vector.x),
-            PrimitiveFloatUtils::sqrt(vector.y),
-            PrimitiveFloatUtils::sqrt(vector.z),
-        )
+        Vector::<3, Self, A>::new(vector.x.sqrt(), vector.y.sqrt(), vector.z.sqrt())
     }
 
     #[inline]
     fn vector_exp(vector: Vector<3, Self, A>) -> Vector<3, Self, A> {
-        Vector::<3, Self, A>::new(
-            PrimitiveFloatUtils::exp(vector.x),
-            PrimitiveFloatUtils::exp(vector.y),
-            PrimitiveFloatUtils::exp(vector.z),
-        )
+        Vector::<3, Self, A>::new(vector.x.exp(), vector.y.exp(), vector.z.exp())
     }
 
     #[inline]
     fn vector_exp2(vector: Vector<3, Self, A>) -> Vector<3, Self, A> {
-        Vector::<3, Self, A>::new(
-            PrimitiveFloatUtils::exp2(vector.x),
-            PrimitiveFloatUtils::exp2(vector.y),
-            PrimitiveFloatUtils::exp2(vector.z),
-        )
+        Vector::<3, Self, A>::new(vector.x.exp2(), vector.y.exp2(), vector.z.exp2())
     }
 
     #[inline]
     fn vector_ln(vector: Vector<3, Self, A>) -> Vector<3, Self, A> {
-        Vector::<3, Self, A>::new(
-            PrimitiveFloatUtils::ln(vector.x),
-            PrimitiveFloatUtils::ln(vector.y),
-            PrimitiveFloatUtils::ln(vector.z),
-        )
+        Vector::<3, Self, A>::new(vector.x.ln(), vector.y.ln(), vector.z.ln())
     }
 
     #[inline]
     fn vector_log2(vector: Vector<3, Self, A>) -> Vector<3, Self, A> {
-        Vector::<3, Self, A>::new(
-            PrimitiveFloatUtils::log2(vector.x),
-            PrimitiveFloatUtils::log2(vector.y),
-            PrimitiveFloatUtils::log2(vector.z),
-        )
+        Vector::<3, Self, A>::new(vector.x.log2(), vector.y.log2(), vector.z.log2())
     }
 
     #[inline]
     fn vector_sin(vector: Vector<3, Self, A>) -> Vector<3, Self, A> {
-        Vector::<3, Self, A>::new(
-            PrimitiveFloatUtils::sin(vector.x),
-            PrimitiveFloatUtils::sin(vector.y),
-            PrimitiveFloatUtils::sin(vector.z),
-        )
+        Vector::<3, Self, A>::new(vector.x.sin(), vector.y.sin(), vector.z.sin())
     }
 
     #[inline]
     fn vector_cos(vector: Vector<3, Self, A>) -> Vector<3, Self, A> {
-        Vector::<3, Self, A>::new(
-            PrimitiveFloatUtils::cos(vector.x),
-            PrimitiveFloatUtils::cos(vector.y),
-            PrimitiveFloatUtils::cos(vector.z),
-        )
+        Vector::<3, Self, A>::new(vector.x.cos(), vector.y.cos(), vector.z.cos())
     }
 
     #[inline]
     fn vector_tan(vector: Vector<3, Self, A>) -> Vector<3, Self, A> {
-        Vector::<3, Self, A>::new(
-            PrimitiveFloatUtils::tan(vector.x),
-            PrimitiveFloatUtils::tan(vector.y),
-            PrimitiveFloatUtils::tan(vector.z),
-        )
+        Vector::<3, Self, A>::new(vector.x.tan(), vector.y.tan(), vector.z.tan())
     }
 
     #[inline]
     fn vector_asin(vector: Vector<3, Self, A>) -> Vector<3, Self, A> {
-        Vector::<3, Self, A>::new(
-            PrimitiveFloatUtils::asin(vector.x),
-            PrimitiveFloatUtils::asin(vector.y),
-            PrimitiveFloatUtils::asin(vector.z),
-        )
+        Vector::<3, Self, A>::new(vector.x.asin(), vector.y.asin(), vector.z.asin())
     }
 
     #[inline]
     fn vector_acos(vector: Vector<3, Self, A>) -> Vector<3, Self, A> {
-        Vector::<3, Self, A>::new(
-            PrimitiveFloatUtils::acos(vector.x),
-            PrimitiveFloatUtils::acos(vector.y),
-            PrimitiveFloatUtils::acos(vector.z),
-        )
+        Vector::<3, Self, A>::new(vector.x.acos(), vector.y.acos(), vector.z.acos())
     }
 
     #[inline]
     fn vector_atan(vector: Vector<3, Self, A>) -> Vector<3, Self, A> {
-        Vector::<3, Self, A>::new(
-            PrimitiveFloatUtils::atan(vector.x),
-            PrimitiveFloatUtils::atan(vector.y),
-            PrimitiveFloatUtils::atan(vector.z),
-        )
+        Vector::<3, Self, A>::new(vector.x.atan(), vector.y.atan(), vector.z.atan())
     }
 
     #[inline]
     fn vector_sin_cos(vector: Vector<3, Self, A>) -> (Vector<3, Self, A>, Vector<3, Self, A>) {
-        let x_sin_cos = PrimitiveFloatUtils::sin_cos(vector.x);
-        let y_sin_cos = PrimitiveFloatUtils::sin_cos(vector.y);
-        let z_sin_cos = PrimitiveFloatUtils::sin_cos(vector.z);
+        let x_sin_cos = vector.x.sin_cos();
+        let y_sin_cos = vector.y.sin_cos();
+        let z_sin_cos = vector.z.sin_cos();
 
         (
             Vector::<3, Self, A>::new(x_sin_cos.0, y_sin_cos.0, z_sin_cos.0),
@@ -2239,40 +2118,40 @@ where
     #[inline]
     fn vector_floor(vector: Vector<4, Self, A>) -> Vector<4, Self, A> {
         Vector::<4, Self, A>::new(
-            PrimitiveFloatUtils::floor(vector.x),
-            PrimitiveFloatUtils::floor(vector.y),
-            PrimitiveFloatUtils::floor(vector.z),
-            PrimitiveFloatUtils::floor(vector.w),
+            vector.x.floor(),
+            vector.y.floor(),
+            vector.z.floor(),
+            vector.w.floor(),
         )
     }
 
     #[inline]
     fn vector_ceil(vector: Vector<4, Self, A>) -> Vector<4, Self, A> {
         Vector::<4, Self, A>::new(
-            PrimitiveFloatUtils::ceil(vector.x),
-            PrimitiveFloatUtils::ceil(vector.y),
-            PrimitiveFloatUtils::ceil(vector.z),
-            PrimitiveFloatUtils::ceil(vector.w),
+            vector.x.ceil(),
+            vector.y.ceil(),
+            vector.z.ceil(),
+            vector.w.ceil(),
         )
     }
 
     #[inline]
     fn vector_round(vector: Vector<4, Self, A>) -> Vector<4, Self, A> {
         Vector::<4, Self, A>::new(
-            PrimitiveFloatUtils::round(vector.x),
-            PrimitiveFloatUtils::round(vector.y),
-            PrimitiveFloatUtils::round(vector.z),
-            PrimitiveFloatUtils::round(vector.w),
+            vector.x.round(),
+            vector.y.round(),
+            vector.z.round(),
+            vector.w.round(),
         )
     }
 
     #[inline]
     fn vector_trunc(vector: Vector<4, Self, A>) -> Vector<4, Self, A> {
         Vector::<4, Self, A>::new(
-            PrimitiveFloatUtils::trunc(vector.x),
-            PrimitiveFloatUtils::trunc(vector.y),
-            PrimitiveFloatUtils::trunc(vector.z),
-            PrimitiveFloatUtils::trunc(vector.w),
+            vector.x.trunc(),
+            vector.y.trunc(),
+            vector.z.trunc(),
+            vector.w.trunc(),
         )
     }
 
@@ -2283,10 +2162,10 @@ where
         b: Vector<4, Self, A>,
     ) -> Vector<4, Self, A> {
         Vector::<4, Self, A>::new(
-            PrimitiveFloatUtils::mul_add(vector.x, a.x, b.x),
-            PrimitiveFloatUtils::mul_add(vector.y, a.y, b.y),
-            PrimitiveFloatUtils::mul_add(vector.z, a.z, b.z),
-            PrimitiveFloatUtils::mul_add(vector.w, a.w, b.w),
+            vector.x.mul_add(a.x, b.x),
+            vector.y.mul_add(a.y, b.y),
+            vector.z.mul_add(a.z, b.z),
+            vector.w.mul_add(a.w, b.w),
         )
     }
 
@@ -2296,10 +2175,10 @@ where
         rhs: Vector<4, Self, A>,
     ) -> Vector<4, Self, A> {
         Vector::<4, Self, A>::new(
-            PrimitiveFloatUtils::div_euclid(vector.x, rhs.x),
-            PrimitiveFloatUtils::div_euclid(vector.y, rhs.y),
-            PrimitiveFloatUtils::div_euclid(vector.z, rhs.z),
-            PrimitiveFloatUtils::div_euclid(vector.w, rhs.w),
+            vector.x.div_euclid(rhs.x),
+            vector.y.div_euclid(rhs.y),
+            vector.z.div_euclid(rhs.z),
+            vector.w.div_euclid(rhs.w),
         )
     }
 
@@ -2309,139 +2188,134 @@ where
         rhs: Vector<4, Self, A>,
     ) -> Vector<4, Self, A> {
         Vector::<4, Self, A>::new(
-            PrimitiveFloatUtils::rem_euclid(vector.x, rhs.x),
-            PrimitiveFloatUtils::rem_euclid(vector.y, rhs.y),
-            PrimitiveFloatUtils::rem_euclid(vector.z, rhs.z),
-            PrimitiveFloatUtils::rem_euclid(vector.w, rhs.w),
+            vector.x.rem_euclid(rhs.x),
+            vector.y.rem_euclid(rhs.y),
+            vector.z.rem_euclid(rhs.z),
+            vector.w.rem_euclid(rhs.w),
         )
     }
 
     #[inline]
     fn vector_powf(vector: Vector<4, Self, A>, n: Self) -> Vector<4, Self, A> {
         Vector::<4, Self, A>::new(
-            PrimitiveFloatUtils::powf(vector.x, n),
-            PrimitiveFloatUtils::powf(vector.y, n),
-            PrimitiveFloatUtils::powf(vector.z, n),
-            PrimitiveFloatUtils::powf(vector.w, n),
+            vector.x.powf(n),
+            vector.y.powf(n),
+            vector.z.powf(n),
+            vector.w.powf(n),
         )
     }
 
     #[inline]
     fn vector_sqrt(vector: Vector<4, Self, A>) -> Vector<4, Self, A> {
         Vector::<4, Self, A>::new(
-            PrimitiveFloatUtils::sqrt(vector.x),
-            PrimitiveFloatUtils::sqrt(vector.y),
-            PrimitiveFloatUtils::sqrt(vector.z),
-            PrimitiveFloatUtils::sqrt(vector.w),
+            vector.x.sqrt(),
+            vector.y.sqrt(),
+            vector.z.sqrt(),
+            vector.w.sqrt(),
         )
     }
 
     #[inline]
     fn vector_exp(vector: Vector<4, Self, A>) -> Vector<4, Self, A> {
         Vector::<4, Self, A>::new(
-            PrimitiveFloatUtils::exp(vector.x),
-            PrimitiveFloatUtils::exp(vector.y),
-            PrimitiveFloatUtils::exp(vector.z),
-            PrimitiveFloatUtils::exp(vector.w),
+            vector.x.exp(),
+            vector.y.exp(),
+            vector.z.exp(),
+            vector.w.exp(),
         )
     }
 
     #[inline]
     fn vector_exp2(vector: Vector<4, Self, A>) -> Vector<4, Self, A> {
         Vector::<4, Self, A>::new(
-            PrimitiveFloatUtils::exp2(vector.x),
-            PrimitiveFloatUtils::exp2(vector.y),
-            PrimitiveFloatUtils::exp2(vector.z),
-            PrimitiveFloatUtils::exp2(vector.w),
+            vector.x.exp2(),
+            vector.y.exp2(),
+            vector.z.exp2(),
+            vector.w.exp2(),
         )
     }
 
     #[inline]
     fn vector_ln(vector: Vector<4, Self, A>) -> Vector<4, Self, A> {
-        Vector::<4, Self, A>::new(
-            PrimitiveFloatUtils::ln(vector.x),
-            PrimitiveFloatUtils::ln(vector.y),
-            PrimitiveFloatUtils::ln(vector.z),
-            PrimitiveFloatUtils::ln(vector.w),
-        )
+        Vector::<4, Self, A>::new(vector.x.ln(), vector.y.ln(), vector.z.ln(), vector.w.ln())
     }
 
     #[inline]
     fn vector_log2(vector: Vector<4, Self, A>) -> Vector<4, Self, A> {
         Vector::<4, Self, A>::new(
-            PrimitiveFloatUtils::log2(vector.x),
-            PrimitiveFloatUtils::log2(vector.y),
-            PrimitiveFloatUtils::log2(vector.z),
-            PrimitiveFloatUtils::log2(vector.w),
+            vector.x.log2(),
+            vector.y.log2(),
+            vector.z.log2(),
+            vector.w.log2(),
         )
     }
 
     #[inline]
     fn vector_sin(vector: Vector<4, Self, A>) -> Vector<4, Self, A> {
         Vector::<4, Self, A>::new(
-            PrimitiveFloatUtils::sin(vector.x),
-            PrimitiveFloatUtils::sin(vector.y),
-            PrimitiveFloatUtils::sin(vector.z),
-            PrimitiveFloatUtils::sin(vector.w),
+            vector.x.sin(),
+            vector.y.sin(),
+            vector.z.sin(),
+            vector.w.sin(),
         )
     }
 
     #[inline]
     fn vector_cos(vector: Vector<4, Self, A>) -> Vector<4, Self, A> {
         Vector::<4, Self, A>::new(
-            PrimitiveFloatUtils::cos(vector.x),
-            PrimitiveFloatUtils::cos(vector.y),
-            PrimitiveFloatUtils::cos(vector.z),
-            PrimitiveFloatUtils::cos(vector.w),
+            vector.x.cos(),
+            vector.y.cos(),
+            vector.z.cos(),
+            vector.w.cos(),
         )
     }
 
     #[inline]
     fn vector_tan(vector: Vector<4, Self, A>) -> Vector<4, Self, A> {
         Vector::<4, Self, A>::new(
-            PrimitiveFloatUtils::tan(vector.x),
-            PrimitiveFloatUtils::tan(vector.y),
-            PrimitiveFloatUtils::tan(vector.z),
-            PrimitiveFloatUtils::tan(vector.w),
+            vector.x.tan(),
+            vector.y.tan(),
+            vector.z.tan(),
+            vector.w.tan(),
         )
     }
 
     #[inline]
     fn vector_asin(vector: Vector<4, Self, A>) -> Vector<4, Self, A> {
         Vector::<4, Self, A>::new(
-            PrimitiveFloatUtils::asin(vector.x),
-            PrimitiveFloatUtils::asin(vector.y),
-            PrimitiveFloatUtils::asin(vector.z),
-            PrimitiveFloatUtils::asin(vector.w),
+            vector.x.asin(),
+            vector.y.asin(),
+            vector.z.asin(),
+            vector.w.asin(),
         )
     }
 
     #[inline]
     fn vector_acos(vector: Vector<4, Self, A>) -> Vector<4, Self, A> {
         Vector::<4, Self, A>::new(
-            PrimitiveFloatUtils::acos(vector.x),
-            PrimitiveFloatUtils::acos(vector.y),
-            PrimitiveFloatUtils::acos(vector.z),
-            PrimitiveFloatUtils::acos(vector.w),
+            vector.x.acos(),
+            vector.y.acos(),
+            vector.z.acos(),
+            vector.w.acos(),
         )
     }
 
     #[inline]
     fn vector_atan(vector: Vector<4, Self, A>) -> Vector<4, Self, A> {
         Vector::<4, Self, A>::new(
-            PrimitiveFloatUtils::atan(vector.x),
-            PrimitiveFloatUtils::atan(vector.y),
-            PrimitiveFloatUtils::atan(vector.z),
-            PrimitiveFloatUtils::atan(vector.w),
+            vector.x.atan(),
+            vector.y.atan(),
+            vector.z.atan(),
+            vector.w.atan(),
         )
     }
 
     #[inline]
     fn vector_sin_cos(vector: Vector<4, Self, A>) -> (Vector<4, Self, A>, Vector<4, Self, A>) {
-        let x_sin_cos = PrimitiveFloatUtils::sin_cos(vector.x);
-        let y_sin_cos = PrimitiveFloatUtils::sin_cos(vector.y);
-        let z_sin_cos = PrimitiveFloatUtils::sin_cos(vector.z);
-        let w_sin_cos = PrimitiveFloatUtils::sin_cos(vector.w);
+        let x_sin_cos = vector.x.sin_cos();
+        let y_sin_cos = vector.y.sin_cos();
+        let z_sin_cos = vector.z.sin_cos();
+        let w_sin_cos = vector.w.sin_cos();
 
         (
             Vector::<4, Self, A>::new(x_sin_cos.0, y_sin_cos.0, z_sin_cos.0, w_sin_cos.0),
