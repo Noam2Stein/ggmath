@@ -1,7 +1,7 @@
 use core::{
     fmt::{Debug, Display},
     hash::Hash,
-    ops::{Add, Index, IndexMut, Mul, MulAssign},
+    ops::{Add, Deref, DerefMut, Index, IndexMut, Mul, MulAssign},
 };
 
 use crate::{
@@ -29,17 +29,35 @@ mod wide_float;
 /// - [`Affine3<T>`] for [`Affine<3, T, Unaligned>`].
 /// - [`Affine2A<T>`] for [`Affine<2, T, Aligned>`].
 /// - [`Affine3A<T>`] for [`Affine<3, T, Aligned>`].
+///
+/// # Fields
+///
+/// - `matrix: Matrix<N, T, A>` (linear transformation matrix)
+/// - `translation: Vector<N, T, A>` (translation vector)
+///
+/// Note that these fields are only exposed by implementing [`Deref`] and
+/// [`DerefMut`].
+///
+/// # Memory layout
+///
+/// [`Affine<N, T, A>`] contains a value of [`Matrix<N, T, A>`], followed by a
+/// value of [`Vector<N, T, A>`], followed by optional padding.
+///
+/// The alignment of [`Affine<N, T, A>`] is always the alignment of
+/// [`Matrix<N, T, A>`].
+///
+/// For `N = 3, 4` there is no padding. For `N = 2` there may be padding because
+/// [`Mat2A`] is represented as [`Vec4A`]. Padding is fully initialized and
+/// accepts all bit patterns. Unless `T` accepts all bit patterns, it is not
+/// sound to assume padding contains valid values of `T`.
+///
+/// [`Mat2A`]: crate::Mat2A
+/// [`Vec4A`]: crate::Vec4A
 #[repr(C)]
-pub struct Affine<const N: usize, T, A: Alignment>
+pub struct Affine<const N: usize, T, A: Alignment>(Matrix<N, T, A>, Vector<N, T, A>)
 where
     Length<N>: SupportedLength,
-    T: Scalar,
-{
-    /// The part representing rotation, scaling and shear.
-    pub matrix: Matrix<N, T, A>,
-    /// The part representing translation.
-    pub translation: Vector<N, T, A>,
-}
+    T: Scalar;
 
 /// A 2D affine transform which can represent translation, rotation, scaling and
 /// shear.
@@ -49,6 +67,14 @@ where
 /// # No SIMD alignment
 ///
 /// [`Affine2<T>`] does not have SIMD alignment, for that use [`Affine2A<T>`].
+///
+/// # Fields
+///
+/// - `matrix: Mat2<T>` (linear transformation matrix)
+/// - `translation: Vec2<T>` (translation vector)
+///
+/// Note that these fields are only exposed by implementing [`Deref`] and
+/// [`DerefMut`].
 pub type Affine2<T> = Affine<2, T, Unaligned>;
 
 /// A 3D affine transform which can represent translation, rotation, scaling and
@@ -59,6 +85,14 @@ pub type Affine2<T> = Affine<2, T, Unaligned>;
 /// # No SIMD alignment
 ///
 /// [`Affine3<T>`] does not have SIMD alignment, for that use [`Affine3A<T>`].
+///
+/// # Fields
+///
+/// - `matrix: Mat3<T>` (linear transformation matrix)
+/// - `translation: Vec3<T>` (translation vector)
+///
+/// Note that these fields are only exposed by implementing [`Deref`] and
+/// [`DerefMut`].
 pub type Affine3<T> = Affine<3, T, Unaligned>;
 
 /// A 2D affine transform which can represent translation, rotation, scaling and
@@ -70,6 +104,14 @@ pub type Affine3<T> = Affine<3, T, Unaligned>;
 ///
 /// For appropriate `T` types, [`Affine2A<T>`] has SIMD alignment. For no SIMD
 /// use [`Affine2<T>`].
+///
+/// # Fields
+///
+/// - `matrix: Mat2A<T>` (linear transformation matrix)
+/// - `translation: Vec2A<T>` (translation vector)
+///
+/// Note that these fields are only exposed by implementing [`Deref`] and
+/// [`DerefMut`].
 pub type Affine2A<T> = Affine<2, T, Aligned>;
 
 /// A 3D affine transform which can represent translation, rotation, scaling and
@@ -81,6 +123,14 @@ pub type Affine2A<T> = Affine<2, T, Aligned>;
 ///
 /// For appropriate `T` types, [`Affine3A<T>`] has SIMD alignment. For no SIMD
 /// use [`Affine3<T>`].
+///
+/// # Fields
+///
+/// - `matrix: Mat3A<T>` (linear transformation matrix)
+/// - `translation: Vec3A<T>` (translation vector)
+///
+/// Note that these fields are only exposed by implementing [`Deref`] and
+/// [`DerefMut`].
 pub type Affine3A<T> = Affine<3, T, Aligned>;
 
 impl<const N: usize, T, A: Alignment> Affine<N, T, A>
@@ -134,10 +184,7 @@ where
     where
         F: FnMut(usize) -> Vector<N, T, A>,
     {
-        Self {
-            matrix: Matrix::from_row_fn(&mut f),
-            translation: f(N),
-        }
+        Self::from_matrix_translation(&Matrix::from_row_fn(&mut f), f(N))
     }
 
     /// Creates an affine transform from a non-uniform `scale`.
@@ -147,10 +194,7 @@ where
     where
         T: Zero,
     {
-        Self {
-            matrix: Matrix::from_scale(scale),
-            translation: Vector::ZERO,
-        }
+        Self::from_matrix(&Matrix::from_scale(scale))
     }
 
     /// Creates an affine transform from a `translation` vector.
@@ -160,10 +204,7 @@ where
     where
         T: Zero + One,
     {
-        Self {
-            matrix: Matrix::IDENTITY,
-            translation,
-        }
+        Self::from_matrix_translation(&Matrix::IDENTITY, translation)
     }
 
     /// Creates an affine transform from `matrix` expressing rotation and
@@ -174,10 +215,7 @@ where
     where
         T: Zero,
     {
-        Self {
-            matrix: *matrix,
-            translation: Vector::ZERO,
-        }
+        Self::from_matrix_translation(matrix, Vector::ZERO)
     }
 
     /// Creates an affine transform from `translation` and `matrix`
@@ -188,10 +226,7 @@ where
         matrix: &Matrix<N, T, A>,
         translation: Vector<N, T, A>,
     ) -> Self {
-        Self {
-            matrix: *matrix,
-            translation,
-        }
+        Self(*matrix, translation)
     }
 
     /// Conversion between [`Aligned`] and [`Unaligned`] storage.
@@ -220,10 +255,7 @@ where
     #[inline]
     #[must_use]
     pub const fn to_alignment<A2: Alignment>(&self) -> Affine<N, T, A2> {
-        Affine::from_matrix_translation(
-            &self.matrix.to_alignment(),
-            self.translation.to_alignment(),
-        )
+        Affine(self.0.to_alignment(), self.1.to_alignment())
     }
 
     /// Conversion to [`Aligned`] storage.
@@ -300,10 +332,7 @@ where
     #[inline]
     #[must_use]
     pub const fn from_rows(rows: &[Vector<2, T, A>; 3]) -> Self {
-        Self {
-            matrix: Matrix::from_rows(&[rows[0], rows[1]]),
-            translation: rows[2],
-        }
+        Self::from_matrix_translation(&Matrix::from_rows(&[rows[0], rows[1]]), rows[2])
     }
 
     /// Creates an affine transform from a row-major array of elements.
@@ -410,10 +439,7 @@ where
     #[inline]
     #[must_use]
     pub const fn from_rows(rows: &[Vector<3, T, A>; 4]) -> Self {
-        Self {
-            matrix: Matrix::from_rows(&[rows[0], rows[1], rows[2]]),
-            translation: rows[3],
-        }
+        Self::from_matrix_translation(&Matrix::from_rows(&[rows[0], rows[1], rows[2]]), rows[3])
     }
 
     /// Creates an affine transform from a row-major array of elements.
@@ -522,10 +548,10 @@ where
     #[inline]
     #[must_use]
     pub const fn from_rows(rows: &[Vector<4, T, A>; 5]) -> Self {
-        Self {
-            matrix: Matrix::from_rows(&[rows[0], rows[1], rows[2], rows[3]]),
-            translation: rows[4],
-        }
+        Self::from_matrix_translation(
+            &Matrix::from_rows(&[rows[0], rows[1], rows[2], rows[3]]),
+            rows[4],
+        )
     }
 
     /// Creates an affine transform from a row-major array of elements.
@@ -671,6 +697,47 @@ where
             (4, 4) => &mut self.translation,
             _ => panic!("index out of bounds"),
         }
+    }
+}
+
+#[doc(hidden)]
+#[repr(C)]
+pub struct AffineFields<const N: usize, T, A: Alignment>
+where
+    Length<N>: SupportedLength,
+    T: Scalar,
+{
+    /// The part representing rotation, scaling and shear.
+    pub matrix: Matrix<N, T, A>,
+    /// The part representing translation.
+    pub translation: Vector<N, T, A>,
+}
+
+impl<const N: usize, T, A: Alignment> Deref for Affine<N, T, A>
+where
+    Length<N>: SupportedLength,
+    T: Scalar,
+{
+    type Target = AffineFields<N, T, A>;
+
+    #[inline]
+    fn deref(&self) -> &Self::Target {
+        // SAFETY: `Affine` is guaranteed to begin with the corresponding matrix
+        // and vector
+        unsafe { transmute_ref::<Affine<N, T, A>, AffineFields<N, T, A>>(self) }
+    }
+}
+
+impl<const N: usize, T, A: Alignment> DerefMut for Affine<N, T, A>
+where
+    Length<N>: SupportedLength,
+    T: Scalar,
+{
+    #[inline]
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        // SAFETY: `Affine` is guaranteed to begin with the corresponding matrix
+        // and vector
+        unsafe { transmute_mut::<Affine<N, T, A>, AffineFields<N, T, A>>(self) }
     }
 }
 
