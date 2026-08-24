@@ -4,7 +4,7 @@ use core::{arch::aarch64::*, mem::transmute};
 use crate::utils::PrimitiveFloatUtils;
 use crate::{
     Aligned, Mask, Mask3A, Mask4A, QuatA, Quaternion, Vec3A, Vec4A, Vector,
-    backend::{FloatVectorBackend, MaskBackend, QuaternionBackend, VectorBackend},
+    backend::{AffineBackend, FloatVectorBackend, MaskBackend, QuaternionBackend, VectorBackend},
     utils::{Repr4, safe_target_feature},
 };
 
@@ -263,6 +263,15 @@ unsafe impl VectorBackend<4, Aligned> for f32 {
             Mask(vcgeq_f32(vector.0, other.0))
         }
     }
+}
+
+// SAFETY: The first `__m128` represents the matrix, the first two elements of
+// the second `__m128` represent the vector, and the two remaining elements are
+// padding. The padding satisfies the requirements of `Pod`. `Mat2A<f32>` is
+// represented by `Vec4A<f32>` which is represented by `__m128`, so we have the
+// same alignment.
+unsafe impl AffineBackend<2, Aligned> for f32 {
+    type Inner = [__m128; 2];
 }
 
 impl QuaternionBackend<Aligned> for f32 {

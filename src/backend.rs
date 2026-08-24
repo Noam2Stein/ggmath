@@ -156,6 +156,21 @@ where
         Self: Scalar + PartialOrd;
 }
 
+/// # Safety
+///
+/// The following statements must be true:
+///
+/// - `Inner` contains `Matrix<N, T, A>` followed by `Vector<N, T, A>` followed
+///   by optional padding
+///
+/// - The optional padding satisfies the requirements of `Pod`, regardless of
+///   whether `T` does
+///
+/// - `Inner` has the alignment of `Matrix<N, T, A>`
+pub(crate) unsafe trait AffineBackend<const N: usize, A: Alignment> {
+    type Inner: Copy;
+}
+
 pub(crate) trait QuaternionBackend<A: Alignment> {
     #[track_caller]
     fn quat_mul(quat: Quaternion<Self, A>, rhs: Quaternion<Self, A>) -> Quaternion<Self, A>
@@ -1100,6 +1115,39 @@ where
             vector.w >= other.w,
         )
     }
+}
+
+// SAFETY: The two first vectors are the matrix, and there is a third vector.
+// There is no padding, so the pod requirement is met. `Matrix<2, _, _>` is
+// represented by `Vector<4, T, A>`, and the trait bound here ensures its
+// alignment is `T`'s alignment, thus our alignment is correct.
+unsafe impl<T, A: Alignment> AffineBackend<2, A> for T
+where
+    T: Scalar + DefaultBackend<4, A>,
+{
+    type Inner = [Vector<2, T, A>; 3];
+}
+
+// SAFETY: The three first vectors are the matrix, and there is a fourth vector.
+// There is no padding, so the pod requirement is met. `Matrix<3, _, _>` always
+// has the alignment of `Vector<3, _, _>`, so our `Inner` has the matrix
+// alignment.
+unsafe impl<T, A: Alignment> AffineBackend<3, A> for T
+where
+    T: Scalar,
+{
+    type Inner = [Vector<3, T, A>; 4];
+}
+
+// SAFETY: The three four vectors are the matrix, and there is a fifth vector.
+// There is no padding, so the pod requirement is met. `Matrix<4, _, _>` always
+// has the alignment of `Vector<4, _, _>`, so our `Inner` has the matrix
+// alignment.
+unsafe impl<T, A: Alignment> AffineBackend<4, A> for T
+where
+    T: Scalar,
+{
+    type Inner = [Vector<4, T, A>; 5];
 }
 
 impl<T, A: Alignment> QuaternionBackend<A> for T
