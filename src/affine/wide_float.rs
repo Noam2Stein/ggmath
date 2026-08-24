@@ -424,6 +424,15 @@ macro_rules! items_3 {
 #[doc(hidden)]
 pub trait WideFloat: crate::Scalar {}
 
+/// Functionality for [SoA] (Structure of Arrays) float affine transforms.
+///
+/// This is gated behind the `wide` feature flag.
+///
+/// This functionality is shown with generics to make it easier to read. This
+/// works with all float types from the [`wide`] crate.
+///
+/// [SoA]: crate#soa
+/// [`wide`]: https://crates.io/crates/wide
 #[cfg(doc)]
 impl<const N: usize, Wide, A: Alignment> Affine<N, Wide, A>
 where
@@ -433,6 +442,15 @@ where
     items!(Wide);
 }
 
+/// Functionality for [SoA] (Structure of Arrays) 2D float affine transforms.
+///
+/// This is gated behind the `wide` feature flag.
+///
+/// This functionality is shown with generics to make it easier to read. This
+/// works with all float types from the [`wide`] crate.
+///
+/// [SoA]: crate#soa
+/// [`wide`]: https://crates.io/crates/wide
 #[cfg(doc)]
 impl<Wide, A: Alignment> Affine<2, Wide, A>
 where
@@ -441,6 +459,15 @@ where
     items_2!(Wide);
 }
 
+/// Functionality for [SoA] (Structure of Arrays) 3D float affine transforms.
+///
+/// This is gated behind the `wide` feature flag.
+///
+/// This functionality is shown with generics to make it easier to read. This
+/// works with all float types from the [`wide`] crate.
+///
+/// [SoA]: crate#soa
+/// [`wide`]: https://crates.io/crates/wide
 #[cfg(doc)]
 impl<Wide, A: Alignment> Affine<3, Wide, A>
 where

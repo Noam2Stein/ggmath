@@ -522,6 +522,15 @@ macro_rules! items_3 {
 #[doc(hidden)]
 pub trait WideFloat: crate::Scalar {}
 
+/// Functionality for [SoA] (Structure of Arrays) float matrices.
+///
+/// This is gated behind the `wide` feature flag.
+///
+/// This functionality is shown with generics to make it easier to read. This
+/// works with all float types from the [`wide`] crate.
+///
+/// [SoA]: crate#soa
+/// [`wide`]: https://crates.io/crates/wide
 #[cfg(doc)]
 impl<const N: usize, Wide, A: Alignment> Matrix<N, Wide, A>
 where
@@ -531,6 +540,15 @@ where
     items!(Wide, f32);
 }
 
+/// Functionality for [SoA] (Structure of Arrays) 2x2 float matrices.
+///
+/// This is gated behind the `wide` feature flag.
+///
+/// This functionality is shown with generics to make it easier to read. This
+/// works with all float types from the [`wide`] crate.
+///
+/// [SoA]: crate#soa
+/// [`wide`]: https://crates.io/crates/wide
 #[cfg(doc)]
 impl<Wide, A: Alignment> Matrix<2, Wide, A>
 where
@@ -539,6 +557,15 @@ where
     items_2!(Wide, f32);
 }
 
+/// Functionality for [SoA] (Structure of Arrays) 3x3 float matrices.
+///
+/// This is gated behind the `wide` feature flag.
+///
+/// This functionality is shown with generics to make it easier to read. This
+/// works with all float types from the [`wide`] crate.
+///
+/// [SoA]: crate#soa
+/// [`wide`]: https://crates.io/crates/wide
 #[cfg(doc)]
 impl<Wide, A: Alignment> Matrix<3, Wide, A>
 where

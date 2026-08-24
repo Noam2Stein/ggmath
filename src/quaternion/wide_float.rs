@@ -535,6 +535,15 @@ macro_rules! items {
 #[doc(hidden)]
 pub trait WideFloat: crate::Scalar {}
 
+/// Functionality for [SoA] (Structure of Arrays) float quaternions.
+///
+/// This is gated behind the `wide` feature flag.
+///
+/// This functionality is shown with generics to make it easier to read. This
+/// works with all float types from the [`wide`] crate.
+///
+/// [SoA]: crate#soa
+/// [`wide`]: https://crates.io/crates/wide
 #[cfg(doc)]
 impl<Wide, A: Alignment> Quaternion<Wide, A>
 where

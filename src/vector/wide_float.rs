@@ -1005,6 +1005,15 @@ pub trait WideFloat: crate::Scalar {
     type Bits: crate::Scalar;
 }
 
+/// Functionality for [SoA] (Structure of Arrays) float vectors.
+///
+/// This is gated behind the `wide` feature flag.
+///
+/// This functionality is shown with generics to make it easier to read. This
+/// works with all float types from the [`wide`] crate.
+///
+/// [SoA]: crate#soa
+/// [`wide`]: https://crates.io/crates/wide
 #[cfg(doc)]
 impl<const N: usize, Wide, A: Alignment> Vector<N, Wide, A>
 where
@@ -1014,6 +1023,15 @@ where
     items!(Wide, <Wide as WideFloat>::Bits, powf);
 }
 
+/// Functionality for [SoA] (Structure of Arrays) float vector2s.
+///
+/// This is gated behind the `wide` feature flag.
+///
+/// This functionality is shown with generics to make it easier to read. This
+/// works with all float types from the [`wide`] crate.
+///
+/// [SoA]: crate#soa
+/// [`wide`]: https://crates.io/crates/wide
 #[cfg(doc)]
 impl<Wide, A: Alignment> Vector<2, Wide, A>
 where
@@ -1022,6 +1040,15 @@ where
     items_2!(Wide, <Wide as WideFloat>::Bits, powf);
 }
 
+/// Functionality for [SoA] (Structure of Arrays) float vector3s.
+///
+/// This is gated behind the `wide` feature flag.
+///
+/// This functionality is shown with generics to make it easier to read. This
+/// works with all float types from the [`wide`] crate.
+///
+/// [SoA]: crate#soa
+/// [`wide`]: https://crates.io/crates/wide
 #[cfg(doc)]
 impl<Wide, A: Alignment> Vector<3, Wide, A>
 where

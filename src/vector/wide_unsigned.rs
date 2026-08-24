@@ -39,6 +39,15 @@ pub trait WideUnsigned: crate::Scalar {
     type Signed: crate::Scalar;
 }
 
+/// Functionality for [SoA] (Structure of Arrays) unsigned-integer vectors.
+///
+/// This is gated behind the `wide` feature flag.
+///
+/// This functionality is shown with generics to make it easier to read. This
+/// works with all unsigned-integer types from the [`wide`] crate.
+///
+/// [SoA]: crate#soa
+/// [`wide`]: https://crates.io/crates/wide
 #[cfg(doc)]
 impl<const N: usize, Wide, A: Alignment> Vector<N, Wide, A>
 where
