@@ -68,6 +68,8 @@ stabilized, which should not affect most users.
 
 ### Removed
 
+- Removed all previously deprecated items.
+
 - Removed the optional dependency `num-primitive`. If you want access to both
   `ggmath` primitive functionality and the `num-primitive` API, the better
   pattern is to define your own `Primitive*` traits.
