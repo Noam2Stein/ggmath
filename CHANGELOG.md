@@ -54,6 +54,9 @@ stabilized, which should not affect most users.
   now guaranteed to be initialized, by making the definition of `Affine`
   more similar to `Vector<N, T, A>`.
 
+- Improved the order of `impl` blocks in the `docs.rs` page. Due to a `rustdoc`
+  bug, the order is still not perfect.
+
 - Added missing `#[inline]` and `#[must_use]` attributes for
   `Vector::from_homogeneous`
 

@@ -10,9 +10,15 @@ use crate::{
     utils::{specialize, transmute_mut, transmute_ref},
 };
 
+// These submodules have empty lines between them so that rustfmt does not
+// incorrectly reorder them. The order is important since it impacts the order
+// of `impl` blocks in rustdoc's output.
+
 mod float;
+
 #[cfg(feature = "wide")]
 mod wide;
+
 #[cfg(feature = "wide")]
 mod wide_float;
 
