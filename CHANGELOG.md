@@ -47,6 +47,13 @@ stabilized, which should not affect most users.
 
 ### Fixed
 
+- Previously, the padding of `Affine2A<f32>` (which contains four elements for
+  `Mat2A`, two elements for `Vec2A`, and two padding elements) contained
+  uninitialized memory. This made the implementations of `bytemuck` traits
+  incorrect, whicn could easily lead to **undefined behavior**. That padding is
+  now guaranteed to be initialized, by making the definition of `Affine`
+  more similar to `Vector<N, T, A>`.
+
 - Added missing `#[inline]` and `#[must_use]` attributes for
   `Vector::from_homogeneous`
 

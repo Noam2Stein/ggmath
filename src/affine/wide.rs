@@ -140,10 +140,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn lane(&self, lane: usize) -> Affine<N, T, A> {
-        Affine {
-            matrix: self.matrix.lane(lane),
-            translation: self.translation.lane(lane),
-        }
+        Affine::from_matrix_translation(&self.matrix.lane(lane), self.translation.lane(lane))
     }
 
     /// Takes an SoA (Structure of Arrays) affine transform and sets the lane at
