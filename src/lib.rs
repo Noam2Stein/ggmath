@@ -129,9 +129,6 @@
 //! Almost all functionality that exists for standard types also exists for SoA
 //! types.
 //!
-//! > [The `docs.rs` page] currently doesn't show [`wide`] support. See
-//! > [this issue](https://github.com/Noam2Stein/ggmath/issues/45).
-//!
 //! # Fixed-point numbers
 //!
 //! Currently, there is only basic support for fixed-point numbers, through the
@@ -221,7 +218,6 @@
 //! [benchmark results]: https://github.com/Noam2Stein/ggmath/blob/main/BENCH_RESULTS.md
 //!
 //! [`wide`]: https://crates.io/crates/wide
-//! [The `docs.rs` page]: https://docs.rs/ggmath
 //!
 //! [`fixed`]: https://crates.io/crates/fixed
 //!

@@ -129,9 +129,6 @@ only use SoA for performance-critical algorithms.
 SoA is supported through an optional dependency for the [`wide`] crate. Almost
 all functionality that exists for standard types also exists for SoA types.
 
-> [The `docs.rs` page] currently doesn't show [`wide`] support. See
-> [this issue](https://github.com/Noam2Stein/ggmath/issues/45).
-
 ## Fixed-point numbers
 
 Currently, there is only basic support for fixed-point numbers, through the
@@ -309,7 +306,6 @@ it serves the same purpose as [`glam`] but with generics.
 
 [`Vec3<f32x4>`]: https://docs.rs/ggmath/latest/ggmath/type.Vec3.html
 [`wide`]: https://crates.io/crates/wide
-[The `docs.rs` page]: https://docs.rs/ggmath
 
 [`fixed`]: https://crates.io/crates/fixed
 [`Scalar`]: https://docs.rs/ggmath/latest/ggmath/trait.Scalar.html

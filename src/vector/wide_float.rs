@@ -5,910 +5,1071 @@ use crate::{
     utils::{FloatUtils, specialize, transmute_generic},
 };
 
-macro_rules! impl_wide_float {
-    ($Wide:ident, $UnsignedWide:ident, $powf:ident) => {
+macro_rules! items {
+    ($Wide:ident, $UnsignedWide:ty, $powf:ident) => {
+        /// A vector with all elements set to [`MIN`].
+        ///
+        /// [`MIN`]: f32::MIN
+        pub const MIN: Self = Self::splat($Wide::MIN);
+
+        /// A vector with all elements set to [`MAX`].
+        ///
+        /// [`MAX`]: f32::MAX
+        pub const MAX: Self = Self::splat($Wide::MAX);
+
+        /// A vector with all elements set to NaN (Not a Number).
+        pub const NAN: Self = Self::splat($Wide::NAN);
+
+        /// A vector with all elements set to [`INFINITY`].
+        ///
+        /// [`INFINITY`]: f32::INFINITY
+        pub const INFINITY: Self = Self::splat($Wide::INFINITY);
+
+        /// A vector with all elements set to [`NEG_INFINITY`].
+        ///
+        /// [`NEG_INFINITY`]: f32::NEG_INFINITY
+        pub const NEG_INFINITY: Self = Self::splat($Wide::NEG_INFINITY);
+
+        /// For each lane, returns `true` if any element is NaN.
+        #[inline]
+        #[must_use]
+        pub fn is_nan(self) -> $Wide {
+            self.nan_mask().any()
+        }
+
+        /// For each lane, returns a vector mask where each element is `true` if
+        /// the corresponding element of `self` is NaN.
+        ///
+        /// Equivalent to `(self.x.is_nan(), self.y.is_nan(), ...)` for each
+        /// lane.
+        #[inline]
+        #[must_use]
+        pub fn nan_mask(self) -> Self {
+            specialize!(Vector::<N, $Wide, A>::nan_mask_backend(self))
+        }
+
+        /// For each lane, returns `true` if all elements are neither infinite
+        /// nor NaN.
+        #[inline]
+        #[must_use]
+        pub fn is_finite(self) -> $Wide {
+            self.finite_mask().all()
+        }
+
+        /// For each lane, returns a vector mask where each element is `true` if
+        /// the corresponding element of `self` is neither infinite nor NaN.
+        ///
+        /// Equivalent to `(self.x.is_finite(), self.y.is_finite(), ...)` for
+        /// each lane.
+        #[inline]
+        #[must_use]
+        pub fn finite_mask(self) -> Self {
+            specialize!(Vector::<N, $Wide, A>::finite_mask_backend(self))
+        }
+
+        /// For each lane, returns a vector mask where each element is `true` if
+        /// the corresponding element of `self` has a positive sign, including
+        /// `+0.0`, NaNs with positive sign bit and positive infinity.
+        ///
+        /// Equivalent to
+        /// `(self.x.is_sign_positive(), self.y.is_sign_positive(), ...)`
+        /// for each lane.
+        #[inline]
+        #[must_use]
+        pub fn sign_positive_mask(self) -> Self {
+            specialize!(Vector::<N, $Wide, A>::sign_positive_mask_backend(self))
+        }
+
+        /// For each lane, returns a vector mask where each element is `true` if
+        /// the corresponding element of `self` has a negative sign, including
+        /// `-0.0`, NaNs with negative sign bit and negative infinity.
+        ///
+        /// Equivalent to
+        /// `(self.x.is_sign_negative(), self.y.is_sign_negative(), ...)`
+        /// for each lane.
+        #[inline]
+        #[must_use]
+        pub fn sign_negative_mask(self) -> Self {
+            specialize!(Vector::<N, $Wide, A>::sign_negative_mask_backend(self))
+        }
+
+        /// Returns the element-wise reciprocal (inverse) of a vector,
+        /// `1 / self`.
+        #[inline]
+        #[must_use]
+        pub fn recip(self) -> Self {
+            Self::ONE / self
+        }
+
+        /// Returns the maximum elements between `self` and `other`.
+        ///
+        /// Equivalent to `(self.x.max(other.x), self.y.max(other.y), ...)`.
+        ///
+        /// This is not consistent with IEEE semantics in regards to NaN
+        /// propagation and handling of `-0.0`.
+        #[inline]
+        #[must_use]
+        pub fn max(self, other: Self) -> Self {
+            specialize!(Vector::<N, $Wide, A>::max_backend(self, other))
+        }
+
+        /// Returns the minimum elements between `self` and `other`.
+        ///
+        /// Equivalent to `(self.x.min(other.x), self.y.min(other.y), ...)`.
+        ///
+        /// This is not consistent with IEEE semantics in regards to NaN
+        /// propagation and handling of `-0.0`.
+        #[inline]
+        #[must_use]
+        pub fn min(self, other: Self) -> Self {
+            specialize!(Vector::<N, $Wide, A>::min_backend(self, other))
+        }
+
+        /// For each lane, clamps the elements of `self` between the elements of
+        /// `min` and `max`.
+        ///
+        /// Equivalent to
+        /// `(self.x.clamp(min.x, max.x), self.y.clamp(min.y, max.y), ...)`.
+        ///
+        /// This is not consistent with IEEE semantics in regards to NaN
+        /// propagation and handling of `-0.0`.
+        #[inline]
+        #[must_use]
+        pub fn clamp(self, min: Self, max: Self) -> Self {
+            self.max(min).min(max)
+        }
+
+        /// For each lane, returns the maximum between the elements of `self`.
+        ///
+        /// Equivalent to `self.x.max(self.y).max(self.z)...` for each lane.
+        ///
+        /// This is not consistent with IEEE semantics in regards to NaN
+        /// propagation and handling of `-0.0`.
+        #[inline]
+        #[must_use]
+        pub fn max_element(self) -> $Wide {
+            specialize!(Vector::<N, $Wide, A>::max_element_backend(self))
+        }
+
+        /// For each lane, returns the minimum between the elements of `self`.
+        ///
+        /// Equivalent to `self.x.min(self.y).min(self.z)...` for each lane.
+        ///
+        /// This is not consistent with IEEE semantics in regards to NaN
+        /// propagation and handling of `-0.0`.
+        #[inline]
+        #[must_use]
+        pub fn min_element(self) -> $Wide {
+            specialize!(Vector::<N, $Wide, A>::min_element_backend(self))
+        }
+
+        /// Returns the absolute values of elements of `self`.
+        ///
+        /// Equivalent to `(self.x.abs(), self.y.abs(), ...)`.
+        #[inline]
+        #[must_use]
+        pub fn abs(self) -> Self {
+            specialize!(Vector::<N, $Wide, A>::abs_backend(self))
+        }
+
+        /// Returns the signum of the elements of `self`.
+        ///
+        /// Equivalent to `(self.x.signum(), self.y.signum(), ...)`.
+        #[inline]
+        #[must_use]
+        pub fn signum(self) -> Self {
+            specialize!(Vector::<N, $Wide, A>::signum_backend(self))
+        }
+
+        /// Returns a vector with the element magnitudes of `self` and the
+        /// element signs of `sign`.
+        ///
+        /// Equivalent to
+        /// `(self.x.copysign(sign.x), self.y.copysign(sign.y), ...)`.
+        #[inline]
+        #[must_use]
+        pub fn copysign(self, sign: Self) -> Self {
+            specialize!(Vector::<N, $Wide, A>::copysign_backend(self, sign))
+        }
+
+        /// Returns the largest integers less than or equal to the elements of
+        /// `self`.
+        ///
+        /// This always returns the precise result.
+        #[inline]
+        #[must_use]
+        pub fn floor(self) -> Self {
+            specialize!(Vector::<N, $Wide, A>::floor_backend(self))
+        }
+
+        /// Returns the smallest integers greater than or equal to the elements
+        /// of `self`.
+        ///
+        /// This always returns the precise result.
+        #[inline]
+        #[must_use]
+        pub fn ceil(self) -> Self {
+            specialize!(Vector::<N, $Wide, A>::ceil_backend(self))
+        }
+
+        /// Returns the nearest integers to the elements of `self`.
+        ///
+        /// This always returns the precise result.
+        #[inline]
+        #[must_use]
+        pub fn round(self) -> Self {
+            specialize!(Vector::<N, $Wide, A>::round_backend(self))
+        }
+
+        /// Returns the integer part of the elements of `self`. This means that
+        /// non-integer numbers are always truncated towards zero.
+        ///
+        /// This always returns the precise result.
+        #[inline]
+        #[must_use]
+        pub fn trunc(self) -> Self {
+            specialize!(Vector::<N, $Wide, A>::trunc_backend(self))
+        }
+
+        /// Returns the fractional part of `self`. Equivalent to
+        /// `self - self.trunc()`.
+        ///
+        /// This always returns the precise result.
+        #[inline]
+        #[must_use]
+        pub fn fract(self) -> Self {
+            self - self.trunc()
+        }
+
+        /// Fused multiply-add. Computes `(self * a) + b`.
+        ///
+        /// When hardware FMA support is available, this computes the result
+        /// with only one rounding error. Without FMA support, this falls back
+        /// to separate multiply and add operations with two rounding errors.
+        ///
+        /// This is inconsistent with the scalar definition of `mul_add` that
+        /// always computes the result with only one rounding error.
+        #[inline]
+        #[must_use]
+        pub fn mul_add(self, a: Self, b: Self) -> Self {
+            specialize!(Vector::<N, $Wide, A>::mul_add_backend(self, a, b))
+        }
+
+        /// Calculates Euclidean division for the elements of `self`.
+        ///
+        /// Equivalent to
+        /// `(self.x.div_euclid(rhs.x), self.y.div_euclid(rhs.y), ...)`.
+        ///
+        /// See [`f32::div_euclid`].
+        ///
+        /// # Precision
+        ///
+        /// The result of this operation is guaranteed to be the rounded
+        /// infinite-precision result.
+        ///
+        /// [`f32::div_euclid`]: https://doc.rust-lang.org/std/primitive.f32.html#method.div_euclid
+        #[inline]
+        #[must_use]
+        pub fn div_euclid(self, rhs: Self) -> Self {
+            specialize!(Vector::<N, $Wide, A>::div_euclid_backend(self, rhs))
+        }
+
+        /// Calculates Euclidean remainder for the elements of `self`.
+        ///
+        /// Equivalent to
+        /// `(self.x.rem_euclid(rhs.x), self.y.rem_euclid(rhs.y), ...)`.
+        ///
+        /// See [`f32::rem_euclid`].
+        ///
+        /// # Precision
+        ///
+        /// The result of this operation is guaranteed to be the rounded
+        /// infinite-precision result.
+        ///
+        /// [`f32::rem_euclid`]: https://doc.rust-lang.org/std/primitive.f32.html#method.rem_euclid
+        #[inline]
+        #[must_use]
+        pub fn rem_euclid(self, rhs: Self) -> Self {
+            specialize!(Vector::<N, $Wide, A>::rem_euclid_backend(self, rhs))
+        }
+
+        /// Computes `x^n` for the elements of `self`.
+        ///
+        /// # Unspecified precision
+        ///
+        /// The precision of this function is non-deterministic. This means it
+        /// varies by platform, version, and can even differ within the same
+        /// execution from one invocation to the next.
+        #[inline]
+        #[must_use]
+        pub fn powf(self, n: $Wide) -> Self {
+            specialize!(Vector::<N, $Wide, A>::powf_backend(self, n))
+        }
+
+        /// Returns the square root of the elements of `self`.
+        ///
+        /// Equivalent to `(self.x.sqrt(), self.y.sqrt(), ...)`.
+        ///
+        /// # Precision
+        ///
+        /// The result of this operation is guaranteed to be the rounded
+        /// infinite-precision result. It is specified by IEEE 754 as
+        /// `squareRoot` and guaranteed not to change.
+        #[inline]
+        #[must_use]
+        pub fn sqrt(self) -> Self {
+            specialize!(Vector::<N, $Wide, A>::sqrt_backend(self))
+        }
+
+        /// Computes the exponential function `e^x` for the elements of
+        /// `self`.
+        ///
+        /// # Unspecified precision
+        ///
+        /// The precision of this function is non-deterministic. This means it
+        /// varies by platform, version, and can even differ within the same
+        /// execution from one invocation to the next.
+        #[inline]
+        #[must_use]
+        pub fn exp(self) -> Self {
+            specialize!(Vector::<N, $Wide, A>::exp_backend(self))
+        }
+
+        /// Computes `2^x` for the elements of `self`.
+        ///
+        /// # Unspecified precision
+        ///
+        /// The precision of this function is non-deterministic. This means it
+        /// varies by platform, version, and can even differ within the same
+        /// execution from one invocation to the next.
+        #[inline]
+        #[must_use]
+        pub fn exp2(self) -> Self {
+            specialize!(Vector::<N, $Wide, A>::exp2_backend(self))
+        }
+
+        /// Computes the natural logarithm for the elements of `self`.
+        ///
+        /// # Unspecified precision
+        ///
+        /// The precision of this function is non-deterministic. This means it
+        /// varies by platform, version, and can even differ within the same
+        /// execution from one invocation to the next.
+        #[inline]
+        #[must_use]
+        pub fn ln(self) -> Self {
+            specialize!(Vector::<N, $Wide, A>::ln_backend(self))
+        }
+
+        /// Computes the base 2 logarithm for the elements of `self`.
+        ///
+        /// # Unspecified precision
+        ///
+        /// The precision of this function is non-deterministic. This means it
+        /// varies by platform, version, and can even differ within the same
+        /// execution from one invocation to the next.
+        #[inline]
+        #[must_use]
+        pub fn log2(self) -> Self {
+            specialize!(Vector::<N, $Wide, A>::log2_backend(self))
+        }
+
+        /// Computes the sine of the elements of `self`.
+        ///
+        /// # Unspecified precision
+        ///
+        /// The precision of this function is non-deterministic. This means it
+        /// varies by platform, version, and can even differ within the same
+        /// execution from one invocation to the next.
+        #[inline]
+        #[must_use]
+        pub fn sin(self) -> Self {
+            specialize!(Vector::<N, $Wide, A>::sin_backend(self))
+        }
+
+        /// Computes the cosine of the elements of `self`.
+        ///
+        /// # Unspecified precision
+        ///
+        /// The precision of this function is non-deterministic. This means it
+        /// varies by platform, version, and can even differ within the same
+        /// execution from one invocation to the next.
+        #[inline]
+        #[must_use]
+        pub fn cos(self) -> Self {
+            specialize!(Vector::<N, $Wide, A>::cos_backend(self))
+        }
+
+        /// Computes the tangent of the elements of `self`.
+        ///
+        /// # Unspecified precision
+        ///
+        /// The precision of this function is non-deterministic. This means it
+        /// varies by platform, version, and can even differ within the same
+        /// execution from one invocation to the next.
+        #[inline]
+        #[must_use]
+        pub fn tan(self) -> Self {
+            specialize!(Vector::<N, $Wide, A>::tan_backend(self))
+        }
+
+        /// Computes the arcsine of the elements of `self`.
+        ///
+        /// # Unspecified precision
+        ///
+        /// The precision of this function is non-deterministic. This means it
+        /// varies by platform, version, and can even differ within the same
+        /// execution from one invocation to the next.
+        #[inline]
+        #[must_use]
+        pub fn asin(self) -> Self {
+            specialize!(Vector::<N, $Wide, A>::asin_backend(self))
+        }
+
+        /// Computes the arccosine of the elements of `self`.
+        ///
+        /// # Unspecified precision
+        ///
+        /// The precision of this function is non-deterministic. This means it
+        /// varies by platform, version, and can even differ within the same
+        /// execution from one invocation to the next.
+        #[inline]
+        #[must_use]
+        pub fn acos(self) -> Self {
+            specialize!(Vector::<N, $Wide, A>::acos_backend(self))
+        }
+
+        /// Computes the arctangent of the elements of `self`.
+        ///
+        /// # Unspecified precision
+        ///
+        /// The precision of this function is non-deterministic. This means it
+        /// varies by platform, version, and can even differ within the same
+        /// execution from one invocation to the next.
+        #[inline]
+        #[must_use]
+        pub fn atan(self) -> Self {
+            specialize!(Vector::<N, $Wide, A>::atan_backend(self))
+        }
+
+        /// Simultaneously computes the sine and cosine of the elements of
+        /// `self`.
+        ///
+        /// Equivalent to `(self.sin(), self.cos())`, but may be more
+        /// performant. This might return a slightly different value.
+        ///
+        /// # Unspecified precision
+        ///
+        /// The precision of this function is non-deterministic. This means it
+        /// varies by platform, version, and can even differ within the same
+        /// execution from one invocation to the next.
+        #[inline]
+        #[must_use]
+        pub fn sin_cos(self) -> (Self, Self) {
+            specialize!(Vector::<N, $Wide, A>::sin_cos_backend(self))
+        }
+
+        /// Computes the linear interpolation between `self` and `other` based
+        /// on the value `t`.
+        ///
+        /// When `t` is `0`, the result is `self`. When `t` is `1`, the result
+        /// is `rhs`. When `t` is outside of the range `0..=1`, the result is
+        /// linearly extrapolated.
+        #[inline]
+        #[must_use]
+        pub fn lerp(self, other: Self, t: $Wide) -> Self {
+            self * ($Wide::ONE - t) + other * t
+        }
+
+        /// Computes the middle point between `self` and `other`.
+        ///
+        /// Equivalent to `self.lerp(other, 0.5)`, but is cheaper to compute.
+        /// This may return a slightly different value.
+        #[inline]
+        #[must_use]
+        pub fn midpoint(self, other: Self) -> Self {
+            (self + other) * $Wide::HALF
+        }
+
+        /// Moves `self` towards `other` by at most `max_delta`.
+        ///
+        /// When `max_delta` is `0`, the result is `self`. When `max_delta` is
+        /// equal to or greater than `self.distance(other)`, the result is
+        /// `other`.
+        #[inline]
+        #[must_use]
+        pub fn move_towards(self, target: Self, max_delta: $Wide) -> Self {
+            let delta = target - self;
+            let delta_length = delta.length();
+
+            Self::splat(delta_length.simd_le(max_delta) | delta_length.simd_le($Wide::splat(1e-4)))
+                .blend(target, self + delta / delta_length * max_delta)
+        }
+
+        /// For each lane, computes the spherical linear interpolation between
+        /// `self` and `other` based on the value `t`.
+        ///
+        /// When `t` is `0`, the result is `self`.  When `t` is `1`, the result
+        /// is `other`. When `t` is outside of the range `0..=1`, the result is
+        /// spherically linearly extrapolated.
+        ///
+        /// The vectors do not need to be unit vectors but they do need to be
+        /// non-zero.
+        #[inline]
+        #[must_use]
+        pub fn slerp(self, other: Self, t: $Wide) -> Self {
+            specialize!(Vector::<N, $Wide, A>::slerp_backend(self, other, t))
+        }
+
+        /// For each lane, rotates `self` towards `target` by at most
+        /// `max_angle` (in radians).
+        ///
+        /// When `max_angle` is `0`, the result is `self`. When `max_angle` is
+        /// equal to or greater than `self.angle_between(target)`, the result is
+        /// `target`. When `max_angle` is negative, this rotates towards
+        /// `-target`.
+        ///
+        /// The vectors do not need to be unit vectors but `target` does need to
+        /// be non-zero.
+        #[inline]
+        #[must_use]
+        pub fn rotate_towards(self, target: Self, max_angle: $Wide) -> Self {
+            specialize!(Vector::<N, $Wide, A>::rotate_towards_backend(
+                self, target, max_angle
+            ))
+        }
+
+        /// Returns the length/magnitude of `self`.
+        #[inline]
+        #[must_use]
+        pub fn length(self) -> $Wide {
+            self.dot(self).sqrt()
+        }
+
+        /// Computes the Euclidean distance between `self` and `other`.
+        #[inline]
+        #[must_use]
+        pub fn distance(self, other: Self) -> $Wide {
+            (self - other).length()
+        }
+
+        /// For each lane, returns a vector with the direction of `self` and
+        /// length `1`.
+        #[inline]
+        #[must_use]
+        pub fn normalize(self) -> Self {
+            self / self.length()
+        }
+
+        // `try_normalize` is exluded on purpose. It would not be useful because
+        // it would only return `Some` if all lanes succeed.
+
+        /// Returns [`normalize`] for each lane, or `fallback` if `self` is zero
+        /// or if the result is non finite or zero.
+        ///
+        /// The fallback is only applied for invalid lanes. Other lanes are not
+        /// affected.
+        ///
+        /// [`normalize`]: Self::normalize
+        #[inline]
+        #[must_use]
+        pub fn normalize_or(self, fallback: Self) -> Self {
+            let length_recip = $Wide::ONE / self.length();
+
+            Self::splat(length_recip.is_finite() & length_recip.simd_gt($Wide::ZERO))
+                .blend(self * length_recip, fallback)
+        }
+
+        /// Returns [`normalize`] for each lane, or a zero vector if `self` is
+        /// zero or if the result is non finite.
+        ///
+        /// The fallback is only applied for invalid lanes. Other lanes are not
+        /// affected.
+        ///
+        /// [`normalize`]: Self::normalize
+        #[inline]
+        #[must_use]
+        pub fn normalize_or_zero(self) -> Self {
+            let length_recip = $Wide::ONE / self.length();
+
+            Self::splat(length_recip.is_finite() & length_recip.simd_gt($Wide::ZERO))
+                .blend(self * length_recip, Self::ZERO)
+        }
+
+        /// Simultaneously computes [`normalize`] and [`length`].
+        ///
+        /// If `self` is a zero vector, the result for that lane is length `0`
+        /// and an unspecified vector. Consider manually checking for
+        /// `length == 0.0`.
+        ///
+        /// [`normalize`]: Self::normalize
+        /// [`length`]: Self::length
+        #[inline]
+        #[must_use]
+        pub fn normalize_and_length(self) -> (Self, $Wide) {
+            let length = self.length();
+            (self / length, length)
+        }
+
+        /// For each lane, returns whether the vector has the length `1` or not.
+        ///
+        /// This uses a precision threshold of approximately `1e-4`.
+        #[inline]
+        #[must_use]
+        pub fn is_normalized(self) -> $Wide {
+            (self.length_squared() - $Wide::ONE)
+                .abs()
+                .simd_le($Wide::splat(2e-4))
+        }
+
+        /// For each lane, returns `self` with a length of no more than `max`.
+        #[inline]
+        #[must_use]
+        pub fn with_max_length(self, max: $Wide) -> Self {
+            let length_squared = self.length_squared();
+            Self::splat(length_squared.simd_gt(max * max))
+                .blend(self / length_squared.sqrt() * max, self)
+        }
+
+        /// For any lane, returns `self` with a length of no less than `min`.
+        ///
+        /// If `min` is negative, this returns `self` for that lane.
+        #[inline]
+        #[must_use]
+        pub fn with_min_length(self, min: $Wide) -> Self {
+            let length_squared = self.length_squared();
+            Self::splat(length_squared.simd_lt(min * min.abs()))
+                .blend(self / length_squared.sqrt() * min, self)
+        }
+
+        /// For each lane, returns `self` with a length of no less than `min`
+        /// and no more than `max`.
+        ///
+        /// If `min` is negative it is ignored.
+        #[inline]
+        #[must_use]
+        pub fn clamp_length(self, min: $Wide, max: $Wide) -> Self {
+            let length_squared = self.length_squared();
+            Self::splat(length_squared.simd_lt(min * min.abs())).blend(
+                self / length_squared.sqrt() * min,
+                Self::splat(length_squared.simd_gt(max * max))
+                    .blend(self / length_squared.sqrt() * max, self),
+            )
+        }
+
+        /// For each lane, returns the angle (in radians) between `self` and
+        /// `other` in the range `0..=+π`.
+        ///
+        /// The vectors do not need to be unit vectors but they do need to be
+        /// non-zero.
+        ///
+        /// # Unspecified precision
+        ///
+        /// The precision of this function is non-deterministic. This means it
+        /// varies by platform, version, and can even differ within the same
+        /// execution from one invocation to the next.
+        #[inline]
+        #[must_use]
+        pub fn angle_between(self, other: Self) -> $Wide {
+            (self.dot(other) / (self.length_squared() * other.length_squared()).sqrt())
+                .acos_approx()
+        }
+
+        /// Returns the vector projection of `self` onto `other`.
+        ///
+        /// `other` must not be a zero vector.
+        #[inline]
+        #[must_use]
+        pub fn project_onto(self, other: Self) -> Self {
+            let other_length_squared_recip = $Wide::ONE / other.length_squared();
+
+            other * self.dot(other) * other_length_squared_recip
+        }
+
+        /// Returns the vector projection of `self` onto `other`.
+        ///
+        /// `other` must be normalized.
+        #[inline]
+        #[must_use]
+        pub fn project_onto_normalized(self, other: Self) -> Self {
+            other * self.dot(other)
+        }
+
+        /// Returns the vector rejection of `self` from `other`.
+        ///
+        /// Equivalent to `self - self.project_onto(other)`.
+        ///
+        /// `other` must not be a zero vector.
+        #[inline]
+        #[must_use]
+        pub fn reject_from(self, other: Self) -> Self {
+            self - self.project_onto(other)
+        }
+
+        /// Returns the vector rejection of `self` from `other`.
+        ///
+        /// Equivalent to `self - self.project_onto(other)`.
+        ///
+        /// `other` must be normalized.
+        #[inline]
+        #[must_use]
+        pub fn reject_from_normalized(self, other: Self) -> Self {
+            self - self.project_onto_normalized(other)
+        }
+
+        /// Returns the reflection of `self` through `normal`.
+        ///
+        /// `normal` must be normalized.
+        #[inline]
+        #[must_use]
+        pub fn reflect(self, normal: Self) -> Self {
+            self - normal * ($Wide::splat(2.0) * self.dot(normal))
+        }
+
+        /// Returns the vector refraction of `self` through `normal` and `eta`.
+        ///
+        /// `eta` is the incident refraction-index divided by the transmitted
+        /// refraction-index.
+        ///
+        /// When total internal reflection occurs, the result is a zero vector.
+        ///
+        /// `self` and `normal` must be normalized.
+        #[inline]
+        #[must_use]
+        pub fn refract(self, normal: Self, eta: $Wide) -> Self {
+            let self_dot_normal = self.dot(normal);
+            let k = $Wide::ONE - eta * eta * ($Wide::ONE - self_dot_normal * self_dot_normal);
+
+            Self::splat(k.simd_ge($Wide::ZERO)).blend(
+                self * eta - normal * (eta * self_dot_normal + k.sqrt()),
+                Self::ZERO,
+            )
+        }
+
+        /// For each lane, returns some vector that is orthogonal to `self`.
+        ///
+        /// The result is not necessarily normalized.
+        ///
+        /// For 2D vectors this is equivalent to [`perp`].
+        ///
+        /// [`perp`]: Vector::perp
+        #[inline]
+        #[must_use]
+        pub fn any_orthogonal_vector(self) -> Self {
+            specialize!(Vector::<N, $Wide, A>::any_orthogonal_vector_backend(self))
+        }
+
+        /// For each lane, returns some unit vector that is orthogonal to
+        /// `self`.
+        ///
+        /// `self` must normalized.
+        ///
+        /// For 2D vectors this is equivalent to [`perp`].
+        ///
+        /// [`perp`]: Self::perp
+        #[inline]
+        #[must_use]
+        pub fn any_orthonormal_vector(self) -> Self {
+            specialize!(Vector::<N, $Wide, A>::any_orthonormal_vector_backend(self))
+        }
+
+        /// Returns `true` if the absolute difference of all elements between
+        /// `self` and `other` is less than or equal to `max_abs_diff` for all
+        /// lanes.
+        ///
+        /// This can be used to compare two vectors that should be equal, but
+        /// may have a slight difference due to operations having rounding
+        /// errors.
+        #[inline]
+        #[must_use]
+        pub fn abs_diff_eq(self, other: Self, max_abs_diff: $Wide) -> bool {
+            (self - other)
+                .abs()
+                .simd_le_mask(Self::splat(max_abs_diff))
+                .all()
+                .all()
+        }
+
+        /// Raw transmutation to unsigned integer vector.
+        ///
+        /// Note that this function is distinct from [`as`] conversions, which
+        /// attempt to preserve the *numeric* value, and not the bitwise value.
+        ///
+        /// [`as`]: https://rust-for-c-programmers.com/ch16/16_2_primitive_casting_with_as.html
+        #[inline]
+        #[must_use]
+        pub const fn to_bits(self) -> Vector<N, $UnsignedWide, A> {
+            // SAFETY: Both types accept all bit-patterns.
+            unsafe { transmute_generic::<Vector<N, $Wide, A>, Vector<N, $UnsignedWide, A>>(self) }
+        }
+
+        /// Raw transmutation from unsigned integer vector.
+        ///
+        /// Note that this function is distinct from [`as`] conversions, which
+        /// attempt to preserve the *numeric* value, and not the bitwise value.
+        ///
+        /// [`as`]: https://rust-for-c-programmers.com/ch16/16_2_primitive_casting_with_as.html
+        #[inline]
+        #[must_use]
+        pub const fn from_bits(value: Vector<N, $UnsignedWide, A>) -> Self {
+            // SAFETY: Both types accept all bit-patterns.
+            unsafe { transmute_generic::<Vector<N, $UnsignedWide, A>, Vector<N, $Wide, A>>(value) }
+        }
+    };
+}
+
+macro_rules! items_2 {
+    ($Wide:ident, $UnsignedWide:ty, $powf:ident) => {
+        /// For each lane, creates a 2D vector from homogeneous coordinates by
+        /// performing perspective divide.
+        ///
+        /// Equivalent to `homogeneous.xy / homogeneous.z`.
+        #[inline]
+        #[must_use]
+        pub fn from_homogeneous(homogeneous: Vector<3, $Wide, A>) -> Self {
+            homogeneous.xy() / homogeneous.z
+        }
+
+        /// For each lane, returns the angle (in radians) that rotates `self` to
+        /// `other` in the range `-π..=+π`.
+        ///
+        /// The vectors do not need to be unit vectors but they do need to be
+        /// non-zero.
+        ///
+        /// Equivalent to `other.angle_from(self)`.
+        ///
+        /// # Unspecified precision
+        ///
+        /// The precision of this function is non-deterministic. This means it
+        /// varies by platform, version, and can even differ within the same
+        /// execution from one invocation to the next.
+        #[inline]
+        #[must_use]
+        pub fn angle_to(self, other: Self) -> $Wide {
+            let outer_product = (self.x * other.y) - (self.y * other.x);
+            self.angle_between(other) * outer_product.signum()
+        }
+
+        /// For each lane, returns the angle (in radians) that rotates `other`
+        /// to `self` in the range `-π..=+π`.
+        ///
+        /// The vectors do not need to be unit vectors but they do need to be
+        /// non-zero.
+        ///
+        /// Equivalent to `other.angle_to(self)`.
+        ///
+        /// # Unspecified precision
+        ///
+        /// The precision of this function is non-deterministic. This means it
+        /// varies by platform, version, and can even differ within the same
+        /// execution from one invocation to the next.
+        #[inline]
+        #[must_use]
+        pub fn angle_from(self, other: Self) -> $Wide {
+            let outer_product = (other.x * self.y) - (other.y * self.x);
+            self.angle_between(other) * outer_product.signum()
+        }
+
+        /// For each lane, rotates `self` by `angle` (in radians).
+        ///
+        /// This rotates `+X` to `+Y`.
+        ///
+        /// # Unspecified precision
+        ///
+        /// The precision of this function is non-deterministic. This means it
+        /// varies by platform, version, and can even differ within the same
+        /// execution from one invocation to the next.
+        #[inline]
+        #[must_use]
+        pub fn rotate(self, angle: $Wide) -> Self {
+            let (angle_sin, angle_cos) = angle.sin_cos();
+            Self::new(
+                self.x * angle_cos - self.y * angle_sin,
+                self.x * angle_sin + self.y * angle_cos,
+            )
+        }
+    };
+}
+
+macro_rules! items_3 {
+    ($Wide:ident, $UnsignedWide:ty, $powf:ident) => {
+        /// For each lane, creates a 3D vector from homogeneous coordinates by
+        /// performing perspective divide.
+        ///
+        /// Equivalent to `homogeneous.xyz / homogeneous.w`.
+        #[inline]
+        #[must_use]
+        pub fn from_homogeneous(homogeneous: Vector<4, $Wide, A>) -> Self {
+            homogeneous.xyz() / homogeneous.w
+        }
+
+        /// For each lane, rotates `self` around the x axis by `angle` (in
+        /// radians).
+        ///
+        /// This rotates `+Y` to `+Z`.
+        ///
+        /// # Unspecified precision
+        ///
+        /// The precision of this function is non-deterministic. This means it
+        /// varies by platform, version, and can even differ within the same
+        /// execution from one invocation to the next.
+        #[inline]
+        #[must_use]
+        pub fn rotate_x(self, angle: $Wide) -> Self {
+            let (angle_sin, angle_cos) = angle.sin_cos();
+            Self::new(
+                self.x,
+                self.y * angle_cos - self.z * angle_sin,
+                self.y * angle_sin + self.z * angle_cos,
+            )
+        }
+
+        /// For each lane, rotates `self` around the y axis by `angle` (in
+        /// radians).
+        ///
+        /// This rotates `+Z` to `+X`.
+        ///
+        /// # Unspecified precision
+        ///
+        /// The precision of this function is non-deterministic. This means it
+        /// varies by platform, version, and can even differ within the same
+        /// execution from one invocation to the next.
+        #[inline]
+        #[must_use]
+        pub fn rotate_y(self, angle: $Wide) -> Self {
+            let (angle_sin, angle_cos) = angle.sin_cos();
+            Self::new(
+                self.x * angle_cos + self.z * angle_sin,
+                self.y,
+                self.x * -angle_sin + self.z * angle_cos,
+            )
+        }
+
+        /// For each lane, rotates `self` around the z axis by `angle` (in
+        /// radians).
+        ///
+        /// This rotates `+X` to `+Y`.
+        ///
+        /// # Unspecified precision
+        ///
+        /// The precision of this function is non-deterministic. This means it
+        /// varies by platform, version, and can even differ within the same
+        /// execution from one invocation to the next.
+        #[inline]
+        #[must_use]
+        pub fn rotate_z(self, angle: $Wide) -> Self {
+            let (angle_sin, angle_cos) = angle.sin_cos();
+            Self::new(
+                self.x * angle_cos - self.y * angle_sin,
+                self.x * angle_sin + self.y * angle_cos,
+                self.z,
+            )
+        }
+
+        /// For each lane, returns two unit vectors that are orthogonal to
+        /// `self` and to each other.
+        ///
+        /// Together with `self`, they form an orthonormal basis where the three
+        /// vectors are all orthogonal to each other and are normalized.
+        #[inline]
+        #[must_use]
+        pub fn any_orthonormal_pair(self) -> (Self, Self) {
+            // From https://graphics.pixar.com/library/OrthonormalB/paper.pdf
+            let sign = self.z.signum();
+            let a = -$Wide::ONE / (sign + self.z);
+            let b = self.x * self.y * a;
+            (
+                Self::new(
+                    $Wide::ONE + sign * self.x * self.x * a,
+                    sign * b,
+                    -sign * self.x,
+                ),
+                Self::new(b, sign + self.y * self.y * a, -self.y),
+            )
+        }
+    };
+}
+
+// Since all wide-float functions have names that conflict with normal float
+// functions, We cannot implement this API using generics. Duplicating the API
+// for each supported wide-float type works, but then documentation shows the
+// duplicated API, making it hard to read.
+//
+// When generating documentation, Rust does not care that these items are
+// conflicting. This allows us to cheat by showing these items in a generic
+// context in documentation, but making them separate in all other cases.
+
+#[cfg(doc)]
+#[doc(hidden)]
+pub trait WideFloat: crate::Scalar {
+    type Bits: crate::Scalar;
+}
+
+/// Functionality for [SoA] (Structure of Arrays) float vectors.
+///
+/// This is gated behind the `wide` feature flag.
+///
+/// This functionality is shown with generics to make it easier to read. This
+/// works with all float types from the [`wide`] crate.
+///
+/// [SoA]: crate#soa
+/// [`wide`]: https://crates.io/crates/wide
+#[cfg(doc)]
+impl<const N: usize, Wide, A: Alignment> Vector<N, Wide, A>
+where
+    Length<N>: SupportedLength,
+    Wide: WideFloat,
+{
+    items!(Wide, <Wide as WideFloat>::Bits, powf);
+}
+
+/// Functionality for [SoA] (Structure of Arrays) float vector2s.
+///
+/// This is gated behind the `wide` feature flag.
+///
+/// This functionality is shown with generics to make it easier to read. This
+/// works with all float types from the [`wide`] crate.
+///
+/// [SoA]: crate#soa
+/// [`wide`]: https://crates.io/crates/wide
+#[cfg(doc)]
+impl<Wide, A: Alignment> Vector<2, Wide, A>
+where
+    Wide: WideFloat,
+{
+    items_2!(Wide, <Wide as WideFloat>::Bits, powf);
+}
+
+/// Functionality for [SoA] (Structure of Arrays) float vector3s.
+///
+/// This is gated behind the `wide` feature flag.
+///
+/// This functionality is shown with generics to make it easier to read. This
+/// works with all float types from the [`wide`] crate.
+///
+/// [SoA]: crate#soa
+/// [`wide`]: https://crates.io/crates/wide
+#[cfg(doc)]
+impl<Wide, A: Alignment> Vector<3, Wide, A>
+where
+    Wide: WideFloat,
+{
+    items_3!(Wide, <Wide as WideFloat>::Bits, powf);
+}
+
+macro_rules! impl_items {
+    ($Wide:ident, $UnsignedWide:ty, $powf:ident) => {
+        #[cfg(not(doc))]
         impl<const N: usize, A: Alignment> Vector<N, $Wide, A>
         where
             Length<N>: SupportedLength,
         {
-            /// A vector with all elements set to [`MIN`].
-            ///
-            /// [`MIN`]: f32::MIN
-            pub const MIN: Self = Self::splat($Wide::MIN);
-
-            /// A vector with all elements set to [`MAX`].
-            ///
-            /// [`MAX`]: f32::MAX
-            pub const MAX: Self = Self::splat($Wide::MAX);
-
-            /// A vector with all elements set to NaN (Not a Number).
-            pub const NAN: Self = Self::splat($Wide::NAN);
-
-            /// A vector with all elements set to [`INFINITY`].
-            ///
-            /// [`INFINITY`]: f32::INFINITY
-            pub const INFINITY: Self = Self::splat($Wide::INFINITY);
-
-            /// A vector with all elements set to [`NEG_INFINITY`].
-            ///
-            /// [`NEG_INFINITY`]: f32::NEG_INFINITY
-            pub const NEG_INFINITY: Self = Self::splat($Wide::NEG_INFINITY);
-
-            /// For each lane, returns `true` if any element is NaN.
-            #[inline]
-            #[must_use]
-            pub fn is_nan(self) -> $Wide {
-                self.nan_mask().any()
-            }
-
-            /// For each lane, returns a vector mask where each element is
-            /// `true` if the corresponding element of `self` is NaN.
-            ///
-            /// Equivalent to `(self.x.is_nan(), self.y.is_nan(), ...)` for each
-            /// lane.
-            #[inline]
-            #[must_use]
-            pub fn nan_mask(self) -> Self {
-                specialize!(Vector::<N, $Wide, A>::nan_mask_backend(self))
-            }
-
-            /// For each lane, returns `true` if all elements are neither
-            /// infinite nor NaN.
-            #[inline]
-            #[must_use]
-            pub fn is_finite(self) -> $Wide {
-                self.finite_mask().all()
-            }
-
-            /// For each lane, returns a vector mask where each element is
-            /// `true` if the corresponding element of `self` is neither
-            /// infinite nor NaN.
-            ///
-            /// Equivalent to `(self.x.is_finite(), self.y.is_finite(), ...)`
-            /// for each lane.
-            #[inline]
-            #[must_use]
-            pub fn finite_mask(self) -> Self {
-                specialize!(Vector::<N, $Wide, A>::finite_mask_backend(self))
-            }
-
-            /// For each lane, returns a vector mask where each element is
-            /// `true` if the corresponding element of `self` has a positive
-            /// sign, including `+0.0`, NaNs with positive sign bit and positive
-            /// infinity.
-            ///
-            /// Equivalent to
-            /// `(self.x.is_sign_positive(), self.y.is_sign_positive(), ...)`
-            /// for each lane.
-            #[inline]
-            #[must_use]
-            pub fn sign_positive_mask(self) -> Self {
-                specialize!(Vector::<N, $Wide, A>::sign_positive_mask_backend(self))
-            }
-
-            /// For each lane, returns a vector mask where each element is
-            /// `true` if the corresponding element of `self` has a negative
-            /// sign, including `-0.0`, NaNs with negative sign bit and negative
-            /// infinity.
-            ///
-            /// Equivalent to
-            /// `(self.x.is_sign_negative(), self.y.is_sign_negative(), ...)`
-            /// for each lane.
-            #[inline]
-            #[must_use]
-            pub fn sign_negative_mask(self) -> Self {
-                specialize!(Vector::<N, $Wide, A>::sign_negative_mask_backend(self))
-            }
-
-            /// Returns the element-wise reciprocal (inverse) of a vector,
-            /// `1 / self`.
-            #[inline]
-            #[must_use]
-            pub fn recip(self) -> Self {
-                Self::ONE / self
-            }
-
-            /// Returns the maximum elements between `self` and `other`.
-            ///
-            /// Equivalent to `(self.x.max(other.x), self.y.max(other.y), ...)`.
-            ///
-            /// This is not consistent with IEEE semantics in regards to NaN
-            /// propagation and handling of `-0.0`.
-            #[inline]
-            #[must_use]
-            pub fn max(self, other: Self) -> Self {
-                specialize!(Vector::<N, $Wide, A>::max_backend(self, other))
-            }
-
-            /// Returns the minimum elements between `self` and `other`.
-            ///
-            /// Equivalent to `(self.x.min(other.x), self.y.min(other.y), ...)`.
-            ///
-            /// This is not consistent with IEEE semantics in regards to NaN
-            /// propagation and handling of `-0.0`.
-            #[inline]
-            #[must_use]
-            pub fn min(self, other: Self) -> Self {
-                specialize!(Vector::<N, $Wide, A>::min_backend(self, other))
-            }
-
-            /// For each lane, clamps the elements of `self` between the
-            /// elements of `min` and `max`.
-            ///
-            /// Equivalent to
-            /// `(self.x.clamp(min.x, max.x), self.y.clamp(min.y, max.y), ...)`.
-            ///
-            /// This is not consistent with IEEE semantics in regards to NaN
-            /// propagation and handling of `-0.0`.
-            #[inline]
-            #[must_use]
-            pub fn clamp(self, min: Self, max: Self) -> Self {
-                self.max(min).min(max)
-            }
-
-            /// For each lane, returns the maximum between the elements of
-            /// `self`.
-            ///
-            /// Equivalent to `self.x.max(self.y).max(self.z)...` for each lane.
-            ///
-            /// This is not consistent with IEEE semantics in regards to NaN
-            /// propagation and handling of `-0.0`.
-            #[inline]
-            #[must_use]
-            pub fn max_element(self) -> $Wide {
-                specialize!(Vector::<N, $Wide, A>::max_element_backend(self))
-            }
-
-            /// For each lane, returns the minimum between the elements of
-            /// `self`.
-            ///
-            /// Equivalent to `self.x.min(self.y).min(self.z)...` for each lane.
-            ///
-            /// This is not consistent with IEEE semantics in regards to NaN
-            /// propagation and handling of `-0.0`.
-            #[inline]
-            #[must_use]
-            pub fn min_element(self) -> $Wide {
-                specialize!(Vector::<N, $Wide, A>::min_element_backend(self))
-            }
-
-            /// Returns the absolute values of elements of `self`.
-            ///
-            /// Equivalent to `(self.x.abs(), self.y.abs(), ...)`.
-            #[inline]
-            #[must_use]
-            pub fn abs(self) -> Self {
-                specialize!(Vector::<N, $Wide, A>::abs_backend(self))
-            }
-
-            /// Returns the signum of the elements of `self`.
-            ///
-            /// Equivalent to `(self.x.signum(), self.y.signum(), ...)`.
-            #[inline]
-            #[must_use]
-            pub fn signum(self) -> Self {
-                specialize!(Vector::<N, $Wide, A>::signum_backend(self))
-            }
-
-            /// Returns a vector with the element magnitudes of `self` and the
-            /// element signs of `sign`.
-            ///
-            /// Equivalent to
-            /// `(self.x.copysign(sign.x), self.y.copysign(sign.y), ...)`.
-            #[inline]
-            #[must_use]
-            pub fn copysign(self, sign: Self) -> Self {
-                specialize!(Vector::<N, $Wide, A>::copysign_backend(self, sign))
-            }
-
-            /// Returns the largest integers less than or equal to the elements
-            /// of `self`.
-            ///
-            /// This always returns the precise result.
-            #[inline]
-            #[must_use]
-            pub fn floor(self) -> Self {
-                specialize!(Vector::<N, $Wide, A>::floor_backend(self))
-            }
-
-            /// Returns the smallest integers greater than or equal to the
-            /// elements of `self`.
-            ///
-            /// This always returns the precise result.
-            #[inline]
-            #[must_use]
-            pub fn ceil(self) -> Self {
-                specialize!(Vector::<N, $Wide, A>::ceil_backend(self))
-            }
-
-            /// Returns the nearest integers to the elements of `self`.
-            ///
-            /// This always returns the precise result.
-            #[inline]
-            #[must_use]
-            pub fn round(self) -> Self {
-                specialize!(Vector::<N, $Wide, A>::round_backend(self))
-            }
-
-            /// Returns the integer part of the elements of `self`. This means
-            /// that non-integer numbers are always truncated towards zero.
-            ///
-            /// This always returns the precise result.
-            #[inline]
-            #[must_use]
-            pub fn trunc(self) -> Self {
-                specialize!(Vector::<N, $Wide, A>::trunc_backend(self))
-            }
-
-            /// Returns the fractional part of `self`. Equivalent to
-            /// `self - self.trunc()`.
-            ///
-            /// This always returns the precise result.
-            #[inline]
-            #[must_use]
-            pub fn fract(self) -> Self {
-                self - self.trunc()
-            }
-
-            /// Fused multiply-add. Computes `(self * a) + b`.
-            ///
-            /// When hardware FMA support is available, this computes the result
-            /// with only one rounding error. Without FMA support, this falls
-            /// back to separate multiply and add operations with two rounding
-            /// errors.
-            ///
-            /// This is inconsistent with the scalar definition of `mul_add` that
-            /// always computes the result with only one rounding error.
-            #[inline]
-            #[must_use]
-            pub fn mul_add(self, a: Self, b: Self) -> Self {
-                specialize!(Vector::<N, $Wide, A>::mul_add_backend(self, a, b))
-            }
-
-            /// Calculates Euclidean division for the elements of `self`.
-            ///
-            /// Equivalent to
-            /// `(self.x.div_euclid(rhs.x), self.y.div_euclid(rhs.y), ...)`.
-            ///
-            /// See [`f32::div_euclid`].
-            ///
-            /// # Precision
-            ///
-            /// The result of this operation is guaranteed to be the rounded
-            /// infinite-precision result.
-            ///
-            /// [`f32::div_euclid`]: https://doc.rust-lang.org/std/primitive.f32.html#method.div_euclid
-            #[inline]
-            #[must_use]
-            pub fn div_euclid(self, rhs: Self) -> Self {
-                specialize!(Vector::<N, $Wide, A>::div_euclid_backend(self, rhs))
-            }
-
-            /// Calculates Euclidean remainder for the elements of `self`.
-            ///
-            /// Equivalent to
-            /// `(self.x.rem_euclid(rhs.x), self.y.rem_euclid(rhs.y), ...)`.
-            ///
-            /// See [`f32::rem_euclid`].
-            ///
-            /// # Precision
-            ///
-            /// The result of this operation is guaranteed to be the rounded
-            /// infinite-precision result.
-            ///
-            /// [`f32::rem_euclid`]: https://doc.rust-lang.org/std/primitive.f32.html#method.rem_euclid
-            #[inline]
-            #[must_use]
-            pub fn rem_euclid(self, rhs: Self) -> Self {
-                specialize!(Vector::<N, $Wide, A>::rem_euclid_backend(self, rhs))
-            }
-
-            /// Computes `x^n` for the elements of `self`.
-            ///
-            /// # Unspecified precision
-            ///
-            /// The precision of this function is non-deterministic. This means
-            /// it varies by platform, version, and can even differ within the
-            /// same execution from one invocation to the next.
-            #[inline]
-            #[must_use]
-            pub fn powf(self, n: $Wide) -> Self {
-                specialize!(Vector::<N, $Wide, A>::powf_backend(self, n))
-            }
-
-            /// Returns the square root of the elements of `self`.
-            ///
-            /// Equivalent to `(self.x.sqrt(), self.y.sqrt(), ...)`.
-            ///
-            /// # Precision
-            ///
-            /// The result of this operation is guaranteed to be the rounded
-            /// infinite-precision result. It is specified by IEEE 754 as
-            /// `squareRoot` and guaranteed not to change.
-            #[inline]
-            #[must_use]
-            pub fn sqrt(self) -> Self {
-                specialize!(Vector::<N, $Wide, A>::sqrt_backend(self))
-            }
-
-            /// Computes the exponential function `e^x` for the elements of
-            /// `self`.
-            ///
-            /// # Unspecified precision
-            ///
-            /// The precision of this function is non-deterministic. This means
-            /// it varies by platform, version, and can even differ within the
-            /// same execution from one invocation to the next.
-            #[inline]
-            #[must_use]
-            pub fn exp(self) -> Self {
-                specialize!(Vector::<N, $Wide, A>::exp_backend(self))
-            }
-
-            /// Computes `2^x` for the elements of `self`.
-            ///
-            /// # Unspecified precision
-            ///
-            /// The precision of this function is non-deterministic. This means
-            /// it varies by platform, version, and can even differ within the
-            /// same execution from one invocation to the next.
-            #[inline]
-            #[must_use]
-            pub fn exp2(self) -> Self {
-                specialize!(Vector::<N, $Wide, A>::exp2_backend(self))
-            }
-
-            /// Computes the natural logarithm for the elements of `self`.
-            ///
-            /// # Unspecified precision
-            ///
-            /// The precision of this function is non-deterministic. This means
-            /// it varies by platform, version, and can even differ within the
-            /// same execution from one invocation to the next.
-            #[inline]
-            #[must_use]
-            pub fn ln(self) -> Self {
-                specialize!(Vector::<N, $Wide, A>::ln_backend(self))
-            }
-
-            /// Computes the base 2 logarithm for the elements of `self`.
-            ///
-            /// # Unspecified precision
-            ///
-            /// The precision of this function is non-deterministic. This means
-            /// it varies by platform, version, and can even differ within the
-            /// same execution from one invocation to the next.
-            #[inline]
-            #[must_use]
-            pub fn log2(self) -> Self {
-                specialize!(Vector::<N, $Wide, A>::log2_backend(self))
-            }
-
-            /// Computes the sine of the elements of `self`.
-            ///
-            /// # Unspecified precision
-            ///
-            /// The precision of this function is non-deterministic. This means
-            /// it varies by platform, version, and can even differ within the
-            /// same execution from one invocation to the next.
-            #[inline]
-            #[must_use]
-            pub fn sin(self) -> Self {
-                specialize!(Vector::<N, $Wide, A>::sin_backend(self))
-            }
-
-            /// Computes the cosine of the elements of `self`.
-            ///
-            /// # Unspecified precision
-            ///
-            /// The precision of this function is non-deterministic. This means
-            /// it varies by platform, version, and can even differ within the
-            /// same execution from one invocation to the next.
-            #[inline]
-            #[must_use]
-            pub fn cos(self) -> Self {
-                specialize!(Vector::<N, $Wide, A>::cos_backend(self))
-            }
-
-            /// Computes the tangent of the elements of `self`.
-            ///
-            /// # Unspecified precision
-            ///
-            /// The precision of this function is non-deterministic. This means
-            /// it varies by platform, version, and can even differ within the
-            /// same execution from one invocation to the next.
-            #[inline]
-            #[must_use]
-            pub fn tan(self) -> Self {
-                specialize!(Vector::<N, $Wide, A>::tan_backend(self))
-            }
-
-            /// Computes the arcsine of the elements of `self`.
-            ///
-            /// # Unspecified precision
-            ///
-            /// The precision of this function is non-deterministic. This means
-            /// it varies by platform, version, and can even differ within the
-            /// same execution from one invocation to the next.
-            #[inline]
-            #[must_use]
-            pub fn asin(self) -> Self {
-                specialize!(Vector::<N, $Wide, A>::asin_backend(self))
-            }
-
-            /// Computes the arccosine of the elements of `self`.
-            ///
-            /// # Unspecified precision
-            ///
-            /// The precision of this function is non-deterministic. This means
-            /// it varies by platform, version, and can even differ within the
-            /// same execution from one invocation to the next.
-            #[inline]
-            #[must_use]
-            pub fn acos(self) -> Self {
-                specialize!(Vector::<N, $Wide, A>::acos_backend(self))
-            }
-
-            /// Computes the arctangent of the elements of `self`.
-            ///
-            /// # Unspecified precision
-            ///
-            /// The precision of this function is non-deterministic. This means
-            /// it varies by platform, version, and can even differ within the
-            /// same execution from one invocation to the next.
-            #[inline]
-            #[must_use]
-            pub fn atan(self) -> Self {
-                specialize!(Vector::<N, $Wide, A>::atan_backend(self))
-            }
-
-            /// Simultaneously computes the sine and cosine of the elements of
-            /// `self`.
-            ///
-            /// Equivalent to `(self.sin(), self.cos())`, but may be more
-            /// performant. This might return a slightly different value.
-            ///
-            /// # Unspecified precision
-            ///
-            /// The precision of this function is non-deterministic. This means
-            /// it varies by platform, version, and can even differ within the
-            /// same execution from one invocation to the next.
-            #[inline]
-            #[must_use]
-            pub fn sin_cos(self) -> (Self, Self) {
-                specialize!(Vector::<N, $Wide, A>::sin_cos_backend(self))
-            }
-
-            /// Computes the linear interpolation between `self` and `other`
-            /// based on the value `t`.
-            ///
-            /// When `t` is `0`, the result is `self`. When `t` is `1`, the
-            /// result is `rhs`. When `t` is outside of the range `0..=1`, the
-            /// result is linearly extrapolated.
-            #[inline]
-            #[must_use]
-            pub fn lerp(self, other: Self, t: $Wide) -> Self {
-                self * ($Wide::ONE - t) + other * t
-            }
-
-            /// Computes the middle point between `self` and `other`.
-            ///
-            /// Equivalent to `self.lerp(other, 0.5)`, but is cheaper to
-            /// compute. This may return a slightly different value.
-            #[inline]
-            #[must_use]
-            pub fn midpoint(self, other: Self) -> Self {
-                (self + other) * $Wide::HALF
-            }
-
-            /// Moves `self` towards `other` by at most `max_delta`.
-            ///
-            /// When `max_delta` is `0`, the result is `self`. When `max_delta`
-            /// is equal to or greater than `self.distance(other)`, the result
-            /// is `other`.
-            #[inline]
-            #[must_use]
-            pub fn move_towards(self, target: Self, max_delta: $Wide) -> Self {
-                let delta = target - self;
-                let delta_length = delta.length();
-
-                Self::splat(
-                    delta_length.simd_le(max_delta) | delta_length.simd_le($Wide::splat(1e-4)),
-                )
-                .blend(target, self + delta / delta_length * max_delta)
-            }
-
-            /// For each lane, computes the spherical linear interpolation
-            /// between `self` and `other` based on the value `t`.
-            ///
-            /// When `t` is `0`, the result is `self`.  When `t` is `1`, the
-            /// result is `other`. When `t` is outside of the range `0..=1`, the
-            /// result is spherically linearly extrapolated.
-            ///
-            /// The vectors do not need to be unit vectors but they do need to
-            /// be non-zero.
-            #[inline]
-            #[must_use]
-            pub fn slerp(self, other: Self, t: $Wide) -> Self {
-                specialize!(Vector::<N, $Wide, A>::slerp_backend(self, other, t))
-            }
-
-            /// For each lane, rotates `self` towards `target` by at most
-            /// `max_angle` (in radians).
-            ///
-            /// When `max_angle` is `0`, the result is `self`. When `max_angle`
-            /// is equal to or greater than `self.angle_between(target)`, the
-            /// result is `target`. When `max_angle` is negative, this rotates
-            /// towards `-target`.
-            ///
-            /// The vectors do not need to be unit vectors but `target` does
-            /// need to be non-zero.
-            #[inline]
-            #[must_use]
-            pub fn rotate_towards(self, target: Self, max_angle: $Wide) -> Self {
-                specialize!(Vector::<N, $Wide, A>::rotate_towards_backend(
-                    self, target, max_angle
-                ))
-            }
-
-            /// Returns the length/magnitude of `self`.
-            #[inline]
-            #[must_use]
-            pub fn length(self) -> $Wide {
-                self.dot(self).sqrt()
-            }
-
-            /// Computes the Euclidean distance between `self` and `other`.
-            #[inline]
-            #[must_use]
-            pub fn distance(self, other: Self) -> $Wide {
-                (self - other).length()
-            }
-
-            /// For each lane, returns a vector with the direction of `self` and
-            /// length `1`.
-            #[inline]
-            #[must_use]
-            pub fn normalize(self) -> Self {
-                self / self.length()
-            }
-
-            // `try_normalize` is exluded on purpose. It would not be useful
-            // because it would only return `Some` if all lanes succeed.
-
-            /// Returns [`normalize`] for each lane, or `fallback` if `self` is
-            /// zero or if the result is non finite or zero.
-            ///
-            /// The fallback is only applied for invalid lanes. Other lanes are
-            /// not affected.
-            ///
-            /// [`normalize`]: Self::normalize
-            #[inline]
-            #[must_use]
-            pub fn normalize_or(self, fallback: Self) -> Self {
-                let length_recip = $Wide::ONE / self.length();
-
-                Self::splat(length_recip.is_finite() & length_recip.simd_gt($Wide::ZERO))
-                    .blend(self * length_recip, fallback)
-            }
-
-            /// Returns [`normalize`] for each lane, or a zero vector if `self`
-            /// is zero or if the result is non finite.
-            ///
-            /// The fallback is only applied for invalid lanes. Other lanes are
-            /// not affected.
-            ///
-            /// [`normalize`]: Self::normalize
-            #[inline]
-            #[must_use]
-            pub fn normalize_or_zero(self) -> Self {
-                let length_recip = $Wide::ONE / self.length();
-
-                Self::splat(length_recip.is_finite() & length_recip.simd_gt($Wide::ZERO))
-                    .blend(self * length_recip, Self::ZERO)
-            }
-
-            /// Simultaneously computes [`normalize`] and [`length`].
-            ///
-            /// If `self` is a zero vector, the result for that lane is length
-            /// `0` and an unspecified vector. Consider manually checking for
-            /// `length == 0.0`.
-            ///
-            /// [`normalize`]: Self::normalize
-            /// [`length`]: Self::length
-            #[inline]
-            #[must_use]
-            pub fn normalize_and_length(self) -> (Self, $Wide) {
-                let length = self.length();
-                (self / length, length)
-            }
-
-            /// For each lane, returns whether the vector has the length `1` or
-            /// not.
-            ///
-            /// This uses a precision threshold of approximately `1e-4`.
-            #[inline]
-            #[must_use]
-            pub fn is_normalized(self) -> $Wide {
-                (self.length_squared() - $Wide::ONE)
-                    .abs()
-                    .simd_le($Wide::splat(2e-4))
-            }
-
-            /// For each lane, returns `self` with a length of no more than
-            /// `max`.
-            #[inline]
-            #[must_use]
-            pub fn with_max_length(self, max: $Wide) -> Self {
-                let length_squared = self.length_squared();
-                Self::splat(length_squared.simd_gt(max * max))
-                    .blend(self / length_squared.sqrt() * max, self)
-            }
-
-            /// For any lane, returns `self` with a length of no less than
-            /// `min`.
-            ///
-            /// If `min` is negative, this returns `self` for that lane.
-            #[inline]
-            #[must_use]
-            pub fn with_min_length(self, min: $Wide) -> Self {
-                let length_squared = self.length_squared();
-                Self::splat(length_squared.simd_lt(min * min.abs()))
-                    .blend(self / length_squared.sqrt() * min, self)
-            }
-
-            /// For each lane, returns `self` with a length of no less than
-            /// `min` and no more than `max`.
-            ///
-            /// If `min` is negative it is ignored.
-            #[inline]
-            #[must_use]
-            pub fn clamp_length(self, min: $Wide, max: $Wide) -> Self {
-                let length_squared = self.length_squared();
-                Self::splat(length_squared.simd_lt(min * min.abs())).blend(
-                    self / length_squared.sqrt() * min,
-                    Self::splat(length_squared.simd_gt(max * max))
-                        .blend(self / length_squared.sqrt() * max, self),
-                )
-            }
-
-            /// For each lane, returns the angle (in radians) between `self` and
-            /// `other` in the range `0..=+π`.
-            ///
-            /// The vectors do not need to be unit vectors but they do need to
-            /// be non-zero.
-            ///
-            /// # Unspecified precision
-            ///
-            /// The precision of this function is non-deterministic. This means
-            /// it varies by platform, version, and can even differ within the
-            /// same execution from one invocation to the next.
-            #[inline]
-            #[must_use]
-            pub fn angle_between(self, other: Self) -> $Wide {
-                (self.dot(other) / (self.length_squared() * other.length_squared()).sqrt())
-                    .acos_approx()
-            }
-
-            /// Returns the vector projection of `self` onto `other`.
-            ///
-            /// `other` must not be a zero vector.
-            #[inline]
-            #[must_use]
-            pub fn project_onto(self, other: Self) -> Self {
-                let other_length_squared_recip = $Wide::ONE / other.length_squared();
-
-                other * self.dot(other) * other_length_squared_recip
-            }
-
-            /// Returns the vector projection of `self` onto `other`.
-            ///
-            /// `other` must be normalized.
-            #[inline]
-            #[must_use]
-            pub fn project_onto_normalized(self, other: Self) -> Self {
-                other * self.dot(other)
-            }
-
-            /// Returns the vector rejection of `self` from `other`.
-            ///
-            /// Equivalent to `self - self.project_onto(other)`.
-            ///
-            /// `other` must not be a zero vector.
-            #[inline]
-            #[must_use]
-            pub fn reject_from(self, other: Self) -> Self {
-                self - self.project_onto(other)
-            }
-
-            /// Returns the vector rejection of `self` from `other`.
-            ///
-            /// Equivalent to `self - self.project_onto(other)`.
-            ///
-            /// `other` must be normalized.
-            #[inline]
-            #[must_use]
-            pub fn reject_from_normalized(self, other: Self) -> Self {
-                self - self.project_onto_normalized(other)
-            }
-
-            /// Returns the reflection of `self` through `normal`.
-            ///
-            /// `normal` must be normalized.
-            #[inline]
-            #[must_use]
-            pub fn reflect(self, normal: Self) -> Self {
-                self - normal * ($Wide::splat(2.0) * self.dot(normal))
-            }
-
-            /// Returns the vector refraction of `self` through `normal` and
-            /// `eta`.
-            ///
-            /// `eta` is the incident refraction-index divided by the
-            /// transmitted refraction-index.
-            ///
-            /// When total internal reflection occurs, the result is a zero
-            /// vector.
-            ///
-            /// `self` and `normal` must be normalized.
-            #[inline]
-            #[must_use]
-            pub fn refract(self, normal: Self, eta: $Wide) -> Self {
-                let self_dot_normal = self.dot(normal);
-                let k = $Wide::ONE - eta * eta * ($Wide::ONE - self_dot_normal * self_dot_normal);
-
-                Self::splat(k.simd_ge($Wide::ZERO)).blend(
-                    self * eta - normal * (eta * self_dot_normal + k.sqrt()),
-                    Self::ZERO,
-                )
-            }
-
-            /// For each lane, returns some vector that is orthogonal to `self`.
-            ///
-            /// The result is not necessarily normalized.
-            ///
-            /// For 2D vectors this is equivalent to [`perp`].
-            ///
-            /// [`perp`]: Vector::perp
-            #[inline]
-            #[must_use]
-            pub fn any_orthogonal_vector(self) -> Self {
-                specialize!(Vector::<N, $Wide, A>::any_orthogonal_vector_backend(self))
-            }
-
-            /// For each lane, returns some unit vector that is orthogonal to
-            /// `self`.
-            ///
-            /// `self` must normalized.
-            ///
-            /// For 2D vectors this is equivalent to [`perp`].
-            ///
-            /// [`perp`]: Self::perp
-            #[inline]
-            #[must_use]
-            pub fn any_orthonormal_vector(self) -> Self {
-                specialize!(Vector::<N, $Wide, A>::any_orthonormal_vector_backend(self))
-            }
-
-            /// Returns `true` if the absolute difference of all elements
-            /// between `self` and `other` is less than or equal to
-            /// `max_abs_diff` for all lanes.
-            ///
-            /// This can be used to compare two vectors that should be equal,
-            /// but may have a slight difference due to operations having
-            /// rounding errors.
-            #[inline]
-            #[must_use]
-            pub fn abs_diff_eq(self, other: Self, max_abs_diff: $Wide) -> bool {
-                (self - other)
-                    .abs()
-                    .simd_le_mask(Self::splat(max_abs_diff))
-                    .all()
-                    .all()
-            }
-
-            /// Raw transmutation to unsigned integer vector.
-            ///
-            /// Note that this function is distinct from [`as`] conversions,
-            /// which attempt to preserve the *numeric* value, and not the
-            /// bitwise value.
-            ///
-            /// [`as`]: https://rust-for-c-programmers.com/ch16/16_2_primitive_casting_with_as.html
-            #[inline]
-            #[must_use]
-            pub const fn to_bits(self) -> Vector<N, $UnsignedWide, A> {
-                // SAFETY: Both types accept all bit-patterns.
-                unsafe {
-                    transmute_generic::<Vector<N, $Wide, A>, Vector<N, $UnsignedWide, A>>(self)
-                }
-            }
-
-            /// Raw transmutation from unsigned integer vector.
-            ///
-            /// Note that this function is distinct from [`as`] conversions,
-            /// which attempt to preserve the *numeric* value, and not the
-            /// bitwise value.
-            ///
-            /// [`as`]: https://rust-for-c-programmers.com/ch16/16_2_primitive_casting_with_as.html
-            #[inline]
-            #[must_use]
-            pub const fn from_bits(value: Vector<N, $UnsignedWide, A>) -> Self {
-                // SAFETY: Both types accept all bit-patterns.
-                unsafe {
-                    transmute_generic::<Vector<N, $UnsignedWide, A>, Vector<N, $Wide, A>>(value)
-                }
-            }
+            items!($Wide, $UnsignedWide, $powf);
         }
 
+        #[cfg(not(doc))]
         impl<A: Alignment> Vector<2, $Wide, A> {
-            /// For each lane, creates a 2D vector from homogeneous coordinates
-            /// by performing perspective divide.
-            ///
-            /// Equivalent to `homogeneous.xy / homogeneous.z`.
-            #[inline]
-            #[must_use]
-            pub fn from_homogeneous(homogeneous: Vector<3, $Wide, A>) -> Self {
-                homogeneous.xy() / homogeneous.z
-            }
-
-            /// For each lane, returns the angle (in radians) that rotates
-            /// `self` to `other` in the range `-π..=+π`.
-            ///
-            /// The vectors do not need to be unit vectors but they do need to
-            /// be non-zero.
-            ///
-            /// Equivalent to `other.angle_from(self)`.
-            ///
-            /// # Unspecified precision
-            ///
-            /// The precision of this function is non-deterministic. This means
-            /// it varies by platform, version, and can even differ within the
-            /// same execution from one invocation to the next.
-            #[inline]
-            #[must_use]
-            pub fn angle_to(self, other: Self) -> $Wide {
-                let outer_product = (self.x * other.y) - (self.y * other.x);
-                self.angle_between(other) * outer_product.signum()
-            }
-
-            /// For each lane, returns the angle (in radians) that rotates
-            /// `other` to `self` in the range `-π..=+π`.
-            ///
-            /// The vectors do not need to be unit vectors but they do need to
-            /// be non-zero.
-            ///
-            /// Equivalent to `other.angle_to(self)`.
-            ///
-            /// # Unspecified precision
-            ///
-            /// The precision of this function is non-deterministic. This means
-            /// it varies by platform, version, and can even differ within the
-            /// same execution from one invocation to the next.
-            #[inline]
-            #[must_use]
-            pub fn angle_from(self, other: Self) -> $Wide {
-                let outer_product = (other.x * self.y) - (other.y * self.x);
-                self.angle_between(other) * outer_product.signum()
-            }
-
-            /// For each lane, rotates `self` by `angle` (in radians).
-            ///
-            /// This rotates `+X` to `+Y`.
-            ///
-            /// # Unspecified precision
-            ///
-            /// The precision of this function is non-deterministic. This means
-            /// it varies by platform, version, and can even differ within the
-            /// same execution from one invocation to the next.
-            #[inline]
-            #[must_use]
-            pub fn rotate(self, angle: $Wide) -> Self {
-                let (angle_sin, angle_cos) = angle.sin_cos();
-                Self::new(
-                    self.x * angle_cos - self.y * angle_sin,
-                    self.x * angle_sin + self.y * angle_cos,
-                )
-            }
+            items_2!($Wide, $UnsignedWide, $powf);
 
             #[inline(always)]
             fn nan_mask_backend(self) -> Self {
@@ -1116,102 +1277,9 @@ macro_rules! impl_wide_float {
             }
         }
 
+        #[cfg(not(doc))]
         impl<A: Alignment> Vector<3, $Wide, A> {
-            /// For each lane, creates a 3D vector from homogeneous coordinates
-            /// by performing perspective divide.
-            ///
-            /// Equivalent to `homogeneous.xyz / homogeneous.w`.
-            #[inline]
-            #[must_use]
-            pub fn from_homogeneous(homogeneous: Vector<4, $Wide, A>) -> Self {
-                homogeneous.xyz() / homogeneous.w
-            }
-
-            /// For each lane, rotates `self` around the x axis by `angle` (in
-            /// radians).
-            ///
-            /// This rotates `+Y` to `+Z`.
-            ///
-            /// # Unspecified precision
-            ///
-            /// The precision of this function is non-deterministic. This means
-            /// it varies by platform, version, and can even differ within the
-            /// same execution from one invocation to the next.
-            #[inline]
-            #[must_use]
-            pub fn rotate_x(self, angle: $Wide) -> Self {
-                let (angle_sin, angle_cos) = angle.sin_cos();
-                Self::new(
-                    self.x,
-                    self.y * angle_cos - self.z * angle_sin,
-                    self.y * angle_sin + self.z * angle_cos,
-                )
-            }
-
-            /// For each lane, rotates `self` around the y axis by `angle` (in
-            /// radians).
-            ///
-            /// This rotates `+Z` to `+X`.
-            ///
-            /// # Unspecified precision
-            ///
-            /// The precision of this function is non-deterministic. This means
-            /// it varies by platform, version, and can even differ within the
-            /// same execution from one invocation to the next.
-            #[inline]
-            #[must_use]
-            pub fn rotate_y(self, angle: $Wide) -> Self {
-                let (angle_sin, angle_cos) = angle.sin_cos();
-                Self::new(
-                    self.x * angle_cos + self.z * angle_sin,
-                    self.y,
-                    self.x * -angle_sin + self.z * angle_cos,
-                )
-            }
-
-            /// For each lane, rotates `self` around the z axis by `angle` (in
-            /// radians).
-            ///
-            /// This rotates `+X` to `+Y`.
-            ///
-            /// # Unspecified precision
-            ///
-            /// The precision of this function is non-deterministic. This means
-            /// it varies by platform, version, and can even differ within the
-            /// same execution from one invocation to the next.
-            #[inline]
-            #[must_use]
-            pub fn rotate_z(self, angle: $Wide) -> Self {
-                let (angle_sin, angle_cos) = angle.sin_cos();
-                Self::new(
-                    self.x * angle_cos - self.y * angle_sin,
-                    self.x * angle_sin + self.y * angle_cos,
-                    self.z,
-                )
-            }
-
-            /// For each lane, returns two unit vectors that are orthogonal to
-            /// `self` and to each other.
-            ///
-            /// Together with `self`, they form an orthonormal basis where the
-            /// three vectors are all orthogonal to each other and are
-            /// normalized.
-            #[inline]
-            #[must_use]
-            pub fn any_orthonormal_pair(self) -> (Self, Self) {
-                // From https://graphics.pixar.com/library/OrthonormalB/paper.pdf
-                let sign = self.z.signum();
-                let a = -$Wide::ONE / (sign + self.z);
-                let b = self.x * self.y * a;
-                (
-                    Self::new(
-                        $Wide::ONE + sign * self.x * self.x * a,
-                        sign * b,
-                        -sign * self.x,
-                    ),
-                    Self::new(b, sign + self.y * self.y * a, -self.y),
-                )
-            }
+            items_3!($Wide, $UnsignedWide, $powf);
 
             #[inline(always)]
             fn nan_mask_backend(self) -> Self {
@@ -1497,6 +1565,7 @@ macro_rules! impl_wide_float {
             }
         }
 
+        #[cfg(not(doc))]
         impl<A: Alignment> Vector<4, $Wide, A> {
             #[inline(always)]
             fn nan_mask_backend(self) -> Self {
@@ -1859,12 +1928,12 @@ macro_rules! impl_wide_float {
         }
     };
 }
-impl_wide_float!(f32x4, u32x4, pow_f32x4);
-impl_wide_float!(f32x8, u32x8, pow_f32x8);
-impl_wide_float!(f32x16, u32x16, pow_f32x16);
-impl_wide_float!(f64x2, u64x2, pow_f64x2);
-impl_wide_float!(f64x4, u64x4, pow_f64x4);
-impl_wide_float!(f64x8, u64x8, pow_f64x8);
+impl_items!(f32x4, u32x4, pow_f32x4);
+impl_items!(f32x8, u32x8, pow_f32x8);
+impl_items!(f32x16, u32x16, pow_f32x16);
+impl_items!(f64x2, u64x2, pow_f64x2);
+impl_items!(f64x4, u64x4, pow_f64x4);
+impl_items!(f64x8, u64x8, pow_f64x8);
 
 #[cfg(test)]
 mod tests {

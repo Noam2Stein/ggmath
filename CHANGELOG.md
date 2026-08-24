@@ -49,6 +49,8 @@ stabilized, which should not affect most users.
   `T`, even though some of them (ones with names that conflict with float
   functions) are not actually generic.
 
+- The `docs.rs` page now shows SoA functionality.
+
 ### Fixed
 
 - Previously, the padding of `Affine2A<f32>` (which contains four elements for

@@ -1,5 +1,14 @@
 use crate::{Alignment, Quaternion, Scalar, Vector, utils::WideTy};
 
+/// Functionality for [SoA] (Structure of Arrays) quaternions.
+///
+/// This is gated behind the `wide` feature flag.
+///
+/// This functionality is shown with generics to make it easier to read. This
+/// works with all types from the [`wide`] crate.
+///
+/// [SoA]: crate#soa
+/// [`wide`]: https://crates.io/crates/wide
 #[expect(private_bounds)]
 impl<Wide, T, const LANES: usize, A: Alignment> Quaternion<Wide, A>
 where
