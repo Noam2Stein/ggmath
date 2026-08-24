@@ -8,77 +8,105 @@ use crate::{
     utils::{specialize, transmute_generic},
 };
 
-macro_rules! wide_signed_impl {
+macro_rules! items {
+    ($Wide:ident, $UnsignedWide:ty) => {
+        /// Returns a vector mask where each element is `true` if the
+        /// corresponding element of `self` is positive, and `false` if it is
+        /// zero or negative.
+        ///
+        /// Equivalent to `(self.x.is_positive(), self.y.is_positive(), ...)`.
+        #[inline]
+        #[must_use]
+        pub fn positive_mask(self) -> Self {
+            specialize!(Vector::<N, $Wide, A>::positive_mask_backend(self))
+        }
+
+        /// Returns a vector mask where each element is `true` if the
+        /// corresponding element of `self` is negative, and `false` if it is
+        /// zero or positive.
+        ///
+        /// Equivalent to `(self.x.is_negative(), self.y.is_negative(), ...)`.
+        #[inline]
+        #[must_use]
+        pub fn negative_mask(self) -> Self {
+            specialize!(Vector::<N, $Wide, A>::negative_mask_backend(self))
+        }
+
+        /// Returns the bit patterns of `self` reinterpreted as unsigned
+        /// integers of the same size.
+        ///
+        /// This produces the same result as [`as`] conversions, but ensures
+        /// that the bit-width remains the same.
+        ///
+        /// [`as`]: https://rust-for-c-programmers.com/ch16/16_2_primitive_casting_with_as.html
+        #[inline]
+        #[must_use]
+        pub const fn cast_unsigned(self) -> Vector<N, $UnsignedWide, A> {
+            // SAFETY: Both types accept all bit-patterns.
+            unsafe { transmute_generic::<Vector<N, $Wide, A>, Vector<N, $UnsignedWide, A>>(self) }
+        }
+
+        /// Returns the absolute values of the elements of `self`.
+        ///
+        /// Equivalent to `(self.x.abs(), self.y.abs(), ...)`.
+        #[inline]
+        #[must_use]
+        pub fn abs(self) -> Self {
+            specialize!(Vector::<N, $Wide, A>::abs_backend(self))
+        }
+
+        /// Returns the signum of the elements of `self`.
+        ///
+        /// Equivalent to `(self.x.signum(), self.y.signum(), ...)`.
+        ///
+        /// For each element:
+        ///
+        /// - `0` if the element is zero
+        /// - `1` if the element is positive
+        /// - `-1` if the element is negative
+        #[inline]
+        #[must_use]
+        pub fn signum(self) -> Self {
+            specialize!(Vector::<N, $Wide, A>::signum_backend(self))
+        }
+    };
+}
+
+// Since all wide-signed-integer functions have names that conflict with normal
+// signed-integer functions, We cannot implement this API using generics.
+// Duplicating the API for each supported wide-signed-integer type works, but
+// then documentation shows the duplicated API, making it hard to read.
+//
+// When generating documentation, Rust does not care that these items are
+// conflicting. This allows us to cheat by showing these items in a generic
+// context in documentation, but making them separate in all other cases.
+
+#[cfg(doc)]
+#[doc(hidden)]
+pub trait WideSigned: crate::Scalar {
+    type Unsigned: crate::Scalar;
+}
+
+#[cfg(doc)]
+impl<const N: usize, Wide, A: Alignment> Vector<N, Wide, A>
+where
+    Length<N>: SupportedLength,
+    Wide: WideSigned,
+{
+    items!(Wide, <Wide as WideSigned>::Unsigned);
+}
+
+macro_rules! impl_items {
     ($Wide:ident, $UnsignedWide:ident) => {
+        #[cfg(not(doc))]
         impl<const N: usize, A: Alignment> Vector<N, $Wide, A>
         where
             Length<N>: SupportedLength,
         {
-            /// Returns a vector mask where each element is `true` if the
-            /// corresponding element of `self` is positive, and `false` if it
-            /// is zero or negative.
-            ///
-            /// Equivalent to
-            /// `(self.x.is_positive(), self.y.is_positive(), ...)`.
-            #[inline]
-            #[must_use]
-            pub fn positive_mask(self) -> Self {
-                specialize!(Vector::<N, $Wide, A>::positive_mask_backend(self))
-            }
-
-            /// Returns a vector mask where each element is `true` if the
-            /// corresponding element of `self` is negative, and `false` if it
-            /// is zero or positive.
-            ///
-            /// Equivalent to
-            /// `(self.x.is_negative(), self.y.is_negative(), ...)`.
-            #[inline]
-            #[must_use]
-            pub fn negative_mask(self) -> Self {
-                specialize!(Vector::<N, $Wide, A>::negative_mask_backend(self))
-            }
-
-            /// Returns the bit patterns of `self` reinterpreted as unsigned
-            /// integers of the same size.
-            ///
-            /// This produces the same result as [`as`] conversions, but ensures
-            /// that the bit-width remains the same.
-            ///
-            /// [`as`]: https://rust-for-c-programmers.com/ch16/16_2_primitive_casting_with_as.html
-            #[inline]
-            #[must_use]
-            pub const fn cast_unsigned(self) -> Vector<N, $UnsignedWide, A> {
-                // SAFETY: Both types accept all bit-patterns.
-                unsafe {
-                    transmute_generic::<Vector<N, $Wide, A>, Vector<N, $UnsignedWide, A>>(self)
-                }
-            }
-
-            /// Returns the absolute values of the elements of `self`.
-            ///
-            /// Equivalent to `(self.x.abs(), self.y.abs(), ...)`.
-            #[inline]
-            #[must_use]
-            pub fn abs(self) -> Self {
-                specialize!(Vector::<N, $Wide, A>::abs_backend(self))
-            }
-
-            /// Returns the signum of the elements of `self`.
-            ///
-            /// Equivalent to `(self.x.signum(), self.y.signum(), ...)`.
-            ///
-            /// For each element:
-            ///
-            /// - `0` if the element is zero
-            /// - `1` if the element is positive
-            /// - `-1` if the element is negative
-            #[inline]
-            #[must_use]
-            pub fn signum(self) -> Self {
-                specialize!(Vector::<N, $Wide, A>::signum_backend(self))
-            }
+            items!($Wide, $UnsignedWide);
         }
 
+        #[cfg(not(doc))]
         impl<A: Alignment> Vector<2, $Wide, A> {
             #[inline(always)]
             fn positive_mask_backend(self) -> Self {
@@ -101,6 +129,7 @@ macro_rules! wide_signed_impl {
             }
         }
 
+        #[cfg(not(doc))]
         impl<A: Alignment> Vector<3, $Wide, A> {
             #[inline(always)]
             fn positive_mask_backend(self) -> Self {
@@ -131,6 +160,7 @@ macro_rules! wide_signed_impl {
             }
         }
 
+        #[cfg(not(doc))]
         impl<A: Alignment> Vector<4, $Wide, A> {
             #[inline(always)]
             fn positive_mask_backend(self) -> Self {
@@ -169,17 +199,17 @@ macro_rules! wide_signed_impl {
         }
     };
 }
-wide_signed_impl!(i8x16, u8x16);
-wide_signed_impl!(i8x32, u8x32);
-wide_signed_impl!(i16x8, u16x8);
-wide_signed_impl!(i16x16, u16x16);
-wide_signed_impl!(i16x32, u16x32);
-wide_signed_impl!(i32x4, u32x4);
-wide_signed_impl!(i32x8, u32x8);
-wide_signed_impl!(i32x16, u32x16);
-wide_signed_impl!(i64x2, u64x2);
-wide_signed_impl!(i64x4, u64x4);
-wide_signed_impl!(i64x8, u64x8);
+impl_items!(i8x16, u8x16);
+impl_items!(i8x32, u8x32);
+impl_items!(i16x8, u16x8);
+impl_items!(i16x16, u16x16);
+impl_items!(i16x32, u16x32);
+impl_items!(i32x4, u32x4);
+impl_items!(i32x8, u32x8);
+impl_items!(i32x16, u32x16);
+impl_items!(i64x2, u64x2);
+impl_items!(i64x4, u64x4);
+impl_items!(i64x8, u64x8);
 
 #[cfg(test)]
 mod tests {
