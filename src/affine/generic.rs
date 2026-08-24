@@ -340,18 +340,6 @@ where
             self.translation.to_homogeneous(),
         ])
     }
-
-    /// Returns a mutable reference to the affine transform's rows.
-    ///
-    /// This function has been renamed to [`as_mut_rows`].
-    ///
-    /// [`as_mut_rows`]: Self::as_mut_rows
-    #[inline]
-    #[must_use]
-    #[deprecated(since = "0.17.1", note = "renamed to `as_mut_rows`")]
-    pub const fn as_rows_mut(&mut self) -> &mut [Vector<2, T, A>; 3] {
-        self.as_mut_rows()
-    }
 }
 
 impl<T, A: Alignment> Affine<3, T, A>
@@ -449,18 +437,6 @@ where
             self.translation.to_homogeneous(),
         ])
     }
-
-    /// Returns a mutable reference to the affine transform's rows.
-    ///
-    /// This function has been renamed to [`as_mut_rows`].
-    ///
-    /// [`as_mut_rows`]: Self::as_mut_rows
-    #[inline]
-    #[must_use]
-    #[deprecated(since = "0.17.1", note = "renamed to `as_mut_rows`")]
-    pub const fn as_rows_mut(&mut self) -> &mut [Vector<3, T, A>; 4] {
-        self.as_mut_rows()
-    }
 }
 
 impl<T, A: Alignment> Affine<4, T, A>
@@ -524,18 +500,6 @@ where
         // `Matrix<4, T, A>` (four vectors) then `Vector<4, T, A>`, which is 5
         // vectors in total.
         unsafe { transmute_mut::<Affine<4, T, A>, [Vector<4, T, A>; 5]>(self) }
-    }
-
-    /// Returns a mutable reference to the affine transform's rows.
-    ///
-    /// This function has been renamed to [`as_mut_rows`].
-    ///
-    /// [`as_mut_rows`]: Self::as_mut_rows
-    #[inline]
-    #[must_use]
-    #[deprecated(since = "0.17.1", note = "renamed to `as_mut_rows`")]
-    pub const fn as_rows_mut(&mut self) -> &mut [Vector<4, T, A>; 5] {
-        self.as_mut_rows()
     }
 }
 
