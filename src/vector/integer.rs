@@ -3,11 +3,155 @@ use crate::{
     utils::specialize,
 };
 
+/// Contains integer vector items that cannot be part of the generic
+/// implementation, because their names conflict with float vector items.
+///
+/// This will be solved once the type system allows disjoint trait
+/// implementations.
+macro_rules! conflicting_items {
+    ($T:ident) => {
+        /// A vector with all elements set to [`MIN`].
+        ///
+        /// [`MIN`]: i32::MIN
+        pub const MIN: Self = Self::splat($T::MIN);
+
+        /// A vector with all elements set to [`MAX`].
+        ///
+        /// [`MAX`]: i32::MAX
+        pub const MAX: Self = Self::splat($T::MAX);
+
+        /// Returns the maximum elements between `self` and `other`.
+        ///
+        /// Equivalent to `(self.x.max(other.x), self.y.max(other.y), ...)`.
+        ///
+        /// # Examples
+        ///
+        /// ```
+        /// # use ggmath::Vec4;
+        /// #
+        /// let a = Vec4::<i32>::new(1, 5, 3, 0);
+        /// let b = Vec4::<i32>::new(3, 2, 7, -1);
+        /// let max = a.max(b);
+        ///
+        /// assert_eq!(max, Vec4::new(3, 5, 7, 0));
+        /// ```
+        #[inline]
+        #[must_use]
+        pub fn max(self, other: Self) -> Self {
+            specialize!(<$T as IntegerVectorBackend<N, A>>::vector_max(self, other))
+        }
+
+        /// Returns the minimum elements between `self` and `other`.
+        ///
+        /// Equivalent to `(self.x.min(other.x), self.y.min(other.y), ...)`.
+        ///
+        /// # Examples
+        ///
+        /// ```
+        /// # use ggmath::Vec4;
+        /// #
+        /// let a = Vec4::<i32>::new(1, 5, 3, 0);
+        /// let b = Vec4::<i32>::new(3, 2, 7, -1);
+        /// let min = a.min(b);
+        ///
+        /// assert_eq!(min, Vec4::new(1, 2, 3, -1));
+        /// ```
+        #[inline]
+        #[must_use]
+        pub fn min(self, other: Self) -> Self {
+            specialize!(<$T as IntegerVectorBackend<N, A>>::vector_min(self, other))
+        }
+
+        /// Clamps the elements of `self` between the elements of `min` and
+        /// `max`.
+        ///
+        /// Equivalent to
+        /// `(self.x.clamp(min.x, max.x), self.y.clamp(min.y, max.y), ...)`.
+        ///
+        /// # Panics
+        ///
+        /// When debug assertions are enabled:
+        ///
+        /// Panics if any element of `min` is greater than the corresponding
+        /// element of `max`.
+        ///
+        /// # Examples
+        ///
+        /// ```
+        /// # use ggmath::Vec4;
+        /// #
+        /// let vector = Vec4::<i32>::new(1, 2, 3, 0);
+        /// let min = Vec4::new(0, 5, 1, -2);
+        /// let max = Vec4::new(3, 6, 2, -1);
+        /// let clamp = vector.clamp(min, max);
+        ///
+        /// assert_eq!(clamp, Vec4::new(1, 5, 2, -1));
+        /// ```
+        #[inline]
+        #[must_use]
+        #[track_caller]
+        pub fn clamp(self, min: Self, max: Self) -> Self {
+            debug_assert!(
+                (0..N).all(|i| min[i] <= max[i]),
+                "min > max: {self:?}.clamp({min:?}, {max:?})"
+            );
+
+            self.max(min).min(max)
+        }
+
+        /// Returns the maximum between the elements of `self`.
+        ///
+        /// Equivalent to `self.x.max(self.y).max(self.z)...`.
+        ///
+        /// # Examples
+        ///
+        /// ```
+        /// # use ggmath::Vec3;
+        /// #
+        /// let vector = Vec3::<i32>::new(-1, 7, 3);
+        /// assert_eq!(vector.max_element(), 7);
+        /// ```
+        #[inline]
+        #[must_use]
+        pub fn max_element(self) -> $T {
+            specialize!(<$T as IntegerVectorBackend<N, A>>::vector_max_element(self))
+        }
+
+        /// Returns the minimum between the elements of `self`.
+        ///
+        /// Equivalent to `self.x.min(self.y).min(self.z)...`.
+        ///
+        /// # Examples
+        ///
+        /// ```
+        /// # use ggmath::Vec3;
+        /// #
+        /// let vector = Vec3::<i32>::new(7, -1, 3);
+        /// assert_eq!(vector.min_element(), -1);
+        /// ```
+        #[inline]
+        #[must_use]
+        pub fn min_element(self) -> $T {
+            specialize!(<$T as IntegerVectorBackend<N, A>>::vector_min_element(self))
+        }
+    };
+}
+
 impl<const N: usize, T, A: Alignment> Vector<N, T, A>
 where
     Length<N>: SupportedLength,
     T: PrimitiveInteger,
 {
+    // When generating documentation, Rust does not care that these items are
+    // conflicting. This allows us to cheat by showing these items in a generic
+    // context in documentation, but making them separate in all other cases.
+    //
+    // This makes documentation way easier to read, so its worth it even if its
+    // slightly lying (the fact that these functions are not available in
+    // generic contexts is mentioned in the docs for `PrimitiveInteger`).
+    #[cfg(doc)]
+    conflicting_items!(T);
+
     /// Computes `self + rhs`, returning `None` if overflow occured.
     #[inline]
     #[must_use]
@@ -156,151 +300,30 @@ where
     }
 }
 
-macro_rules! impl_integer {
+macro_rules! impl_conflicting_items {
     ($T:ident) => {
+        // See the `cfg(doc)` usage of `conflicting_items`.
+        #[cfg(not(doc))]
         impl<const N: usize, A: Alignment> Vector<N, $T, A>
         where
             Length<N>: SupportedLength,
         {
-            /// A vector with all elements set to [`MIN`].
-            ///
-            /// [`MIN`]: i32::MIN
-            pub const MIN: Self = Self::splat($T::MIN);
-
-            /// A vector with all elements set to [`MAX`].
-            ///
-            /// [`MAX`]: i32::MAX
-            pub const MAX: Self = Self::splat($T::MAX);
-
-            /// Returns the maximum elements between `self` and `other`.
-            ///
-            /// Equivalent to `(self.x.max(other.x), self.y.max(other.y), ...)`.
-            ///
-            /// # Examples
-            ///
-            /// ```
-            /// # use ggmath::Vec4;
-            /// #
-            /// let a = Vec4::<i32>::new(1, 5, 3, 0);
-            /// let b = Vec4::<i32>::new(3, 2, 7, -1);
-            /// let max = a.max(b);
-            ///
-            /// assert_eq!(max, Vec4::new(3, 5, 7, 0));
-            /// ```
-            #[inline]
-            #[must_use]
-            pub fn max(self, other: Self) -> Self {
-                specialize!(<$T as IntegerVectorBackend<N, A>>::vector_max(self, other))
-            }
-
-            /// Returns the minimum elements between `self` and `other`.
-            ///
-            /// Equivalent to `(self.x.min(other.x), self.y.min(other.y), ...)`.
-            ///
-            /// # Examples
-            ///
-            /// ```
-            /// # use ggmath::Vec4;
-            /// #
-            /// let a = Vec4::<i32>::new(1, 5, 3, 0);
-            /// let b = Vec4::<i32>::new(3, 2, 7, -1);
-            /// let min = a.min(b);
-            ///
-            /// assert_eq!(min, Vec4::new(1, 2, 3, -1));
-            /// ```
-            #[inline]
-            #[must_use]
-            pub fn min(self, other: Self) -> Self {
-                specialize!(<$T as IntegerVectorBackend<N, A>>::vector_min(self, other))
-            }
-
-            /// Clamps the elements of `self` between the elements of `min` and
-            /// `max`.
-            ///
-            /// Equivalent to
-            /// `(self.x.clamp(min.x, max.x), self.y.clamp(min.y, max.y), ...)`.
-            ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if any element of `min` is greater than the corresponding
-            /// element of `max`.
-            ///
-            /// # Examples
-            ///
-            /// ```
-            /// # use ggmath::Vec4;
-            /// #
-            /// let vector = Vec4::<i32>::new(1, 2, 3, 0);
-            /// let min = Vec4::new(0, 5, 1, -2);
-            /// let max = Vec4::new(3, 6, 2, -1);
-            /// let clamp = vector.clamp(min, max);
-            ///
-            /// assert_eq!(clamp, Vec4::new(1, 5, 2, -1));
-            /// ```
-            #[inline]
-            #[must_use]
-            #[track_caller]
-            pub fn clamp(self, min: Self, max: Self) -> Self {
-                debug_assert!(
-                    (0..N).all(|i| min[i] <= max[i]),
-                    "min > max: {self:?}.clamp({min:?}, {max:?})"
-                );
-
-                self.max(min).min(max)
-            }
-
-            /// Returns the maximum between the elements of `self`.
-            ///
-            /// Equivalent to `self.x.max(self.y).max(self.z)...`.
-            ///
-            /// # Examples
-            ///
-            /// ```
-            /// # use ggmath::Vec3;
-            /// #
-            /// let vector = Vec3::<i32>::new(-1, 7, 3);
-            /// assert_eq!(vector.max_element(), 7);
-            /// ```
-            #[inline]
-            #[must_use]
-            pub fn max_element(self) -> $T {
-                specialize!(<$T as IntegerVectorBackend<N, A>>::vector_max_element(self))
-            }
-
-            /// Returns the minimum between the elements of `self`.
-            ///
-            /// Equivalent to `self.x.min(self.y).min(self.z)...`.
-            ///
-            /// # Examples
-            ///
-            /// ```
-            /// # use ggmath::Vec3;
-            /// #
-            /// let vector = Vec3::<i32>::new(7, -1, 3);
-            /// assert_eq!(vector.min_element(), -1);
-            /// ```
-            #[inline]
-            #[must_use]
-            pub fn min_element(self) -> $T {
-                specialize!(<$T as IntegerVectorBackend<N, A>>::vector_min_element(self))
-            }
+            conflicting_items!($T);
         }
     };
 }
-impl_integer!(i8);
-impl_integer!(i16);
-impl_integer!(i32);
-impl_integer!(i64);
-impl_integer!(i128);
-impl_integer!(isize);
-impl_integer!(u8);
-impl_integer!(u16);
-impl_integer!(u32);
-impl_integer!(u64);
-impl_integer!(u128);
-impl_integer!(usize);
+impl_conflicting_items!(i8);
+impl_conflicting_items!(i16);
+impl_conflicting_items!(i32);
+impl_conflicting_items!(i64);
+impl_conflicting_items!(i128);
+impl_conflicting_items!(isize);
+impl_conflicting_items!(u8);
+impl_conflicting_items!(u16);
+impl_conflicting_items!(u32);
+impl_conflicting_items!(u64);
+impl_conflicting_items!(u128);
+impl_conflicting_items!(usize);
 
 #[cfg(test)]
 mod tests {

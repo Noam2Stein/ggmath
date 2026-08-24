@@ -45,6 +45,10 @@ stabilized, which should not affect most users.
   - `to/from_projective`
   - `to/from_homogeneous`
 
+- `rustdoc` documentation now shows all integer vector functions as generic over
+  `T`, even though some of them (ones with names that conflict with float
+  functions) are not actually generic.
+
 ### Fixed
 
 - Previously, the padding of `Affine2A<f32>` (which contains four elements for

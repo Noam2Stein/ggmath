@@ -74,9 +74,10 @@ pub trait PrimitiveFloat:
 /// functionality for vectors, matrices, etc. This trait does not expose any
 /// functions directly.
 ///
-/// Currently many integer functions cannot be used in generic contexts because
+/// Currently, many integer functions cannot be used in generic contexts because
 /// their names conflict with floating-point functions. When the type system
-/// allows this, all functions will be available.
+/// allows this, all functions will be available. Note that documentation still
+/// shows these functions as generic, even though they are not really.
 ///
 /// # Examples
 ///
@@ -135,9 +136,10 @@ pub trait PrimitiveInteger:
 /// functionality for vectors, matrices, etc. This trait does not expose any
 /// functions directly.
 ///
-/// Currently many integer functions cannot be used in generic contexts because
+/// Currently, many integer functions cannot be used in generic contexts because
 /// their names conflict with floating-point functions. When the type system
-/// allows this, all functions will be available.
+/// allows this, all functions will be available. Note that documentation still
+/// shows these functions as generic, even though they are not really.
 ///
 /// # Examples
 ///
