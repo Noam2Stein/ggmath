@@ -858,6 +858,6 @@ where
     }
 }
 
-// Tests are located at `src/quaternion.rs`. This module's contents are
+// Tests are located at `src/projective.rs`. This module's contents are
 // separated into this `generic` module as a workaround for a rustdoc bug, so no
 // reason to also move the tests.
