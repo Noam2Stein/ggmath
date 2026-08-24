@@ -5,110 +5,140 @@ use wide::{
 
 use crate::{Alignment, Length, SupportedLength, Vector, utils::specialize};
 
-macro_rules! wide_integer_impl {
+macro_rules! items {
     ($Wide:ident) => {
+        /// A vector with all elements set to [`MIN`].
+        ///
+        /// [`MIN`]: i32::MIN
+        pub const MIN: Self = Self::splat($Wide::MIN);
+
+        /// A vector with all elements set to [`MAX`].
+        ///
+        /// [`MAX`]: i32::MAX
+        pub const MAX: Self = Self::splat($Wide::MAX);
+
+        /// Computes `self + rhs`, saturating at the numeric bounds instead of
+        /// overflowing.
+        #[inline]
+        #[must_use]
+        pub fn saturating_add(self, rhs: Self) -> Self {
+            specialize!(Vector::<N, $Wide, A>::saturating_add_backend(self, rhs))
+        }
+
+        /// Computes `self - rhs`, saturating at the numeric bounds instead of
+        /// overflowing.
+        #[inline]
+        #[must_use]
+        pub fn saturating_sub(self, rhs: Self) -> Self {
+            specialize!(Vector::<N, $Wide, A>::saturating_sub_backend(self, rhs))
+        }
+
+        /// Computes `self * rhs`, saturating at the numeric bounds instead of
+        /// overflowing.
+        #[inline]
+        #[must_use]
+        pub fn saturating_mul(self, rhs: Self) -> Self {
+            specialize!(Vector::<N, $Wide, A>::saturating_mul_backend(self, rhs))
+        }
+
+        /// Computes `self / rhs`, saturating at the numeric bounds instead of
+        /// overflowing.
+        ///
+        /// # Panics
+        ///
+        /// Panics if any component of `rhs` is `0`.
+        #[inline]
+        #[must_use]
+        #[track_caller]
+        pub fn saturating_div(self, rhs: Self) -> Self {
+            specialize!(Vector::<N, $Wide, A>::saturating_div_backend(self, rhs))
+        }
+
+        /// Returns the maximum elements between `self` and `other`.
+        ///
+        /// Equivalent to `(self.x.max(other.x), self.y.max(other.y), ...)`.
+        #[inline]
+        #[must_use]
+        pub fn max(self, other: Self) -> Self {
+            specialize!(Vector::<N, $Wide, A>::max_backend(self, other))
+        }
+
+        /// Returns the minimum elements between `self` and `other`.
+        ///
+        /// Equivalent to `(self.x.min(other.x), self.y.min(other.y), ...)`.
+        #[inline]
+        #[must_use]
+        pub fn min(self, other: Self) -> Self {
+            specialize!(Vector::<N, $Wide, A>::min_backend(self, other))
+        }
+
+        /// Clamps the elements of `self` between the elements of `min` and
+        /// `max`.
+        ///
+        /// Equivalent to
+        /// `(self.x.clamp(min.x, max.x), self.y.clamp(min.y, max.y), ...)`.
+        ///
+        /// If `min > max`, the result is unspecified. Consider manually
+        /// checking for that case.
+        #[inline]
+        #[must_use]
+        pub fn clamp(self, min: Self, max: Self) -> Self {
+            self.max(min).min(max)
+        }
+
+        /// Returns the maximum between the elements of `self`.
+        ///
+        /// Equivalent to `self.x.max(self.y).max(self.z)...`.
+        #[inline]
+        #[must_use]
+        pub fn max_element(self) -> $Wide {
+            specialize!(Vector::<N, $Wide, A>::max_element_backend(self))
+        }
+
+        /// Returns the minimum between the elements of `self`.
+        ///
+        /// Equivalent to `self.x.min(self.y).min(self.z)...`.
+        #[inline]
+        #[must_use]
+        pub fn min_element(self) -> $Wide {
+            specialize!(Vector::<N, $Wide, A>::min_element_backend(self))
+        }
+    };
+}
+
+// Since all wide-integer functions have names that conflict with normal integer
+// functions, We cannot implement this API using generics. Duplicating the API
+// for each supported wide-integer type works, but then documentation shows the
+// duplicated API, making it hard to read.
+//
+// When generating documentation, Rust does not care that these items are
+// conflicting. This allows us to cheat by showing these items in a generic
+// context in documentation, but making them separate in all other cases.
+
+#[cfg(doc)]
+#[doc(hidden)]
+pub trait WideInteger: crate::Scalar {}
+
+#[cfg(doc)]
+impl<const N: usize, Wide, A: Alignment> Vector<N, Wide, A>
+where
+    Length<N>: SupportedLength,
+    Wide: WideInteger,
+{
+    items!(Wide);
+}
+
+macro_rules! impl_items {
+    ($Wide:ident) => {
+        #[cfg(not(doc))]
         impl<const N: usize, A: Alignment> Vector<N, $Wide, A>
         where
             Length<N>: SupportedLength,
         {
-            /// A vector with all elements set to [`MIN`].
-            ///
-            /// [`MIN`]: i32::MIN
-            pub const MIN: Self = Self::splat($Wide::MIN);
-
-            /// A vector with all elements set to [`MAX`].
-            ///
-            /// [`MAX`]: i32::MAX
-            pub const MAX: Self = Self::splat($Wide::MAX);
-
-            /// Computes `self + rhs`, saturating at the numeric bounds instead
-            /// of overflowing.
-            #[inline]
-            #[must_use]
-            pub fn saturating_add(self, rhs: Self) -> Self {
-                specialize!(Vector::<N, $Wide, A>::saturating_add_backend(self, rhs))
-            }
-
-            /// Computes `self - rhs`, saturating at the numeric bounds instead
-            /// of overflowing.
-            #[inline]
-            #[must_use]
-            pub fn saturating_sub(self, rhs: Self) -> Self {
-                specialize!(Vector::<N, $Wide, A>::saturating_sub_backend(self, rhs))
-            }
-
-            /// Computes `self * rhs`, saturating at the numeric bounds instead
-            /// of overflowing.
-            #[inline]
-            #[must_use]
-            pub fn saturating_mul(self, rhs: Self) -> Self {
-                specialize!(Vector::<N, $Wide, A>::saturating_mul_backend(self, rhs))
-            }
-
-            /// Computes `self / rhs`, saturating at the numeric bounds instead
-            /// of overflowing.
-            ///
-            /// # Panics
-            ///
-            /// Panics if any component of `rhs` is `0`.
-            #[inline]
-            #[must_use]
-            #[track_caller]
-            pub fn saturating_div(self, rhs: Self) -> Self {
-                specialize!(Vector::<N, $Wide, A>::saturating_div_backend(self, rhs))
-            }
-
-            /// Returns the maximum elements between `self` and `other`.
-            ///
-            /// Equivalent to `(self.x.max(other.x), self.y.max(other.y), ...)`.
-            #[inline]
-            #[must_use]
-            pub fn max(self, other: Self) -> Self {
-                specialize!(Vector::<N, $Wide, A>::max_backend(self, other))
-            }
-
-            /// Returns the minimum elements between `self` and `other`.
-            ///
-            /// Equivalent to `(self.x.min(other.x), self.y.min(other.y), ...)`.
-            #[inline]
-            #[must_use]
-            pub fn min(self, other: Self) -> Self {
-                specialize!(Vector::<N, $Wide, A>::min_backend(self, other))
-            }
-
-            /// Clamps the elements of `self` between the elements of `min` and
-            /// `max`.
-            ///
-            /// Equivalent to
-            /// `(self.x.clamp(min.x, max.x), self.y.clamp(min.y, max.y), ...)`.
-            ///
-            /// If `min > max`, the result is unspecified. Consider manually
-            /// checking for that case.
-            #[inline]
-            #[must_use]
-            pub fn clamp(self, min: Self, max: Self) -> Self {
-                self.max(min).min(max)
-            }
-
-            /// Returns the maximum between the elements of `self`.
-            ///
-            /// Equivalent to `self.x.max(self.y).max(self.z)...`.
-            #[inline]
-            #[must_use]
-            pub fn max_element(self) -> $Wide {
-                specialize!(Vector::<N, $Wide, A>::max_element_backend(self))
-            }
-
-            /// Returns the minimum between the elements of `self`.
-            ///
-            /// Equivalent to `self.x.min(self.y).min(self.z)...`.
-            #[inline]
-            #[must_use]
-            pub fn min_element(self) -> $Wide {
-                specialize!(Vector::<N, $Wide, A>::min_element_backend(self))
-            }
+            items!($Wide);
         }
 
+        #[cfg(not(doc))]
         impl<A: Alignment> Vector<2, $Wide, A> {
             #[inline(always)]
             fn saturating_add_backend(self, rhs: Self) -> Self {
@@ -151,6 +181,7 @@ macro_rules! wide_integer_impl {
             }
         }
 
+        #[cfg(not(doc))]
         impl<A: Alignment> Vector<3, $Wide, A> {
             #[inline(always)]
             fn saturating_add_backend(self, rhs: Self) -> Self {
@@ -217,6 +248,7 @@ macro_rules! wide_integer_impl {
             }
         }
 
+        #[cfg(not(doc))]
         impl<A: Alignment> Vector<4, $Wide, A> {
             #[inline(always)]
             fn saturating_add_backend(self, rhs: Self) -> Self {
@@ -290,28 +322,28 @@ macro_rules! wide_integer_impl {
         }
     };
 }
-wide_integer_impl!(i8x16);
-wide_integer_impl!(i8x32);
-wide_integer_impl!(i16x8);
-wide_integer_impl!(i16x16);
-wide_integer_impl!(i16x32);
-wide_integer_impl!(i32x4);
-wide_integer_impl!(i32x8);
-wide_integer_impl!(i32x16);
-wide_integer_impl!(i64x2);
-wide_integer_impl!(i64x4);
-wide_integer_impl!(i64x8);
-wide_integer_impl!(u8x16);
-wide_integer_impl!(u8x32);
-wide_integer_impl!(u16x8);
-wide_integer_impl!(u16x16);
-wide_integer_impl!(u16x32);
-wide_integer_impl!(u32x4);
-wide_integer_impl!(u32x8);
-wide_integer_impl!(u32x16);
-wide_integer_impl!(u64x2);
-wide_integer_impl!(u64x4);
-wide_integer_impl!(u64x8);
+impl_items!(i8x16);
+impl_items!(i8x32);
+impl_items!(i16x8);
+impl_items!(i16x16);
+impl_items!(i16x32);
+impl_items!(i32x4);
+impl_items!(i32x8);
+impl_items!(i32x16);
+impl_items!(i64x2);
+impl_items!(i64x4);
+impl_items!(i64x8);
+impl_items!(u8x16);
+impl_items!(u8x32);
+impl_items!(u16x8);
+impl_items!(u16x16);
+impl_items!(u16x32);
+impl_items!(u32x4);
+impl_items!(u32x8);
+impl_items!(u32x16);
+impl_items!(u64x2);
+impl_items!(u64x4);
+impl_items!(u64x8);
 
 #[cfg(test)]
 mod tests {
