@@ -553,10 +553,10 @@ where
     #[inline]
     #[must_use]
     #[track_caller]
-    pub fn from_scale_rotation(scale: Vector<3, T, A>, rotation: Quaternion<T, A>) -> Self {
+    pub fn from_scale_quat(scale: Vector<3, T, A>, rotation: Quaternion<T, A>) -> Self {
         debug_assert!(
             rotation.is_normalized(),
-            "rotation is not normalized: from_scale_rotation({scale:?}, {rotation:?})"
+            "rotation is not normalized: from_scale_quat({scale:?}, {rotation:?})"
         );
 
         let [rotation_x, rotation_y, rotation_z] = Self::quat_to_axes(rotation);
@@ -579,13 +579,10 @@ where
     #[inline]
     #[must_use]
     #[track_caller]
-    pub fn from_rotation_translation(
-        rotation: Quaternion<T, A>,
-        translation: Vector<3, T, A>,
-    ) -> Self {
+    pub fn from_quat_translation(rotation: Quaternion<T, A>, translation: Vector<3, T, A>) -> Self {
         debug_assert!(
             rotation.is_normalized(),
-            "rotation is not normalized: from_rotation_translation({rotation:?}, {translation:?})"
+            "rotation is not normalized: from_quat_translation({rotation:?}, {translation:?})"
         );
 
         let [x_axis, y_axis, z_axis] = Self::quat_to_axes(rotation);
@@ -608,14 +605,14 @@ where
     #[inline]
     #[must_use]
     #[track_caller]
-    pub fn from_scale_rotation_translation(
+    pub fn from_scale_quat_translation(
         scale: Vector<3, T, A>,
         rotation: Quaternion<T, A>,
         translation: Vector<3, T, A>,
     ) -> Self {
         debug_assert!(
             rotation.is_normalized(),
-            "rotation is not normalized: from_scale_rotation_translation({scale:?}, {rotation:?}, {translation:?})"
+            "rotation is not normalized: from_scale_quat_translation({scale:?}, {rotation:?}, {translation:?})"
         );
 
         let [rotation_x, rotation_y, rotation_z] = Self::quat_to_axes(rotation);
@@ -1286,8 +1283,8 @@ where
     #[inline]
     #[must_use]
     #[track_caller]
-    pub fn to_scale_rotation(&self) -> (Vector<3, T, A>, Quaternion<T, A>) {
-        Matrix::<3, T, A>::from_projective(self).to_scale_rotation()
+    pub fn to_scale_quat(&self) -> (Vector<3, T, A>, Quaternion<T, A>) {
+        Matrix::<3, T, A>::from_projective(self).to_scale_quat()
     }
 
     /// Returns the `scale`, `rotation` and `translation` of `self`.
@@ -1303,10 +1300,10 @@ where
     #[inline]
     #[must_use]
     #[track_caller]
-    pub fn to_scale_rotation_translation(
+    pub fn to_scale_quat_translation(
         &self,
     ) -> (Vector<3, T, A>, Quaternion<T, A>, Vector<3, T, A>) {
-        let (scale, rotation) = self.to_scale_rotation();
+        let (scale, rotation) = self.to_scale_quat();
         (scale, rotation, self.translation())
     }
 
@@ -1944,10 +1941,10 @@ mod tests {
             for (scale, rotation) in random_iter::<(Vector<3, T, A>, Quaternion<T, A>)>() {
                 if scale.is_finite() && rotation.is_finite() {
                     assert_panic_test_eq!(
-                        Projective::<3, T, A>::from_scale_rotation(scale, rotation),
-                        Projective::<3, T, A>::from_matrix(
-                            &Matrix::<3, T, A>::from_scale_rotation(scale, rotation)
-                        ),
+                        Projective::<3, T, A>::from_scale_quat(scale, rotation),
+                        Projective::<3, T, A>::from_matrix(&Matrix::<3, T, A>::from_scale_quat(
+                            scale, rotation
+                        )),
                         0.0 = -0.0
                     );
                 }
@@ -1960,10 +1957,11 @@ mod tests {
         for_types!(|T: PrimitiveFloat, A| {
             for (rotation, translation) in random_iter::<(Quaternion<T, A>, Vector<3, T, A>)>() {
                 assert_panic_test_eq!(
-                    Projective::<3, T, A>::from_rotation_translation(rotation, translation),
-                    Projective::<3, T, A>::from_affine(
-                        &Affine::<3, T, A>::from_rotation_translation(rotation, translation)
-                    ),
+                    Projective::<3, T, A>::from_quat_translation(rotation, translation),
+                    Projective::<3, T, A>::from_affine(&Affine::<3, T, A>::from_quat_translation(
+                        rotation,
+                        translation
+                    )),
                     0.0 = -0.0
                 );
             }
@@ -1978,13 +1976,13 @@ mod tests {
             {
                 if scale.is_finite() && rotation.is_finite() {
                     assert_panic_test_eq!(
-                        Projective::<3, T, A>::from_scale_rotation_translation(
+                        Projective::<3, T, A>::from_scale_quat_translation(
                             scale,
                             rotation,
                             translation
                         ),
                         Projective::<3, T, A>::from_affine(
-                            &Affine::<3, T, A>::from_scale_rotation_translation(
+                            &Affine::<3, T, A>::from_scale_quat_translation(
                                 scale,
                                 rotation,
                                 translation,
@@ -2551,17 +2549,13 @@ mod tests {
             for projective in random_iter::<(Vector<3, T, A>, Quaternion<T, A>, Vector<3, T, A>)>()
                 .map(|(scale, rotation, translation)| {
                     let rotation = rotation.normalize_or(Quaternion::IDENTITY).normalize();
-                    Projective::<3, T, A>::from_scale_rotation_translation(
-                        scale,
-                        rotation,
-                        translation,
-                    )
+                    Projective::<3, T, A>::from_scale_quat_translation(scale, rotation, translation)
                 })
                 .chain(random_iter::<Projective<3, T, A>>().take(20))
             {
                 assert_panic_test_eq!(
-                    projective.to_scale_rotation(),
-                    Matrix::<3, T, A>::from_projective(&projective).to_scale_rotation()
+                    projective.to_scale_quat(),
+                    Matrix::<3, T, A>::from_projective(&projective).to_scale_quat()
                 );
             }
         });
@@ -2573,17 +2567,13 @@ mod tests {
             for projective in random_iter::<(Vector<3, T, A>, Quaternion<T, A>, Vector<3, T, A>)>()
                 .map(|(scale, rotation, translation)| {
                     let rotation = rotation.normalize_or(Quaternion::IDENTITY).normalize();
-                    Projective::<3, T, A>::from_scale_rotation_translation(
-                        scale,
-                        rotation,
-                        translation,
-                    )
+                    Projective::<3, T, A>::from_scale_quat_translation(scale, rotation, translation)
                 })
                 .chain(random_iter::<Projective<3, T, A>>().take(20))
             {
                 assert_panic_test_eq!(
-                    projective.to_scale_rotation_translation(),
-                    Affine::<3, T, A>::from_projective(&projective).to_scale_rotation_translation()
+                    projective.to_scale_quat_translation(),
+                    Affine::<3, T, A>::from_projective(&projective).to_scale_quat_translation()
                 );
             }
         });

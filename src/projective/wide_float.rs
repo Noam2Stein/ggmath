@@ -384,10 +384,7 @@ macro_rules! items_3 {
         /// and a 3D `rotation`.
         #[inline]
         #[must_use]
-        pub fn from_scale_rotation(
-            scale: Vector<3, $Wide, A>,
-            rotation: Quaternion<$Wide, A>,
-        ) -> Self {
+        pub fn from_scale_quat(scale: Vector<3, $Wide, A>, rotation: Quaternion<$Wide, A>) -> Self {
             let [rotation_x, rotation_y, rotation_z] = Self::quat_to_axes(rotation);
             Self::from_rows(&[
                 rotation_x * scale.x,
@@ -401,7 +398,7 @@ macro_rules! items_3 {
         /// `translation`.
         #[inline]
         #[must_use]
-        pub fn from_rotation_translation(
+        pub fn from_quat_translation(
             rotation: Quaternion<$Wide, A>,
             translation: Vector<3, $Wide, A>,
         ) -> Self {
@@ -418,7 +415,7 @@ macro_rules! items_3 {
         /// a 3D `rotation` and `translation`.
         #[inline]
         #[must_use]
-        pub fn from_scale_rotation_translation(
+        pub fn from_scale_quat_translation(
             scale: Vector<3, $Wide, A>,
             rotation: Quaternion<$Wide, A>,
             translation: Vector<3, $Wide, A>,
@@ -974,8 +971,8 @@ macro_rules! items_3 {
         /// ignored.
         #[inline]
         #[must_use]
-        pub fn to_scale_rotation(&self) -> (Vector<3, $Wide, A>, Quaternion<$Wide, A>) {
-            Matrix::<3, $Wide, A>::from_projective(self).to_scale_rotation()
+        pub fn to_scale_quat(&self) -> (Vector<3, $Wide, A>, Quaternion<$Wide, A>) {
+            Matrix::<3, $Wide, A>::from_projective(self).to_scale_quat()
         }
 
         /// For each lane, returns the `scale`, `rotation` and `translation` of
@@ -985,14 +982,14 @@ macro_rules! items_3 {
         /// shear or projections.
         #[inline]
         #[must_use]
-        pub fn to_scale_rotation_translation(
+        pub fn to_scale_quat_translation(
             &self,
         ) -> (
             Vector<3, $Wide, A>,
             Quaternion<$Wide, A>,
             Vector<3, $Wide, A>,
         ) {
-            let (scale, rotation) = self.to_scale_rotation();
+            let (scale, rotation) = self.to_scale_quat();
             (scale, rotation, self.translation())
         }
     };
@@ -1646,8 +1643,8 @@ mod tests {
                 .flat_map(|(scale, quat)| [(scale, quat), (scale, quat.normalize())])
             {
                 assert_test_eq_or_panic!(
-                    Proj3::<Wide>::from_scale_rotation(scale, rotation),
-                    Proj3::from_lane_fn(|lane| Proj3::<T>::from_scale_rotation(
+                    Proj3::<Wide>::from_scale_quat(scale, rotation),
+                    Proj3::from_lane_fn(|lane| Proj3::<T>::from_scale_quat(
                         scale.lane(lane),
                         rotation.lane(lane)
                     ))
@@ -1665,8 +1662,8 @@ mod tests {
                 })
             {
                 assert_test_eq_or_panic!(
-                    Proj3::<Wide>::from_rotation_translation(rotation, translation),
-                    Proj3::from_lane_fn(|lane| Proj3::<T>::from_rotation_translation(
+                    Proj3::<Wide>::from_quat_translation(rotation, translation),
+                    Proj3::from_lane_fn(|lane| Proj3::<T>::from_quat_translation(
                         rotation.lane(lane),
                         translation.lane(lane)
                     ))
@@ -1689,8 +1686,8 @@ mod tests {
                 )
             {
                 assert_test_eq_or_panic!(
-                    Proj3::<Wide>::from_scale_rotation_translation(scale, rotation, translation),
-                    Proj3::from_lane_fn(|lane| Proj3::<T>::from_scale_rotation_translation(
+                    Proj3::<Wide>::from_scale_quat_translation(scale, rotation, translation),
+                    Proj3::from_lane_fn(|lane| Proj3::<T>::from_scale_quat_translation(
                         scale.lane(lane),
                         rotation.lane(lane),
                         translation.lane(lane)
@@ -2232,7 +2229,7 @@ mod tests {
         for_types!(|Wide: WideFloat| {
             for projective in random_iter::<(Vec3<Wide>, Quat<Wide>, Vec3<Wide>)>()
                 .map(|(scale, rotation, translation)| {
-                    Proj3::<Wide>::from_scale_rotation_translation(
+                    Proj3::<Wide>::from_scale_quat_translation(
                         scale,
                         rotation.normalize(),
                         translation,
@@ -2241,10 +2238,10 @@ mod tests {
                 .chain(random_iter())
             {
                 assert_test_eq_or_panic!(
-                    projective.to_scale_rotation(),
+                    projective.to_scale_quat(),
                     (
-                        Vec3::from_lane_fn(|lane| projective.lane(lane).to_scale_rotation().0),
-                        Quat::from_lane_fn(|lane| projective.lane(lane).to_scale_rotation().1)
+                        Vec3::from_lane_fn(|lane| projective.lane(lane).to_scale_quat().0),
+                        Quat::from_lane_fn(|lane| projective.lane(lane).to_scale_quat().1)
                     )
                 );
             }
@@ -2256,7 +2253,7 @@ mod tests {
         for_types!(|Wide: WideFloat| {
             for projective in random_iter::<(Vec3<Wide>, Quat<Wide>, Vec3<Wide>)>()
                 .map(|(scale, rotation, translation)| {
-                    Proj3::<Wide>::from_scale_rotation_translation(
+                    Proj3::<Wide>::from_scale_quat_translation(
                         scale,
                         rotation.normalize(),
                         translation,
@@ -2265,19 +2262,19 @@ mod tests {
                 .chain(random_iter())
             {
                 assert_test_eq_or_panic!(
-                    projective.to_scale_rotation_translation(),
+                    projective.to_scale_quat_translation(),
                     (
                         Vec3::from_lane_fn(|lane| projective
                             .lane(lane)
-                            .to_scale_rotation_translation()
+                            .to_scale_quat_translation()
                             .0),
                         Quat::from_lane_fn(|lane| projective
                             .lane(lane)
-                            .to_scale_rotation_translation()
+                            .to_scale_quat_translation()
                             .1),
                         Vec3::from_lane_fn(|lane| projective
                             .lane(lane)
-                            .to_scale_rotation_translation()
+                            .to_scale_quat_translation()
                             .2)
                     )
                 );
