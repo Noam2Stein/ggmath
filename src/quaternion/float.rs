@@ -1,7 +1,4 @@
-use crate::{
-    Alignment, EulerRot, FloatExt, Matrix, PrimitiveFloat, Quaternion, Vector,
-    utils::PrimitiveFloatUtils,
-};
+use crate::{Alignment, EulerRot, FloatExt, Matrix, PrimitiveFloat, Quaternion, Vector};
 
 impl<T, A: Alignment> Quaternion<T, A>
 where
@@ -16,7 +13,7 @@ where
     #[inline]
     #[must_use]
     pub fn from_rotation_x(angle: T) -> Self {
-        let (sin, cos) = PrimitiveFloatUtils::sin_cos(angle * T::as_from(0.5));
+        let (sin, cos) = (angle * T::as_from(0.5)).sin_cos();
         Self::from_xyzw(sin, T::ZERO, T::ZERO, cos)
     }
 
@@ -26,7 +23,7 @@ where
     #[inline]
     #[must_use]
     pub fn from_rotation_y(angle: T) -> Self {
-        let (sin, cos) = PrimitiveFloatUtils::sin_cos(angle * T::as_from(0.5));
+        let (sin, cos) = (angle * T::as_from(0.5)).sin_cos();
         Self::from_xyzw(T::ZERO, sin, T::ZERO, cos)
     }
 
@@ -36,7 +33,7 @@ where
     #[inline]
     #[must_use]
     pub fn from_rotation_z(angle: T) -> Self {
-        let (sin, cos) = PrimitiveFloatUtils::sin_cos(angle * T::as_from(0.5));
+        let (sin, cos) = (angle * T::as_from(0.5)).sin_cos();
         Self::from_xyzw(T::ZERO, T::ZERO, sin, cos)
     }
 
@@ -58,7 +55,7 @@ where
             "axis is not normalized: from_axis_angle({axis:?}, {angle:?})"
         );
 
-        let (sin, cos) = PrimitiveFloatUtils::sin_cos(angle * T::as_from(0.5));
+        let (sin, cos) = (angle * T::as_from(0.5)).sin_cos();
         let xyz = axis * sin;
         Self::from_xyzw(xyz.x, xyz.y, xyz.z, cos)
     }
@@ -72,7 +69,7 @@ where
         if angle == T::ZERO {
             Self::IDENTITY
         } else {
-            let (sin, cos) = PrimitiveFloatUtils::sin_cos(angle * T::as_from(0.5));
+            let (sin, cos) = (angle * T::as_from(0.5)).sin_cos();
             let xyz = scaled_axis / angle * sin;
             Self::from_xyzw(xyz.x, xyz.y, xyz.z, cos)
         }
@@ -189,9 +186,9 @@ where
         let ti = angles.x * T::as_from(0.5);
         let tj = angles.y * T::as_from(0.5);
         let th = angles.z * T::as_from(0.5);
-        let (si, ci) = PrimitiveFloatUtils::sin_cos(ti);
-        let (sj, cj) = PrimitiveFloatUtils::sin_cos(tj);
-        let (sh, ch) = PrimitiveFloatUtils::sin_cos(th);
+        let (si, ci) = ti.sin_cos();
+        let (sj, cj) = tj.sin_cos();
+        let (sh, ch) = th.sin_cos();
         let cc = ci * ch;
         let cs = ci * sh;
         let sc = si * ch;
@@ -266,7 +263,7 @@ where
             if dif10 <= T::ZERO {
                 // x^2 >= y^2
                 let four_xsq = omm22 - dif10;
-                let inv4x = T::as_from(0.5) / PrimitiveFloatUtils::sqrt(four_xsq);
+                let inv4x = T::as_from(0.5) / four_xsq.sqrt();
 
                 Self::from_xyzw(
                     four_xsq * inv4x,
@@ -277,7 +274,7 @@ where
             } else {
                 // y^2 >= x^2
                 let four_ysq = omm22 + dif10;
-                let inv4y = T::as_from(0.5) / PrimitiveFloatUtils::sqrt(four_ysq);
+                let inv4y = T::as_from(0.5) / four_ysq.sqrt();
 
                 Self::from_xyzw(
                     (m01 + m10) * inv4y,
@@ -294,7 +291,7 @@ where
             if sum10 <= T::ZERO {
                 // z^2 >= w^2
                 let four_zsq = opm22 - sum10;
-                let inv4z = T::as_from(0.5) / PrimitiveFloatUtils::sqrt(four_zsq);
+                let inv4z = T::as_from(0.5) / four_zsq.sqrt();
 
                 Self::from_xyzw(
                     (m02 + m20) * inv4z,
@@ -305,7 +302,7 @@ where
             } else {
                 // w^2 >= z^2
                 let four_wsq = opm22 + sum10;
-                let inv4w = T::as_from(0.5) / PrimitiveFloatUtils::sqrt(four_wsq);
+                let inv4w = T::as_from(0.5) / four_wsq.sqrt();
 
                 Self::from_xyzw(
                     (m12 - m21) * inv4w,
@@ -423,7 +420,7 @@ where
 
         if length >= T::as_from(1e-8) {
             let axis = xyz / length;
-            let angle = PrimitiveFloatUtils::atan2(length, self.w) * T::as_from(2.0);
+            let angle = length.atan2(self.w) * T::as_from(2.0);
 
             (axis, angle)
         } else {
@@ -452,7 +449,7 @@ where
 
         if length >= T::as_from(1e-8) {
             let axis = xyz / length;
-            let angle = PrimitiveFloatUtils::atan2(length, self.w) * T::as_from(2.0);
+            let angle = length.atan2(self.w) * T::as_from(2.0);
 
             axis * angle
         } else {
@@ -562,7 +559,7 @@ where
             "quaternions are not normalized: {self:?}.angle_between({other:?})"
         );
 
-        PrimitiveFloatUtils::acos(self.dot(other).abs().min(T::ONE)) * T::as_from(2.0)
+        self.dot(other).abs().min(T::ONE).acos() * T::as_from(2.0)
     }
 
     /// Computes the linear interpolation between `self` and `other` based on
@@ -633,7 +630,7 @@ where
             // If above threshold, perform linear interpolation to avoid divide by zero.
             (self * (T::ONE - t) + other * t).normalize()
         } else {
-            let theta = PrimitiveFloatUtils::acos(dot);
+            let theta = dot.acos();
 
             let x = T::ONE - t;
             let y = t;
@@ -818,17 +815,14 @@ where
 
 #[cfg(test)]
 mod tests {
-    #[cfg(feature = "num-primitive")]
-    use num_primitive::PrimitiveFloat;
 
-    #[cfg(not(feature = "num-primitive"))]
-    use crate::utils::PrimitiveFloatUtils;
     use crate::{
         EulerRot, FloatExt, Matrix, QuatA, Quaternion, Vector,
         test_utils::{
             assert_debug_panic, assert_panic_test_eq, assert_test_eq, for_types, random_iter,
             test_eq,
         },
+        utils::PrimitiveFloatUtils,
     };
 
     #[test]

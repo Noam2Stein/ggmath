@@ -63,8 +63,7 @@ The underlying types are generic over:
 The traits [`PrimitiveFloat`], [`PrimitiveInteger`], [`PrimitiveSigned`] and
 [`PrimitiveUnsigned`] give generic contexts access to most primitive
 functionality. These traits do not expose functions directly, they only enable
-functionality for vectors, matrices, etc. For complete primitive generics, add
-the [`num-primitive`] crate as an optional dependency.
+functionality for vectors, matrices, etc.
 
 ## Affine and Projective Transforms
 
@@ -145,9 +144,6 @@ only use SoA for performance-critical algorithms.
 
 SoA is supported through an optional dependency for the [`wide`] crate. Almost
 all functionality that exists for standard types also exists for SoA types.
-
-> [The `docs.rs` page] currently doesn't show [`wide`] support. See
-> [this issue](https://github.com/Noam2Stein/ggmath/issues/45).
 
 ## Fixed-point numbers
 
@@ -303,7 +299,6 @@ it serves the same purpose as [`glam`] but with generics.
 [`PrimitiveInteger`]: https://docs.rs/ggmath/latest/ggmath/trait.PrimitiveInteger.html
 [`PrimitiveSigned`]: https://docs.rs/ggmath/latest/ggmath/trait.PrimitiveSigned.html
 [`PrimitiveUnsigned`]: https://docs.rs/ggmath/latest/ggmath/trait.PrimitiveUnsigned.html
-[`num-primitive`]: https://crates.io/crates/num-primitive
 
 [`Mat4`]: https://docs.rs/ggmath/latest/ggmath/type.Mat4.html
 [`Mat3`]: https://docs.rs/ggmath/latest/ggmath/type.Mat3.html
@@ -329,7 +324,6 @@ it serves the same purpose as [`glam`] but with generics.
 
 [`Vec3<f32x4>`]: https://docs.rs/ggmath/latest/ggmath/type.Vec3.html
 [`wide`]: https://crates.io/crates/wide
-[The `docs.rs` page]: https://docs.rs/ggmath
 
 [`fixed`]: https://crates.io/crates/fixed
 [`Scalar`]: https://docs.rs/ggmath/latest/ggmath/trait.Scalar.html

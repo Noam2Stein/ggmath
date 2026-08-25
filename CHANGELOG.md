@@ -45,10 +45,34 @@ stabilized, which should not affect most users.
   - `to/from_projective`
   - `to/from_homogeneous`
 
+- `rustdoc` documentation now shows all integer vector functions as generic over
+  `T`, even though some of them (ones with names that conflict with float
+  functions) are not actually generic.
+
+- The `docs.rs` page now shows SoA functionality.
+
 ### Fixed
+
+- Previously, the padding of `Affine2A<f32>` (which contains four elements for
+  `Mat2A`, two elements for `Vec2A`, and two padding elements) contained
+  uninitialized memory. This made the implementations of `bytemuck` traits
+  incorrect, whicn could easily lead to **undefined behavior**. That padding is
+  now guaranteed to be initialized, by making the definition of `Affine`
+  more similar to `Vector<N, T, A>`.
+
+- Improved the order of `impl` blocks in the `docs.rs` page. Due to a `rustdoc`
+  bug, the order is still not perfect.
 
 - Added missing `#[inline]` and `#[must_use]` attributes for
   `Vector::from_homogeneous`
+
+### Removed
+
+- Removed all previously deprecated items.
+
+- Removed the optional dependency `num-primitive`. If you want access to both
+  `ggmath` primitive functionality and the `num-primitive` API, the better
+  pattern is to define your own `Primitive*` traits.
 
 ## [0.17.1] - 2026-07-26
 
