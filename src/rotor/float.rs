@@ -649,7 +649,7 @@ where
         Self(result)
     }
 
-    /// Creates a quaternion from a facing direction and an up direction.
+    /// Creates a rotor from a facing direction and an up direction.
     ///
     /// For a left-handed view coordinate system with `+X=right`, `+Y=up` and
     /// `+Z=forward`.
@@ -669,7 +669,7 @@ where
         Self::from_matrix(&Matrix::<3, T, A>::look_to_lh(dir, up))
     }
 
-    /// Creates a quaternion from a facing direction and an up direction.
+    /// Creates a rotor from a facing direction and an up direction.
     ///
     /// For a right-handed view coordinate system with `+X=right`, `+Y=up` and
     /// `+Z=back`.
@@ -689,7 +689,7 @@ where
         Self::from_matrix(&Matrix::<3, T, A>::look_to_rh(dir, up))
     }
 
-    /// Creates a quaternion from a camera position, a focal point and an up
+    /// Creates a rotor from a camera position, a focal point and an up
     /// direction.
     ///
     /// For a left-handed view coordinate system with `+X=right`, `+Y=up` and
@@ -711,7 +711,7 @@ where
         Self::from_matrix(&Matrix::<3, T, A>::look_at_lh(eye, center, up))
     }
 
-    /// Creates a quaternion from a camera position, a focal point and an up
+    /// Creates a rotor from a camera position, a focal point and an up
     /// direction.
     ///
     /// For a right-handed view coordinate system with `+X=right`, `+Y=up` and
@@ -733,8 +733,10 @@ where
         Self::from_matrix(&Matrix::<3, T, A>::look_at_rh(eye, center, up))
     }
 
-    /// Converts the quaternion `self` to a normalized rotation axis and an
-    /// angle (in radians).
+    /// Converts the rotor `self` to a normalized rotation axis and an angle (in
+    /// radians).
+    ///
+    /// This axis uses the right-hand rule.
     ///
     /// # Panics
     ///
@@ -747,15 +749,16 @@ where
     pub fn to_axis_angle(self) -> (Vector<3, T, A>, T) {
         debug_assert!(
             self.is_normalized(),
-            "quaternion is not normalized: {self:?}.to_axis_angle()"
+            "rotor is not normalized: {self:?}.to_axis_angle()"
         );
 
-        let xyz = Vector::<3, T, A>::new(self.x, self.y, self.z);
-        let length = xyz.length();
+        let bivector_rh = Vector::<3, T, A>::new(self.yz, -self.xz, self.xy);
+        let bivector_length = bivector_rh.length();
 
-        if length >= T::as_from(1e-8) {
-            let axis = xyz / length;
-            let angle = PrimitiveFloatUtils::atan2(length, self.w) * T::as_from(2.0);
+        if bivector_length >= T::as_from(1e-8) {
+            let axis = bivector_rh / bivector_length;
+            let half_angle = PrimitiveFloatUtils::atan2(bivector_length, self.s);
+            let angle = half_angle + half_angle;
 
             (axis, angle)
         } else {
@@ -763,7 +766,7 @@ where
         }
     }
 
-    /// Converts the quaternion `self` to a rotation axis scaled by an angle (in
+    /// Converts the rotor `self` to a rotation axis scaled by an angle (in
     /// radians).
     ///
     /// # Panics
@@ -776,15 +779,16 @@ where
     pub fn to_scaled_axis(self) -> Vector<3, T, A> {
         debug_assert!(
             self.is_normalized(),
-            "quaternion is not normalized: {self:?}.to_scaled_axis()"
+            "rotor is not normalized: {self:?}.to_axis_angle()"
         );
 
-        let xyz = Vector::<3, T, A>::new(self.x, self.y, self.z);
-        let length = xyz.length();
+        let bivector_rh = Vector::<3, T, A>::new(self.yz, -self.xz, self.xy);
+        let bivector_length = bivector_rh.length();
 
-        if length >= T::as_from(1e-8) {
-            let axis = xyz / length;
-            let angle = PrimitiveFloatUtils::atan2(length, self.w) * T::as_from(2.0);
+        if bivector_length >= T::as_from(1e-8) {
+            let axis = bivector_rh / bivector_length;
+            let half_angle = PrimitiveFloatUtils::atan2(bivector_length, self.s);
+            let angle = half_angle + half_angle;
 
             axis * angle
         } else {
@@ -806,10 +810,10 @@ where
     pub fn to_euler(self, order: EulerRot) -> (T, T, T) {
         debug_assert!(
             self.is_normalized(),
-            "quaternion is not normalized: {self:?}.to_euler({order:?})"
+            "rotor is not normalized: {self:?}.to_euler({order:?})"
         );
 
-        Matrix::<3, T, A>::from_quat(self).to_euler(order)
+        Matrix::<3, T, A>::from_rotor(self).to_euler(order)
     }
 
     #[inline(always)]

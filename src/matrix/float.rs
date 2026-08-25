@@ -1,5 +1,5 @@
 use crate::{
-    Alignment, EulerRot, FloatExt, Length, Matrix, PrimitiveFloat, Projective, Quaternion,
+    Alignment, EulerRot, FloatExt, Length, Matrix, PrimitiveFloat, Projective, Quaternion, Rotor,
     SupportedLength, Vector,
     length::TwoOrThree,
     utils::{specialize, specialize_23},
@@ -53,6 +53,29 @@ where
         Length<N>: TwoOrThree,
     {
         specialize_23!(Matrix::<N, T, A>::from_projective_backend(projective))
+    }
+
+    /// Creates a rotation matrix from a rotor.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if the rotor is not normalized.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    #[expect(private_bounds)]
+    pub fn from_rotor(rotor: Rotor<N, T, A>) -> Self
+    where
+        Length<N>: TwoOrThree,
+    {
+        debug_assert!(
+            rotor.is_normalized(),
+            "rotor is not normalized: Matrix::from_rotor({rotor:?})"
+        );
+
+        specialize_23!(Matrix::<N, T, A>::from_rotor_backend(rotor))
     }
 
     /// Returns `true` if any element is NaN.
@@ -364,6 +387,15 @@ where
         );
 
         Self::from_rows(&[projective.x_axis.truncate(), projective.y_axis.truncate()])
+    }
+
+    #[inline(always)]
+    fn from_rotor_backend(rotor: Rotor<2, T, A>) -> Self {
+        let xx = rotor.s * rotor.s - rotor.xy * rotor.xy;
+        let half_xy = rotor.xy * rotor.s;
+        let xy = half_xy + half_xy;
+
+        Self::from_row_array(&[xx, xy, -xy, xx])
     }
 
     #[inline(always)]
@@ -994,6 +1026,24 @@ where
             projective.x_axis.truncate(),
             projective.y_axis.truncate(),
             projective.z_axis.truncate(),
+        ])
+    }
+
+    #[inline(always)]
+    fn from_rotor_backend(rotor: Rotor<3, T, A>) -> Self {
+        let bivector = rotor.0.xyz();
+        let bivector_2 = bivector + bivector;
+        let [xy_xy_2, xy_xz_2, xy_yz_2] = (bivector * bivector_2.x).to_array();
+        let [xz_xz_2, xz_yz_2, yz_yz_2] = (bivector.yzz() * bivector_2.yyz()).to_array();
+        let [s_xy_2, s_xz_2, s_yz_2] = (bivector_2 * rotor.s).to_array();
+
+        Self::from_rows(&[
+            Vector::<3, T, A>::new(T::ONE, s_xy_2, xy_yz_2)
+                - Vector::<3, T, A>::new(xz_xz_2 + xy_xy_2, xz_yz_2, -s_xz_2),
+            Vector::<3, T, A>::new(-xz_yz_2, T::ONE, s_yz_2)
+                - Vector::<3, T, A>::new(s_xy_2, yz_yz_2 + xy_xy_2, xy_xz_2),
+            Vector::<3, T, A>::new(xy_yz_2, -xy_xz_2, T::ONE)
+                - Vector::<3, T, A>::new(s_xz_2, s_yz_2, yz_yz_2 + xz_xz_2),
         ])
     }
 
