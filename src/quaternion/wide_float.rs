@@ -722,9 +722,9 @@ mod tests {
     fn test_from_matrix() {
         for_types!(|Wide: WideFloat| {
             for [x, y, z] in random_iter::<[Wide; 3]>() {
-                let matrix = Mat3::<Wide>::from_rotation_x(x)
-                    * Mat3::<Wide>::from_rotation_y(y)
-                    * Mat3::<Wide>::from_rotation_z(z);
+                let matrix = Mat3::<Wide>::from_rotation_yz(x)
+                    * Mat3::<Wide>::from_rotation_xz(-y)
+                    * Mat3::<Wide>::from_rotation_xy(z);
 
                 assert_test_eq_or_panic!(
                     Quat::<Wide>::from_matrix(&matrix),

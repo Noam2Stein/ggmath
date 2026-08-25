@@ -1454,19 +1454,19 @@ mod tests {
                 if vector.is_finite() && half_sin.is_finite() && half_cos.is_finite() {
                     assert_test_eq!(
                         vector * Rotor::<3, T, A>::new(half_sin, 0.0, 0.0, half_cos),
-                        vector.rotate_z(angle),
+                        vector.rotate_xy(angle),
                         abs <= vector.length() * 1e-5 + 1e-5,
                         0.0 = -0.0
                     );
                     assert_test_eq!(
                         vector * Rotor::<3, T, A>::new(0.0, half_sin, 0.0, half_cos),
-                        vector.rotate_y(-angle),
+                        vector.rotate_xz(angle),
                         abs <= vector.length() * 1e-5 + 1e-5,
                         0.0 = -0.0
                     );
                     assert_test_eq!(
                         vector * Rotor::<3, T, A>::new(0.0, 0.0, half_sin, half_cos),
-                        vector.rotate_x(angle),
+                        vector.rotate_yz(angle),
                         abs <= vector.length() * 1e-5 + 1e-5,
                         0.0 = -0.0
                     );
