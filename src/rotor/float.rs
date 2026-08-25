@@ -579,6 +579,8 @@ where
     /// [`from_rotation_arc`] instead. That function makes it clearer what
     /// direction the rotation happens in, whereas this function requires
     /// remembering the right-hand rule.
+    ///
+    /// [`from_rotation_arc`]: Self::from_rotation_arc
     #[inline]
     #[must_use]
     pub fn from_scaled_axis(scaled_axis: Vector<3, T, A>) -> Self {
