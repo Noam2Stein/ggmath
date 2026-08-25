@@ -1,10 +1,6 @@
 use wide::{f32x4, f32x8, f32x16, f64x2, f64x4, f64x8};
 
-use crate::{
-    Affine, Alignment, EulerRot, Length, Matrix, Projective, Quaternion, Rotor, Vector,
-    length::TwoOrThree,
-    utils::{specialize_23, transmute_generic},
-};
+use crate::{Alignment, Length, Rotor, length::TwoOrThree};
 
 macro_rules! items {
     ($Wide:ident) => {};
@@ -15,7 +11,7 @@ macro_rules! items_2 {
 }
 
 macro_rules! items_3 {
-    ($Wide:ident, $T:ident) => {};
+    ($Wide:ident) => {};
 }
 
 // Since all wide-float functions have names that conflict with normal float
@@ -92,17 +88,17 @@ macro_rules! impl_items {
         where
             Length<N>: TwoOrThree,
         {
-            items!($Wide, $T);
+            items!($Wide);
         }
 
         #[cfg(not(doc))]
         impl<A: Alignment> Rotor<2, $Wide, A> {
-            items_2!($Wide, $T);
+            items_2!($Wide);
         }
 
         #[cfg(not(doc))]
         impl<A: Alignment> Rotor<3, $Wide, A> {
-            items_3!($Wide, $T);
+            items_3!($Wide);
         }
     };
 }
