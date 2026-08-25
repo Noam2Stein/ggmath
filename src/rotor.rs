@@ -1137,7 +1137,6 @@ mod tests {
     use crate::{
         Aligned, Mask, Matrix, Rot2, Rot2A, Rot3, Rot3A, Rotor, Unaligned, Vec2A, Vec4A, Vector,
         test_utils::{assert_test_eq, for_types, random_iter},
-        utils::PrimitiveFloatUtils,
     };
 
     #[test]
@@ -1440,7 +1439,7 @@ mod tests {
         for_types!(|T: PrimitiveFloat, A| {
             for (vector, angle) in random_iter::<(Vector<2, T, A>, T)>() {
                 let angle = angle % 6.0;
-                let (half_sin, half_cos) = PrimitiveFloatUtils::sin_cos(angle / 2.0);
+                let (half_sin, half_cos) = (angle / 2.0).sin_cos();
                 assert_test_eq!(
                     vector * Rotor::<2, T, A>::new(half_sin, half_cos),
                     vector.rotate(angle),
@@ -1451,7 +1450,7 @@ mod tests {
 
             for (vector, angle) in random_iter::<(Vector<3, T, A>, T)>() {
                 let angle = angle % 6.0;
-                let (half_sin, half_cos) = PrimitiveFloatUtils::sin_cos(angle / 2.0);
+                let (half_sin, half_cos) = (angle / 2.0).sin_cos();
                 if vector.is_finite() && half_sin.is_finite() && half_cos.is_finite() {
                     assert_test_eq!(
                         vector * Rotor::<3, T, A>::new(half_sin, 0.0, 0.0, half_cos),

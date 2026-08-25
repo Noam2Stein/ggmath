@@ -2,7 +2,7 @@ use crate::{
     Affine, Alignment, EulerRot, FloatExt, Length, Matrix, PrimitiveFloat, Projective, Rotor,
     Vector,
     length::TwoOrThree,
-    utils::{PrimitiveFloatUtils, specialize_23, transmute_generic},
+    utils::{specialize_23, transmute_generic},
 };
 
 #[expect(private_bounds)]
@@ -505,7 +505,7 @@ where
         let half_angle = dot.acos_approx();
         let rotation = half_angle * self.0.wedge(other.0).signum() * t;
 
-        let (sin, cos) = PrimitiveFloatUtils::sin_cos(rotation);
+        let (sin, cos) = rotation.sin_cos();
         Self::new(self.xy * cos - self.s * sin, self.xy * sin + self.s * cos)
     }
 
@@ -550,7 +550,7 @@ where
     #[inline]
     #[must_use]
     pub fn from_rotation_xy(angle: T) -> Self {
-        let (sin, cos) = PrimitiveFloatUtils::sin_cos(angle * T::as_from(0.5));
+        let (sin, cos) = (angle * T::as_from(0.5)).sin_cos();
         Self::new(sin, T::ZERO, T::ZERO, cos)
     }
 
@@ -558,7 +558,7 @@ where
     #[inline]
     #[must_use]
     pub fn from_rotation_xz(angle: T) -> Self {
-        let (sin, cos) = PrimitiveFloatUtils::sin_cos(angle * T::as_from(0.5));
+        let (sin, cos) = (angle * T::as_from(0.5)).sin_cos();
         Self::new(T::ZERO, sin, T::ZERO, cos)
     }
 
@@ -566,7 +566,7 @@ where
     #[inline]
     #[must_use]
     pub fn from_rotation_yz(angle: T) -> Self {
-        let (sin, cos) = PrimitiveFloatUtils::sin_cos(angle * T::as_from(0.5));
+        let (sin, cos) = (angle * T::as_from(0.5)).sin_cos();
         Self::new(T::ZERO, T::ZERO, sin, cos)
     }
 
@@ -596,7 +596,7 @@ where
             "axis is not normalized: Rotor::from_axis_angle({axis:?}, {angle:?})"
         );
 
-        let (sin, cos) = PrimitiveFloatUtils::sin_cos(angle * T::as_from(0.5));
+        let (sin, cos) = (angle * T::as_from(0.5)).sin_cos();
         let xyz = axis * sin;
         Self::new(xyz.z, -xyz.y, xyz.x, cos)
     }
@@ -617,7 +617,7 @@ where
         if angle == T::ZERO {
             Self::IDENTITY
         } else {
-            let (sin, cos) = PrimitiveFloatUtils::sin_cos(angle * T::as_from(0.5));
+            let (sin, cos) = (angle * T::as_from(0.5)).sin_cos();
             let xyz = axis * sin;
             Self::new(xyz.z, -xyz.y, xyz.x, cos)
         }
@@ -649,9 +649,9 @@ where
         let ti = angles.x * T::as_from(0.5);
         let tj = angles.y * T::as_from(0.5);
         let th = angles.z * T::as_from(0.5);
-        let (si, ci) = PrimitiveFloatUtils::sin_cos(ti);
-        let (sj, cj) = PrimitiveFloatUtils::sin_cos(tj);
-        let (sh, ch) = PrimitiveFloatUtils::sin_cos(th);
+        let (si, ci) = ti.sin_cos();
+        let (sj, cj) = tj.sin_cos();
+        let (sh, ch) = th.sin_cos();
         let cc = ci * ch;
         let cs = ci * sh;
         let sc = si * ch;
@@ -788,7 +788,7 @@ where
 
         if bivector_length >= T::as_from(1e-8) {
             let axis = bivector_rh / bivector_length;
-            let half_angle = PrimitiveFloatUtils::atan2(bivector_length, self.s);
+            let half_angle = bivector_length.atan2(self.s);
             let angle = half_angle + half_angle;
 
             (axis, angle)
@@ -818,7 +818,7 @@ where
 
         if bivector_length >= T::as_from(1e-8) {
             let axis = bivector_rh / bivector_length;
-            let half_angle = PrimitiveFloatUtils::atan2(bivector_length, self.s);
+            let half_angle = bivector_length.atan2(self.s);
             let angle = half_angle + half_angle;
 
             axis * angle
@@ -944,13 +944,13 @@ where
             if dif10 <= T::ZERO {
                 // x^2 >= y^2
                 let four_xsq = omm22 - dif10;
-                let inv4x = T::as_from(0.5) / PrimitiveFloatUtils::sqrt(four_xsq);
+                let inv4x = T::as_from(0.5) / four_xsq.sqrt();
 
                 Self::new(xz + zx, -xy - yx, four_xsq, yz - zy) * inv4x
             } else {
                 // y^2 >= x^2
                 let four_ysq = omm22 + dif10;
-                let inv4y = T::as_from(0.5) / PrimitiveFloatUtils::sqrt(four_ysq);
+                let inv4y = T::as_from(0.5) / four_ysq.sqrt();
 
                 Self::new(yz + zy, -four_ysq, xy + yx, zx - xz) * inv4y
             }
@@ -962,13 +962,13 @@ where
             if sum10 <= T::ZERO {
                 // z^2 >= w^2
                 let four_zsq = opm22 - sum10;
-                let inv4z = T::as_from(0.5) / PrimitiveFloatUtils::sqrt(four_zsq);
+                let inv4z = T::as_from(0.5) / four_zsq.sqrt();
 
                 Self::new(four_zsq, -yz - zy, xz + zx, xy - yx) * inv4z
             } else {
                 // w^2 >= z^2
                 let four_wsq = opm22 + sum10;
-                let inv4w = T::as_from(0.5) / PrimitiveFloatUtils::sqrt(four_wsq);
+                let inv4w = T::as_from(0.5) / four_wsq.sqrt();
 
                 Self::new(xy - yx, xz - zx, yz - zy, four_wsq) * inv4w
             }
@@ -1020,13 +1020,13 @@ where
             if dif10 <= T::ZERO {
                 // x^2 >= y^2
                 let four_xsq = omm22 - dif10;
-                let inv4x = T::as_from(0.5) / PrimitiveFloatUtils::sqrt(four_xsq);
+                let inv4x = T::as_from(0.5) / four_xsq.sqrt();
 
                 Self::new(xz + zx, -xy - yx, four_xsq, yz - zy) * inv4x
             } else {
                 // y^2 >= x^2
                 let four_ysq = omm22 + dif10;
-                let inv4y = T::as_from(0.5) / PrimitiveFloatUtils::sqrt(four_ysq);
+                let inv4y = T::as_from(0.5) / four_ysq.sqrt();
 
                 Self::new(yz + zy, -four_ysq, xy + yx, zx - xz) * inv4y
             }
@@ -1038,13 +1038,13 @@ where
             if sum10 <= T::ZERO {
                 // z^2 >= w^2
                 let four_zsq = opm22 - sum10;
-                let inv4z = T::as_from(0.5) / PrimitiveFloatUtils::sqrt(four_zsq);
+                let inv4z = T::as_from(0.5) / four_zsq.sqrt();
 
                 Self::new(four_zsq, -yz - zy, xz + zx, xy - yx) * inv4z
             } else {
                 // w^2 >= z^2
                 let four_wsq = opm22 + sum10;
-                let inv4w = T::as_from(0.5) / PrimitiveFloatUtils::sqrt(four_wsq);
+                let inv4w = T::as_from(0.5) / four_wsq.sqrt();
 
                 Self::new(xy - yx, xz - zx, yz - zy, four_wsq) * inv4w
             }
@@ -1085,8 +1085,8 @@ where
         } else {
             let half_angle = dot.acos_approx();
 
-            let self_factor = PrimitiveFloatUtils::sin((T::ONE - t) * half_angle);
-            let other_factor = PrimitiveFloatUtils::sin(t * half_angle);
+            let self_factor = ((T::ONE - t) * half_angle).sin();
+            let other_factor = (t * half_angle).sin();
 
             (self * self_factor + other * other_factor).normalize()
         }
