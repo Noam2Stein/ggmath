@@ -1135,8 +1135,7 @@ mod tests {
     use std::format;
 
     use crate::{
-        Aligned, Mask, Quaternion, Rot2, Rot2A, Rot3, Rot3A, Rotor, Unaligned, Vec2A, Vec4A,
-        Vector,
+        Aligned, Mask, Matrix, Rot2, Rot2A, Rot3, Rot3A, Rotor, Unaligned, Vec2A, Vec4A, Vector,
         test_utils::{assert_test_eq, for_types, random_iter},
         utils::PrimitiveFloatUtils,
     };
@@ -1492,20 +1491,12 @@ mod tests {
                     continue;
                 }
 
-                // TODO: Replace this with rotor normalize method once it exists
-                let rotor = Rotor::<3, T, A>(
-                    rotor
-                        .0
-                        .normalize_or(Rotor::<3, T, A>::IDENTITY.0)
-                        .normalize(),
-                );
-
-                // TODO: Replace this with a `Matrix::from_rotor` test once it exists
-                let quaternion = Quaternion::from_xyzw(rotor.yz, -rotor.xz, rotor.xy, rotor.s);
+                let rotor = rotor.normalize_or(Rotor::<3, T, A>::IDENTITY).normalize();
+                let matrix = Matrix::from_rotor(rotor);
 
                 assert_test_eq!(
                     vector * rotor,
-                    vector * quaternion,
+                    vector * matrix,
                     abs <= vector.abs().max_element() * 1e-6 + 1e-4,
                     0.0 = -0.0
                 );
@@ -1515,34 +1506,16 @@ mod tests {
 
     #[test]
     fn test_mul() {
-        // TODO: Make this generic over `N` when `rotor.normalize` exists
-        for_types!(|T: PrimitiveFloat, A| {
+        for_types!(|N: TwoOrThree, T: PrimitiveFloat, A| {
             for (vector, [rotor_1, rotor_2]) in
-                random_iter::<(Vector<2, T, A>, [Rotor<2, T, A>; 2])>()
+                random_iter::<(Vector<N, T, A>, [Rotor<N, T, A>; 2])>()
             {
                 if !vector.is_finite() || vector.length() > 1e5 {
                     continue;
                 }
 
-                let [rotor_1, rotor_2] = [rotor_1, rotor_2]
-                    .map(|r| Rotor(r.0.normalize_or(Rotor::<2, T, A>::IDENTITY.0).normalize()));
-
-                assert_test_eq!(
-                    vector * (rotor_1 * rotor_2),
-                    vector * rotor_1 * rotor_2,
-                    abs <= vector.length() * 1e-6 + 1e-4,
-                    0.0 = -0.0
-                );
-            }
-            for (vector, [rotor_1, rotor_2]) in
-                random_iter::<(Vector<3, T, A>, [Rotor<3, T, A>; 2])>()
-            {
-                if !vector.is_finite() || vector.length() > 1e5 {
-                    continue;
-                }
-
-                let [rotor_1, rotor_2] = [rotor_1, rotor_2]
-                    .map(|r| Rotor(r.0.normalize_or(Rotor::<3, T, A>::IDENTITY.0).normalize()));
+                let [rotor_1, rotor_2] =
+                    [rotor_1, rotor_2].map(|r| r.normalize_or(Rotor::IDENTITY).normalize());
 
                 assert_test_eq!(
                     vector * (rotor_1 * rotor_2),
