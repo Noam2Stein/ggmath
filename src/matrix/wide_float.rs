@@ -337,10 +337,7 @@ macro_rules! items_3 {
         /// `rotation`.
         #[inline]
         #[must_use]
-        pub fn from_scale_quat(
-            scale: Vector<3, $Wide, A>,
-            rotation: Quaternion<$Wide, A>,
-        ) -> Self {
+        pub fn from_scale_quat(scale: Vector<3, $Wide, A>, rotation: Quaternion<$Wide, A>) -> Self {
             let [rotation_x, rotation_y, rotation_z] = Self::quat_to_axes(rotation);
             Self::from_rows(&[
                 rotation_x * scale.x,
@@ -1395,9 +1392,7 @@ mod tests {
     fn test_to_scale_rotation() {
         for_types!(|Wide: WideFloat| {
             for matrix in random_iter::<(Vec3<Wide>, Quat<Wide>)>()
-                .map(|(scale, rotation)| {
-                    Mat3::<Wide>::from_scale_quat(scale, rotation.normalize())
-                })
+                .map(|(scale, rotation)| Mat3::<Wide>::from_scale_quat(scale, rotation.normalize()))
                 .chain(random_iter())
             {
                 assert_test_eq_or_panic!(
