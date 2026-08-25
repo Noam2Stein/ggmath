@@ -19,6 +19,9 @@ mod generic;
 
 mod float;
 
+#[cfg(feature = "wide")]
+mod wide;
+
 /// A rotor used to represent rotation.
 ///
 /// A rotor is a mathematical object used to represent rotations. In comparison
