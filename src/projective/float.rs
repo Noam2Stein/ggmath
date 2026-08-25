@@ -1,5 +1,6 @@
 use crate::{
-    Alignment, EulerRot, Length, Matrix, PrimitiveFloat, Projective, Quaternion, Rotor, Vector,
+    Affine, Alignment, EulerRot, Length, Matrix, PrimitiveFloat, Projective, Quaternion, Rotor,
+    Vector,
     length::TwoOrThree,
     utils::{specialize_23, transmute_generic},
 };
@@ -47,11 +48,7 @@ where
     #[inline]
     #[must_use]
     #[track_caller]
-    #[expect(private_bounds)]
-    pub fn from_rotor(rotor: Rotor<N, T, A>) -> Self
-    where
-        Length<N>: TwoOrThree,
-    {
+    pub fn from_rotor(rotor: Rotor<N, T, A>) -> Self {
         // TODO: Optimize this
         Self::from_matrix(&Matrix::<N, T, A>::from_rotor(rotor))
     }
@@ -67,11 +64,7 @@ where
     #[inline]
     #[must_use]
     #[track_caller]
-    #[expect(private_bounds)]
-    pub fn from_scale_rotation(scale: Vector<N, T, A>, rotation: Rotor<N, T, A>) -> Self
-    where
-        Length<N>: TwoOrThree,
-    {
+    pub fn from_scale_rotation(scale: Vector<N, T, A>, rotation: Rotor<N, T, A>) -> Self {
         // TODO: Optimize this
         Self::from_matrix(&Matrix::<N, T, A>::from_scale_rotation(scale, rotation))
     }
@@ -86,11 +79,10 @@ where
     #[inline]
     #[must_use]
     #[track_caller]
-    #[expect(private_bounds)]
-    pub fn from_rotation_translation(rotation: Rotor<N, T, A>, translation: Vector<N, T, A>) -> Self
-    where
-        Length<N>: TwoOrThree,
-    {
+    pub fn from_rotation_translation(
+        rotation: Rotor<N, T, A>,
+        translation: Vector<N, T, A>,
+    ) -> Self {
         // TODO: Optimize this
         Self::from_matrix_translation(&Matrix::<N, T, A>::from_rotor(rotation), translation)
     }
@@ -106,15 +98,11 @@ where
     #[inline]
     #[must_use]
     #[track_caller]
-    #[expect(private_bounds)]
     pub fn from_scale_rotation_translation(
         scale: Vector<N, T, A>,
         rotation: Rotor<N, T, A>,
         translation: Vector<N, T, A>,
-    ) -> Self
-    where
-        Length<N>: TwoOrThree,
-    {
+    ) -> Self {
         // TODO: Optimize this
         Self::from_matrix_translation(
             &Matrix::<N, T, A>::from_scale_rotation(scale, rotation),
@@ -308,6 +296,46 @@ where
             other,
             max_abs_diff
         ))
+    }
+
+    /// Returns the `scale` and `rotation` of `self`.
+    ///
+    /// `self` must not contain shearing or projections. Otherwise the result is
+    /// unspecified.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` contains shearing or projections, or the determinant of
+    /// `self` is zero.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_scale_rotation(&self) -> (Vector<N, T, A>, Rotor<N, T, A>) {
+        // TODO: Optimize this
+        Matrix::<N, T, A>::from_projective(self).to_scale_rotation()
+    }
+
+    /// Returns the `scale`, `rotation` and `translation` of `self`.
+    ///
+    /// `self` must not contain shearing or projections. Otherwise the result is
+    /// unspecified.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` contains shearing or projections, or the determinant of
+    /// `self` is zero.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_scale_rotation_translation(
+        &self,
+    ) -> (Vector<N, T, A>, Rotor<N, T, A>, Vector<N, T, A>) {
+        // TODO: Optimize this
+        Affine::<N, T, A>::from_projective(self).to_scale_rotation_translation()
     }
 }
 

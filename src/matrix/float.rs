@@ -208,6 +208,26 @@ where
         }
     }
 
+    /// Returns the `scale` and `rotation` of `self`.
+    ///
+    /// `self` must not contain shearing. Otherwise the result is unspecified.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` contains shearing or the determinant of `self` is zero.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    #[expect(private_bounds)]
+    pub fn to_scale_rotation(&self) -> (Vector<N, T, A>, Rotor<N, T, A>)
+    where
+        Length<N>: TwoOrThree,
+    {
+        todo!()
+    }
+
     #[inline]
     fn inverse_and_determinant(&self) -> (Self, T) {
         specialize!(Matrix::<N, T, A>::inverse_and_determinant_backend(self))

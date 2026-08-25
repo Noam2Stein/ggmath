@@ -246,6 +246,49 @@ where
                 .translation
                 .abs_diff_eq(other.translation, max_abs_diff)
     }
+
+    /// Returns the `scale` and `rotation` of `self`.
+    ///
+    /// `self` must not contain shearing. Otherwise the result is unspecified.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` contains shearing or the determinant of `self` is zero.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    #[expect(private_bounds)]
+    pub fn to_scale_rotation(&self) -> (Vector<N, T, A>, Rotor<N, T, A>)
+    where
+        Length<N>: TwoOrThree,
+    {
+        self.matrix.to_scale_rotation()
+    }
+
+    /// Returns the `scale`, `rotation` and `translation` of `self`.
+    ///
+    /// `self` must not contain shearing. Otherwise the result is unspecified.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` contains shearing or the determinant of `self` is zero.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    #[expect(private_bounds)]
+    pub fn to_scale_rotation_translation(
+        &self,
+    ) -> (Vector<N, T, A>, Rotor<N, T, A>, Vector<N, T, A>)
+    where
+        Length<N>: TwoOrThree,
+    {
+        let (scale, rotation) = self.matrix.to_scale_rotation();
+        (scale, rotation, self.translation)
+    }
 }
 
 impl<T, A: Alignment> Affine<2, T, A>
