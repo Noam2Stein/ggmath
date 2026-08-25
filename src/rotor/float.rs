@@ -377,6 +377,35 @@ impl<T, A: Alignment> Rotor<2, T, A>
 where
     T: PrimitiveFloat,
 {
+    /// Creates a 2D rotor from an `angle` (in radians) rotating `+X` to `+Y`.
+    #[inline]
+    #[must_use]
+    pub fn from_angle(angle: T) -> Self {
+        let (sin, cos) = (angle * T::as_from(0.5)).sin_cos();
+        Self::new(sin, cos)
+    }
+
+    /// Converts a 2D rotor to an angle (in radians) rotating `+X` to `+Y`.
+    ///
+    /// This assumes the rotor is normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` is not normalized.
+    #[inline]
+    #[must_use]
+    pub fn to_angle(self) -> T {
+        debug_assert!(
+            self.is_normalized(),
+            "rotor is not normalized: {self:?}.to_angle()"
+        );
+
+        let half_angle = self.xy.atan2(self.s);
+        half_angle + half_angle
+    }
+
     #[inline(always)]
     #[track_caller]
     fn from_rotation_arc_backend(from: Vector<2, T, A>, to: Vector<2, T, A>) -> Self {
