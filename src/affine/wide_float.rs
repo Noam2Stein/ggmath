@@ -1,163 +1,503 @@
 use wide::{f32x4, f32x8, f32x16, f64x2, f64x4, f64x8};
 
 use crate::{
-    Affine, Alignment, EulerRot, Length, Matrix, Quaternion, SupportedLength, Vector,
-    utils::specialize,
+    Affine, Alignment, EulerRot, Length, Matrix, Projective, Quaternion, SupportedLength, Vector,
+    length::TwoOrThree,
+    utils::{specialize, specialize_23},
 };
 
-macro_rules! impl_wide_float {
+macro_rules! items {
     ($Wide:ident) => {
+        /// An affine transform with all elements set to NaN (Not a Number).
+        pub const NAN: Self =
+            Self::from_matrix_translation(&Matrix::<N, $Wide, A>::NAN, Vector::<N, $Wide, A>::NAN);
+
+        /// Creates an affine transform from a projective transform.
+        ///
+        /// This assumes `projective` does not contain projections.
+        #[inline]
+        #[must_use]
+        #[track_caller]
+        #[expect(private_bounds)]
+        pub fn from_projective(projective: &Projective<N, $Wide, A>) -> Self
+        where
+            Length<N>: TwoOrThree,
+        {
+            specialize_23!(Affine::<N, $Wide, A>::from_projective_backend(projective))
+        }
+
+        /// Returns `true` if any element is NaN.
+        #[inline]
+        #[must_use]
+        pub fn is_nan(&self) -> $Wide {
+            self.matrix.is_nan() | self.translation.is_nan()
+        }
+
+        /// Returns `true` if all elements are neither infinite nor NaN.
+        #[inline]
+        #[must_use]
+        pub fn is_finite(&self) -> $Wide {
+            self.matrix.is_finite() & self.translation.is_finite()
+        }
+
+        /// Returns the inverse of `self`.
+        ///
+        /// If `self` is not invertable the result is unspecified.
+        #[inline]
+        #[must_use]
+        pub fn inverse(&self) -> Self {
+            let matrix = self.matrix.inverse();
+            let translation = -self.translation * matrix;
+
+            Self::from_matrix_translation(&matrix, translation)
+        }
+
+        // `try_inverse` is exluded on purpose. It would not be useful because
+        // it would only return `Some` if all lanes succeed.
+
+        /// For each lane, returns the inverse of `self` or `fallback` if `self`
+        /// is not invertable.
+        ///
+        /// The fallback is only applied for invalid lanes. Other lanes are not
+        /// affected.
+        #[inline]
+        #[must_use]
+        pub fn inverse_or(&self, fallback: &Self) -> Self {
+            specialize!(Affine::<N, $Wide, A>::inverse_or_backend(self, fallback))
+        }
+
+        /// For each lane, returns the inverse of `self` or the zero transform
+        /// if `self` is not invertable.
+        ///
+        /// The fallback is only applied for invalid lanes. Other lanes are not
+        /// affected.
+        #[inline]
+        #[must_use]
+        pub fn inverse_or_zero(&self) -> Self {
+            specialize!(Affine::<N, $Wide, A>::inverse_or_zero_backend(self))
+        }
+
+        /// Returns `true` if the absolute difference of all elements between
+        /// `self` and `other` is less than or equal to `max_abs_diff` for all
+        /// lanes.
+        ///
+        /// This can be used to compare two affines that should be equal, but
+        /// may have a slight difference due to operations having rounding
+        /// errors.
+        #[inline]
+        #[must_use]
+        pub fn abs_diff_eq(&self, other: &Self, max_abs_diff: $Wide) -> bool {
+            self.matrix.abs_diff_eq(&other.matrix, max_abs_diff)
+                && self
+                    .translation
+                    .abs_diff_eq(other.translation, max_abs_diff)
+        }
+    };
+}
+
+macro_rules! items_2 {
+    ($Wide:ident) => {
+        /// Creates an affine transform containing a rotation of `angle` (in
+        /// radians).
+        ///
+        /// This rotates `+X` to `+Y`.
+        #[inline]
+        #[must_use]
+        pub fn from_angle(angle: $Wide) -> Self {
+            Self::from_matrix(&Matrix::<2, $Wide, A>::from_angle(angle))
+        }
+
+        /// Creates an affine transform containing a rotation of `angle` (in
+        /// radians) and `translation`.
+        ///
+        /// This rotates `+X` to `+Y`.
+        #[inline]
+        #[must_use]
+        pub fn from_angle_translation(angle: $Wide, translation: Vector<2, $Wide, A>) -> Self {
+            Self::from_matrix_translation(&Matrix::<2, $Wide, A>::from_angle(angle), translation)
+        }
+
+        /// Creates an affine transform containing a non-uniform `scale` and
+        /// rotation of `angle` (in radians).
+        ///
+        /// This rotates `+X` to `+Y`.
+        #[inline]
+        #[must_use]
+        pub fn from_scale_angle(scale: Vector<2, $Wide, A>, angle: $Wide) -> Self {
+            Self::from_matrix(&Matrix::<2, $Wide, A>::from_scale_angle(scale, angle))
+        }
+
+        /// Creates an affine transform containing a non-uniform `scale`,
+        /// rotation of `angle` (in radians) and `translation`.
+        ///
+        /// This rotates `+X` to `+Y`.
+        #[inline]
+        #[must_use]
+        pub fn from_scale_angle_translation(
+            scale: Vector<2, $Wide, A>,
+            angle: $Wide,
+            translation: Vector<2, $Wide, A>,
+        ) -> Self {
+            Self::from_matrix_translation(
+                &Matrix::<2, $Wide, A>::from_scale_angle(scale, angle),
+                translation,
+            )
+        }
+
+        /// Takes the `N+1`x`N` affine transform part of an `N+1`x`N+1`
+        /// homogeneous transformation matrix, removing the last column.
+        ///
+        /// This assumes `homogeneous` does not contain projections.
+        #[inline]
+        #[must_use]
+        pub fn from_homogeneous(homogeneous: &Matrix<3, $Wide, A>) -> Self {
+            Self::from_rows(&[
+                homogeneous.x_axis.truncate(),
+                homogeneous.y_axis.truncate(),
+                homogeneous.z_axis.truncate(),
+            ])
+        }
+
+        /// For each lane, returns the `scale` and `angle` of `self`.
+        ///
+        /// `self` must be reversible and not contain shearing. Otherwise the
+        /// result is unspecified.
+        #[inline]
+        #[must_use]
+        pub fn to_scale_angle(&self) -> (Vector<2, $Wide, A>, $Wide) {
+            self.matrix.to_scale_angle()
+        }
+
+        /// For each lane, returns the `scale`, `angle` and `translation` of
+        /// `self`.
+        ///
+        /// `self` must be reversible and not contain shearing. Otherwise the
+        /// result is unspecified.
+        #[inline]
+        #[must_use]
+        pub fn to_scale_angle_translation(
+            &self,
+        ) -> (Vector<2, $Wide, A>, $Wide, Vector<2, $Wide, A>) {
+            let (scale, angle) = self.matrix.to_scale_angle();
+            (scale, angle, self.translation)
+        }
+    };
+}
+
+macro_rules! items_3 {
+    ($Wide:ident) => {
+        /// Creates an affine transform containing a 3D rotation from `angle`
+        /// (in radians) around the x axis.
+        ///
+        /// This rotates `+Y` to `+Z`.
+        #[inline]
+        #[must_use]
+        pub fn from_rotation_x(angle: $Wide) -> Self {
+            Self::from_matrix(&Matrix::<3, $Wide, A>::from_rotation_x(angle))
+        }
+
+        /// Creates an affine transform containing a 3D rotation from `angle`
+        /// (in radians) around the y axis.
+        ///
+        /// This rotates `+Z` to `+X`.
+        #[inline]
+        #[must_use]
+        pub fn from_rotation_y(angle: $Wide) -> Self {
+            Self::from_matrix(&Matrix::<3, $Wide, A>::from_rotation_y(angle))
+        }
+
+        /// Creates an affine transform containing a 3D rotation from `angle`
+        /// (in radians) around the z axis.
+        ///
+        /// This rotates `+X` to `+Y`.
+        #[inline]
+        #[must_use]
+        pub fn from_rotation_z(angle: $Wide) -> Self {
+            Self::from_matrix(&Matrix::<3, $Wide, A>::from_rotation_z(angle))
+        }
+
+        /// Creates an affine transform containing a 3D rotation from a
+        /// quaternion.
+        #[inline]
+        #[must_use]
+        pub fn from_quat(quat: Quaternion<$Wide, A>) -> Self {
+            Self::from_matrix(&Matrix::<3, $Wide, A>::from_quat(quat))
+        }
+
+        /// Creates an affine transform containing a rotation from a rotation
+        /// `axis` and `angle` (in radians).
+        ///
+        /// `axis` must be normalized. Otherwise the result is unspecified.
+        #[inline]
+        #[must_use]
+        pub fn from_axis_angle(axis: Vector<3, $Wide, A>, angle: $Wide) -> Self {
+            Self::from_matrix(&Matrix::<3, $Wide, A>::from_axis_angle(axis, angle))
+        }
+
+        /// Creates an affine transform containing a rotation from an Euler
+        /// rotation order/sequence and angles (in radians).
+        #[inline]
+        #[must_use]
+        pub fn from_euler(order: EulerRot, a: $Wide, b: $Wide, c: $Wide) -> Self {
+            Self::from_matrix(&Matrix::<3, $Wide, A>::from_euler(order, a, b, c))
+        }
+
+        /// Creates an affine transform containing a non-uniform `scale` and a
+        /// 3D `rotation`.
+        #[inline]
+        #[must_use]
+        pub fn from_scale_rotation(
+            scale: Vector<3, $Wide, A>,
+            rotation: Quaternion<$Wide, A>,
+        ) -> Self {
+            Self::from_matrix(&Matrix::<3, $Wide, A>::from_scale_rotation(scale, rotation))
+        }
+
+        /// Creates an affine transform containing a 3D `rotation` and
+        /// `translation`.
+        #[inline]
+        #[must_use]
+        pub fn from_rotation_translation(
+            rotation: Quaternion<$Wide, A>,
+            translation: Vector<3, $Wide, A>,
+        ) -> Self {
+            Self::from_matrix_translation(&Matrix::<3, $Wide, A>::from_quat(rotation), translation)
+        }
+
+        /// Creates an affine transform containing a non-uniform `scale`, a 3D
+        /// `rotation` and `translation`.
+        #[inline]
+        #[must_use]
+        pub fn from_scale_rotation_translation(
+            scale: Vector<3, $Wide, A>,
+            rotation: Quaternion<$Wide, A>,
+            translation: Vector<3, $Wide, A>,
+        ) -> Self {
+            Self::from_matrix_translation(
+                &Matrix::<3, $Wide, A>::from_scale_rotation(scale, rotation),
+                translation,
+            )
+        }
+
+        /// Takes the `N+1`x`N` affine transform part of an `N+1`x`N+1`
+        /// homogeneous transformation matrix, removing the last column.
+        ///
+        /// This assumes `homogeneous` does not contain projections.
+        #[inline]
+        #[must_use]
+        pub fn from_homogeneous(homogeneous: &Matrix<4, $Wide, A>) -> Self {
+            Self::from_rows(&[
+                homogeneous.x_axis.truncate(),
+                homogeneous.y_axis.truncate(),
+                homogeneous.z_axis.truncate(),
+                homogeneous.w_axis.truncate(),
+            ])
+        }
+
+        /// Creates a left-handed view transform from a camera position, a
+        /// facing direction and an up direction.
+        ///
+        /// For a view coordinate system with `+X=right`, `+Y=up` and
+        /// `+Z=forward`.
+        #[inline]
+        #[must_use]
+        pub fn look_to_lh(
+            eye: Vector<3, $Wide, A>,
+            dir: Vector<3, $Wide, A>,
+            up: Vector<3, $Wide, A>,
+        ) -> Self {
+            let forward = dir;
+            let right = up.cross(forward).normalize();
+            let up = forward.cross(right);
+
+            Self::from_rows(&[
+                Vector::<3, $Wide, A>::new(right.x, up.x, forward.x),
+                Vector::<3, $Wide, A>::new(right.y, up.y, forward.y),
+                Vector::<3, $Wide, A>::new(right.z, up.z, forward.z),
+                Vector::<3, $Wide, A>::new(-eye.dot(right), -eye.dot(up), -eye.dot(forward)),
+            ])
+        }
+
+        /// Creates a right-handed view transform from a camera position, a
+        /// facing direction and an up direction.
+        ///
+        /// For a view coordinate system with `+X=right`, `+Y=up` and `+Z=back`.
+        #[inline]
+        #[must_use]
+        pub fn look_to_rh(
+            eye: Vector<3, $Wide, A>,
+            dir: Vector<3, $Wide, A>,
+            up: Vector<3, $Wide, A>,
+        ) -> Self {
+            let forward = dir;
+            let right = forward.cross(up).normalize();
+            let up = right.cross(forward);
+
+            Self::from_rows(&[
+                Vector::<3, $Wide, A>::new(right.x, up.x, -forward.x),
+                Vector::<3, $Wide, A>::new(right.y, up.y, -forward.y),
+                Vector::<3, $Wide, A>::new(right.z, up.z, -forward.z),
+                Vector::<3, $Wide, A>::new(-eye.dot(right), -eye.dot(up), eye.dot(forward)),
+            ])
+        }
+
+        /// Creates a left-handed view transform from a camera position, a focal
+        /// point and an up direction.
+        ///
+        /// For a view coordinate system with `+X=right`, `+Y=up` and
+        /// `+Z=forward`.
+        #[inline]
+        #[must_use]
+        pub fn look_at_lh(
+            eye: Vector<3, $Wide, A>,
+            center: Vector<3, $Wide, A>,
+            up: Vector<3, $Wide, A>,
+        ) -> Self {
+            Self::look_to_lh(eye, (center - eye).normalize(), up)
+        }
+
+        /// Creates a right-handed view transform from a camera position, a
+        /// focal point and an up direction.
+        ///
+        /// For a view coordinate system with `+X=right`, `+Y=up` and `+Z=back`.
+        #[inline]
+        #[must_use]
+        pub fn look_at_rh(
+            eye: Vector<3, $Wide, A>,
+            center: Vector<3, $Wide, A>,
+            up: Vector<3, $Wide, A>,
+        ) -> Self {
+            Self::look_to_rh(eye, (center - eye).normalize(), up)
+        }
+
+        /// Returns the Euler angles forming `self` for the given Euler rotation
+        /// order/sequence.
+        ///
+        /// `self` must not contain any non-rotation transformations, excluding
+        /// translation. Otherwise the result is unspecified.
+        #[inline]
+        #[must_use]
+        pub fn to_euler(&self, order: EulerRot) -> ($Wide, $Wide, $Wide) {
+            self.matrix.to_euler(order)
+        }
+
+        /// For each lane, returns the `scale` and `rotation` of `self`.
+        ///
+        /// `self` must be reversible and not contain shearing. Otherwise the
+        /// result is unspecified.
+        #[inline]
+        #[must_use]
+        pub fn to_scale_rotation(&self) -> (Vector<3, $Wide, A>, Quaternion<$Wide, A>) {
+            self.matrix.to_scale_rotation()
+        }
+
+        /// For each lane, returns the `scale`, `rotation` and `translation` of
+        /// `self`.
+        ///
+        /// `self` must be reversible and not contain shearing. Otherwise the
+        /// result is unspecified.
+        #[inline]
+        #[must_use]
+        pub fn to_scale_rotation_translation(
+            &self,
+        ) -> (
+            Vector<3, $Wide, A>,
+            Quaternion<$Wide, A>,
+            Vector<3, $Wide, A>,
+        ) {
+            let (scale, rotation) = self.matrix.to_scale_rotation();
+            (scale, rotation, self.translation)
+        }
+    };
+}
+
+// Since all wide-float functions have names that conflict with normal float
+// functions, We cannot implement this API using generics. Duplicating the API
+// for each supported wide-float type works, but then documentation shows the
+// duplicated API, making it hard to read.
+//
+// When generating documentation, Rust does not care that these items are
+// conflicting. This allows us to cheat by showing these items in a generic
+// context in documentation, but making them separate in all other cases.
+
+#[cfg(doc)]
+#[doc(hidden)]
+pub trait WideFloat: crate::Scalar {}
+
+/// Functionality for [SoA] (Structure of Arrays) float affine transforms.
+///
+/// This is gated behind the `wide` feature flag.
+///
+/// This functionality is shown with generics to make it easier to read. This
+/// works with all float types from the [`wide`] crate.
+///
+/// [SoA]: crate#soa
+/// [`wide`]: https://crates.io/crates/wide
+#[cfg(doc)]
+impl<const N: usize, Wide, A: Alignment> Affine<N, Wide, A>
+where
+    Length<N>: SupportedLength,
+    Wide: WideFloat,
+{
+    items!(Wide);
+}
+
+/// Functionality for [SoA] (Structure of Arrays) 2D float affine transforms.
+///
+/// This is gated behind the `wide` feature flag.
+///
+/// This functionality is shown with generics to make it easier to read. This
+/// works with all float types from the [`wide`] crate.
+///
+/// [SoA]: crate#soa
+/// [`wide`]: https://crates.io/crates/wide
+#[cfg(doc)]
+impl<Wide, A: Alignment> Affine<2, Wide, A>
+where
+    Wide: WideFloat,
+{
+    items_2!(Wide);
+}
+
+/// Functionality for [SoA] (Structure of Arrays) 3D float affine transforms.
+///
+/// This is gated behind the `wide` feature flag.
+///
+/// This functionality is shown with generics to make it easier to read. This
+/// works with all float types from the [`wide`] crate.
+///
+/// [SoA]: crate#soa
+/// [`wide`]: https://crates.io/crates/wide
+#[cfg(doc)]
+impl<Wide, A: Alignment> Affine<3, Wide, A>
+where
+    Wide: WideFloat,
+{
+    items_3!(Wide);
+}
+
+macro_rules! impl_items {
+    ($Wide:ident) => {
+        #[cfg(not(doc))]
         impl<const N: usize, A: Alignment> Affine<N, $Wide, A>
         where
             Length<N>: SupportedLength,
         {
-            /// An affine transform with all elements set to NaN (Not a Number).
-            pub const NAN: Self = Self::from_matrix_translation(
-                &Matrix::<N, $Wide, A>::NAN,
-                Vector::<N, $Wide, A>::NAN,
-            );
-
-            /// Returns `true` if any element is NaN.
-            #[inline]
-            #[must_use]
-            pub fn is_nan(&self) -> $Wide {
-                self.matrix.is_nan() | self.translation.is_nan()
-            }
-
-            /// Returns `true` if all elements are neither infinite nor NaN.
-            #[inline]
-            #[must_use]
-            pub fn is_finite(&self) -> $Wide {
-                self.matrix.is_finite() & self.translation.is_finite()
-            }
-
-            /// Returns the inverse of `self`.
-            ///
-            /// If `self` is not invertable the result is unspecified.
-            #[inline]
-            #[must_use]
-            pub fn inverse(&self) -> Self {
-                let matrix = self.matrix.inverse();
-                let translation = -self.translation * matrix;
-
-                Self::from_matrix_translation(&matrix, translation)
-            }
-
-            // `try_inverse` is exluded on purpose. It would not be useful
-            // because it would only return `Some` if all lanes succeed.
-
-            /// For each lane, returns the inverse of `self` or `fallback` if
-            /// `self` is not invertable.
-            ///
-            /// The fallback is only applied for invalid lanes. Other lanes are
-            /// not affected.
-            #[inline]
-            #[must_use]
-            pub fn inverse_or(&self, fallback: &Self) -> Self {
-                specialize!(Affine::<N, $Wide, A>::inverse_or_backend(self, fallback))
-            }
-
-            /// For each lane, returns the inverse of `self` or the zero
-            /// transform if `self` is not invertable.
-            ///
-            /// The fallback is only applied for invalid lanes. Other lanes are
-            /// not affected.
-            #[inline]
-            #[must_use]
-            pub fn inverse_or_zero(&self) -> Self {
-                specialize!(Affine::<N, $Wide, A>::inverse_or_zero_backend(self))
-            }
-
-            /// Returns `true` if the absolute difference of all elements
-            /// between `self` and `other` is less than or equal to
-            /// `max_abs_diff` for all lanes.
-            ///
-            /// This can be used to compare two affines that should be equal,
-            /// but may have a slight difference due to operations having
-            /// rounding errors.
-            #[inline]
-            #[must_use]
-            pub fn abs_diff_eq(&self, other: &Self, max_abs_diff: $Wide) -> bool {
-                self.matrix.abs_diff_eq(&other.matrix, max_abs_diff)
-                    && self
-                        .translation
-                        .abs_diff_eq(other.translation, max_abs_diff)
-            }
+            items!($Wide);
         }
 
+        #[cfg(not(doc))]
         impl<A: Alignment> Affine<2, $Wide, A> {
-            /// Creates an affine transform containing a rotation of `angle`
-            /// (in radians).
-            ///
-            /// This rotates `+X` to `+Y`.
-            #[inline]
-            #[must_use]
-            pub fn from_angle(angle: $Wide) -> Self {
-                Self::from_matrix(&Matrix::<2, $Wide, A>::from_angle(angle))
-            }
+            items_2!($Wide);
 
-            /// Creates an affine transform containing a rotation of `angle`
-            /// (in radians) and `translation`.
-            ///
-            /// This rotates `+X` to `+Y`.
-            #[inline]
-            #[must_use]
-            pub fn from_angle_translation(angle: $Wide, translation: Vector<2, $Wide, A>) -> Self {
-                Self::from_matrix_translation(
-                    &Matrix::<2, $Wide, A>::from_angle(angle),
-                    translation,
-                )
-            }
-
-            /// Creates an affine transform containing a non-uniform `scale` and
-            /// rotation of `angle` (in radians).
-            ///
-            /// This rotates `+X` to `+Y`.
-            #[inline]
-            #[must_use]
-            pub fn from_scale_angle(scale: Vector<2, $Wide, A>, angle: $Wide) -> Self {
-                Self::from_matrix(&Matrix::<2, $Wide, A>::from_scale_angle(scale, angle))
-            }
-
-            /// Creates an affine transform containing a non-uniform `scale`,
-            /// rotation of `angle` (in radians) and `translation`.
-            ///
-            /// This rotates `+X` to `+Y`.
-            #[inline]
-            #[must_use]
-            pub fn from_scale_angle_translation(
-                scale: Vector<2, $Wide, A>,
-                angle: $Wide,
-                translation: Vector<2, $Wide, A>,
-            ) -> Self {
-                Self::from_matrix_translation(
-                    &Matrix::<2, $Wide, A>::from_scale_angle(scale, angle),
-                    translation,
-                )
-            }
-
-            /// For each lane, returns the `scale` and `angle` of `self`.
-            ///
-            /// `self` must be reversible and not contain shearing. Otherwise
-            /// the result is unspecified.
-            #[inline]
-            #[must_use]
-            pub fn to_scale_angle(&self) -> (Vector<2, $Wide, A>, $Wide) {
-                self.matrix.to_scale_angle()
-            }
-
-            /// For each lane, returns the `scale`, `angle` and `translation` of
-            /// `self`.
-            ///
-            /// `self` must be reversible and not contain shearing. Otherwise
-            /// the result is unspecified.
-            #[inline]
-            #[must_use]
-            pub fn to_scale_angle_translation(
-                &self,
-            ) -> (Vector<2, $Wide, A>, $Wide, Vector<2, $Wide, A>) {
-                let (scale, angle) = self.matrix.to_scale_angle();
-                (scale, angle, self.translation)
+            #[inline(always)]
+            #[track_caller]
+            fn from_projective_backend(projective: &Projective<2, $Wide, A>) -> Self {
+                Self::from_rows(&[
+                    projective.x_axis.truncate(),
+                    projective.y_axis.truncate(),
+                    projective.z_axis.truncate(),
+                ])
             }
 
             #[inline(always)]
@@ -193,218 +533,19 @@ macro_rules! impl_wide_float {
             }
         }
 
+        #[cfg(not(doc))]
         impl<A: Alignment> Affine<3, $Wide, A> {
-            /// Creates an affine transform containing a 3D rotation from
-            /// `angle` (in radians) around the x axis.
-            ///
-            /// This rotates `+Y` to `+Z`.
-            #[inline]
-            #[must_use]
-            pub fn from_rotation_x(angle: $Wide) -> Self {
-                Self::from_matrix(&Matrix::<3, $Wide, A>::from_rotation_x(angle))
-            }
+            items_3!($Wide);
 
-            /// Creates an affine transform containing a 3D rotation from
-            /// `angle` (in radians) around the y axis.
-            ///
-            /// This rotates `+Z` to `+X`.
-            #[inline]
-            #[must_use]
-            pub fn from_rotation_y(angle: $Wide) -> Self {
-                Self::from_matrix(&Matrix::<3, $Wide, A>::from_rotation_y(angle))
-            }
-
-            /// Creates an affine transform containing a 3D rotation from
-            /// `angle` (in radians) around the z axis.
-            ///
-            /// This rotates `+X` to `+Y`.
-            #[inline]
-            #[must_use]
-            pub fn from_rotation_z(angle: $Wide) -> Self {
-                Self::from_matrix(&Matrix::<3, $Wide, A>::from_rotation_z(angle))
-            }
-
-            /// Creates an affine transform containing a 3D rotation from a
-            /// quaternion.
-            #[inline]
-            #[must_use]
-            pub fn from_quat(quat: Quaternion<$Wide, A>) -> Self {
-                Self::from_matrix(&Matrix::<3, $Wide, A>::from_quat(quat))
-            }
-
-            /// Creates an affine transform containing a rotation from a
-            /// rotation `axis` and `angle` (in radians).
-            ///
-            /// `axis` must be normalized. Otherwise the result is unspecified.
-            #[inline]
-            #[must_use]
-            pub fn from_axis_angle(axis: Vector<3, $Wide, A>, angle: $Wide) -> Self {
-                Self::from_matrix(&Matrix::<3, $Wide, A>::from_axis_angle(axis, angle))
-            }
-
-            /// Creates an affine transform containing a rotation from an Euler
-            /// rotation order/sequence and angles (in radians).
-            #[inline]
-            #[must_use]
-            pub fn from_euler(order: EulerRot, a: $Wide, b: $Wide, c: $Wide) -> Self {
-                Self::from_matrix(&Matrix::<3, $Wide, A>::from_euler(order, a, b, c))
-            }
-
-            /// Creates an affine transform containing a non-uniform `scale` and
-            /// a 3D `rotation`.
-            #[inline]
-            #[must_use]
-            pub fn from_scale_rotation(
-                scale: Vector<3, $Wide, A>,
-                rotation: Quaternion<$Wide, A>,
-            ) -> Self {
-                Self::from_matrix(&Matrix::<3, $Wide, A>::from_scale_rotation(scale, rotation))
-            }
-
-            /// Creates an affine transform containing a 3D `rotation` and
-            /// `translation`.
-            #[inline]
-            #[must_use]
-            pub fn from_rotation_translation(
-                rotation: Quaternion<$Wide, A>,
-                translation: Vector<3, $Wide, A>,
-            ) -> Self {
-                Self::from_matrix_translation(
-                    &Matrix::<3, $Wide, A>::from_quat(rotation),
-                    translation,
-                )
-            }
-
-            /// Creates an affine transform containing a non-uniform `scale`, a
-            /// 3D `rotation` and `translation`.
-            #[inline]
-            #[must_use]
-            pub fn from_scale_rotation_translation(
-                scale: Vector<3, $Wide, A>,
-                rotation: Quaternion<$Wide, A>,
-                translation: Vector<3, $Wide, A>,
-            ) -> Self {
-                Self::from_matrix_translation(
-                    &Matrix::<3, $Wide, A>::from_scale_rotation(scale, rotation),
-                    translation,
-                )
-            }
-
-            /// Creates a left-handed view transform from a camera position, a
-            /// facing direction and an up direction.
-            ///
-            /// For a view coordinate system with `+X=right`, `+Y=up` and
-            /// `+Z=forward`.
-            #[inline]
-            #[must_use]
-            pub fn look_to_lh(
-                eye: Vector<3, $Wide, A>,
-                dir: Vector<3, $Wide, A>,
-                up: Vector<3, $Wide, A>,
-            ) -> Self {
-                let forward = dir;
-                let right = up.cross(forward).normalize();
-                let up = forward.cross(right);
-
+            #[inline(always)]
+            #[track_caller]
+            fn from_projective_backend(projective: &Projective<3, $Wide, A>) -> Self {
                 Self::from_rows(&[
-                    Vector::<3, $Wide, A>::new(right.x, up.x, forward.x),
-                    Vector::<3, $Wide, A>::new(right.y, up.y, forward.y),
-                    Vector::<3, $Wide, A>::new(right.z, up.z, forward.z),
-                    Vector::<3, $Wide, A>::new(-eye.dot(right), -eye.dot(up), -eye.dot(forward)),
+                    projective.x_axis.truncate(),
+                    projective.y_axis.truncate(),
+                    projective.z_axis.truncate(),
+                    projective.w_axis.truncate(),
                 ])
-            }
-
-            /// Creates a right-handed view transform from a camera position, a
-            /// facing direction and an up direction.
-            ///
-            /// For a view coordinate system with `+X=right`, `+Y=up` and
-            /// `+Z=back`.
-            #[inline]
-            #[must_use]
-            pub fn look_to_rh(
-                eye: Vector<3, $Wide, A>,
-                dir: Vector<3, $Wide, A>,
-                up: Vector<3, $Wide, A>,
-            ) -> Self {
-                let forward = dir;
-                let right = forward.cross(up).normalize();
-                let up = right.cross(forward);
-
-                Self::from_rows(&[
-                    Vector::<3, $Wide, A>::new(right.x, up.x, -forward.x),
-                    Vector::<3, $Wide, A>::new(right.y, up.y, -forward.y),
-                    Vector::<3, $Wide, A>::new(right.z, up.z, -forward.z),
-                    Vector::<3, $Wide, A>::new(-eye.dot(right), -eye.dot(up), eye.dot(forward)),
-                ])
-            }
-
-            /// Creates a left-handed view transform from a camera position, a
-            /// focal point and an up direction.
-            ///
-            /// For a view coordinate system with `+X=right`, `+Y=up` and
-            /// `+Z=forward`.
-            #[inline]
-            #[must_use]
-            pub fn look_at_lh(
-                eye: Vector<3, $Wide, A>,
-                center: Vector<3, $Wide, A>,
-                up: Vector<3, $Wide, A>,
-            ) -> Self {
-                Self::look_to_lh(eye, (center - eye).normalize(), up)
-            }
-
-            /// Creates a right-handed view transform from a camera position, a
-            /// focal point and an up direction.
-            ///
-            /// For a view coordinate system with `+X=right`, `+Y=up` and
-            /// `+Z=back`.
-            #[inline]
-            #[must_use]
-            pub fn look_at_rh(
-                eye: Vector<3, $Wide, A>,
-                center: Vector<3, $Wide, A>,
-                up: Vector<3, $Wide, A>,
-            ) -> Self {
-                Self::look_to_rh(eye, (center - eye).normalize(), up)
-            }
-
-            /// Returns the Euler angles forming `self` for the given Euler
-            /// rotation order/sequence.
-            ///
-            /// `self` must not contain any non-rotation transformations,
-            /// excluding translation. Otherwise the result is unspecified.
-            #[inline]
-            #[must_use]
-            pub fn to_euler(&self, order: EulerRot) -> ($Wide, $Wide, $Wide) {
-                self.matrix.to_euler(order)
-            }
-
-            /// For each lane, returns the `scale` and `rotation` of `self`.
-            ///
-            /// `self` must be reversible and not contain shearing. Otherwise
-            /// the result is unspecified.
-            #[inline]
-            #[must_use]
-            pub fn to_scale_rotation(&self) -> (Vector<3, $Wide, A>, Quaternion<$Wide, A>) {
-                self.matrix.to_scale_rotation()
-            }
-
-            /// For each lane, returns the `scale`, `rotation` and `translation`
-            /// of `self`.
-            ///
-            /// `self` must be reversible and not contain shearing. Otherwise
-            /// the result is unspecified.
-            #[inline]
-            #[must_use]
-            pub fn to_scale_rotation_translation(
-                &self,
-            ) -> (
-                Vector<3, $Wide, A>,
-                Quaternion<$Wide, A>,
-                Vector<3, $Wide, A>,
-            ) {
-                let (scale, rotation) = self.matrix.to_scale_rotation();
-                (scale, rotation, self.translation)
             }
 
             #[inline(always)]
@@ -452,6 +593,7 @@ macro_rules! impl_wide_float {
             }
         }
 
+        #[cfg(not(doc))]
         impl<A: Alignment> Affine<4, $Wide, A> {
             #[inline(always)]
             fn inverse_or_backend(&self, fallback: &Self) -> Self {
@@ -515,19 +657,22 @@ macro_rules! impl_wide_float {
         }
     };
 }
-impl_wide_float!(f32x4);
-impl_wide_float!(f32x8);
-impl_wide_float!(f32x16);
-impl_wide_float!(f64x2);
-impl_wide_float!(f64x4);
-impl_wide_float!(f64x8);
+impl_items!(f32x4);
+impl_items!(f32x8);
+impl_items!(f32x16);
+impl_items!(f64x2);
+impl_items!(f64x4);
+impl_items!(f64x8);
 
 #[cfg(test)]
 mod tests {
     extern crate std;
 
+    use wide::f32x4;
+
     use crate::{
-        Affine, Affine2, Affine3, EulerRot, Mat3, Matrix, Quat, Unaligned, Vec2, Vec3, Vector,
+        Affine, Affine2, Affine3, EulerRot, Mat3, Mat4, Matrix, Projective, Quat, Unaligned, Vec2,
+        Vec3, Vector,
         test_utils::{assert_test_eq, assert_test_eq_or_panic, for_types, random_iter},
     };
 
@@ -541,6 +686,20 @@ mod tests {
                     Vector::<N, Wide, Unaligned>::NAN
                 )
             );
+        });
+    }
+
+    #[test]
+    fn test_from_projective() {
+        for_types!(|N: TwoOrThree| {
+            for projective in random_iter::<Projective<N, f32x4, Unaligned>>() {
+                assert_test_eq_or_panic!(
+                    Affine::<N, f32x4, Unaligned>::from_projective(&projective),
+                    Affine::from_lane_fn(|lane| Affine::<N, f32, Unaligned>::from_projective(
+                        &projective.lane(lane)
+                    ))
+                );
+            }
         });
     }
 
@@ -693,6 +852,26 @@ mod tests {
                 );
             }
         });
+    }
+
+    #[test]
+    fn test_from_homogeneous() {
+        for homogeneous in random_iter::<Mat3<f32x4>>() {
+            assert_test_eq_or_panic!(
+                Affine2::<f32x4>::from_homogeneous(&homogeneous),
+                Affine::from_lane_fn(|lane| Affine2::<f32>::from_homogeneous(
+                    &homogeneous.lane(lane)
+                ))
+            );
+        }
+        for homogeneous in random_iter::<Mat4<f32x4>>() {
+            assert_test_eq_or_panic!(
+                Affine3::<f32x4>::from_homogeneous(&homogeneous),
+                Affine::from_lane_fn(|lane| Affine3::<f32>::from_homogeneous(
+                    &homogeneous.lane(lane)
+                ))
+            );
+        }
     }
 
     #[test]

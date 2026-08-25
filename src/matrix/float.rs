@@ -1,7 +1,8 @@
 use crate::{
-    Alignment, EulerRot, FloatExt, Length, Matrix, PrimitiveFloat, Quaternion, SupportedLength,
-    Vector,
-    utils::{PrimitiveFloatUtils, specialize},
+    Alignment, EulerRot, FloatExt, Length, Matrix, PrimitiveFloat, Projective, Quaternion,
+    SupportedLength, Vector,
+    length::TwoOrThree,
+    utils::{specialize, specialize_23},
 };
 
 impl<const N: usize, T, A: Alignment> Matrix<N, T, A>
@@ -11,6 +12,48 @@ where
 {
     /// A matrix with all elements set to NaN (Not a Number).
     pub const NAN: Self = Self::from_rows(&[Vector::<N, T, A>::NAN; N]);
+
+    /// Converts a projective transform to a linear transformation matrix.
+    ///
+    /// This assumes `projective` does not contain projections. If there is
+    /// translation, it is ignored.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if the last column of `projective` is not approximately
+    /// `(0, 0, ..., 1)`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Mat2, Proj2, Vec2, Vec3};
+    /// #
+    /// let projective = Proj2::from_rows(&[
+    ///     Vec3::new(11.0, 12.0, 0.0),
+    ///     Vec3::new(21.0, 22.0, 0.0),
+    ///     Vec3::new(5.0, 8.0, 1.0),
+    /// ]);
+    ///
+    /// assert_eq!(
+    ///     Mat2::<f32>::from_projective(&projective),
+    ///     Mat2::from_rows(&[
+    ///         Vec2::new(11.0, 12.0),
+    ///         Vec2::new(21.0, 22.0),
+    ///     ]),
+    /// );
+    /// ```
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    #[expect(private_bounds)]
+    pub fn from_projective(projective: &Projective<N, T, A>) -> Self
+    where
+        Length<N>: TwoOrThree,
+    {
+        specialize_23!(Matrix::<N, T, A>::from_projective_backend(projective))
+    }
 
     /// Returns `true` if any element is NaN.
     ///
@@ -213,7 +256,7 @@ where
     #[inline]
     #[must_use]
     pub fn from_angle(angle: T) -> Self {
-        let (sin, cos) = PrimitiveFloatUtils::sin_cos(angle);
+        let (sin, cos) = angle.sin_cos();
         Self::from_rows(&[
             Vector::<2, T, A>::new(cos, sin),
             Vector::<2, T, A>::new(-sin, cos),
@@ -227,11 +270,54 @@ where
     #[inline]
     #[must_use]
     pub fn from_scale_angle(scale: Vector<2, T, A>, angle: T) -> Self {
-        let (sin, cos) = PrimitiveFloatUtils::sin_cos(angle);
+        let (sin, cos) = angle.sin_cos();
         Self::from_rows(&[
             Vector::<2, T, A>::new(cos * scale.x, sin * scale.x),
             Vector::<2, T, A>::new(-sin * scale.y, cos * scale.y),
         ])
+    }
+
+    /// Takes the `N`x`N` linear transformation part of an `N+1`x`N+1`
+    /// homogeneous transformation matrix, removing the last row and column.
+    ///
+    /// This assumes `homogeneous` does not contain projections. If there is
+    /// translation, it is ignored.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the last column of `homogeneous` is not approximately
+    /// `(0, 0, ..., 1)`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Mat2, Mat3, Vec2, Vec3};
+    /// #
+    /// let homogeneous = Mat3::from_rows(&[
+    ///     Vec3::new(11.0, 12.0, 0.0),
+    ///     Vec3::new(21.0, 22.0, 0.0),
+    ///     Vec3::new(5.0, 8.0, 1.0),
+    /// ]);
+    ///
+    /// assert_eq!(
+    ///     Mat2::<f32>::from_homogeneous(&homogeneous),
+    ///     Mat2::from_rows(&[
+    ///         Vec2::new(11.0, 12.0),
+    ///         Vec2::new(21.0, 22.0),
+    ///     ]),
+    /// );
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn from_homogeneous(homogeneous: &Matrix<3, T, A>) -> Self {
+        debug_assert!(
+            homogeneous
+                .column(2)
+                .abs_diff_eq(Vector::<3, T, A>::Z, T::as_from(1e-4)),
+            "input contains projection: Matrix::from_homogeneous({homogeneous:?})"
+        );
+
+        Self::from_rows(&[homogeneous.x_axis.truncate(), homogeneous.y_axis.truncate()])
     }
 
     /// Returns the `scale` and `angle` of `self`.
@@ -262,9 +348,22 @@ where
             "matrix contains shearing or determinant is zero: {self:?}.to_scale_angle()"
         );
 
-        let angle = PrimitiveFloatUtils::atan2(-self.y_axis.x, self.y_axis.y);
+        let angle = (-self.y_axis.x).atan2(self.y_axis.y);
 
         (scale, angle)
+    }
+
+    #[inline(always)]
+    #[track_caller]
+    fn from_projective_backend(projective: &Projective<2, T, A>) -> Self {
+        debug_assert!(
+            projective
+                .column(2)
+                .abs_diff_eq(Vector::<3, T, A>::Z, T::as_from(1e-4)),
+            "input contains projection: Matrix::from_projective({projective:?})"
+        );
+
+        Self::from_rows(&[projective.x_axis.truncate(), projective.y_axis.truncate()])
     }
 
     #[inline(always)]
@@ -333,7 +432,7 @@ where
     #[inline]
     #[must_use]
     pub fn from_rotation_x(angle: T) -> Self {
-        let (sin, cos) = PrimitiveFloatUtils::sin_cos(angle);
+        let (sin, cos) = angle.sin_cos();
         Self::from_rows(&[
             Vector::<3, T, A>::X,
             Vector::<3, T, A>::new(T::ZERO, cos, sin),
@@ -348,7 +447,7 @@ where
     #[inline]
     #[must_use]
     pub fn from_rotation_y(angle: T) -> Self {
-        let (sin, cos) = PrimitiveFloatUtils::sin_cos(angle);
+        let (sin, cos) = angle.sin_cos();
         Self::from_rows(&[
             Vector::<3, T, A>::new(cos, T::ZERO, -sin),
             Vector::<3, T, A>::Y,
@@ -363,7 +462,7 @@ where
     #[inline]
     #[must_use]
     pub fn from_rotation_z(angle: T) -> Self {
-        let (sin, cos) = PrimitiveFloatUtils::sin_cos(angle);
+        let (sin, cos) = angle.sin_cos();
         Self::from_rows(&[
             Vector::<3, T, A>::new(cos, sin, T::ZERO),
             Vector::<3, T, A>::new(-sin, cos, T::ZERO),
@@ -432,7 +531,7 @@ where
             "axis is not normalized: from_axis_angle({axis:?}, {angle:?})"
         );
 
-        let (sin, cos) = PrimitiveFloatUtils::sin_cos(angle);
+        let (sin, cos) = angle.sin_cos();
         let [xsin, ysin, zsin] = (axis * sin).to_array();
         let [x, y, z] = axis.to_array();
         let [x2, y2, z2] = (axis * axis).to_array();
@@ -472,9 +571,9 @@ where
             angles = -angles;
         }
 
-        let (si, ci) = PrimitiveFloatUtils::sin_cos(angles.x);
-        let (sj, cj) = PrimitiveFloatUtils::sin_cos(angles.y);
-        let (sh, ch) = PrimitiveFloatUtils::sin_cos(angles.z);
+        let (si, ci) = angles.x.sin_cos();
+        let (sj, cj) = angles.y.sin_cos();
+        let (sh, ch) = angles.z.sin_cos();
 
         let cc = ci * ch;
         let cs = ci * sh;
@@ -529,6 +628,53 @@ where
             rotation_x * scale.x,
             rotation_y * scale.y,
             rotation_z * scale.z,
+        ])
+    }
+
+    /// Takes the `N`x`N` linear transformation part of an `N+1`x`N+1`
+    /// homogeneous transformation matrix, removing the last row and column.
+    ///
+    /// This assumes `homogeneous` does not contain projections. If there is
+    /// translation, it is ignored.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the last column of `homogeneous` is not approximately
+    /// `(0, 0, ..., 1)`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Mat2, Mat3, Vec2, Vec3};
+    /// #
+    /// let homogeneous = Mat3::from_rows(&[
+    ///     Vec3::new(11.0, 12.0, 0.0),
+    ///     Vec3::new(21.0, 22.0, 0.0),
+    ///     Vec3::new(5.0, 8.0, 1.0),
+    /// ]);
+    ///
+    /// assert_eq!(
+    ///     Mat2::<f32>::from_homogeneous(&homogeneous),
+    ///     Mat2::from_rows(&[
+    ///         Vec2::new(11.0, 12.0),
+    ///         Vec2::new(21.0, 22.0),
+    ///     ]),
+    /// );
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn from_homogeneous(homogeneous: &Matrix<4, T, A>) -> Self {
+        debug_assert!(
+            homogeneous
+                .column(3)
+                .abs_diff_eq(Vector::<4, T, A>::W, T::as_from(1e-4)),
+            "input contains projection: Matrix::from_homogeneous({homogeneous:?})"
+        );
+
+        Self::from_rows(&[
+            homogeneous.x_axis.truncate(),
+            homogeneous.y_axis.truncate(),
+            homogeneous.z_axis.truncate(),
         ])
     }
 
@@ -748,26 +894,26 @@ where
 
         let mut ea = Vector::<3, T, A>::ZERO;
         if order.initial_repeated {
-            let sy = PrimitiveFloatUtils::sqrt(self[i][j] * self[i][j] + self[i][k] * self[i][k]);
+            let sy = (self[i][j] * self[i][j] + self[i][k] * self[i][k]).sqrt();
 
             if sy > T::as_from(16.0) * T::EPSILON {
-                ea.x = PrimitiveFloatUtils::atan2(self[i][j], self[i][k]);
-                ea.y = PrimitiveFloatUtils::atan2(sy, self[i][i]);
-                ea.z = PrimitiveFloatUtils::atan2(self[j][i], -self[k][i]);
+                ea.x = self[i][j].atan2(self[i][k]);
+                ea.y = sy.atan2(self[i][i]);
+                ea.z = self[j][i].atan2(-self[k][i]);
             } else {
-                ea.x = PrimitiveFloatUtils::atan2(-self[j][k], self[j][j]);
-                ea.y = PrimitiveFloatUtils::atan2(sy, self[i][i]);
+                ea.x = (-self[j][k]).atan2(self[j][j]);
+                ea.y = sy.atan2(self[i][i]);
             }
         } else {
-            let cy = PrimitiveFloatUtils::sqrt(self[i][i] * self[i][i] + self[j][i] * self[j][i]);
+            let cy = (self[i][i] * self[i][i] + self[j][i] * self[j][i]).sqrt();
 
             if cy > T::as_from(16.0) * T::EPSILON {
-                ea.x = PrimitiveFloatUtils::atan2(self[k][j], self[k][k]);
-                ea.y = PrimitiveFloatUtils::atan2(-self[k][i], cy);
-                ea.z = PrimitiveFloatUtils::atan2(self[j][i], self[i][i]);
+                ea.x = self[k][j].atan2(self[k][k]);
+                ea.y = (-self[k][i]).atan2(cy);
+                ea.z = self[j][i].atan2(self[i][i]);
             } else {
-                ea.x = PrimitiveFloatUtils::atan2(-self[j][k], self[j][j]);
-                ea.y = PrimitiveFloatUtils::atan2(-self[k][i], cy);
+                ea.x = (-self[j][k]).atan2(self[j][j]);
+                ea.y = (-self[k][i]).atan2(cy);
             }
         }
 
@@ -832,6 +978,23 @@ where
         let rotation = Quaternion::<T, A>::from_matrix(&rotation_matrix);
 
         (scale, rotation)
+    }
+
+    #[inline(always)]
+    #[track_caller]
+    fn from_projective_backend(projective: &Projective<3, T, A>) -> Self {
+        debug_assert!(
+            projective
+                .column(3)
+                .abs_diff_eq(Vector::<4, T, A>::W, T::as_from(1e-4)),
+            "input contains projection: Matrix::from_projective({projective:?})"
+        );
+
+        Self::from_rows(&[
+            projective.x_axis.truncate(),
+            projective.y_axis.truncate(),
+            projective.z_axis.truncate(),
+        ])
     }
 
     #[inline(always)]
@@ -1036,8 +1199,10 @@ where
 
 #[cfg(test)]
 mod tests {
+    extern crate std;
+
     use crate::{
-        EulerRot, FloatExt, Matrix, Quaternion, Vector,
+        EulerRot, FloatExt, Matrix, Projective, Quaternion, Vector,
         test_utils::{assert_debug_panic, assert_test_eq, for_types, random_iter},
     };
 
@@ -1048,6 +1213,55 @@ mod tests {
                 Matrix::<N, T, A>::NAN,
                 Matrix::from_rows(&[Vector::<N, T, A>::NAN; N])
             );
+        });
+    }
+
+    #[test]
+    fn test_from_projective() {
+        for_types!(|T: PrimitiveFloat, A| {
+            let projective = Projective::<2, T, A>::from_rows(&[
+                Vector::<3, T, A>::new(0.9, 0.2, 1e-5),
+                Vector::<3, T, A>::new(0.1, 0.8, 1e-5),
+                Vector::<3, T, A>::new(5.3, 3.2, 1.0 + 1e-5),
+            ]);
+            assert_eq!(
+                Matrix::<2, T, A>::from_projective(&projective),
+                Matrix::<2, T, A>::from_rows(&[
+                    projective.x_axis.truncate(),
+                    projective.y_axis.truncate(),
+                ])
+            );
+
+            let projective = Projective::<3, T, A>::from_rows(&[
+                Vector::<4, T, A>::new(0.9, 0.2, 0.1, 1e-5),
+                Vector::<4, T, A>::new(0.1, 0.8, 0.3, 1e-5),
+                Vector::<4, T, A>::new(0.2, 0.1, 0.8, 1e-5),
+                Vector::<4, T, A>::new(5.3, 3.2, 9.8, 1.0 + 1e-5),
+            ]);
+            assert_eq!(
+                Matrix::<3, T, A>::from_projective(&projective),
+                Matrix::<3, T, A>::from_rows(&[
+                    projective.x_axis.truncate(),
+                    projective.y_axis.truncate(),
+                    projective.z_axis.truncate(),
+                ])
+            );
+
+            assert_debug_panic!(Matrix::<2, T, A>::from_projective(
+                &Projective::<2, T, A>::from_rows(&[
+                    Vector::<3, T, A>::new(0.9, 0.2, 2.0),
+                    Vector::<3, T, A>::new(0.1, 0.8, 0.0),
+                    Vector::<3, T, A>::new(5.3, 3.2, 1.0),
+                ])
+            ));
+            assert_debug_panic!(Matrix::<3, T, A>::from_projective(
+                &Projective::<3, T, A>::from_rows(&[
+                    Vector::<4, T, A>::new(0.9, 0.2, 0.1, 2.0),
+                    Vector::<4, T, A>::new(0.1, 0.8, 0.3, 3.1),
+                    Vector::<4, T, A>::new(0.2, 0.1, 0.8, 0.0),
+                    Vector::<4, T, A>::new(5.3, 3.2, 9.8, 1.0),
+                ])
+            ));
         });
     }
 
@@ -1311,6 +1525,51 @@ mod tests {
                     0.0 = -0.0
                 );
             }
+        });
+    }
+
+    #[test]
+    fn test_from_homogeneous() {
+        for_types!(|T: PrimitiveFloat, A| {
+            let homogeneous = Matrix::from_rows(&[
+                Vector::<3, T, A>::new(0.9, 0.2, 1e-5),
+                Vector::<3, T, A>::new(0.1, 0.8, 1e-5),
+                Vector::<3, T, A>::new(5.3, 3.2, 1.0 + 1e-5),
+            ]);
+            assert_eq!(
+                Matrix::<2, T, A>::from_homogeneous(&homogeneous),
+                Matrix::<2, T, A>::from_rows(&[
+                    homogeneous.x_axis.truncate(),
+                    homogeneous.y_axis.truncate(),
+                ])
+            );
+
+            let homogeneous = Matrix::from_rows(&[
+                Vector::<4, T, A>::new(0.9, 0.2, 0.1, 1e-5),
+                Vector::<4, T, A>::new(0.1, 0.8, 0.3, 1e-5),
+                Vector::<4, T, A>::new(0.2, 0.1, 0.8, 1e-5),
+                Vector::<4, T, A>::new(5.3, 3.2, 9.8, 1.0 + 1e-5),
+            ]);
+            assert_eq!(
+                Matrix::<3, T, A>::from_homogeneous(&homogeneous),
+                Matrix::<3, T, A>::from_rows(&[
+                    homogeneous.x_axis.truncate(),
+                    homogeneous.y_axis.truncate(),
+                    homogeneous.z_axis.truncate(),
+                ])
+            );
+
+            assert_debug_panic!(Matrix::<2, T, A>::from_homogeneous(&Matrix::from_rows(&[
+                Vector::<3, T, A>::new(0.9, 0.2, 2.0),
+                Vector::<3, T, A>::new(0.1, 0.8, 0.0),
+                Vector::<3, T, A>::new(5.3, 3.2, 1.0),
+            ])));
+            assert_debug_panic!(Matrix::<3, T, A>::from_homogeneous(&Matrix::from_rows(&[
+                Vector::<4, T, A>::new(0.9, 0.2, 0.1, 2.0),
+                Vector::<4, T, A>::new(0.1, 0.8, 0.3, 3.1),
+                Vector::<4, T, A>::new(0.2, 0.1, 0.8, 0.0),
+                Vector::<4, T, A>::new(5.3, 3.2, 9.8, 1.0),
+            ])));
         });
     }
 

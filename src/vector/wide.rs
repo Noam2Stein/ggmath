@@ -3,6 +3,15 @@ use crate::{
     utils::{WideTy, specialize},
 };
 
+/// Functionality for [SoA] (Structure of Arrays) vectors.
+///
+/// This is gated behind the `wide` feature flag.
+///
+/// This functionality is shown with generics to make it easier to read. This
+/// works with all types from the [`wide`] crate.
+///
+/// [SoA]: crate#soa
+/// [`wide`]: https://crates.io/crates/wide
 #[expect(private_bounds)]
 impl<const N: usize, Wide, T, const LANES: usize, A: Alignment> Vector<N, Wide, A>
 where

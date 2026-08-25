@@ -62,8 +62,7 @@
 //! The traits [`PrimitiveFloat`], [`PrimitiveInteger`], [`PrimitiveSigned`] and
 //! [`PrimitiveUnsigned`] give generic contexts access to most primitive
 //! functionality. These traits do not expose functions directly, they only
-//! enable functionality for vectors, matrices, etc. For complete primitive
-//! generics, add the [`num-primitive`] crate as an optional dependency.
+//! enable functionality for vectors, matrices, etc.
 //!
 //! # Affine and Projective Transforms
 //!
@@ -145,9 +144,6 @@
 //! SoA is supported through an optional dependency for the [`wide`] crate.
 //! Almost all functionality that exists for standard types also exists for SoA
 //! types.
-//!
-//! > [The `docs.rs` page] currently doesn't show [`wide`] support. See
-//! > [this issue](https://github.com/Noam2Stein/ggmath/issues/45).
 //!
 //! # Fixed-point numbers
 //!
@@ -234,12 +230,10 @@
 //! - [`wide`]: Implements functionality for SoA types.
 //!
 //! [`ggmath`]: crate
-//! [`num-primitive`]: https://crates.io/crates/num-primitive
 //!
 //! [benchmark results]: https://github.com/Noam2Stein/ggmath/blob/main/BENCH_RESULTS.md
 //!
 //! [`wide`]: https://crates.io/crates/wide
-//! [The `docs.rs` page]: https://docs.rs/ggmath
 //!
 //! [`fixed`]: https://crates.io/crates/fixed
 //!

@@ -1,19 +1,31 @@
 use core::{
     fmt::{Debug, Display},
     hash::Hash,
-    ops::{Add, Index, IndexMut, Mul, MulAssign},
+    ops::{Add, Deref, DerefMut, Index, IndexMut, Mul, MulAssign},
+    panic::{RefUnwindSafe, UnwindSafe},
 };
 
 use crate::{
-    Aligned, Alignment, Length, Matrix, One, Projective, Scalar, SupportedLength, Unaligned,
-    Vector, Zero,
-    length::TwoOrThree,
-    utils::{specialize_23, transmute_mut, transmute_ref},
+    Aligned, Alignment, Length, Matrix, One, Scalar, SupportedLength, Unaligned, Vector, Zero,
+    backend::AffineBackend,
+    utils::{transmute_mut, transmute_ref},
 };
 
+// These submodules have empty lines between them so that rustfmt does not
+// incorrectly reorder them. The order is important since it impacts the order
+// of `impl` blocks in rustdoc's output.
+//
+// The contents of the `generic` submodule *would* be simply put in this root
+// module, but due to a rustdoc bug, that would cause functionality generic over
+// `T` to be shown after all submodule functionality.
+
+mod generic;
+
 mod float;
+
 #[cfg(feature = "wide")]
 mod wide;
+
 #[cfg(feature = "wide")]
 mod wide_float;
 
@@ -31,17 +43,49 @@ mod wide_float;
 /// - [`Affine3<T>`] for [`Affine<3, T, Unaligned>`].
 /// - [`Affine2A<T>`] for [`Affine<2, T, Aligned>`].
 /// - [`Affine3A<T>`] for [`Affine<3, T, Aligned>`].
+///
+/// # Fields
+///
+/// - `matrix: Matrix<N, T, A>` (linear transformation matrix)
+/// - `translation: Vector<N, T, A>` (translation vector)
+///
+/// Note that these fields are only exposed by implementing [`Deref`] and
+/// [`DerefMut`].
+///
+/// # Memory layout
+///
+/// [`Affine<N, T, A>`] contains a value of [`Matrix<N, T, A>`], followed by a
+/// value of [`Vector<N, T, A>`], followed by optional padding.
+///
+/// The alignment of [`Affine<N, T, A>`] is always the alignment of
+/// [`Matrix<N, T, A>`].
+///
+/// For `N = 3, 4` there is no padding. For `N = 2` there may be padding because
+/// [`Mat2A`] is represented as [`Vec4A`]. Padding is fully initialized and
+/// accepts all bit patterns. Unless `T` accepts all bit patterns, it is not
+/// sound to assume padding contains valid values of `T`.
+///
+/// [`Mat2A`]: crate::Mat2A
+/// [`Vec4A`]: crate::Vec4A
 #[repr(C)]
-pub struct Affine<const N: usize, T, A: Alignment>
+pub struct Affine<const N: usize, T, A: Alignment>(
+    #[expect(clippy::type_complexity)]
+    pub(crate)  <A as Alignment>::Select<
+        <Length<N> as SupportedLength>::Select<
+            <T as AffineBackend<2, Aligned>>::Inner,
+            <T as AffineBackend<3, Aligned>>::Inner,
+            <T as AffineBackend<4, Aligned>>::Inner,
+        >,
+        <Length<N> as SupportedLength>::Select<
+            <T as AffineBackend<2, Unaligned>>::Inner,
+            <T as AffineBackend<3, Unaligned>>::Inner,
+            <T as AffineBackend<4, Unaligned>>::Inner,
+        >,
+    >,
+)
 where
     Length<N>: SupportedLength,
-    T: Scalar,
-{
-    /// The part representing rotation, scaling and shear.
-    pub matrix: Matrix<N, T, A>,
-    /// The part representing translation.
-    pub translation: Vector<N, T, A>,
-}
+    T: Scalar;
 
 /// A 2D affine transform which can represent translation, rotation, scaling and
 /// shear.
@@ -51,6 +95,14 @@ where
 /// # No SIMD alignment
 ///
 /// [`Affine2<T>`] does not have SIMD alignment, for that use [`Affine2A<T>`].
+///
+/// # Fields
+///
+/// - `matrix: Mat2<T>` (linear transformation matrix)
+/// - `translation: Vec2<T>` (translation vector)
+///
+/// Note that these fields are only exposed by implementing [`Deref`] and
+/// [`DerefMut`].
 pub type Affine2<T> = Affine<2, T, Unaligned>;
 
 /// A 3D affine transform which can represent translation, rotation, scaling and
@@ -61,6 +113,14 @@ pub type Affine2<T> = Affine<2, T, Unaligned>;
 /// # No SIMD alignment
 ///
 /// [`Affine3<T>`] does not have SIMD alignment, for that use [`Affine3A<T>`].
+///
+/// # Fields
+///
+/// - `matrix: Mat3<T>` (linear transformation matrix)
+/// - `translation: Vec3<T>` (translation vector)
+///
+/// Note that these fields are only exposed by implementing [`Deref`] and
+/// [`DerefMut`].
 pub type Affine3<T> = Affine<3, T, Unaligned>;
 
 /// A 2D affine transform which can represent translation, rotation, scaling and
@@ -72,6 +132,14 @@ pub type Affine3<T> = Affine<3, T, Unaligned>;
 ///
 /// For appropriate `T` types, [`Affine2A<T>`] has SIMD alignment. For no SIMD
 /// use [`Affine2<T>`].
+///
+/// # Fields
+///
+/// - `matrix: Mat2A<T>` (linear transformation matrix)
+/// - `translation: Vec2A<T>` (translation vector)
+///
+/// Note that these fields are only exposed by implementing [`Deref`] and
+/// [`DerefMut`].
 pub type Affine2A<T> = Affine<2, T, Aligned>;
 
 /// A 3D affine transform which can represent translation, rotation, scaling and
@@ -83,639 +151,15 @@ pub type Affine2A<T> = Affine<2, T, Aligned>;
 ///
 /// For appropriate `T` types, [`Affine3A<T>`] has SIMD alignment. For no SIMD
 /// use [`Affine3<T>`].
+///
+/// # Fields
+///
+/// - `matrix: Mat3A<T>` (linear transformation matrix)
+/// - `translation: Vec3A<T>` (translation vector)
+///
+/// Note that these fields are only exposed by implementing [`Deref`] and
+/// [`DerefMut`].
 pub type Affine3A<T> = Affine<3, T, Aligned>;
-
-impl<const N: usize, T, A: Alignment> Affine<N, T, A>
-where
-    Length<N>: SupportedLength,
-    T: Scalar + Zero,
-{
-    /// An affine transform with all elements set to `0`.
-    ///
-    /// This transforms all vectors to a zero vector. See [`IDENTITY`] for
-    /// an affine transform with no transformation.
-    ///
-    /// [`IDENTITY`]: Self::IDENTITY
-    pub const ZERO: Self = Self::from_matrix_translation(&Matrix::ZERO, Vector::ZERO);
-}
-
-impl<const N: usize, T, A: Alignment> Affine<N, T, A>
-where
-    Length<N>: SupportedLength,
-    T: Scalar + Zero + One,
-{
-    /// An affine transform with no transformation.
-    pub const IDENTITY: Self = Self::from_matrix_translation(&Matrix::IDENTITY, Vector::ZERO);
-}
-
-impl<const N: usize, T, A: Alignment> Affine<N, T, A>
-where
-    Length<N>: SupportedLength,
-    T: Scalar,
-{
-    /// Creates an affine transform by calling function `f` for each row index.
-    ///
-    /// Equivalent to `[f(0), f(1), f(2), ...]` where each item is a row vector.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::{Affine3, Vec3};
-    /// #
-    /// let affine = Affine3::from_row_fn(|i| Vec3::splat(i));
-    ///
-    /// assert_eq!(affine[0], Vec3::new(0, 0, 0));
-    /// assert_eq!(affine[1], Vec3::new(1, 1, 1));
-    /// assert_eq!(affine[2], Vec3::new(2, 2, 2));
-    /// assert_eq!(affine.translation, Vec3::new(3, 3, 3));
-    /// ```
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn from_row_fn<F>(mut f: F) -> Self
-    where
-        F: FnMut(usize) -> Vector<N, T, A>,
-    {
-        Self {
-            matrix: Matrix::from_row_fn(&mut f),
-            translation: f(N),
-        }
-    }
-
-    /// Creates an affine transform from a non-uniform `scale`.
-    #[inline]
-    #[must_use]
-    pub const fn from_scale(scale: Vector<N, T, A>) -> Self
-    where
-        T: Zero,
-    {
-        Self {
-            matrix: Matrix::from_scale(scale),
-            translation: Vector::ZERO,
-        }
-    }
-
-    /// Creates an affine transform from a `translation` vector.
-    #[inline]
-    #[must_use]
-    pub const fn from_translation(translation: Vector<N, T, A>) -> Self
-    where
-        T: Zero + One,
-    {
-        Self {
-            matrix: Matrix::IDENTITY,
-            translation,
-        }
-    }
-
-    /// Creates an affine transform from `matrix` expressing rotation and
-    /// scale, but not translation.
-    #[inline]
-    #[must_use]
-    pub const fn from_matrix(matrix: &Matrix<N, T, A>) -> Self
-    where
-        T: Zero,
-    {
-        Self {
-            matrix: *matrix,
-            translation: Vector::ZERO,
-        }
-    }
-
-    /// Creates an affine transform from `translation` and `matrix`
-    /// expressing rotation and scale.
-    #[inline]
-    #[must_use]
-    pub const fn from_matrix_translation(
-        matrix: &Matrix<N, T, A>,
-        translation: Vector<N, T, A>,
-    ) -> Self {
-        Self {
-            matrix: *matrix,
-            translation,
-        }
-    }
-
-    /// Creates an affine transform from a projective transform, discarding the
-    /// last column.
-    ///
-    /// The removed column is completely ignored, without checking for identity.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::{Affine2, Proj2, Vec2, Vec3};
-    /// #
-    /// let projective = Proj2::from_rows(&[
-    ///     Vec3::new(00, 01, 02),
-    ///     Vec3::new(10, 11, 12),
-    ///     Vec3::new(20, 21, 22),
-    /// ]);
-    ///
-    /// assert_eq!(
-    ///     Affine2::from_projective(&projective),
-    ///     Affine2::from_rows(&[
-    ///         Vec2::new(00, 01),
-    ///         Vec2::new(10, 11),
-    ///         Vec2::new(20, 21),
-    ///     ]),
-    /// );
-    /// ```
-    #[inline]
-    #[must_use]
-    #[expect(private_bounds)]
-    pub fn from_projective(projective: &Projective<N, T, A>) -> Self
-    where
-        Length<N>: TwoOrThree,
-    {
-        specialize_23!(Affine::<N, T, A>::from_projective_backend(projective))
-    }
-
-    /// Conversion between [`Aligned`] and [`Unaligned`] storage.
-    ///
-    /// See [`align`] and [`unalign`] for scenarios where the output alignment
-    /// is known.
-    ///
-    /// See [`Alignment`] for more details.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::{Aligned, Affine2, Affine2A, Unaligned};
-    /// #
-    /// let unaligned = Affine2::<f32>::IDENTITY;
-    /// let aligned = unaligned.to_alignment::<Aligned>();
-    /// assert_eq!(aligned, Affine2A::IDENTITY);
-    ///
-    /// let aligned = Affine2A::<f32>::IDENTITY;
-    /// let unaligned = aligned.to_alignment::<Unaligned>();
-    /// assert_eq!(unaligned, Affine2::IDENTITY);
-    /// ```
-    ///
-    /// [`align`]: Self::align
-    /// [`unalign`]: Self::unalign
-    #[inline]
-    #[must_use]
-    pub const fn to_alignment<A2: Alignment>(&self) -> Affine<N, T, A2> {
-        Affine::from_matrix_translation(
-            &self.matrix.to_alignment(),
-            self.translation.to_alignment(),
-        )
-    }
-
-    /// Conversion to [`Aligned`] storage.
-    ///
-    /// See [`Alignment`] for more details.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::{Affine2, Affine2A};
-    /// #
-    /// let unaligned = Affine2::<f32>::IDENTITY;
-    /// let aligned = unaligned.align();
-    /// assert_eq!(aligned, Affine2A::IDENTITY);
-    /// ```
-    #[inline]
-    #[must_use]
-    pub const fn align(&self) -> Affine<N, T, Aligned> {
-        self.to_alignment()
-    }
-
-    /// Conversion to [`Unaligned`] storage.
-    ///
-    /// See [`Alignment`] for more details.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::{Affine2, Affine2A};
-    /// #
-    /// let aligned = Affine2A::<f32>::IDENTITY;
-    /// let unaligned = aligned.unalign();
-    /// assert_eq!(unaligned, Affine2::IDENTITY);
-    /// ```
-    #[inline]
-    #[must_use]
-    pub const fn unalign(&self) -> Affine<N, T, Unaligned> {
-        self.to_alignment()
-    }
-
-    /// Transforms the given vector applying scale, rotation and translation.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn transform_point(&self, point: Vector<N, T, A>) -> Vector<N, T, A>
-    where
-        T: Add<Output = T> + Mul<Output = T>,
-    {
-        point * self.matrix + self.translation
-    }
-
-    /// Transforms the given vector applying scale and rotation, but not
-    /// translation.
-    ///
-    /// See [`transform_point`] for also applying translation.
-    ///
-    /// [`transform_point`]: Self::transform_point
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn transform_vector(&self, vector: Vector<N, T, A>) -> Vector<N, T, A>
-    where
-        T: Add<Output = T> + Mul<Output = T>,
-    {
-        vector * self.matrix
-    }
-}
-
-impl<T, A: Alignment> Affine<2, T, A>
-where
-    T: Scalar,
-{
-    /// Creates a 2D affine transform from three row vectors.
-    #[inline]
-    #[must_use]
-    pub const fn from_rows(rows: &[Vector<2, T, A>; 3]) -> Self {
-        Self {
-            matrix: Matrix::from_rows(&[rows[0], rows[1]]),
-            translation: rows[2],
-        }
-    }
-
-    /// Creates an affine transform from a row-major array of elements.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::{Affine2, Vec2};
-    /// #
-    /// let affine = Affine2::from_row_array(&[1.0, 2.0, 3.0, 4.0, 5.0, 6.0]);
-    /// assert_eq!(
-    ///     affine,
-    ///     Affine2::from_rows(&[
-    ///         Vec2::new(1.0, 2.0),
-    ///         Vec2::new(3.0, 4.0),
-    ///         Vec2::new(5.0, 6.0),
-    ///     ]),
-    /// );
-    /// ```
-    #[inline]
-    #[must_use]
-    pub const fn from_row_array(array: &[T; 6]) -> Self {
-        Self::from_rows(&[
-            Vector::<2, T, A>::new(array[0], array[1]),
-            Vector::<2, T, A>::new(array[2], array[3]),
-            Vector::<2, T, A>::new(array[4], array[5]),
-        ])
-    }
-
-    /// Returns a reference to the affine transform's rows.
-    #[inline]
-    #[must_use]
-    pub const fn as_rows(&self) -> &[Vector<2, T, A>; 3] {
-        // SAFETY: `Affine<2, T, A>` is guaranteed to begin with
-        // `Matrix<2, T, A>` (two vectors) then `Vector<2, T, A>`, which is 3
-        // vectors in total.
-        unsafe { transmute_ref::<Affine<2, T, A>, [Vector<2, T, A>; 3]>(self) }
-    }
-
-    /// Returns a mutable reference to the affine transform's rows.
-    #[inline]
-    #[must_use]
-    pub const fn as_mut_rows(&mut self) -> &mut [Vector<2, T, A>; 3] {
-        // SAFETY: `Affine<2, T, A>` is guaranteed to begin with
-        // `Matrix<2, T, A>` (two vectors) then `Vector<2, T, A>`, which is 3
-        // vectors in total.
-        unsafe { transmute_mut::<Affine<2, T, A>, [Vector<2, T, A>; 3]>(self) }
-    }
-
-    /// Creates an `N+1`x`N+1` homogeneous transformation matrix from an
-    /// `N+1`x`N` affine transform.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::{Affine2, Mat3, Vec2, Vec3};
-    /// #
-    /// let affine = Affine2::from_rows(&[
-    ///     Vec2::new(2, 3),
-    ///     Vec2::new(4, 5),
-    ///     Vec2::new(6, 7),
-    /// ]);
-    ///
-    /// assert_eq!(
-    ///     affine.to_homogeneous(),
-    ///     Mat3::from_rows(&[
-    ///         Vec3::new(2, 3, 0),
-    ///         Vec3::new(4, 5, 0),
-    ///         Vec3::new(6, 7, 1),
-    ///     ]),
-    /// );
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn to_homogeneous(&self) -> Matrix<3, T, A>
-    where
-        T: Zero + One,
-    {
-        Matrix::from_rows(&[
-            self.matrix.x_axis.extend(T::ZERO),
-            self.matrix.y_axis.extend(T::ZERO),
-            self.translation.to_homogeneous(),
-        ])
-    }
-
-    /// Takes the `N+1`x`N` affine transform part of an `N+1`x`N+1` homogeneous
-    /// transformation matrix, discarding the last column.
-    ///
-    /// The removed column is completely ignored, without checking for identity.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::{Affine2, Mat3, Vec2, Vec3};
-    /// #
-    /// let homogeneous = Mat3::from_rows(&[
-    ///     Vec3::new(00, 01, 02),
-    ///     Vec3::new(10, 11, 12),
-    ///     Vec3::new(20, 21, 22),
-    /// ]);
-    ///
-    /// assert_eq!(
-    ///     Affine2::from_homogeneous(&homogeneous),
-    ///     Affine2::from_rows(&[
-    ///         Vec2::new(00, 01),
-    ///         Vec2::new(10, 11),
-    ///         Vec2::new(20, 21),
-    ///     ]),
-    /// );
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn from_homogeneous(homogeneous: &Matrix<3, T, A>) -> Self {
-        Self::from_rows(&[
-            homogeneous.x_axis.truncate(),
-            homogeneous.y_axis.truncate(),
-            homogeneous.z_axis.truncate(),
-        ])
-    }
-
-    /// Returns a mutable reference to the affine transform's rows.
-    ///
-    /// This function has been renamed to [`as_mut_rows`].
-    ///
-    /// [`as_mut_rows`]: Self::as_mut_rows
-    #[inline]
-    #[must_use]
-    #[deprecated(since = "0.17.1", note = "renamed to `as_mut_rows`")]
-    pub const fn as_rows_mut(&mut self) -> &mut [Vector<2, T, A>; 3] {
-        self.as_mut_rows()
-    }
-
-    #[inline]
-    fn from_projective_backend(projective: &Projective<2, T, A>) -> Self {
-        Self::from_rows(&[
-            projective[0].truncate(),
-            projective[1].truncate(),
-            projective[2].truncate(),
-        ])
-    }
-}
-
-impl<T, A: Alignment> Affine<3, T, A>
-where
-    T: Scalar,
-{
-    /// Creates a 3D affine transform from four row vectors.
-    #[inline]
-    #[must_use]
-    pub const fn from_rows(rows: &[Vector<3, T, A>; 4]) -> Self {
-        Self {
-            matrix: Matrix::from_rows(&[rows[0], rows[1], rows[2]]),
-            translation: rows[3],
-        }
-    }
-
-    /// Creates an affine transform from a row-major array of elements.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::{Affine2, Vec2};
-    /// #
-    /// let affine = Affine2::from_row_array(&[1.0, 2.0, 3.0, 4.0, 5.0, 6.0]);
-    /// assert_eq!(
-    ///     affine,
-    ///     Affine2::from_rows(&[
-    ///         Vec2::new(1.0, 2.0),
-    ///         Vec2::new(3.0, 4.0),
-    ///         Vec2::new(5.0, 6.0),
-    ///     ]),
-    /// );
-    /// ```
-    #[inline]
-    #[must_use]
-    pub const fn from_row_array(array: &[T; 12]) -> Self {
-        Self::from_rows(&[
-            Vector::<3, T, A>::new(array[0], array[1], array[2]),
-            Vector::<3, T, A>::new(array[3], array[4], array[5]),
-            Vector::<3, T, A>::new(array[6], array[7], array[8]),
-            Vector::<3, T, A>::new(array[9], array[10], array[11]),
-        ])
-    }
-
-    /// Returns a reference to the affine transform's rows.
-    #[inline]
-    #[must_use]
-    pub const fn as_rows(&self) -> &[Vector<3, T, A>; 4] {
-        // SAFETY: `Affine<3, T, A>` is guaranteed to begin with
-        // `Matrix<3, T, A>` (three vectors) then `Vector<3, T, A>`, which is 4
-        // vectors in total.
-        unsafe { transmute_ref::<Affine<3, T, A>, [Vector<3, T, A>; 4]>(self) }
-    }
-
-    /// Returns a mutable reference to the affine transform's rows.
-    #[inline]
-    #[must_use]
-    pub const fn as_mut_rows(&mut self) -> &mut [Vector<3, T, A>; 4] {
-        // SAFETY: `Affine<3, T, A>` is guaranteed to begin with
-        // `Matrix<3, T, A>` (three vectors) then `Vector<3, T, A>`, which is 4
-        // vectors in total.
-        unsafe { transmute_mut::<Affine<3, T, A>, [Vector<3, T, A>; 4]>(self) }
-    }
-
-    /// Creates an `N+1`x`N+1` homogeneous transformation matrix from an
-    /// `N+1`x`N` affine transform.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::{Affine2, Mat3, Vec2, Vec3};
-    /// #
-    /// let affine = Affine2::from_rows(&[
-    ///     Vec2::new(2, 3),
-    ///     Vec2::new(4, 5),
-    ///     Vec2::new(6, 7),
-    /// ]);
-    ///
-    /// assert_eq!(
-    ///     affine.to_homogeneous(),
-    ///     Mat3::from_rows(&[
-    ///         Vec3::new(2, 3, 0),
-    ///         Vec3::new(4, 5, 0),
-    ///         Vec3::new(6, 7, 1),
-    ///     ]),
-    /// );
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn to_homogeneous(&self) -> Matrix<4, T, A>
-    where
-        T: Zero + One,
-    {
-        Matrix::from_rows(&[
-            self.matrix.x_axis.extend(T::ZERO),
-            self.matrix.y_axis.extend(T::ZERO),
-            self.matrix.z_axis.extend(T::ZERO),
-            self.translation.to_homogeneous(),
-        ])
-    }
-
-    /// Takes the `N+1`x`N` affine transform part of an `N+1`x`N+1` homogeneous
-    /// transformation matrix, discarding the last column.
-    ///
-    /// The removed column is completely ignored, without checking for identity.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::{Affine2, Mat3, Vec2, Vec3};
-    /// #
-    /// let homogeneous = Mat3::from_rows(&[
-    ///     Vec3::new(00, 01, 02),
-    ///     Vec3::new(10, 11, 12),
-    ///     Vec3::new(20, 21, 22),
-    /// ]);
-    ///
-    /// assert_eq!(
-    ///     Affine2::from_homogeneous(&homogeneous),
-    ///     Affine2::from_rows(&[
-    ///         Vec2::new(00, 01),
-    ///         Vec2::new(10, 11),
-    ///         Vec2::new(20, 21),
-    ///     ]),
-    /// );
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn from_homogeneous(homogeneous: &Matrix<4, T, A>) -> Self {
-        Self::from_rows(&[
-            homogeneous.x_axis.truncate(),
-            homogeneous.y_axis.truncate(),
-            homogeneous.z_axis.truncate(),
-            homogeneous.w_axis.truncate(),
-        ])
-    }
-
-    /// Returns a mutable reference to the affine transform's rows.
-    ///
-    /// This function has been renamed to [`as_mut_rows`].
-    ///
-    /// [`as_mut_rows`]: Self::as_mut_rows
-    #[inline]
-    #[must_use]
-    #[deprecated(since = "0.17.1", note = "renamed to `as_mut_rows`")]
-    pub const fn as_rows_mut(&mut self) -> &mut [Vector<3, T, A>; 4] {
-        self.as_mut_rows()
-    }
-
-    #[inline]
-    fn from_projective_backend(projective: &Projective<3, T, A>) -> Self {
-        Self::from_rows(&[
-            projective[0].truncate(),
-            projective[1].truncate(),
-            projective[2].truncate(),
-            projective[3].truncate(),
-        ])
-    }
-}
-
-impl<T, A: Alignment> Affine<4, T, A>
-where
-    T: Scalar,
-{
-    /// Creates a 4D affine transform from five row vectors.
-    #[inline]
-    #[must_use]
-    pub const fn from_rows(rows: &[Vector<4, T, A>; 5]) -> Self {
-        Self {
-            matrix: Matrix::from_rows(&[rows[0], rows[1], rows[2], rows[3]]),
-            translation: rows[4],
-        }
-    }
-
-    /// Creates an affine transform from a row-major array of elements.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::{Affine2, Vec2};
-    /// #
-    /// let affine = Affine2::from_row_array(&[1.0, 2.0, 3.0, 4.0, 5.0, 6.0]);
-    /// assert_eq!(
-    ///     affine,
-    ///     Affine2::from_rows(&[
-    ///         Vec2::new(1.0, 2.0),
-    ///         Vec2::new(3.0, 4.0),
-    ///         Vec2::new(5.0, 6.0),
-    ///     ]),
-    /// );
-    /// ```
-    #[inline]
-    #[must_use]
-    pub const fn from_row_array(array: &[T; 20]) -> Self {
-        Self::from_rows(&[
-            Vector::<4, T, A>::new(array[0], array[1], array[2], array[3]),
-            Vector::<4, T, A>::new(array[4], array[5], array[6], array[7]),
-            Vector::<4, T, A>::new(array[8], array[9], array[10], array[11]),
-            Vector::<4, T, A>::new(array[12], array[13], array[14], array[15]),
-            Vector::<4, T, A>::new(array[16], array[17], array[18], array[19]),
-        ])
-    }
-
-    /// Returns a reference to the affine transform's rows.
-    #[inline]
-    #[must_use]
-    pub const fn as_rows(&self) -> &[Vector<4, T, A>; 5] {
-        // SAFETY: `Affine<4, T, A>` is guaranteed to begin with
-        // `Matrix<4, T, A>` (four vectors) then `Vector<4, T, A>`, which is 5
-        // vectors in total.
-        unsafe { transmute_ref::<Affine<4, T, A>, [Vector<4, T, A>; 5]>(self) }
-    }
-
-    /// Returns a mutable reference to the affine transform's rows.
-    #[inline]
-    #[must_use]
-    pub const fn as_mut_rows(&mut self) -> &mut [Vector<4, T, A>; 5] {
-        // SAFETY: `Affine<4, T, A>` is guaranteed to begin with
-        // `Matrix<4, T, A>` (four vectors) then `Vector<4, T, A>`, which is 5
-        // vectors in total.
-        unsafe { transmute_mut::<Affine<4, T, A>, [Vector<4, T, A>; 5]>(self) }
-    }
-
-    /// Returns a mutable reference to the affine transform's rows.
-    ///
-    /// This function has been renamed to [`as_mut_rows`].
-    ///
-    /// [`as_mut_rows`]: Self::as_mut_rows
-    #[inline]
-    #[must_use]
-    #[deprecated(since = "0.17.1", note = "renamed to `as_mut_rows`")]
-    pub const fn as_rows_mut(&mut self) -> &mut [Vector<4, T, A>; 5] {
-        self.as_mut_rows()
-    }
-}
 
 impl<const N: usize, T, A: Alignment> Clone for Affine<N, T, A>
 where
@@ -798,6 +242,47 @@ where
             (4, 4) => &mut self.translation,
             _ => panic!("index out of bounds"),
         }
+    }
+}
+
+#[doc(hidden)]
+#[repr(C)]
+pub struct AffineFields<const N: usize, T, A: Alignment>
+where
+    Length<N>: SupportedLength,
+    T: Scalar,
+{
+    /// The part representing rotation, scaling and shear.
+    pub matrix: Matrix<N, T, A>,
+    /// The part representing translation.
+    pub translation: Vector<N, T, A>,
+}
+
+impl<const N: usize, T, A: Alignment> Deref for Affine<N, T, A>
+where
+    Length<N>: SupportedLength,
+    T: Scalar,
+{
+    type Target = AffineFields<N, T, A>;
+
+    #[inline]
+    fn deref(&self) -> &Self::Target {
+        // SAFETY: `Affine` is guaranteed to begin with the corresponding matrix
+        // and vector
+        unsafe { transmute_ref::<Affine<N, T, A>, AffineFields<N, T, A>>(self) }
+    }
+}
+
+impl<const N: usize, T, A: Alignment> DerefMut for Affine<N, T, A>
+where
+    Length<N>: SupportedLength,
+    T: Scalar,
+{
+    #[inline]
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        // SAFETY: `Affine` is guaranteed to begin with the corresponding matrix
+        // and vector
+        unsafe { transmute_mut::<Affine<N, T, A>, AffineFields<N, T, A>>(self) }
     }
 }
 
@@ -1021,6 +506,43 @@ impl_mul_assign!(
     /// floating-point precision and integer panics.
 );
 
+// SAFETY: The matrix and vector are `Send`, and so is the padding.
+unsafe impl<const N: usize, T, A: Alignment> Send for Affine<N, T, A>
+where
+    Length<N>: SupportedLength,
+    T: Scalar + Send,
+{
+}
+
+// SAFETY: The matrix and vector are `Sync`, and so is the padding.
+unsafe impl<const N: usize, T, A: Alignment> Sync for Affine<N, T, A>
+where
+    Length<N>: SupportedLength,
+    T: Scalar + Sync,
+{
+}
+
+impl<const N: usize, T, A: Alignment> Unpin for Affine<N, T, A>
+where
+    Length<N>: SupportedLength,
+    T: Scalar + Unpin,
+{
+}
+
+impl<const N: usize, T, A: Alignment> UnwindSafe for Affine<N, T, A>
+where
+    Length<N>: SupportedLength,
+    T: Scalar + UnwindSafe,
+{
+}
+
+impl<const N: usize, T, A: Alignment> RefUnwindSafe for Affine<N, T, A>
+where
+    Length<N>: SupportedLength,
+    T: Scalar + RefUnwindSafe,
+{
+}
+
 #[cfg(test)]
 mod tests {
     extern crate std;
@@ -1028,9 +550,37 @@ mod tests {
     use std::format;
 
     use crate::{
-        Affine, Aligned, Mask, Matrix, Projective, Unaligned, Vector,
+        Affine, Affine2, Affine2A, Affine3, Affine3A, Aligned, Mask, Mat2A, Matrix, Unaligned,
+        Vec3A, Vec4A, Vector,
         test_utils::{assert_panic, assert_test_eq, for_types, random_iter},
     };
+
+    #[test]
+    fn test_layout() {
+        for_types!(|T: PrimitiveNumber| {
+            assert_eq!(size_of::<Affine2<T>>(), size_of::<T>() * 6);
+            assert_eq!(align_of::<Affine2<T>>(), align_of::<T>());
+
+            assert_eq!(size_of::<Affine3<T>>(), size_of::<T>() * 12);
+            assert_eq!(align_of::<Affine3<T>>(), align_of::<T>());
+
+            assert_eq!(size_of::<Affine<4, T, Unaligned>>(), size_of::<T>() * 20);
+            assert_eq!(align_of::<Affine<4, T, Unaligned>>(), align_of::<T>());
+
+            if align_of::<Mat2A<T>>() == size_of::<Mat2A<T>>() {
+                assert_eq!(size_of::<Affine2A<T>>(), size_of::<T>() * 8);
+            } else {
+                assert_eq!(size_of::<Affine2A<T>>(), size_of::<T>() * 6);
+            }
+            assert_eq!(align_of::<Affine2A<T>>(), align_of::<Mat2A<T>>());
+
+            assert_eq!(size_of::<Affine3A<T>>(), size_of::<Vec3A<T>>() * 4);
+            assert_eq!(align_of::<Affine3A<T>>(), align_of::<Vec3A<T>>());
+
+            assert_eq!(size_of::<Affine<4, T, Aligned>>(), size_of::<T>() * 20);
+            assert_eq!(align_of::<Affine<4, T, Aligned>>(), align_of::<Vec4A<T>>());
+        });
+    }
 
     #[test]
     fn test_zero() {
@@ -1107,34 +657,6 @@ mod tests {
             assert_eq!(
                 Affine::<N, T, A>::from_matrix(&matrix),
                 Affine::from_matrix_translation(&matrix, Vector::ZERO)
-            );
-        });
-    }
-
-    #[test]
-    fn test_from_projective() {
-        for_types!(|T: PrimitiveNumber, A| {
-            let projective =
-                Projective::<2, T, A>::from_row_fn(|r| Vector::from_fn(|c| T::as_from(r * 2 + c)));
-            assert_eq!(
-                Affine::<2, T, A>::from_projective(&projective),
-                Affine::<2, T, A>::from_rows(&[
-                    projective.x_axis.truncate(),
-                    projective.y_axis.truncate(),
-                    projective.z_axis.truncate(),
-                ])
-            );
-
-            let projective =
-                Projective::<3, T, A>::from_row_fn(|r| Vector::from_fn(|c| T::as_from(r * 3 + c)));
-            assert_eq!(
-                Affine::<3, T, A>::from_projective(&projective),
-                Affine::<3, T, A>::from_rows(&[
-                    projective.x_axis.truncate(),
-                    projective.y_axis.truncate(),
-                    projective.z_axis.truncate(),
-                    projective.w_axis.truncate(),
-                ])
             );
         });
     }
@@ -1344,41 +866,6 @@ mod tests {
                     Vector::<4, T, A>::new(w, a, b, T::ZERO),
                     Vector::<4, T, A>::new(c, d, e, T::ZERO),
                     Vector::<4, T, A>::new(f, g, h, T::ONE)
-                ])
-            );
-        });
-    }
-
-    #[test]
-    fn test_from_homogeneous() {
-        for_types!(|T: PrimitiveNumber, A| {
-            let [x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l] =
-                std::array::from_fn(|i| T::as_from(i + 1));
-
-            assert_eq!(
-                Affine::<2, T, A>::from_homogeneous(&Matrix::from_rows(&[
-                    Vector::<3, T, A>::new(x, y, z),
-                    Vector::<3, T, A>::new(w, a, b),
-                    Vector::<3, T, A>::new(c, d, e)
-                ])),
-                Affine::<2, T, A>::from_rows(&[
-                    Vector::<2, T, A>::new(x, y),
-                    Vector::<2, T, A>::new(w, a),
-                    Vector::<2, T, A>::new(c, d)
-                ])
-            );
-            assert_eq!(
-                Affine::<3, T, A>::from_homogeneous(&Matrix::from_rows(&[
-                    Vector::<4, T, A>::new(x, y, z, w),
-                    Vector::<4, T, A>::new(a, b, c, d),
-                    Vector::<4, T, A>::new(e, f, g, h),
-                    Vector::<4, T, A>::new(i, j, k, l)
-                ])),
-                Affine::<3, T, A>::from_rows(&[
-                    Vector::<3, T, A>::new(x, y, z),
-                    Vector::<3, T, A>::new(a, b, c),
-                    Vector::<3, T, A>::new(e, f, g),
-                    Vector::<3, T, A>::new(i, j, k)
                 ])
             );
         });

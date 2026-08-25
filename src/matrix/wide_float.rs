@@ -1,149 +1,596 @@
 use wide::{f32x4, f32x8, f32x16, f64x2, f64x4, f64x8};
 
 use crate::{
-    Alignment, EulerRot, Length, Matrix, Quaternion, SupportedLength, Vector, utils::specialize,
+    Alignment, EulerRot, Length, Matrix, Projective, Quaternion, SupportedLength, Vector,
+    length::TwoOrThree,
+    utils::{specialize, specialize_23},
 };
 
-macro_rules! impl_wide_float {
+macro_rules! items {
     ($Wide:ident, $T:ident) => {
+        /// A matrix with all elements set to NaN (Not a Number).
+        pub const NAN: Self = Self::from_rows(&[Vector::<N, $Wide, A>::NAN; N]);
+
+        /// Converts a projective transform to a linear transformation matrix.
+        ///
+        /// This assumes `projective` does not contain projections. If there is
+        /// translation, it is ignored.
+        #[inline]
+        #[must_use]
+        #[expect(private_bounds)]
+        pub fn from_projective(projective: &Projective<N, $Wide, A>) -> Self
+        where
+            Length<N>: TwoOrThree,
+        {
+            specialize_23!(Matrix::<N, $Wide, A>::from_projective_backend(projective))
+        }
+
+        /// For each lane, returns `true` if any element is NaN.
+        #[inline]
+        #[must_use]
+        pub fn is_nan(&self) -> $Wide {
+            specialize!(Matrix::<N, $Wide, A>::is_nan_backend(self))
+        }
+
+        /// For each lane, returns `true` if all elements are neither infinite
+        /// nor NaN.
+        #[inline]
+        #[must_use]
+        pub fn is_finite(&self) -> $Wide {
+            specialize!(Matrix::<N, $Wide, A>::is_finite_backend(self))
+        }
+
+        /// Returns the inverse of `self`.
+        ///
+        /// If `self` is not invertable the result is unspecified.
+        #[must_use]
+        pub fn inverse(&self) -> Self {
+            self.inverse_and_determinant().0
+        }
+
+        // `try_inverse` is exluded on purpose. It would not be useful because
+        // it would only return `Some` if all lanes succeed.
+
+        /// Returns the inverse of `self` or `fallback` if `self` is not
+        /// invertable.
+        ///
+        /// The fallback is only applied for invalid lanes. Other lanes are not
+        /// affected.
+        #[must_use]
+        pub fn inverse_or(&self, fallback: &Self) -> Self {
+            specialize!(Matrix::<N, $Wide, A>::inverse_or_backend(self, fallback))
+        }
+
+        /// Returns the inverse of `self` or the zero matrix if `self` is not
+        /// invertable.
+        ///
+        /// The fallback is only applied for invalid lanes. Other lanes are not
+        /// affected.
+        #[must_use]
+        pub fn inverse_or_zero(&self) -> Self {
+            specialize!(Matrix::<N, $Wide, A>::inverse_or_zero_backend(self))
+        }
+
+        #[inline]
+        pub(crate) fn inverse_and_determinant(&self) -> (Self, $Wide) {
+            specialize!(Matrix::<N, $Wide, A>::inverse_and_determinant_backend(self))
+        }
+
+        /// Returns the element-wise reciprocal (inverse) of a matrix,
+        /// `1 / self`.
+        #[inline]
+        #[must_use]
+        pub fn recip(&self) -> Self {
+            specialize!(Matrix::<N, $Wide, A>::recip_backend(self))
+        }
+
+        /// Returns the absolute values of the elements of `self`.
+        ///
+        /// Equivalent to `(self.x_axis.abs(), self.y_axis.abs(), ...)`.
+        #[inline]
+        #[must_use]
+        pub fn abs(&self) -> Self {
+            specialize!(Matrix::<N, $Wide, A>::abs_backend(self))
+        }
+
+        /// Returns `true` if the absolute difference of all elements between
+        /// `self` and `other` is less than or equal to `max_abs_diff` for all
+        /// lanes.
+        ///
+        /// This can be used to compare two matrices that should be equal, but
+        /// may have a slight difference due to operations having rounding
+        /// errors.
+        #[inline]
+        #[must_use]
+        pub fn abs_diff_eq(&self, other: &Self, max_abs_diff: $Wide) -> bool {
+            specialize!(Matrix::<N, $Wide, A>::abs_diff_eq_backend(
+                self,
+                other,
+                max_abs_diff
+            ))
+        }
+    };
+}
+
+macro_rules! items_2 {
+    ($Wide:ident, $T:ident) => {
+        /// Creates a matrix containing a rotation of `angle` (in radians).
+        ///
+        /// This rotates `+X` to `+Y`.
+        #[inline]
+        #[must_use]
+        pub fn from_angle(angle: $Wide) -> Self {
+            let (sin, cos) = angle.sin_cos();
+            Self::from_rows(&[
+                Vector::<2, $Wide, A>::new(cos, sin),
+                Vector::<2, $Wide, A>::new(-sin, cos),
+            ])
+        }
+
+        /// Creates a matrix containing the non-uniform `scale` and a rotation
+        /// of `angle` (in radians).
+        ///
+        /// This rotates `+X` to `+Y`.
+        #[inline]
+        #[must_use]
+        pub fn from_scale_angle(scale: Vector<2, $Wide, A>, angle: $Wide) -> Self {
+            let (sin, cos) = angle.sin_cos();
+            Self::from_rows(&[
+                Vector::<2, $Wide, A>::new(cos * scale.x, sin * scale.x),
+                Vector::<2, $Wide, A>::new(-sin * scale.y, cos * scale.y),
+            ])
+        }
+
+        /// Takes the `N`x`N` linear transformation part of an `N+1`x`N+1`
+        /// homogeneous transformation matrix, removing the last row and column.
+        ///
+        /// This assumes `homogeneous` does not contain projections. If there is
+        /// translation, it is ignored.
+        #[inline]
+        #[must_use]
+        pub fn from_homogeneous(homogeneous: &Matrix<3, $Wide, A>) -> Self {
+            Self::from_rows(&[homogeneous.x_axis.truncate(), homogeneous.y_axis.truncate()])
+        }
+
+        /// Returns the `scale` and `angle` of `self`.
+        ///
+        /// `self` must not contain shearing. Otherwise the result is
+        /// unspecified.
+        #[inline]
+        #[must_use]
+        pub fn to_scale_angle(&self) -> (Vector<2, $Wide, A>, $Wide) {
+            let determinant = self.determinant();
+
+            let scale = Vector::<2, $Wide, A>::new(
+                self.x_axis.length() * determinant.signum(),
+                self.y_axis.length(),
+            );
+
+            let angle = (-self.y_axis.x).atan2(self.y_axis.y);
+
+            (scale, angle)
+        }
+    };
+}
+
+macro_rules! items_3 {
+    ($Wide:ident, $T:ident) => {
+        /// Creates a 3D rotation matrix from `angle` (in radians) around the x
+        /// axis.
+        ///
+        /// This rotates `+Y` to `+Z`.
+        #[inline]
+        #[must_use]
+        pub fn from_rotation_x(angle: $Wide) -> Self {
+            let (sin, cos) = angle.sin_cos();
+            Self::from_rows(&[
+                Vector::<3, $Wide, A>::X,
+                Vector::<3, $Wide, A>::new($Wide::ZERO, cos, sin),
+                Vector::<3, $Wide, A>::new($Wide::ZERO, -sin, cos),
+            ])
+        }
+
+        /// Creates a 3D rotation matrix from `angle` (in radians) around the y
+        /// axis.
+        ///
+        /// This rotates `+Z` to `+X`.
+        #[inline]
+        #[must_use]
+        pub fn from_rotation_y(angle: $Wide) -> Self {
+            let (sin, cos) = angle.sin_cos();
+            Self::from_rows(&[
+                Vector::<3, $Wide, A>::new(cos, $Wide::ZERO, -sin),
+                Vector::<3, $Wide, A>::Y,
+                Vector::<3, $Wide, A>::new(sin, $Wide::ZERO, cos),
+            ])
+        }
+
+        /// Creates a 3D rotation matrix from `angle` (in radians) around the z
+        /// axis.
+        ///
+        /// This rotates `+X` to `+Y`.
+        #[inline]
+        #[must_use]
+        pub fn from_rotation_z(angle: $Wide) -> Self {
+            let (sin, cos) = angle.sin_cos();
+            Self::from_rows(&[
+                Vector::<3, $Wide, A>::new(cos, sin, $Wide::ZERO),
+                Vector::<3, $Wide, A>::new(-sin, cos, $Wide::ZERO),
+                Vector::<3, $Wide, A>::Z,
+            ])
+        }
+
+        #[inline]
+        fn quat_to_axes(quat: Quaternion<$Wide, A>) -> [Vector<3, $Wide, A>; 3] {
+            let x2 = quat.x + quat.x;
+            let y2 = quat.y + quat.y;
+            let z2 = quat.z + quat.z;
+            let xx2 = quat.x * x2;
+            let xy2 = quat.x * y2;
+            let xz2 = quat.x * z2;
+            let yy2 = quat.y * y2;
+            let yz2 = quat.y * z2;
+            let zz2 = quat.z * z2;
+            let wx2 = quat.w * x2;
+            let wy2 = quat.w * y2;
+            let wz2 = quat.w * z2;
+
+            [
+                Vector::<3, $Wide, A>::new($Wide::ONE - (yy2 + zz2), xy2 + wz2, xz2 - wy2),
+                Vector::<3, $Wide, A>::new(xy2 - wz2, $Wide::ONE - (xx2 + zz2), yz2 + wx2),
+                Vector::<3, $Wide, A>::new(xz2 + wy2, yz2 - wx2, $Wide::ONE - (xx2 + yy2)),
+            ]
+        }
+
+        /// Creates a 3D rotation matrix from a quaternion.
+        #[inline]
+        #[must_use]
+        pub fn from_quat(quat: Quaternion<$Wide, A>) -> Self {
+            let [x_axis, y_axis, z_axis] = Self::quat_to_axes(quat);
+            Self::from_rows(&[x_axis, y_axis, z_axis])
+        }
+
+        /// Creates a 3D rotation matrix from a rotation `axis` and `angle` (in
+        /// radians).
+        ///
+        /// `axis` must be normalized. Otherwise the result is unspecified.
+        #[inline]
+        #[must_use]
+        pub fn from_axis_angle(axis: Vector<3, $Wide, A>, angle: $Wide) -> Self {
+            let (sin, cos) = angle.sin_cos();
+            let [xsin, ysin, zsin] = (axis * sin).to_array();
+            let [x, y, z] = axis.to_array();
+            let [x2, y2, z2] = (axis * axis).to_array();
+            let omc = $Wide::ONE - cos;
+            let xyomc = x * y * omc;
+            let xzomc = x * z * omc;
+            let yzomc = y * z * omc;
+
+            Self::from_rows(&[
+                Vector::<3, $Wide, A>::new(x2 * omc + cos, xyomc + zsin, xzomc - ysin),
+                Vector::<3, $Wide, A>::new(xyomc - zsin, y2 * omc + cos, yzomc + xsin),
+                Vector::<3, $Wide, A>::new(xzomc + ysin, yzomc - xsin, z2 * omc + cos),
+            ])
+        }
+
+        /// Creates a 3D rotation matrix from an Euler rotation order/sequence
+        /// and angles (in radians).
+        #[inline]
+        #[must_use]
+        pub fn from_euler(order: EulerRot, a: $Wide, b: $Wide, c: $Wide) -> Self {
+            // Ported from https://github.com/bitshifter/glam-rs.
+
+            // Based on Ken Shoemake. 1994. Euler angle conversion. Graphics gems IV.
+            // Academic Press Professional, Inc., USA, 222–229.
+
+            let order = order.properties();
+            let (i, j, k) = order.axes_indices();
+
+            let mut angles = if order.frame_static {
+                Vector::<3, $Wide, A>::new(a, b, c)
+            } else {
+                Vector::<3, $Wide, A>::new(c, b, a)
+            };
+
+            // Rotation direction is reverse from original paper.
+            if order.parity_even {
+                angles = -angles;
+            }
+
+            let (si, ci) = angles.x.sin_cos();
+            let (sj, cj) = angles.y.sin_cos();
+            let (sh, ch) = angles.z.sin_cos();
+
+            let cc = ci * ch;
+            let cs = ci * sh;
+            let sc = si * ch;
+            let ss = si * sh;
+
+            let mut result = Self::ZERO;
+
+            if order.initial_repeated {
+                result[i][i] = cj;
+                result[i][j] = sj * si;
+                result[i][k] = sj * ci;
+                result[j][i] = sj * sh;
+                result[j][j] = -cj * ss + cc;
+                result[j][k] = -cj * cs - sc;
+                result[k][i] = -sj * ch;
+                result[k][j] = cj * sc + cs;
+                result[k][k] = cj * cc - ss;
+            } else {
+                result[i][i] = cj * ch;
+                result[i][j] = sj * sc - cs;
+                result[i][k] = sj * cc + ss;
+                result[j][i] = cj * sh;
+                result[j][j] = sj * ss + cc;
+                result[j][k] = sj * cs - sc;
+                result[k][i] = -sj;
+                result[k][j] = cj * si;
+                result[k][k] = cj * ci;
+            }
+
+            result
+        }
+
+        /// Creates a matrix containing a non-uniform `scale` and a 3D
+        /// `rotation`.
+        #[inline]
+        #[must_use]
+        pub fn from_scale_rotation(
+            scale: Vector<3, $Wide, A>,
+            rotation: Quaternion<$Wide, A>,
+        ) -> Self {
+            let [rotation_x, rotation_y, rotation_z] = Self::quat_to_axes(rotation);
+            Self::from_rows(&[
+                rotation_x * scale.x,
+                rotation_y * scale.y,
+                rotation_z * scale.z,
+            ])
+        }
+
+        /// Takes the `N`x`N` linear transformation part of an `N+1`x`N+1`
+        /// homogeneous transformation matrix, removing the last row and column.
+        ///
+        /// This assumes `homogeneous` does not contain projections. If there is
+        /// translation, it is ignored.
+        #[inline]
+        #[must_use]
+        pub fn from_homogeneous(homogeneous: &Matrix<4, $Wide, A>) -> Self {
+            Self::from_rows(&[
+                homogeneous.x_axis.truncate(),
+                homogeneous.y_axis.truncate(),
+                homogeneous.z_axis.truncate(),
+            ])
+        }
+
+        /// Creates a left-handed view matrix from a facing direction and an up
+        /// direction.
+        ///
+        /// For a view coordinate system with `+X=right`, `+Y=up` and
+        /// `+Z=forward`.
+        #[inline]
+        #[must_use]
+        pub fn look_to_lh(dir: Vector<3, $Wide, A>, up: Vector<3, $Wide, A>) -> Self {
+            let forward = dir;
+            let right = up.cross(forward).normalize();
+            let up = forward.cross(right);
+
+            Self::from_rows(&[
+                Vector::<3, $Wide, A>::new(right.x, up.x, forward.x),
+                Vector::<3, $Wide, A>::new(right.y, up.y, forward.y),
+                Vector::<3, $Wide, A>::new(right.z, up.z, forward.z),
+            ])
+        }
+
+        /// Creates a right-handed view matrix from a facing direction and an up
+        /// direction.
+        ///
+        /// For a view coordinate system with `+X=right`, `+Y=up` and `+Z=back`.
+        #[inline]
+        #[must_use]
+        pub fn look_to_rh(dir: Vector<3, $Wide, A>, up: Vector<3, $Wide, A>) -> Self {
+            let forward = dir;
+            let right = forward.cross(up).normalize();
+            let up = right.cross(forward);
+
+            Self::from_rows(&[
+                Vector::<3, $Wide, A>::new(right.x, up.x, -forward.x),
+                Vector::<3, $Wide, A>::new(right.y, up.y, -forward.y),
+                Vector::<3, $Wide, A>::new(right.z, up.z, -forward.z),
+            ])
+        }
+
+        /// Creates a left-handed view matrix from a camera position, a focal
+        /// point and an up direction.
+        ///
+        /// For a view coordinate system with `+X=right`, `+Y=up` and
+        /// `+Z=forward`.
+        #[inline]
+        #[must_use]
+        pub fn look_at_lh(
+            eye: Vector<3, $Wide, A>,
+            center: Vector<3, $Wide, A>,
+            up: Vector<3, $Wide, A>,
+        ) -> Self {
+            Self::look_to_lh((center - eye).normalize(), up)
+        }
+
+        /// Creates a right-handed view matrix from a camera position, a focal
+        /// point and an up direction.
+        ///
+        /// For a view coordinate system with `+X=right`, `+Y=up` and `+Z=back`.
+        #[inline]
+        #[must_use]
+        pub fn look_at_rh(
+            eye: Vector<3, $Wide, A>,
+            center: Vector<3, $Wide, A>,
+            up: Vector<3, $Wide, A>,
+        ) -> Self {
+            Self::look_to_rh((center - eye).normalize(), up)
+        }
+
+        /// Returns the Euler angles forming `self` for the given Euler rotation
+        /// order/sequence.
+        ///
+        /// `self` must not contain any non-rotation transformations. Otherwise
+        /// the result is unspecified.
+        #[inline]
+        #[must_use]
+        pub fn to_euler(&self, order: EulerRot) -> ($Wide, $Wide, $Wide) {
+            // Ported from https://github.com/bitshifter/glam-rs.
+
+            // Based on Ken Shoemake. 1994. Euler angle conversion. Graphics
+            // gems IV. Academic Press Professional, Inc., USA, 222–229.
+
+            let order = order.properties();
+            let (i, j, k) = order.axes_indices();
+
+            let mut ea = Vector::<3, $Wide, A>::ZERO;
+            if order.initial_repeated {
+                let sy = (self[i][j] * self[i][j] + self[i][k] * self[i][k]).sqrt();
+
+                let mask = sy.simd_gt($Wide::splat(16.0 * $T::EPSILON));
+                ea.x = mask.blend(
+                    self[i][j].atan2(self[i][k]),
+                    (-self[j][k]).atan2(self[j][j]),
+                );
+                ea.y = sy.atan2(self[i][i]);
+                ea.z = mask & self[j][i].atan2(-self[k][i]);
+            } else {
+                let cy = (self[i][i] * self[i][i] + self[j][i] * self[j][i]).sqrt();
+
+                let mask = cy.simd_gt($Wide::splat(16.0 * $T::EPSILON));
+                ea.x = mask.blend(
+                    self[k][j].atan2(self[k][k]),
+                    (-self[j][k]).atan2(self[j][j]),
+                );
+                ea.y = (-self[k][i]).atan2(cy);
+                ea.z = mask & self[j][i].atan2(self[i][i]);
+            }
+
+            // Reverse rotation angle of original code.
+            if order.parity_even {
+                ea = -ea;
+            }
+
+            if !order.frame_static {
+                ea = ea.zyx();
+            }
+
+            (ea.x, ea.y, ea.z)
+        }
+
+        /// For each lane, returns the `scale` and `rotation` of `self`.
+        ///
+        /// `self` must not contain shearing. Otherwise the result is
+        /// unspecified.
+        #[inline]
+        #[must_use]
+        pub fn to_scale_rotation(&self) -> (Vector<3, $Wide, A>, Quaternion<$Wide, A>) {
+            let determinant = self.determinant();
+
+            let scale = Vector::<3, $Wide, A>::new(
+                self.x_axis.length() * determinant.signum(),
+                self.y_axis.length(),
+                self.z_axis.length(),
+            );
+
+            let scale_recip = scale.recip();
+
+            let rotation = Quaternion::<$Wide, A>::from_matrix(&Self::from_rows(&[
+                self.x_axis * scale_recip.x,
+                self.y_axis * scale_recip.y,
+                self.z_axis * scale_recip.z,
+            ]));
+
+            (scale, rotation)
+        }
+    };
+}
+
+// Since all wide-float functions have names that conflict with normal float
+// functions, We cannot implement this API using generics. Duplicating the API
+// for each supported wide-float type works, but then documentation shows the
+// duplicated API, making it hard to read.
+//
+// When generating documentation, Rust does not care that these items are
+// conflicting. This allows us to cheat by showing these items in a generic
+// context in documentation, but making them separate in all other cases.
+
+#[cfg(doc)]
+#[doc(hidden)]
+pub trait WideFloat: crate::Scalar {}
+
+/// Functionality for [SoA] (Structure of Arrays) float matrices.
+///
+/// This is gated behind the `wide` feature flag.
+///
+/// This functionality is shown with generics to make it easier to read. This
+/// works with all float types from the [`wide`] crate.
+///
+/// [SoA]: crate#soa
+/// [`wide`]: https://crates.io/crates/wide
+#[cfg(doc)]
+impl<const N: usize, Wide, A: Alignment> Matrix<N, Wide, A>
+where
+    Length<N>: SupportedLength,
+    Wide: WideFloat,
+{
+    items!(Wide, f32);
+}
+
+/// Functionality for [SoA] (Structure of Arrays) 2x2 float matrices.
+///
+/// This is gated behind the `wide` feature flag.
+///
+/// This functionality is shown with generics to make it easier to read. This
+/// works with all float types from the [`wide`] crate.
+///
+/// [SoA]: crate#soa
+/// [`wide`]: https://crates.io/crates/wide
+#[cfg(doc)]
+impl<Wide, A: Alignment> Matrix<2, Wide, A>
+where
+    Wide: WideFloat,
+{
+    items_2!(Wide, f32);
+}
+
+/// Functionality for [SoA] (Structure of Arrays) 3x3 float matrices.
+///
+/// This is gated behind the `wide` feature flag.
+///
+/// This functionality is shown with generics to make it easier to read. This
+/// works with all float types from the [`wide`] crate.
+///
+/// [SoA]: crate#soa
+/// [`wide`]: https://crates.io/crates/wide
+#[cfg(doc)]
+impl<Wide, A: Alignment> Matrix<3, Wide, A>
+where
+    Wide: WideFloat,
+{
+    items_3!(Wide, f32);
+}
+
+macro_rules! impl_items {
+    ($Wide:ident, $T:ident) => {
+        #[cfg(not(doc))]
         impl<const N: usize, A: Alignment> Matrix<N, $Wide, A>
         where
             Length<N>: SupportedLength,
         {
-            /// A matrix with all elements set to NaN (Not a Number).
-            pub const NAN: Self = Self::from_rows(&[Vector::<N, $Wide, A>::NAN; N]);
-
-            /// For each lane, returns `true` if any element is NaN.
-            #[inline]
-            #[must_use]
-            pub fn is_nan(&self) -> $Wide {
-                specialize!(Matrix::<N, $Wide, A>::is_nan_backend(self))
-            }
-
-            /// For each lane, returns `true` if all elements are neither
-            /// infinite nor NaN.
-            #[inline]
-            #[must_use]
-            pub fn is_finite(&self) -> $Wide {
-                specialize!(Matrix::<N, $Wide, A>::is_finite_backend(self))
-            }
-
-            /// Returns the inverse of `self`.
-            ///
-            /// If `self` is not invertable the result is unspecified.
-            #[must_use]
-            pub fn inverse(&self) -> Self {
-                self.inverse_and_determinant().0
-            }
-
-            // `try_inverse` is exluded on purpose. It would not be useful
-            // because it would only return `Some` if all lanes succeed.
-
-            /// Returns the inverse of `self` or `fallback` if `self` is not
-            /// invertable.
-            ///
-            /// The fallback is only applied for invalid lanes. Other lanes are
-            /// not affected.
-            #[must_use]
-            pub fn inverse_or(&self, fallback: &Self) -> Self {
-                specialize!(Matrix::<N, $Wide, A>::inverse_or_backend(self, fallback))
-            }
-
-            /// Returns the inverse of `self` or the zero matrix if `self` is
-            /// not invertable.
-            ///
-            /// The fallback is only applied for invalid lanes. Other lanes are
-            /// not affected.
-            #[must_use]
-            pub fn inverse_or_zero(&self) -> Self {
-                specialize!(Matrix::<N, $Wide, A>::inverse_or_zero_backend(self))
-            }
-
-            #[inline]
-            pub(crate) fn inverse_and_determinant(&self) -> (Self, $Wide) {
-                specialize!(Matrix::<N, $Wide, A>::inverse_and_determinant_backend(self))
-            }
-
-            /// Returns the element-wise reciprocal (inverse) of a matrix,
-            /// `1 / self`.
-            #[inline]
-            #[must_use]
-            pub fn recip(&self) -> Self {
-                specialize!(Matrix::<N, $Wide, A>::recip_backend(self))
-            }
-
-            /// Returns the absolute values of the elements of `self`.
-            ///
-            /// Equivalent to `(self.x_axis.abs(), self.y_axis.abs(), ...)`.
-            #[inline]
-            #[must_use]
-            pub fn abs(&self) -> Self {
-                specialize!(Matrix::<N, $Wide, A>::abs_backend(self))
-            }
-
-            /// Returns `true` if the absolute difference of all elements
-            /// between `self` and `other` is less than or equal to
-            /// `max_abs_diff` for all lanes.
-            ///
-            /// This can be used to compare two matrices that should be equal,
-            /// but may have a slight difference due to operations having
-            /// rounding errors.
-            #[inline]
-            #[must_use]
-            pub fn abs_diff_eq(&self, other: &Self, max_abs_diff: $Wide) -> bool {
-                specialize!(Matrix::<N, $Wide, A>::abs_diff_eq_backend(
-                    self,
-                    other,
-                    max_abs_diff
-                ))
-            }
+            items!($Wide, $T);
         }
 
+        #[cfg(not(doc))]
         impl<A: Alignment> Matrix<2, $Wide, A> {
-            /// Creates a matrix containing a rotation of `angle` (in radians).
-            ///
-            /// This rotates `+X` to `+Y`.
-            #[inline]
-            #[must_use]
-            pub fn from_angle(angle: $Wide) -> Self {
-                let (sin, cos) = angle.sin_cos();
-                Self::from_rows(&[
-                    Vector::<2, $Wide, A>::new(cos, sin),
-                    Vector::<2, $Wide, A>::new(-sin, cos),
-                ])
-            }
+            items_2!($Wide, $T);
 
-            /// Creates a matrix containing the non-uniform `scale` and a
-            /// rotation of `angle` (in radians).
-            ///
-            /// This rotates `+X` to `+Y`.
-            #[inline]
-            #[must_use]
-            pub fn from_scale_angle(scale: Vector<2, $Wide, A>, angle: $Wide) -> Self {
-                let (sin, cos) = angle.sin_cos();
-                Self::from_rows(&[
-                    Vector::<2, $Wide, A>::new(cos * scale.x, sin * scale.x),
-                    Vector::<2, $Wide, A>::new(-sin * scale.y, cos * scale.y),
-                ])
-            }
-
-            /// Returns the `scale` and `angle` of `self`.
-            ///
-            /// `self` must not contain shearing. Otherwise the result is
-            /// unspecified.
-            #[inline]
-            #[must_use]
-            pub fn to_scale_angle(&self) -> (Vector<2, $Wide, A>, $Wide) {
-                let determinant = self.determinant();
-
-                let scale = Vector::<2, $Wide, A>::new(
-                    self.x_axis.length() * determinant.signum(),
-                    self.y_axis.length(),
-                );
-
-                let angle = (-self.y_axis.x).atan2(self.y_axis.y);
-
-                (scale, angle)
+            #[inline(always)]
+            fn from_projective_backend(projective: &Projective<2, $Wide, A>) -> Self {
+                Self::from_rows(&[projective.x_axis.truncate(), projective.y_axis.truncate()])
             }
 
             #[inline(always)]
@@ -214,324 +661,17 @@ macro_rules! impl_wide_float {
             }
         }
 
+        #[cfg(not(doc))]
         impl<A: Alignment> Matrix<3, $Wide, A> {
-            /// Creates a 3D rotation matrix from `angle` (in radians) around
-            /// the x axis.
-            ///
-            /// This rotates `+Y` to `+Z`.
-            #[inline]
-            #[must_use]
-            pub fn from_rotation_x(angle: $Wide) -> Self {
-                let (sin, cos) = angle.sin_cos();
+            items_3!($Wide, $T);
+
+            #[inline(always)]
+            fn from_projective_backend(projective: &Projective<3, $Wide, A>) -> Self {
                 Self::from_rows(&[
-                    Vector::<3, $Wide, A>::X,
-                    Vector::<3, $Wide, A>::new($Wide::ZERO, cos, sin),
-                    Vector::<3, $Wide, A>::new($Wide::ZERO, -sin, cos),
+                    projective.x_axis.truncate(),
+                    projective.y_axis.truncate(),
+                    projective.z_axis.truncate(),
                 ])
-            }
-
-            /// Creates a 3D rotation matrix from `angle` (in radians) around
-            /// the y axis.
-            ///
-            /// This rotates `+Z` to `+X`.
-            #[inline]
-            #[must_use]
-            pub fn from_rotation_y(angle: $Wide) -> Self {
-                let (sin, cos) = angle.sin_cos();
-                Self::from_rows(&[
-                    Vector::<3, $Wide, A>::new(cos, $Wide::ZERO, -sin),
-                    Vector::<3, $Wide, A>::Y,
-                    Vector::<3, $Wide, A>::new(sin, $Wide::ZERO, cos),
-                ])
-            }
-
-            /// Creates a 3D rotation matrix from `angle` (in radians) around
-            /// the z axis.
-            ///
-            /// This rotates `+X` to `+Y`.
-            #[inline]
-            #[must_use]
-            pub fn from_rotation_z(angle: $Wide) -> Self {
-                let (sin, cos) = angle.sin_cos();
-                Self::from_rows(&[
-                    Vector::<3, $Wide, A>::new(cos, sin, $Wide::ZERO),
-                    Vector::<3, $Wide, A>::new(-sin, cos, $Wide::ZERO),
-                    Vector::<3, $Wide, A>::Z,
-                ])
-            }
-
-            #[inline]
-            fn quat_to_axes(quat: Quaternion<$Wide, A>) -> [Vector<3, $Wide, A>; 3] {
-                let x2 = quat.x + quat.x;
-                let y2 = quat.y + quat.y;
-                let z2 = quat.z + quat.z;
-                let xx2 = quat.x * x2;
-                let xy2 = quat.x * y2;
-                let xz2 = quat.x * z2;
-                let yy2 = quat.y * y2;
-                let yz2 = quat.y * z2;
-                let zz2 = quat.z * z2;
-                let wx2 = quat.w * x2;
-                let wy2 = quat.w * y2;
-                let wz2 = quat.w * z2;
-
-                [
-                    Vector::<3, $Wide, A>::new($Wide::ONE - (yy2 + zz2), xy2 + wz2, xz2 - wy2),
-                    Vector::<3, $Wide, A>::new(xy2 - wz2, $Wide::ONE - (xx2 + zz2), yz2 + wx2),
-                    Vector::<3, $Wide, A>::new(xz2 + wy2, yz2 - wx2, $Wide::ONE - (xx2 + yy2)),
-                ]
-            }
-
-            /// Creates a 3D rotation matrix from a quaternion.
-            #[inline]
-            #[must_use]
-            pub fn from_quat(quat: Quaternion<$Wide, A>) -> Self {
-                let [x_axis, y_axis, z_axis] = Self::quat_to_axes(quat);
-                Self::from_rows(&[x_axis, y_axis, z_axis])
-            }
-
-            /// Creates a 3D rotation matrix from a rotation `axis` and `angle`
-            /// (in radians).
-            ///
-            /// `axis` must be normalized. Otherwise the result is unspecified.
-            #[inline]
-            #[must_use]
-            pub fn from_axis_angle(axis: Vector<3, $Wide, A>, angle: $Wide) -> Self {
-                let (sin, cos) = angle.sin_cos();
-                let [xsin, ysin, zsin] = (axis * sin).to_array();
-                let [x, y, z] = axis.to_array();
-                let [x2, y2, z2] = (axis * axis).to_array();
-                let omc = $Wide::ONE - cos;
-                let xyomc = x * y * omc;
-                let xzomc = x * z * omc;
-                let yzomc = y * z * omc;
-
-                Self::from_rows(&[
-                    Vector::<3, $Wide, A>::new(x2 * omc + cos, xyomc + zsin, xzomc - ysin),
-                    Vector::<3, $Wide, A>::new(xyomc - zsin, y2 * omc + cos, yzomc + xsin),
-                    Vector::<3, $Wide, A>::new(xzomc + ysin, yzomc - xsin, z2 * omc + cos),
-                ])
-            }
-
-            /// Creates a 3D rotation matrix from an Euler rotation
-            /// order/sequence and angles (in radians).
-            #[inline]
-            #[must_use]
-            pub fn from_euler(order: EulerRot, a: $Wide, b: $Wide, c: $Wide) -> Self {
-                // Ported from https://github.com/bitshifter/glam-rs.
-
-                // Based on Ken Shoemake. 1994. Euler angle conversion. Graphics gems IV.
-                // Academic Press Professional, Inc., USA, 222–229.
-
-                let order = order.properties();
-                let (i, j, k) = order.axes_indices();
-
-                let mut angles = if order.frame_static {
-                    Vector::<3, $Wide, A>::new(a, b, c)
-                } else {
-                    Vector::<3, $Wide, A>::new(c, b, a)
-                };
-
-                // Rotation direction is reverse from original paper.
-                if order.parity_even {
-                    angles = -angles;
-                }
-
-                let (si, ci) = angles.x.sin_cos();
-                let (sj, cj) = angles.y.sin_cos();
-                let (sh, ch) = angles.z.sin_cos();
-
-                let cc = ci * ch;
-                let cs = ci * sh;
-                let sc = si * ch;
-                let ss = si * sh;
-
-                let mut result = Self::ZERO;
-
-                if order.initial_repeated {
-                    result[i][i] = cj;
-                    result[i][j] = sj * si;
-                    result[i][k] = sj * ci;
-                    result[j][i] = sj * sh;
-                    result[j][j] = -cj * ss + cc;
-                    result[j][k] = -cj * cs - sc;
-                    result[k][i] = -sj * ch;
-                    result[k][j] = cj * sc + cs;
-                    result[k][k] = cj * cc - ss;
-                } else {
-                    result[i][i] = cj * ch;
-                    result[i][j] = sj * sc - cs;
-                    result[i][k] = sj * cc + ss;
-                    result[j][i] = cj * sh;
-                    result[j][j] = sj * ss + cc;
-                    result[j][k] = sj * cs - sc;
-                    result[k][i] = -sj;
-                    result[k][j] = cj * si;
-                    result[k][k] = cj * ci;
-                }
-
-                result
-            }
-
-            /// Creates a matrix containing a non-uniform `scale` and a 3D
-            /// `rotation`.
-            #[inline]
-            #[must_use]
-            pub fn from_scale_rotation(
-                scale: Vector<3, $Wide, A>,
-                rotation: Quaternion<$Wide, A>,
-            ) -> Self {
-                let [rotation_x, rotation_y, rotation_z] = Self::quat_to_axes(rotation);
-                Self::from_rows(&[
-                    rotation_x * scale.x,
-                    rotation_y * scale.y,
-                    rotation_z * scale.z,
-                ])
-            }
-
-            /// Creates a left-handed view matrix from a facing direction and an
-            /// up direction.
-            ///
-            /// For a view coordinate system with `+X=right`, `+Y=up` and
-            /// `+Z=forward`.
-            #[inline]
-            #[must_use]
-            pub fn look_to_lh(dir: Vector<3, $Wide, A>, up: Vector<3, $Wide, A>) -> Self {
-                let forward = dir;
-                let right = up.cross(forward).normalize();
-                let up = forward.cross(right);
-
-                Self::from_rows(&[
-                    Vector::<3, $Wide, A>::new(right.x, up.x, forward.x),
-                    Vector::<3, $Wide, A>::new(right.y, up.y, forward.y),
-                    Vector::<3, $Wide, A>::new(right.z, up.z, forward.z),
-                ])
-            }
-
-            /// Creates a right-handed view matrix from a facing direction and
-            /// an up direction.
-            ///
-            /// For a view coordinate system with `+X=right`, `+Y=up` and
-            /// `+Z=back`.
-            #[inline]
-            #[must_use]
-            pub fn look_to_rh(dir: Vector<3, $Wide, A>, up: Vector<3, $Wide, A>) -> Self {
-                let forward = dir;
-                let right = forward.cross(up).normalize();
-                let up = right.cross(forward);
-
-                Self::from_rows(&[
-                    Vector::<3, $Wide, A>::new(right.x, up.x, -forward.x),
-                    Vector::<3, $Wide, A>::new(right.y, up.y, -forward.y),
-                    Vector::<3, $Wide, A>::new(right.z, up.z, -forward.z),
-                ])
-            }
-
-            /// Creates a left-handed view matrix from a camera position, a
-            /// focal point and an up direction.
-            ///
-            /// For a view coordinate system with `+X=right`, `+Y=up` and
-            /// `+Z=forward`.
-            #[inline]
-            #[must_use]
-            pub fn look_at_lh(
-                eye: Vector<3, $Wide, A>,
-                center: Vector<3, $Wide, A>,
-                up: Vector<3, $Wide, A>,
-            ) -> Self {
-                Self::look_to_lh((center - eye).normalize(), up)
-            }
-
-            /// Creates a right-handed view matrix from a camera position, a
-            /// focal point and an up direction.
-            ///
-            /// For a view coordinate system with `+X=right`, `+Y=up` and
-            /// `+Z=back`.
-            #[inline]
-            #[must_use]
-            pub fn look_at_rh(
-                eye: Vector<3, $Wide, A>,
-                center: Vector<3, $Wide, A>,
-                up: Vector<3, $Wide, A>,
-            ) -> Self {
-                Self::look_to_rh((center - eye).normalize(), up)
-            }
-
-            /// Returns the Euler angles forming `self` for the given Euler
-            /// rotation order/sequence.
-            ///
-            /// `self` must not contain any non-rotation transformations.
-            /// Otherwise the result is unspecified.
-            #[inline]
-            #[must_use]
-            pub fn to_euler(&self, order: EulerRot) -> ($Wide, $Wide, $Wide) {
-                // Ported from https://github.com/bitshifter/glam-rs.
-
-                // Based on Ken Shoemake. 1994. Euler angle conversion. Graphics
-                // gems IV. Academic Press Professional, Inc., USA, 222–229.
-
-                let order = order.properties();
-                let (i, j, k) = order.axes_indices();
-
-                let mut ea = Vector::<3, $Wide, A>::ZERO;
-                if order.initial_repeated {
-                    let sy = (self[i][j] * self[i][j] + self[i][k] * self[i][k]).sqrt();
-
-                    let mask = sy.simd_gt($Wide::splat(16.0 * $T::EPSILON));
-                    ea.x = mask.blend(
-                        self[i][j].atan2(self[i][k]),
-                        (-self[j][k]).atan2(self[j][j]),
-                    );
-                    ea.y = sy.atan2(self[i][i]);
-                    ea.z = mask & self[j][i].atan2(-self[k][i]);
-                } else {
-                    let cy = (self[i][i] * self[i][i] + self[j][i] * self[j][i]).sqrt();
-
-                    let mask = cy.simd_gt($Wide::splat(16.0 * $T::EPSILON));
-                    ea.x = mask.blend(
-                        self[k][j].atan2(self[k][k]),
-                        (-self[j][k]).atan2(self[j][j]),
-                    );
-                    ea.y = (-self[k][i]).atan2(cy);
-                    ea.z = mask & self[j][i].atan2(self[i][i]);
-                }
-
-                // Reverse rotation angle of original code.
-                if order.parity_even {
-                    ea = -ea;
-                }
-
-                if !order.frame_static {
-                    ea = ea.zyx();
-                }
-
-                (ea.x, ea.y, ea.z)
-            }
-
-            /// For each lane, returns the `scale` and `rotation` of `self`.
-            ///
-            /// `self` must not contain shearing. Otherwise the result is
-            /// unspecified.
-            #[inline]
-            #[must_use]
-            pub fn to_scale_rotation(&self) -> (Vector<3, $Wide, A>, Quaternion<$Wide, A>) {
-                let determinant = self.determinant();
-
-                let scale = Vector::<3, $Wide, A>::new(
-                    self.x_axis.length() * determinant.signum(),
-                    self.y_axis.length(),
-                    self.z_axis.length(),
-                );
-
-                let scale_recip = scale.recip();
-
-                let rotation = Quaternion::<$Wide, A>::from_matrix(&Self::from_rows(&[
-                    self.x_axis * scale_recip.x,
-                    self.y_axis * scale_recip.y,
-                    self.z_axis * scale_recip.z,
-                ]));
-
-                (scale, rotation)
             }
 
             #[inline(always)]
@@ -631,6 +771,7 @@ macro_rules! impl_wide_float {
             }
         }
 
+        #[cfg(not(doc))]
         impl<A: Alignment> Matrix<4, $Wide, A> {
             #[inline(always)]
             fn is_nan_backend(&self) -> $Wide {
@@ -801,17 +942,21 @@ macro_rules! impl_wide_float {
         }
     };
 }
-impl_wide_float!(f32x4, f32);
-impl_wide_float!(f32x8, f32);
-impl_wide_float!(f32x16, f32);
-impl_wide_float!(f64x2, f64);
-impl_wide_float!(f64x4, f64);
-impl_wide_float!(f64x8, f64);
+impl_items!(f32x4, f32);
+impl_items!(f32x8, f32);
+impl_items!(f32x16, f32);
+impl_items!(f64x2, f64);
+impl_items!(f64x4, f64);
+impl_items!(f64x8, f64);
 
 #[cfg(test)]
 mod tests {
+    extern crate std;
+
+    use wide::f32x4;
+
     use crate::{
-        EulerRot, Mat2, Mat3, Mat4, Matrix, Quat, Unaligned, Vec2, Vec3, Vector,
+        EulerRot, Mat2, Mat3, Mat4, Matrix, Projective, Quat, Unaligned, Vec2, Vec3, Vector,
         test_utils::{assert_test_eq, assert_test_eq_or_panic, for_types, random_iter},
     };
 
@@ -822,6 +967,20 @@ mod tests {
                 Matrix::<N, Wide, Unaligned>::NAN,
                 Matrix::from_rows(&[Vector::<N, Wide, Unaligned>::NAN; N])
             );
+        });
+    }
+
+    #[test]
+    fn test_from_projective() {
+        for_types!(|N: TwoOrThree| {
+            for projective in random_iter::<Projective<N, f32x4, Unaligned>>() {
+                assert_test_eq_or_panic!(
+                    Matrix::<N, f32x4, Unaligned>::from_projective(&projective),
+                    Matrix::from_lane_fn(|lane| Matrix::<N, f32, Unaligned>::from_projective(
+                        &projective.lane(lane)
+                    ))
+                );
+            }
         });
     }
 
@@ -973,6 +1132,22 @@ mod tests {
                 );
             }
         });
+    }
+
+    #[test]
+    fn test_from_homogeneous() {
+        for homogeneous in random_iter::<Mat3<f32x4>>() {
+            assert_test_eq_or_panic!(
+                Mat2::<f32x4>::from_homogeneous(&homogeneous),
+                Matrix::from_lane_fn(|lane| Mat2::<f32>::from_homogeneous(&homogeneous.lane(lane)))
+            );
+        }
+        for homogeneous in random_iter::<Mat4<f32x4>>() {
+            assert_test_eq_or_panic!(
+                Mat3::<f32x4>::from_homogeneous(&homogeneous),
+                Matrix::from_lane_fn(|lane| Mat3::<f32>::from_homogeneous(&homogeneous.lane(lane)))
+            );
+        }
     }
 
     #[test]
