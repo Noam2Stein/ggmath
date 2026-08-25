@@ -617,10 +617,10 @@ where
     #[inline]
     #[must_use]
     #[track_caller]
-    pub fn from_scale_rotation(scale: Vector<3, T, A>, rotation: Quaternion<T, A>) -> Self {
+    pub fn from_scale_quat(scale: Vector<3, T, A>, rotation: Quaternion<T, A>) -> Self {
         debug_assert!(
             rotation.is_normalized(),
-            "rotation is not normalized: from_scale_rotation({scale:?}, {rotation:?})"
+            "rotation is not normalized: from_scale_quat({scale:?}, {rotation:?})"
         );
 
         let [rotation_x, rotation_y, rotation_z] = Self::quat_to_axes(rotation);
@@ -941,7 +941,7 @@ where
     #[inline]
     #[must_use]
     #[track_caller]
-    pub fn to_scale_rotation(&self) -> (Vector<3, T, A>, Quaternion<T, A>) {
+    pub fn to_scale_quat(&self) -> (Vector<3, T, A>, Quaternion<T, A>) {
         let determinant = self.determinant();
 
         let scale = Vector::<3, T, A>::new(
@@ -1774,13 +1774,13 @@ mod tests {
         for_types!(|T: PrimitiveFloat, A| {
             for (scale, rotation) in random_iter::<(Vector<3, T, A>, Quaternion<T, A>)>() {
                 if !rotation.is_normalized() {
-                    assert_debug_panic!(Matrix::<3, T, A>::from_scale_rotation(scale, rotation));
+                    assert_debug_panic!(Matrix::<3, T, A>::from_scale_quat(scale, rotation));
                 }
 
                 let rotation = rotation.normalize_or(Quaternion::IDENTITY).normalize();
 
                 assert_test_eq!(
-                    Matrix::<3, T, A>::from_scale_rotation(scale, rotation),
+                    Matrix::<3, T, A>::from_scale_quat(scale, rotation),
                     Matrix::<3, T, A>::from_scale(scale) * Matrix::<3, T, A>::from_quat(rotation),
                     0.0 = -0.0
                 );
@@ -1942,20 +1942,20 @@ mod tests {
     #[test]
     fn test_to_scale_rotation() {
         for_types!(|T: PrimitiveFloat, A| {
-            assert_debug_panic!(Matrix::<3, T, A>::ZERO.to_scale_rotation());
+            assert_debug_panic!(Matrix::<3, T, A>::ZERO.to_scale_quat());
             assert_debug_panic!(
                 Matrix::<3, T, A>::from_rows(&[
                     Vector::<3, T, A>::new(0.3, 0.4, -0.2),
                     Vector::<3, T, A>::new(0.4, 0.6, -0.1),
                     Vector::<3, T, A>::new(1.0, 1.0, 1.0)
                 ])
-                .to_scale_rotation()
+                .to_scale_quat()
             );
 
             for (scale, rotation) in random_iter::<(Vector<3, T, A>, Quaternion<T, A>)>() {
                 let rotation = rotation.normalize_or(Quaternion::IDENTITY).normalize();
 
-                let matrix = Matrix::<3, T, A>::from_scale_rotation(scale, rotation);
+                let matrix = Matrix::<3, T, A>::from_scale_quat(scale, rotation);
 
                 if scale.iter().any(|x| x > 1e10)
                     || !matrix.is_finite()
@@ -1964,9 +1964,9 @@ mod tests {
                     continue;
                 }
 
-                let (result_scale, result_rotation) = matrix.to_scale_rotation();
+                let (result_scale, result_rotation) = matrix.to_scale_quat();
                 assert_test_eq!(
-                    Matrix::<3, T, A>::from_scale_rotation(result_scale, result_rotation),
+                    Matrix::<3, T, A>::from_scale_quat(result_scale, result_rotation),
                     matrix,
                     abs <= matrix.abs() * 1e-4 + Matrix::<3, T, A>::from_row_array(&[1e-3; 9]),
                     0.0 = -0.0

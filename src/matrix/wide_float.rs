@@ -337,10 +337,7 @@ macro_rules! items_3 {
         /// `rotation`.
         #[inline]
         #[must_use]
-        pub fn from_scale_rotation(
-            scale: Vector<3, $Wide, A>,
-            rotation: Quaternion<$Wide, A>,
-        ) -> Self {
+        pub fn from_scale_quat(scale: Vector<3, $Wide, A>, rotation: Quaternion<$Wide, A>) -> Self {
             let [rotation_x, rotation_y, rotation_z] = Self::quat_to_axes(rotation);
             Self::from_rows(&[
                 rotation_x * scale.x,
@@ -487,7 +484,7 @@ macro_rules! items_3 {
         /// unspecified.
         #[inline]
         #[must_use]
-        pub fn to_scale_rotation(&self) -> (Vector<3, $Wide, A>, Quaternion<$Wide, A>) {
+        pub fn to_scale_quat(&self) -> (Vector<3, $Wide, A>, Quaternion<$Wide, A>) {
             let determinant = self.determinant();
 
             let scale = Vector::<3, $Wide, A>::new(
@@ -1285,8 +1282,8 @@ mod tests {
                 .flat_map(|(scale, quat)| [(scale, quat), (scale, quat.normalize())])
             {
                 assert_test_eq_or_panic!(
-                    Mat3::<Wide>::from_scale_rotation(scale, rotation),
-                    Mat3::from_lane_fn(|lane| Mat3::<T>::from_scale_rotation(
+                    Mat3::<Wide>::from_scale_quat(scale, rotation),
+                    Mat3::from_lane_fn(|lane| Mat3::<T>::from_scale_quat(
                         scale.lane(lane),
                         rotation.lane(lane)
                     ))
@@ -1395,16 +1392,14 @@ mod tests {
     fn test_to_scale_rotation() {
         for_types!(|Wide: WideFloat| {
             for matrix in random_iter::<(Vec3<Wide>, Quat<Wide>)>()
-                .map(|(scale, rotation)| {
-                    Mat3::<Wide>::from_scale_rotation(scale, rotation.normalize())
-                })
+                .map(|(scale, rotation)| Mat3::<Wide>::from_scale_quat(scale, rotation.normalize()))
                 .chain(random_iter())
             {
                 assert_test_eq_or_panic!(
-                    matrix.to_scale_rotation(),
+                    matrix.to_scale_quat(),
                     (
-                        Vec3::from_lane_fn(|lane| matrix.lane(lane).to_scale_rotation().0),
-                        Quat::from_lane_fn(|lane| matrix.lane(lane).to_scale_rotation().1)
+                        Vec3::from_lane_fn(|lane| matrix.lane(lane).to_scale_quat().0),
+                        Quat::from_lane_fn(|lane| matrix.lane(lane).to_scale_quat().1)
                     )
                 );
             }
