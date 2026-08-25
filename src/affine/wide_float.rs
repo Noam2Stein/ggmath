@@ -1,7 +1,8 @@
 use wide::{f32x4, f32x8, f32x16, f64x2, f64x4, f64x8};
 
 use crate::{
-    Affine, Alignment, EulerRot, Length, Matrix, Projective, Quaternion, SupportedLength, Vector,
+    Affine, Alignment, EulerRot, Length, Matrix, Projective, Quaternion, Rotor, SupportedLength,
+    Vector,
     length::TwoOrThree,
     utils::{specialize, specialize_23},
 };
@@ -24,6 +25,62 @@ macro_rules! items {
             Length<N>: TwoOrThree,
         {
             specialize_23!(Affine::<N, $Wide, A>::from_projective_backend(projective))
+        }
+
+        /// Creates a rotation affine transform from a rotor.
+        #[inline]
+        #[must_use]
+        #[expect(private_bounds)]
+        pub fn from_rotor(rotor: Rotor<N, $Wide, A>) -> Self
+        where
+            Length<N>: TwoOrThree,
+        {
+            Self::from_matrix(&Matrix::<N, $Wide, A>::from_rotor(rotor))
+        }
+
+        /// Creates an affine transform containing a non-uniform `scale` and a
+        /// `rotation`.
+        #[inline]
+        #[must_use]
+        #[expect(private_bounds)]
+        pub fn from_scale_rotation(scale: Vector<N, $Wide, A>, rotation: Rotor<N, $Wide, A>) -> Self
+        where
+            Length<N>: TwoOrThree,
+        {
+            Self::from_matrix(&Matrix::<N, $Wide, A>::from_scale_rotation(scale, rotation))
+        }
+
+        /// Creates an affine transform containing `rotation` and `translation`.
+        #[inline]
+        #[must_use]
+        #[expect(private_bounds)]
+        pub fn from_rotation_translation(
+            rotation: Rotor<N, $Wide, A>,
+            translation: Vector<N, $Wide, A>,
+        ) -> Self
+        where
+            Length<N>: TwoOrThree,
+        {
+            Self::from_matrix_translation(&Matrix::<N, $Wide, A>::from_rotor(rotation), translation)
+        }
+
+        /// Creates an affine transform containing a non-uniform `scale`,
+        /// `rotation` and `translation`.
+        #[inline]
+        #[must_use]
+        #[expect(private_bounds)]
+        pub fn from_scale_rotation_translation(
+            scale: Vector<N, $Wide, A>,
+            rotation: Rotor<N, $Wide, A>,
+            translation: Vector<N, $Wide, A>,
+        ) -> Self
+        where
+            Length<N>: TwoOrThree,
+        {
+            Self::from_matrix_translation(
+                &Matrix::<N, $Wide, A>::from_scale_rotation(scale, rotation),
+                translation,
+            )
         }
 
         /// Returns `true` if any element is NaN.
@@ -91,6 +148,35 @@ macro_rules! items {
                 && self
                     .translation
                     .abs_diff_eq(other.translation, max_abs_diff)
+        }
+
+        /// Returns the `scale` and `rotation` of `self`.
+        ///
+        /// `self` must not contain shearing. Otherwise the result is unspecified.
+        #[inline]
+        #[must_use]
+        #[expect(private_bounds)]
+        pub fn to_scale_rotation(&self) -> (Vector<N, $Wide, A>, Rotor<N, $Wide, A>)
+        where
+            Length<N>: TwoOrThree,
+        {
+            self.matrix.to_scale_rotation()
+        }
+
+        /// Returns the `scale`, `rotation` and `translation` of `self`.
+        ///
+        /// `self` must not contain shearing. Otherwise the result is unspecified.
+        #[inline]
+        #[must_use]
+        #[expect(private_bounds)]
+        pub fn to_scale_rotation_translation(
+            &self,
+        ) -> (Vector<N, $Wide, A>, Rotor<N, $Wide, A>, Vector<N, $Wide, A>)
+        where
+            Length<N>: TwoOrThree,
+        {
+            let (scale, rotation) = self.matrix.to_scale_rotation();
+            (scale, rotation, self.translation)
         }
     };
 }

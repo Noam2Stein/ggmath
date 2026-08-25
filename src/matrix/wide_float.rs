@@ -1,7 +1,7 @@
 use wide::{f32x4, f32x8, f32x16, f64x2, f64x4, f64x8};
 
 use crate::{
-    Alignment, EulerRot, Length, Matrix, Projective, Quaternion, SupportedLength, Vector,
+    Alignment, EulerRot, Length, Matrix, Projective, Quaternion, Rotor, SupportedLength, Vector,
     length::TwoOrThree,
     utils::{specialize, specialize_23},
 };
@@ -23,6 +23,28 @@ macro_rules! items {
             Length<N>: TwoOrThree,
         {
             specialize_23!(Matrix::<N, $Wide, A>::from_projective_backend(projective))
+        }
+
+        /// Creates a rotation matrix from a rotor.
+        #[inline]
+        #[must_use]
+        #[expect(private_bounds)]
+        pub fn from_rotor(_rotor: Rotor<N, $Wide, A>) -> Self
+        where
+            Length<N>: TwoOrThree,
+        {
+            todo!()
+        }
+
+        /// Creates a matrix containing a non-uniform `scale` and a `rotation`.
+        #[inline]
+        #[must_use]
+        #[expect(private_bounds)]
+        pub fn from_scale_rotation(scale: Vector<N, $Wide, A>, rotation: Rotor<N, $Wide, A>) -> Self
+        where
+            Length<N>: TwoOrThree,
+        {
+            Self::from_rotor(rotation).prepend_scale(scale)
         }
 
         /// For each lane, returns `true` if any element is NaN.
@@ -74,6 +96,20 @@ macro_rules! items {
         #[inline]
         pub(crate) fn inverse_and_determinant(&self) -> (Self, $Wide) {
             specialize!(Matrix::<N, $Wide, A>::inverse_and_determinant_backend(self))
+        }
+
+        /// Returns the `scale` and `rotation` of `self`.
+        ///
+        /// `self` must not contain shearing. Otherwise the result is
+        /// unspecified.
+        #[inline]
+        #[must_use]
+        #[expect(private_bounds)]
+        pub fn to_scale_rotation(&self) -> (Vector<N, $Wide, A>, Rotor<N, $Wide, A>)
+        where
+            Length<N>: TwoOrThree,
+        {
+            todo!()
         }
 
         /// Returns the element-wise reciprocal (inverse) of a matrix,

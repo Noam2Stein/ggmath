@@ -1491,7 +1491,7 @@ mod tests {
                 }
 
                 let rotor = rotor.normalize_or(Rotor::<3, T, A>::IDENTITY).normalize();
-                let matrix = Matrix::from_rotor(rotor);
+                let matrix = Matrix::<3, T, A>::from_rotor(rotor);
 
                 assert_test_eq!(
                     vector * rotor,

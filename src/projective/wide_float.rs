@@ -1,7 +1,7 @@
 use wide::{f32x4, f32x8, f32x16, f64x2, f64x4, f64x8};
 
 use crate::{
-    Alignment, EulerRot, Length, Matrix, Projective, Quaternion, Vector,
+    Affine, Alignment, EulerRot, Length, Matrix, Projective, Quaternion, Rotor, Vector,
     length::TwoOrThree,
     utils::{specialize_23, transmute_generic},
 };
@@ -39,6 +39,54 @@ macro_rules! items {
                 },
                 _ => unreachable!(),
             };
+
+        /// Creates a rotation projective transform from a rotor.
+        #[inline]
+        #[must_use]
+        pub fn from_rotor(rotor: Rotor<N, $Wide, A>) -> Self {
+            // TODO: Optimize this
+            Self::from_matrix(&Matrix::<N, $Wide, A>::from_rotor(rotor))
+        }
+
+        /// Creates a projective transform containing a non-uniform `scale` and
+        /// a `rotation`.
+        #[inline]
+        #[must_use]
+        pub fn from_scale_rotation(
+            scale: Vector<N, $Wide, A>,
+            rotation: Rotor<N, $Wide, A>,
+        ) -> Self {
+            // TODO: Optimize this
+            Self::from_matrix(&Matrix::<N, $Wide, A>::from_scale_rotation(scale, rotation))
+        }
+
+        /// Creates a projective transform containing `rotation` and
+        /// `translation`.
+        #[inline]
+        #[must_use]
+        pub fn from_rotation_translation(
+            rotation: Rotor<N, $Wide, A>,
+            translation: Vector<N, $Wide, A>,
+        ) -> Self {
+            // TODO: Optimize this
+            Self::from_matrix_translation(&Matrix::<N, $Wide, A>::from_rotor(rotation), translation)
+        }
+
+        /// Creates a projective transform containing a non-uniform `scale`,
+        /// `rotation` and `translation`.
+        #[inline]
+        #[must_use]
+        pub fn from_scale_rotation_translation(
+            scale: Vector<N, $Wide, A>,
+            rotation: Rotor<N, $Wide, A>,
+            translation: Vector<N, $Wide, A>,
+        ) -> Self {
+            // TODO: Optimize this
+            Self::from_matrix_translation(
+                &Matrix::<N, $Wide, A>::from_scale_rotation(scale, rotation),
+                translation,
+            )
+        }
 
         /// For each lane, returns `true` if any element is NaN.
         #[inline]
@@ -155,6 +203,32 @@ macro_rules! items {
                 other,
                 max_abs_diff
             ))
+        }
+
+        /// Returns the `scale` and `rotation` of `self`.
+        ///
+        /// `self` must not contain shearing or projections. Otherwise the
+        /// result is unspecified.
+        #[inline]
+        #[must_use]
+        #[track_caller]
+        pub fn to_scale_rotation(&self) -> (Vector<N, $Wide, A>, Rotor<N, $Wide, A>) {
+            // TODO: Optimize this
+            Matrix::<N, $Wide, A>::from_projective(self).to_scale_rotation()
+        }
+
+        /// Returns the `scale`, `rotation` and `translation` of `self`.
+        ///
+        /// `self` must not contain shearing or projections. Otherwise the result is
+        /// unspecified.
+        #[inline]
+        #[must_use]
+        #[track_caller]
+        pub fn to_scale_rotation_translation(
+            &self,
+        ) -> (Vector<N, $Wide, A>, Rotor<N, $Wide, A>, Vector<N, $Wide, A>) {
+            // TODO: Optimize this
+            Affine::<N, $Wide, A>::from_projective(self).to_scale_rotation_translation()
         }
     };
 }
