@@ -1,5 +1,5 @@
 use crate::{
-    Affine, Alignment, EulerRot, Length, Matrix, PrimitiveFloat, Projective, Quaternion,
+    Affine, Alignment, EulerRot, Length, Matrix, PrimitiveFloat, Projective, Quaternion, Rotor,
     SupportedLength, Vector, length::TwoOrThree, utils::specialize_23,
 };
 
@@ -52,6 +52,87 @@ where
         Length<N>: TwoOrThree,
     {
         specialize_23!(Affine::<N, T, A>::from_projective_backend(projective))
+    }
+
+    /// Creates a rotation affine transform from a rotor.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if the rotor is not normalized.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    #[expect(private_bounds)]
+    pub fn from_rotor(rotor: Rotor<N, T, A>) -> Self
+    where
+        Length<N>: TwoOrThree,
+    {
+        Self::from_matrix(&Matrix::<N, T, A>::from_rotor(rotor))
+    }
+
+    /// Creates an affine transform containing a non-uniform `scale` and a
+    /// `rotation`.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `rotation` is not normalized.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    #[expect(private_bounds)]
+    pub fn from_scale_rotation(scale: Vector<N, T, A>, rotation: Rotor<N, T, A>) -> Self
+    where
+        Length<N>: TwoOrThree,
+    {
+        Self::from_matrix(&Matrix::<N, T, A>::from_scale_rotation(scale, rotation))
+    }
+
+    /// Creates an affine transform containing `rotation` and `translation`.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `rotation` is not normalized.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    #[expect(private_bounds)]
+    pub fn from_rotation_translation(rotation: Rotor<N, T, A>, translation: Vector<N, T, A>) -> Self
+    where
+        Length<N>: TwoOrThree,
+    {
+        Self::from_matrix_translation(&Matrix::<N, T, A>::from_rotor(rotation), translation)
+    }
+
+    /// Creates an affine transform containing a non-uniform `scale`, `rotation`
+    /// and `translation`.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `rotation` is not normalized.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    #[expect(private_bounds)]
+    pub fn from_scale_rotation_translation(
+        scale: Vector<N, T, A>,
+        rotation: Rotor<N, T, A>,
+        translation: Vector<N, T, A>,
+    ) -> Self
+    where
+        Length<N>: TwoOrThree,
+    {
+        Self::from_matrix_translation(
+            &Matrix::<N, T, A>::from_scale_rotation(scale, rotation),
+            translation,
+        )
     }
 
     /// Returns `true` if any element is NaN.

@@ -78,6 +78,24 @@ where
         specialize_23!(Matrix::<N, T, A>::from_rotor_backend(rotor))
     }
 
+    /// Creates a matrix containing a non-uniform `scale` and a `rotation`.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `rotation` is not normalized.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    #[expect(private_bounds)]
+    pub fn from_scale_rotation(scale: Vector<N, T, A>, rotation: Rotor<N, T, A>) -> Self
+    where
+        Length<N>: TwoOrThree,
+    {
+        Self::from_rotor(rotation).prepend_scale(scale)
+    }
+
     /// Returns `true` if any element is NaN.
     ///
     /// # Examples
