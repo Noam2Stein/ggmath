@@ -15,6 +15,33 @@ use crate::{
 impl<const N: usize, T, A: Alignment> Rotor<N, T, A>
 where
     Length<N>: TwoOrThree,
+    T: Scalar + Zero,
+{
+    /// A rotor with all elements set to zero.
+    ///
+    /// This is intentionally not exposed to the public API, as it does not
+    /// represent a valid rotation.
+    pub(crate) const ZERO: Self = match N {
+        // SAFETY: We are transmuting a type to itself
+        2 => unsafe {
+            transmute_generic::<Rotor<2, T, A>, Rotor<N, T, A>>(Rotor::<2, T, A>(
+                Vector::<2, T, A>::ZERO,
+            ))
+        },
+        // SAFETY: We are transmuting a type to itself
+        3 => unsafe {
+            transmute_generic::<Rotor<3, T, A>, Rotor<N, T, A>>(Rotor::<3, T, A>(
+                Vector::<4, T, A>::ZERO,
+            ))
+        },
+        _ => unreachable!(),
+    };
+}
+
+#[expect(private_bounds)]
+impl<const N: usize, T, A: Alignment> Rotor<N, T, A>
+where
+    Length<N>: TwoOrThree,
     T: Scalar + Zero + One,
 {
     /// A rotor that keeps all vectors unchanged.
@@ -124,9 +151,9 @@ impl<T, A: Alignment> Rotor<2, T, A>
 where
     T: Scalar,
 {
-    // Note about `new`: Because rotor fields are not obvious, it would be nice
-    // to have `Rot2 { xy: ..., s: ... }` syntax, however that is impossible to
-    // do with a const generic struct.
+    // Note about `from_raw_elements`: Because rotor fields are not obvious, it
+    // would be nice to have `Rot2 { xy: ..., s: ... }` syntax, however that is
+    // impossible to do with a const generic struct.
 
     /// Creates a 2D rotor from raw elements `xy, s`.
     ///
@@ -140,7 +167,7 @@ where
     /// rotor.
     #[inline]
     #[must_use]
-    pub const fn new(xy: T, s: T) -> Self {
+    pub const fn from_raw_elements(xy: T, s: T) -> Self {
         Self(Vector::<2, T, A>::new(xy, s))
     }
 
@@ -156,7 +183,7 @@ where
     /// rotor.
     #[inline]
     #[must_use]
-    pub const fn from_array(array: [T; 2]) -> Self {
+    pub const fn from_raw_array(array: [T; 2]) -> Self {
         Self(Vector::from_array(array))
     }
 
@@ -166,7 +193,7 @@ where
     /// rotor elements directly. Instead, use higher level helper functions.
     #[inline]
     #[must_use]
-    pub const fn to_array(self) -> [T; 2] {
+    pub const fn to_raw_array(self) -> [T; 2] {
         self.0.to_array()
     }
 
@@ -176,7 +203,7 @@ where
     /// rotor elements directly. Instead, use higher level helper functions.
     #[inline]
     #[must_use]
-    pub const fn as_array(&self) -> &[T; 2] {
+    pub const fn as_raw_array(&self) -> &[T; 2] {
         self.0.as_array()
     }
 
@@ -186,7 +213,7 @@ where
     /// rotor elements directly. Instead, use higher level helper functions.
     #[inline]
     #[must_use]
-    pub const fn as_mut_array(&mut self) -> &mut [T; 2] {
+    pub const fn as_mut_raw_array(&mut self) -> &mut [T; 2] {
         self.0.as_mut_array()
     }
 
@@ -202,7 +229,7 @@ where
     /// rotor.
     #[inline]
     #[must_use]
-    pub const fn from_vector(vector: Vector<2, T, A>) -> Self {
+    pub const fn from_raw_vector(vector: Vector<2, T, A>) -> Self {
         Self(vector)
     }
 
@@ -212,7 +239,7 @@ where
     /// rotor elements directly. Instead, use higher level helper functions.
     #[inline]
     #[must_use]
-    pub const fn to_vector(self) -> Vector<2, T, A> {
+    pub const fn to_raw_vector(self) -> Vector<2, T, A> {
         self.0
     }
 
@@ -223,7 +250,7 @@ where
     /// rotor elements directly. Instead, use higher level helper functions.
     #[inline]
     #[must_use]
-    pub const fn as_vector(&self) -> &Vector<2, T, A> {
+    pub const fn as_raw_vector(&self) -> &Vector<2, T, A> {
         &self.0
     }
 
@@ -234,7 +261,7 @@ where
     /// rotor elements directly. Instead, use higher level helper functions.
     #[inline]
     #[must_use]
-    pub const fn as_mut_vector(&mut self) -> &mut Vector<2, T, A> {
+    pub const fn as_mut_raw_vector(&mut self) -> &mut Vector<2, T, A> {
         &mut self.0
     }
 
@@ -244,7 +271,7 @@ where
     where
         T: Neg<Output = T>,
     {
-        Self::new(-self.xy, self.s)
+        Self::from_raw_elements(-self.xy, self.s)
     }
 
     #[inline(always)]
@@ -361,7 +388,7 @@ where
     where
         T: Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
     {
-        Self::new(
+        Self::from_raw_elements(
             self.xy * rhs.s + self.s * rhs.xy,
             self.s * rhs.s - self.xy * rhs.xy,
         )
@@ -381,9 +408,9 @@ impl<T, A: Alignment> Rotor<3, T, A>
 where
     T: Scalar,
 {
-    // Note about `new`: Because rotor fields are not obvious, it would be nice
-    // to have `Rot3 { xy: ..., xz: ..., yz: ..., s: ... }` syntax, however that
-    // is impossible to do with a const generic struct.
+    // Note about `from_raw_elements`: Because rotor fields are not obvious, it
+    // would be nice to have `Rot3 { xy: ..., xz: ..., yz: ..., s: ... }`
+    // syntax, however that is impossible to do with a const generic struct.
 
     /// Creates a 3D rotor from raw elements `xy, xz, yz, s`.
     ///
@@ -397,7 +424,7 @@ where
     /// rotor.
     #[inline]
     #[must_use]
-    pub const fn new(xy: T, xz: T, yz: T, s: T) -> Self {
+    pub const fn from_raw_elements(xy: T, xz: T, yz: T, s: T) -> Self {
         Self(Vector::<4, T, A>::new(xy, xz, yz, s))
     }
 
@@ -413,7 +440,7 @@ where
     /// rotor.
     #[inline]
     #[must_use]
-    pub const fn from_array(array: [T; 4]) -> Self {
+    pub const fn from_raw_array(array: [T; 4]) -> Self {
         Self(Vector::from_array(array))
     }
 
@@ -423,7 +450,7 @@ where
     /// rotor elements directly. Instead, use higher level helper functions.
     #[inline]
     #[must_use]
-    pub const fn to_array(self) -> [T; 4] {
+    pub const fn to_raw_array(self) -> [T; 4] {
         self.0.to_array()
     }
 
@@ -433,7 +460,7 @@ where
     /// rotor elements directly. Instead, use higher level helper functions.
     #[inline]
     #[must_use]
-    pub const fn as_array(&self) -> &[T; 4] {
+    pub const fn as_raw_array(&self) -> &[T; 4] {
         self.0.as_array()
     }
 
@@ -443,7 +470,7 @@ where
     /// rotor elements directly. Instead, use higher level helper functions.
     #[inline]
     #[must_use]
-    pub const fn as_mut_array(&mut self) -> &mut [T; 4] {
+    pub const fn as_mut_raw_array(&mut self) -> &mut [T; 4] {
         self.0.as_mut_array()
     }
 
@@ -459,7 +486,7 @@ where
     /// rotor.
     #[inline]
     #[must_use]
-    pub const fn from_vector(vector: Vector<4, T, A>) -> Self {
+    pub const fn from_raw_vector(vector: Vector<4, T, A>) -> Self {
         Self(vector)
     }
 
@@ -469,7 +496,7 @@ where
     /// rotor elements directly. Instead, use higher level helper functions.
     #[inline]
     #[must_use]
-    pub const fn to_vector(self) -> Vector<4, T, A> {
+    pub const fn to_raw_vector(self) -> Vector<4, T, A> {
         self.0
     }
 
@@ -480,7 +507,7 @@ where
     /// rotor elements directly. Instead, use higher level helper functions.
     #[inline]
     #[must_use]
-    pub const fn as_vector(&self) -> &Vector<4, T, A> {
+    pub const fn as_raw_vector(&self) -> &Vector<4, T, A> {
         &self.0
     }
 
@@ -491,7 +518,7 @@ where
     /// rotor elements directly. Instead, use higher level helper functions.
     #[inline]
     #[must_use]
-    pub const fn as_mut_vector(&mut self) -> &mut Vector<4, T, A> {
+    pub const fn as_mut_raw_vector(&mut self) -> &mut Vector<4, T, A> {
         &mut self.0
     }
 
@@ -501,7 +528,7 @@ where
     where
         T: Neg<Output = T>,
     {
-        Self::new(-self.xy, -self.xz, -self.yz, self.s)
+        Self::from_raw_elements(-self.xy, -self.xz, -self.yz, self.s)
     }
 
     #[inline(always)]

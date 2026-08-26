@@ -1609,9 +1609,7 @@ where
         angle_between * outer_product.signum()
     }
 
-    /// Rotates `self` by `angle` (in radians).
-    ///
-    /// This rotates `+X` to `+Y`.
+    /// Rotates `self` by an `angle` (in radians) rotating `+X` to `+Y`.
     ///
     /// # Unspecified precision
     ///
@@ -1700,9 +1698,7 @@ where
         homogeneous.xyz() / homogeneous.w
     }
 
-    /// Rotates `self` around the x axis by `angle` (in radians).
-    ///
-    /// This rotates `+Y` to `+Z`.
+    /// Rotates `self` by an `angle` (in radians) rotating `+X` to `+Y`.
     ///
     /// # Unspecified precision
     ///
@@ -1711,52 +1707,48 @@ where
     /// execution from one invocation to the next.
     #[inline]
     #[must_use]
-    pub fn rotate_x(self, angle: T) -> Self {
-        let (angle_sin, angle_cos) = angle.sin_cos();
-        Self::new(
-            self.x,
-            self.y * angle_cos - self.z * angle_sin,
-            self.y * angle_sin + self.z * angle_cos,
-        )
-    }
-
-    /// Rotates `self` around the y axis by `angle` (in radians).
-    ///
-    /// This rotates `+Z` to `+X`.
-    ///
-    /// # Unspecified precision
-    ///
-    /// The precision of this function is non-deterministic. This means it
-    /// varies by platform, version, and can even differ within the same
-    /// execution from one invocation to the next.
-    #[inline]
-    #[must_use]
-    pub fn rotate_y(self, angle: T) -> Self {
-        let (angle_sin, angle_cos) = angle.sin_cos();
-        Self::new(
-            self.x * angle_cos + self.z * angle_sin,
-            self.y,
-            self.x * -angle_sin + self.z * angle_cos,
-        )
-    }
-
-    /// Rotates `self` around the z axis by `angle` (in radians).
-    ///
-    /// This rotates `+X` to `+Y`.
-    ///
-    /// # Unspecified precision
-    ///
-    /// The precision of this function is non-deterministic. This means it
-    /// varies by platform, version, and can even differ within the same
-    /// execution from one invocation to the next.
-    #[inline]
-    #[must_use]
-    pub fn rotate_z(self, angle: T) -> Self {
+    pub fn rotate_xy(self, angle: T) -> Self {
         let (angle_sin, angle_cos) = angle.sin_cos();
         Self::new(
             self.x * angle_cos - self.y * angle_sin,
             self.x * angle_sin + self.y * angle_cos,
             self.z,
+        )
+    }
+
+    /// Rotates `self` by an `angle` (in radians) rotating `+X` to `+Z`.
+    ///
+    /// # Unspecified precision
+    ///
+    /// The precision of this function is non-deterministic. This means it
+    /// varies by platform, version, and can even differ within the same
+    /// execution from one invocation to the next.
+    #[inline]
+    #[must_use]
+    pub fn rotate_xz(self, angle: T) -> Self {
+        let (angle_sin, angle_cos) = angle.sin_cos();
+        Self::new(
+            self.x * angle_cos - self.z * angle_sin,
+            self.y,
+            self.x * angle_sin + self.z * angle_cos,
+        )
+    }
+
+    /// Rotates `self` by an `angle` (in radians) rotating `+Y` to `+Z`.
+    ///
+    /// # Unspecified precision
+    ///
+    /// The precision of this function is non-deterministic. This means it
+    /// varies by platform, version, and can even differ within the same
+    /// execution from one invocation to the next.
+    #[inline]
+    #[must_use]
+    pub fn rotate_yz(self, angle: T) -> Self {
+        let (angle_sin, angle_cos) = angle.sin_cos();
+        Self::new(
+            self.x,
+            self.y * angle_cos - self.z * angle_sin,
+            self.y * angle_sin + self.z * angle_cos,
         )
     }
 
@@ -3394,23 +3386,23 @@ mod tests {
     }
 
     #[test]
-    fn test_rotate_x() {
+    fn test_rotate_xy() {
         for_types!(|T: PrimitiveFloat, A| {
             assert_test_eq!(
-                Vector::<3, T, A>::X.rotate_x(T::to_radians(45.0)),
-                Vector::<3, T, A>::X,
-                abs <= 1e-5,
-                0.0 = -0.0
-            );
-            assert_test_eq!(
-                Vector::<3, T, A>::Y.rotate_x(T::to_radians(90.0)),
+                Vector::<3, T, A>::Z.rotate_xy(T::to_radians(45.0)),
                 Vector::<3, T, A>::Z,
                 abs <= 1e-5,
                 0.0 = -0.0
             );
             assert_test_eq!(
-                Vector::<3, T, A>::new(0.0, -2.0, 0.0).rotate_x(T::to_radians(45.0)),
-                -Vector::<3, T, A>::new(0.0, 2.0, 2.0).sqrt(),
+                Vector::<3, T, A>::X.rotate_xy(T::to_radians(90.0)),
+                Vector::<3, T, A>::Y,
+                abs <= 1e-5,
+                0.0 = -0.0
+            );
+            assert_test_eq!(
+                Vector::<3, T, A>::new(-2.0, 0.0, 0.0).rotate_xy(T::to_radians(45.0)),
+                -Vector::<3, T, A>::new(2.0, 2.0, 0.0).sqrt(),
                 abs <= 1e-5,
                 0.0 = -0.0
             );
@@ -3418,22 +3410,22 @@ mod tests {
     }
 
     #[test]
-    fn test_rotate_y() {
+    fn test_rotate_xz() {
         for_types!(|T: PrimitiveFloat, A| {
             assert_test_eq!(
-                Vector::<3, T, A>::Y.rotate_y(T::to_radians(45.0)),
+                Vector::<3, T, A>::Y.rotate_xz(T::to_radians(45.0)),
                 Vector::<3, T, A>::Y,
                 abs <= 1e-5,
                 0.0 = -0.0
             );
             assert_test_eq!(
-                Vector::<3, T, A>::Z.rotate_y(T::to_radians(90.0)),
-                Vector::<3, T, A>::X,
+                Vector::<3, T, A>::X.rotate_xz(T::to_radians(90.0)),
+                Vector::<3, T, A>::Y,
                 abs <= 1e-5,
                 0.0 = -0.0
             );
             assert_test_eq!(
-                Vector::<3, T, A>::new(0.0, 0.0, -2.0).rotate_y(T::to_radians(45.0)),
+                Vector::<3, T, A>::new(2.0, 0.0, 0.0).rotate_xz(T::to_radians(45.0)),
                 -Vector::<3, T, A>::new(2.0, 0.0, 2.0).sqrt(),
                 abs <= 1e-5,
                 0.0 = -0.0
@@ -3442,23 +3434,23 @@ mod tests {
     }
 
     #[test]
-    fn test_rotate_z() {
+    fn test_rotate_yz() {
         for_types!(|T: PrimitiveFloat, A| {
             assert_test_eq!(
-                Vector::<3, T, A>::Z.rotate_z(T::to_radians(45.0)),
+                Vector::<3, T, A>::X.rotate_yz(T::to_radians(45.0)),
+                Vector::<3, T, A>::X,
+                abs <= 1e-5,
+                0.0 = -0.0
+            );
+            assert_test_eq!(
+                Vector::<3, T, A>::Y.rotate_yz(T::to_radians(90.0)),
                 Vector::<3, T, A>::Z,
                 abs <= 1e-5,
                 0.0 = -0.0
             );
             assert_test_eq!(
-                Vector::<3, T, A>::X.rotate_z(T::to_radians(90.0)),
-                Vector::<3, T, A>::Y,
-                abs <= 1e-5,
-                0.0 = -0.0
-            );
-            assert_test_eq!(
-                Vector::<3, T, A>::new(-2.0, 0.0, 0.0).rotate_z(T::to_radians(45.0)),
-                -Vector::<3, T, A>::new(2.0, 2.0, 0.0).sqrt(),
+                Vector::<3, T, A>::new(0.0, -2.0, 0.0).rotate_yz(T::to_radians(45.0)),
+                -Vector::<3, T, A>::new(0.0, 2.0, 2.0).sqrt(),
                 abs <= 1e-5,
                 0.0 = -0.0
             );

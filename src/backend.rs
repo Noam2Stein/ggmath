@@ -1205,7 +1205,7 @@ where
         Self: Neg<Output = Self> + Add<Output = Self> + Sub<Output = Self> + Mul<Output = Self>,
     {
         // Compute the geometric product `(rotor)(rhs)`.
-        Rotor::<3, T, A>::new(
+        Rotor::<3, T, A>::from_raw_elements(
             rotor.xy * rhs.s + rotor.s * rhs.xy + rotor.yz * rhs.xz - rotor.xz * rhs.yz,
             rotor.xz * rhs.s + rotor.s * rhs.xz - rotor.yz * rhs.xy + rotor.xy * rhs.yz,
             rotor.yz * rhs.s + rotor.s * rhs.yz + rotor.xz * rhs.xy - rotor.xy * rhs.xz,

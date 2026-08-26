@@ -1,5 +1,5 @@
 use crate::{
-    Affine, Alignment, EulerRot, Length, Matrix, PrimitiveFloat, Projective, Quaternion,
+    Affine, Alignment, EulerRot, Length, Matrix, PrimitiveFloat, Projective, Quaternion, Rotor,
     SupportedLength, Vector, length::TwoOrThree, utils::specialize_23,
 };
 
@@ -52,6 +52,87 @@ where
         Length<N>: TwoOrThree,
     {
         specialize_23!(Affine::<N, T, A>::from_projective_backend(projective))
+    }
+
+    /// Creates a rotation affine transform from a rotor.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if the rotor is not normalized.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    #[expect(private_bounds)]
+    pub fn from_rotor(rotor: Rotor<N, T, A>) -> Self
+    where
+        Length<N>: TwoOrThree,
+    {
+        Self::from_matrix(&Matrix::<N, T, A>::from_rotor(rotor))
+    }
+
+    /// Creates an affine transform containing a non-uniform `scale` and a
+    /// `rotation`.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `rotation` is not normalized.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    #[expect(private_bounds)]
+    pub fn from_scale_rotation(scale: Vector<N, T, A>, rotation: Rotor<N, T, A>) -> Self
+    where
+        Length<N>: TwoOrThree,
+    {
+        Self::from_matrix(&Matrix::<N, T, A>::from_scale_rotation(scale, rotation))
+    }
+
+    /// Creates an affine transform containing `rotation` and `translation`.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `rotation` is not normalized.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    #[expect(private_bounds)]
+    pub fn from_rotation_translation(rotation: Rotor<N, T, A>, translation: Vector<N, T, A>) -> Self
+    where
+        Length<N>: TwoOrThree,
+    {
+        Self::from_matrix_translation(&Matrix::<N, T, A>::from_rotor(rotation), translation)
+    }
+
+    /// Creates an affine transform containing a non-uniform `scale`, `rotation`
+    /// and `translation`.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `rotation` is not normalized.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    #[expect(private_bounds)]
+    pub fn from_scale_rotation_translation(
+        scale: Vector<N, T, A>,
+        rotation: Rotor<N, T, A>,
+        translation: Vector<N, T, A>,
+    ) -> Self
+    where
+        Length<N>: TwoOrThree,
+    {
+        Self::from_matrix_translation(
+            &Matrix::<N, T, A>::from_scale_rotation(scale, rotation),
+            translation,
+        )
     }
 
     /// Returns `true` if any element is NaN.
@@ -164,6 +245,49 @@ where
             && self
                 .translation
                 .abs_diff_eq(other.translation, max_abs_diff)
+    }
+
+    /// Returns the `scale` and `rotation` of `self`.
+    ///
+    /// `self` must not contain shearing. Otherwise the result is unspecified.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` contains shearing or the determinant of `self` is zero.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    #[expect(private_bounds)]
+    pub fn to_scale_rotation(&self) -> (Vector<N, T, A>, Rotor<N, T, A>)
+    where
+        Length<N>: TwoOrThree,
+    {
+        self.matrix.to_scale_rotation()
+    }
+
+    /// Returns the `scale`, `rotation` and `translation` of `self`.
+    ///
+    /// `self` must not contain shearing. Otherwise the result is unspecified.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` contains shearing or the determinant of `self` is zero.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    #[expect(private_bounds)]
+    pub fn to_scale_rotation_translation(
+        &self,
+    ) -> (Vector<N, T, A>, Rotor<N, T, A>, Vector<N, T, A>)
+    where
+        Length<N>: TwoOrThree,
+    {
+        let (scale, rotation) = self.matrix.to_scale_rotation();
+        (scale, rotation, self.translation)
     }
 }
 
@@ -324,34 +448,28 @@ impl<T, A: Alignment> Affine<3, T, A>
 where
     T: PrimitiveFloat,
 {
-    /// Creates an affine transform containing a 3D rotation from `angle` (in
-    /// radians) around the x axis.
-    ///
-    /// This rotates `+Y` to `+Z`.
+    /// Creates an affine transform containing a 3D rotation from an `angle` (in
+    /// radians) rotating `+X` to `+Y`.
     #[inline]
     #[must_use]
-    pub fn from_rotation_x(angle: T) -> Self {
-        Self::from_matrix(&Matrix::<3, T, A>::from_rotation_x(angle))
+    pub fn from_rotation_xy(angle: T) -> Self {
+        Self::from_matrix(&Matrix::<3, T, A>::from_rotation_xy(angle))
     }
 
-    /// Creates an affine transform containing a 3D rotation from `angle` (in
-    /// radians) around the y axis.
-    ///
-    /// This rotates `+Z` to `+X`.
+    /// Creates an affine transform containing a 3D rotation from an `angle` (in
+    /// radians) rotating `+X` to `+Z`.
     #[inline]
     #[must_use]
-    pub fn from_rotation_y(angle: T) -> Self {
-        Self::from_matrix(&Matrix::<3, T, A>::from_rotation_y(angle))
+    pub fn from_rotation_xz(angle: T) -> Self {
+        Self::from_matrix(&Matrix::<3, T, A>::from_rotation_xz(angle))
     }
 
-    /// Creates an affine transform containing a 3D rotation from `angle` (in
-    /// radians) around the z axis.
-    ///
-    /// This rotates `+X` to `+Y`.
+    /// Creates an affine transform containing a 3D rotation from an `angle` (in
+    /// radians) rotating `+Y` to `+Z`.
     #[inline]
     #[must_use]
-    pub fn from_rotation_z(angle: T) -> Self {
-        Self::from_matrix(&Matrix::<3, T, A>::from_rotation_z(angle))
+    pub fn from_rotation_yz(angle: T) -> Self {
+        Self::from_matrix(&Matrix::<3, T, A>::from_rotation_yz(angle))
     }
 
     /// Creates an affine transform containing a 3D rotation from a quaternion.
@@ -1174,36 +1292,36 @@ mod tests {
     }
 
     #[test]
-    fn test_from_rotation_x() {
+    fn test_from_rotation_xy() {
         for_types!(|T: PrimitiveFloat, A| {
             for angle in random_iter::<T>() {
                 assert_test_eq!(
-                    Affine::<3, T, A>::from_rotation_x(angle),
-                    Affine::from_matrix(&Matrix::<3, T, A>::from_rotation_x(angle))
+                    Affine::<3, T, A>::from_rotation_xy(angle),
+                    Affine::from_matrix(&Matrix::<3, T, A>::from_rotation_xy(angle))
                 );
             }
         });
     }
 
     #[test]
-    fn test_from_rotation_y() {
+    fn test_from_rotation_xz() {
         for_types!(|T: PrimitiveFloat, A| {
             for angle in random_iter::<T>() {
                 assert_test_eq!(
-                    Affine::<3, T, A>::from_rotation_y(angle),
-                    Affine::from_matrix(&Matrix::<3, T, A>::from_rotation_y(angle))
+                    Affine::<3, T, A>::from_rotation_xz(angle),
+                    Affine::from_matrix(&Matrix::<3, T, A>::from_rotation_xz(angle))
                 );
             }
         });
     }
 
     #[test]
-    fn test_from_rotation_z() {
+    fn test_from_rotation_yz() {
         for_types!(|T: PrimitiveFloat, A| {
             for angle in random_iter::<T>() {
                 assert_test_eq!(
-                    Affine::<3, T, A>::from_rotation_z(angle),
-                    Affine::from_matrix(&Matrix::<3, T, A>::from_rotation_z(angle))
+                    Affine::<3, T, A>::from_rotation_yz(angle),
+                    Affine::from_matrix(&Matrix::<3, T, A>::from_rotation_yz(angle))
                 );
             }
         });

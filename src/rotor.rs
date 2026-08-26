@@ -17,6 +17,14 @@ use crate::{
 
 mod generic;
 
+mod float;
+
+#[cfg(feature = "wide")]
+mod wide;
+
+#[cfg(feature = "wide")]
+mod wide_float;
+
 /// A rotor used to represent rotation.
 ///
 /// A rotor is a mathematical object used to represent rotations. In comparison
@@ -1133,10 +1141,8 @@ mod tests {
     use std::format;
 
     use crate::{
-        Aligned, Mask, Quaternion, Rot2, Rot2A, Rot3, Rot3A, Rotor, Unaligned, Vec2A, Vec4A,
-        Vector,
+        Aligned, Mask, Matrix, Rot2, Rot2A, Rot3, Rot3A, Rotor, Unaligned, Vec2A, Vec4A, Vector,
         test_utils::{assert_test_eq, for_types, random_iter},
-        utils::PrimitiveFloatUtils,
     };
 
     #[test]
@@ -1161,11 +1167,11 @@ mod tests {
         for_types!(|T: PrimitiveNumber, A| {
             assert_eq!(
                 Rotor::<2, T, A>::IDENTITY,
-                Rotor::<2, T, A>::new(T::ZERO, T::ONE)
+                Rotor::<2, T, A>::from_raw_elements(T::ZERO, T::ONE)
             );
             assert_eq!(
                 Rotor::<3, T, A>::IDENTITY,
-                Rotor::<3, T, A>::new(T::ZERO, T::ZERO, T::ZERO, T::ONE)
+                Rotor::<3, T, A>::from_raw_elements(T::ZERO, T::ZERO, T::ZERO, T::ONE)
             );
         });
     }
@@ -1174,12 +1180,15 @@ mod tests {
     fn test_conjugate() {
         for_types!(|T: PrimitiveFloat, A| {
             for rotor in random_iter::<Rotor<2, T, A>>() {
-                assert_test_eq!(rotor.conjugate(), Rotor::<2, T, A>::new(-rotor.xy, rotor.s));
+                assert_test_eq!(
+                    rotor.conjugate(),
+                    Rotor::<2, T, A>::from_raw_elements(-rotor.xy, rotor.s)
+                );
             }
             for rotor in random_iter::<Rotor<3, T, A>>() {
                 assert_test_eq!(
                     rotor.conjugate(),
-                    Rotor::<3, T, A>::new(-rotor.xy, -rotor.xz, -rotor.yz, rotor.s)
+                    Rotor::<3, T, A>::from_raw_elements(-rotor.xy, -rotor.xz, -rotor.yz, rotor.s)
                 );
             }
         });
@@ -1215,21 +1224,21 @@ mod tests {
             let rotor = Rotor::<2, T, A>(Vector::from_fn(|i| T::as_from(i + 3)));
             assert_eq!(
                 rotor.to_alignment(),
-                Rotor::<2, T, Aligned>::from_vector(rotor.0.align())
+                Rotor::<2, T, Aligned>::from_raw_vector(rotor.0.align())
             );
             assert_eq!(
                 rotor.to_alignment(),
-                Rotor::<2, T, Unaligned>::from_vector(rotor.0.unalign())
+                Rotor::<2, T, Unaligned>::from_raw_vector(rotor.0.unalign())
             );
 
             let rotor = Rotor::<3, T, A>(Vector::from_fn(|i| T::as_from(i + 3)));
             assert_eq!(
                 rotor.to_alignment(),
-                Rotor::<3, T, Aligned>::from_vector(rotor.0.align())
+                Rotor::<3, T, Aligned>::from_raw_vector(rotor.0.align())
             );
             assert_eq!(
                 rotor.to_alignment(),
-                Rotor::<3, T, Unaligned>::from_vector(rotor.0.unalign())
+                Rotor::<3, T, Unaligned>::from_raw_vector(rotor.0.unalign())
             );
         });
     }
@@ -1240,13 +1249,13 @@ mod tests {
             let rotor = Rotor::<2, T, A>(Vector::from_fn(|i| T::as_from(i + 3)));
             assert_eq!(
                 rotor.align(),
-                Rotor::<2, T, Aligned>::from_vector(rotor.0.align())
+                Rotor::<2, T, Aligned>::from_raw_vector(rotor.0.align())
             );
 
             let rotor = Rotor::<3, T, A>(Vector::from_fn(|i| T::as_from(i + 3)));
             assert_eq!(
                 rotor.align(),
-                Rotor::<3, T, Aligned>::from_vector(rotor.0.align())
+                Rotor::<3, T, Aligned>::from_raw_vector(rotor.0.align())
             );
         });
     }
@@ -1257,13 +1266,13 @@ mod tests {
             let rotor = Rotor::<2, T, A>(Vector::from_fn(|i| T::as_from(i + 3)));
             assert_eq!(
                 rotor.unalign(),
-                Rotor::<2, T, Unaligned>::from_vector(rotor.0.unalign())
+                Rotor::<2, T, Unaligned>::from_raw_vector(rotor.0.unalign())
             );
 
             let rotor = Rotor::<3, T, A>(Vector::from_fn(|i| T::as_from(i + 3)));
             assert_eq!(
                 rotor.unalign(),
-                Rotor::<3, T, Unaligned>::from_vector(rotor.0.unalign())
+                Rotor::<3, T, Unaligned>::from_raw_vector(rotor.0.unalign())
             );
         });
     }
@@ -1273,11 +1282,11 @@ mod tests {
         for_types!(|T: PrimitiveNumber, A| {
             let [x, y, z, w] = std::array::from_fn(|i| T::as_from(i + 1));
 
-            let rotor = Rotor::<2, T, A>::new(x, y);
+            let rotor = Rotor::<2, T, A>::from_raw_elements(x, y);
             assert_eq!(rotor.xy, x);
             assert_eq!(rotor.s, y);
 
-            let rotor = Rotor::<3, T, A>::new(x, y, z, w);
+            let rotor = Rotor::<3, T, A>::from_raw_elements(x, y, z, w);
             assert_eq!(rotor.xy, x);
             assert_eq!(rotor.xz, y);
             assert_eq!(rotor.yz, z);
@@ -1290,11 +1299,11 @@ mod tests {
         for_types!(|T: PrimitiveNumber, A| {
             let [mut x, mut y, mut z, mut w] = std::array::from_fn(|i| T::as_from(i + 1));
 
-            let mut rotor = Rotor::<2, T, A>::new(x, y);
+            let mut rotor = Rotor::<2, T, A>::from_raw_elements(x, y);
             assert_eq!(&mut rotor.xy, &mut x);
             assert_eq!(&mut rotor.s, &mut y);
 
-            let mut rotor = Rotor::<3, T, A>::new(x, y, z, w);
+            let mut rotor = Rotor::<3, T, A>::from_raw_elements(x, y, z, w);
             assert_eq!(&mut rotor.xy, &mut x);
             assert_eq!(&mut rotor.xz, &mut y);
             assert_eq!(&mut rotor.yz, &mut z);
@@ -1306,10 +1315,10 @@ mod tests {
     fn test_debug() {
         for_types!(|T: PrimitiveNumber, A| {
             let rotor = Rotor::<2, T, A>(Vector::from_fn(|i| T::as_from(i + 3)));
-            assert_eq!(format!("{rotor:?}"), format!("{:?}", rotor.to_vector()));
+            assert_eq!(format!("{rotor:?}"), format!("{:?}", rotor.to_raw_vector()));
 
             let rotor = Rotor::<3, T, A>(Vector::from_fn(|i| T::as_from(i + 3)));
-            assert_eq!(format!("{rotor:?}"), format!("{:?}", rotor.to_vector()));
+            assert_eq!(format!("{rotor:?}"), format!("{:?}", rotor.to_raw_vector()));
         });
     }
 
@@ -1317,10 +1326,10 @@ mod tests {
     fn test_display() {
         for_types!(|T: PrimitiveNumber, A| {
             let rotor = Rotor::<2, T, A>(Vector::from_fn(|i| T::as_from(i + 3)));
-            assert_eq!(format!("{rotor}"), format!("{}", rotor.to_vector()));
+            assert_eq!(format!("{rotor}"), format!("{}", rotor.to_raw_vector()));
 
             let rotor = Rotor::<3, T, A>(Vector::from_fn(|i| T::as_from(i + 3)));
-            assert_eq!(format!("{rotor}"), format!("{}", rotor.to_vector()));
+            assert_eq!(format!("{rotor}"), format!("{}", rotor.to_raw_vector()));
         });
     }
 
@@ -1329,11 +1338,17 @@ mod tests {
         for_types!(|T: PrimitiveNumber, A| {
             for ([rotor, other], mask) in random_iter::<([Rotor<2, T, A>; 2], Mask<2, T, A>)>() {
                 let other = Rotor(mask.select(rotor.0, other.0));
-                assert_eq!(rotor == other, rotor.as_vector() == other.as_vector());
+                assert_eq!(
+                    rotor == other,
+                    rotor.as_raw_vector() == other.as_raw_vector()
+                );
             }
             for ([rotor, other], mask) in random_iter::<([Rotor<3, T, A>; 2], Mask<4, T, A>)>() {
                 let other = Rotor(mask.select(rotor.0, other.0));
-                assert_eq!(rotor == other, rotor.as_vector() == other.as_vector());
+                assert_eq!(
+                    rotor == other,
+                    rotor.as_raw_vector() == other.as_raw_vector()
+                );
             }
         });
     }
@@ -1343,11 +1358,17 @@ mod tests {
         for_types!(|T: PrimitiveNumber, A| {
             for ([rotor, other], mask) in random_iter::<([Rotor<2, T, A>; 2], Mask<2, T, A>)>() {
                 let other = Rotor(mask.select(rotor.0, other.0));
-                assert_eq!(rotor != other, rotor.as_vector() != other.as_vector());
+                assert_eq!(
+                    rotor != other,
+                    rotor.as_raw_vector() != other.as_raw_vector()
+                );
             }
             for ([rotor, other], mask) in random_iter::<([Rotor<3, T, A>; 2], Mask<4, T, A>)>() {
                 let other = Rotor(mask.select(rotor.0, other.0));
-                assert_eq!(rotor != other, rotor.as_vector() != other.as_vector());
+                assert_eq!(
+                    rotor != other,
+                    rotor.as_raw_vector() != other.as_raw_vector()
+                );
             }
         });
     }
@@ -1363,12 +1384,15 @@ mod tests {
     fn test_neg() {
         for_types!(|T: PrimitiveFloat, A| {
             for rotor in random_iter::<Rotor<2, T, A>>() {
-                assert_test_eq!(-rotor, Rotor::<2, T, A>::new(-rotor.xy, -rotor.s));
+                assert_test_eq!(
+                    -rotor,
+                    Rotor::<2, T, A>::from_raw_elements(-rotor.xy, -rotor.s)
+                );
             }
             for rotor in random_iter::<Rotor<3, T, A>>() {
                 assert_test_eq!(
                     -rotor,
-                    Rotor::<3, T, A>::new(-rotor.xy, -rotor.xz, -rotor.yz, -rotor.s)
+                    Rotor::<3, T, A>::from_raw_elements(-rotor.xy, -rotor.xz, -rotor.yz, -rotor.s)
                 );
             }
         });
@@ -1378,12 +1402,20 @@ mod tests {
     fn test_add() {
         for_types!(|T: PrimitiveFloat, A| {
             for [a, b] in random_iter::<[Rotor<2, T, A>; 2]>() {
-                assert_test_eq!(a + b, Rotor::<2, T, A>::new(a.xy + b.xy, a.s + b.s));
+                assert_test_eq!(
+                    a + b,
+                    Rotor::<2, T, A>::from_raw_elements(a.xy + b.xy, a.s + b.s)
+                );
             }
             for [a, b] in random_iter::<[Rotor<3, T, A>; 2]>() {
                 assert_test_eq!(
                     a + b,
-                    Rotor::<3, T, A>::new(a.xy + b.xy, a.xz + b.xz, a.yz + b.yz, a.s + b.s)
+                    Rotor::<3, T, A>::from_raw_elements(
+                        a.xy + b.xy,
+                        a.xz + b.xz,
+                        a.yz + b.yz,
+                        a.s + b.s
+                    )
                 );
             }
         });
@@ -1393,12 +1425,20 @@ mod tests {
     fn test_sub() {
         for_types!(|T: PrimitiveFloat, A| {
             for [a, b] in random_iter::<[Rotor<2, T, A>; 2]>() {
-                assert_test_eq!(a - b, Rotor::<2, T, A>::new(a.xy - b.xy, a.s - b.s));
+                assert_test_eq!(
+                    a - b,
+                    Rotor::<2, T, A>::from_raw_elements(a.xy - b.xy, a.s - b.s)
+                );
             }
             for [a, b] in random_iter::<[Rotor<3, T, A>; 2]>() {
                 assert_test_eq!(
                     a - b,
-                    Rotor::<3, T, A>::new(a.xy - b.xy, a.xz - b.xz, a.yz - b.yz, a.s - b.s)
+                    Rotor::<3, T, A>::from_raw_elements(
+                        a.xy - b.xy,
+                        a.xz - b.xz,
+                        a.yz - b.yz,
+                        a.s - b.s
+                    )
                 );
             }
         });
@@ -1410,13 +1450,13 @@ mod tests {
             for (rotor, scalar) in random_iter::<(Rotor<2, T, A>, T)>() {
                 assert_test_eq!(
                     rotor * scalar,
-                    Rotor::<2, T, A>::new(rotor.xy * scalar, rotor.s * scalar)
+                    Rotor::<2, T, A>::from_raw_elements(rotor.xy * scalar, rotor.s * scalar)
                 );
             }
             for (rotor, scalar) in random_iter::<(Rotor<3, T, A>, T)>() {
                 assert_test_eq!(
                     rotor * scalar,
-                    Rotor::<3, T, A>::new(
+                    Rotor::<3, T, A>::from_raw_elements(
                         rotor.xy * scalar,
                         rotor.xz * scalar,
                         rotor.yz * scalar,
@@ -1439,9 +1479,9 @@ mod tests {
         for_types!(|T: PrimitiveFloat, A| {
             for (vector, angle) in random_iter::<(Vector<2, T, A>, T)>() {
                 let angle = angle % 6.0;
-                let (half_sin, half_cos) = PrimitiveFloatUtils::sin_cos(angle / 2.0);
+                let (half_sin, half_cos) = (angle / 2.0).sin_cos();
                 assert_test_eq!(
-                    vector * Rotor::<2, T, A>::new(half_sin, half_cos),
+                    vector * Rotor::<2, T, A>::from_raw_elements(half_sin, half_cos),
                     vector.rotate(angle),
                     abs <= vector.length() * 1e-5 + 1e-5,
                     0.0 = -0.0
@@ -1450,23 +1490,23 @@ mod tests {
 
             for (vector, angle) in random_iter::<(Vector<3, T, A>, T)>() {
                 let angle = angle % 6.0;
-                let (half_sin, half_cos) = PrimitiveFloatUtils::sin_cos(angle / 2.0);
+                let (half_sin, half_cos) = (angle / 2.0).sin_cos();
                 if vector.is_finite() && half_sin.is_finite() && half_cos.is_finite() {
                     assert_test_eq!(
-                        vector * Rotor::<3, T, A>::new(half_sin, 0.0, 0.0, half_cos),
-                        vector.rotate_z(angle),
+                        vector * Rotor::<3, T, A>::from_raw_elements(half_sin, 0.0, 0.0, half_cos),
+                        vector.rotate_xy(angle),
                         abs <= vector.length() * 1e-5 + 1e-5,
                         0.0 = -0.0
                     );
                     assert_test_eq!(
-                        vector * Rotor::<3, T, A>::new(0.0, half_sin, 0.0, half_cos),
-                        vector.rotate_y(-angle),
+                        vector * Rotor::<3, T, A>::from_raw_elements(0.0, half_sin, 0.0, half_cos),
+                        vector.rotate_xz(angle),
                         abs <= vector.length() * 1e-5 + 1e-5,
                         0.0 = -0.0
                     );
                     assert_test_eq!(
-                        vector * Rotor::<3, T, A>::new(0.0, 0.0, half_sin, half_cos),
-                        vector.rotate_x(angle),
+                        vector * Rotor::<3, T, A>::from_raw_elements(0.0, 0.0, half_sin, half_cos),
+                        vector.rotate_yz(angle),
                         abs <= vector.length() * 1e-5 + 1e-5,
                         0.0 = -0.0
                     );
@@ -1476,7 +1516,7 @@ mod tests {
             for (vector, rotor) in [
                 (
                     Vector::<3, T, A>::new(-4.1, 3.3, 10.3),
-                    Rotor::<3, T, A>::new(0.8, 0.4, 0.3, 0.1),
+                    Rotor::<3, T, A>::from_raw_elements(0.8, 0.4, 0.3, 0.1),
                 ),
                 (
                     Vector::<3, T, A>::new(-4.1, 3.3, 10.3),
@@ -1490,20 +1530,12 @@ mod tests {
                     continue;
                 }
 
-                // TODO: Replace this with rotor normalize method once it exists
-                let rotor = Rotor::<3, T, A>(
-                    rotor
-                        .0
-                        .normalize_or(Rotor::<3, T, A>::IDENTITY.0)
-                        .normalize(),
-                );
-
-                // TODO: Replace this with a `Matrix::from_rotor` test once it exists
-                let quaternion = Quaternion::from_xyzw(rotor.yz, -rotor.xz, rotor.xy, rotor.s);
+                let rotor = rotor.normalize_or(Rotor::<3, T, A>::IDENTITY).normalize();
+                let matrix = Matrix::<3, T, A>::from_rotor(rotor);
 
                 assert_test_eq!(
                     vector * rotor,
-                    vector * quaternion,
+                    vector * matrix,
                     abs <= vector.abs().max_element() * 1e-6 + 1e-4,
                     0.0 = -0.0
                 );
@@ -1513,34 +1545,16 @@ mod tests {
 
     #[test]
     fn test_mul() {
-        // TODO: Make this generic over `N` when `rotor.normalize` exists
-        for_types!(|T: PrimitiveFloat, A| {
+        for_types!(|N: TwoOrThree, T: PrimitiveFloat, A| {
             for (vector, [rotor_1, rotor_2]) in
-                random_iter::<(Vector<2, T, A>, [Rotor<2, T, A>; 2])>()
+                random_iter::<(Vector<N, T, A>, [Rotor<N, T, A>; 2])>()
             {
                 if !vector.is_finite() || vector.length() > 1e5 {
                     continue;
                 }
 
-                let [rotor_1, rotor_2] = [rotor_1, rotor_2]
-                    .map(|r| Rotor(r.0.normalize_or(Rotor::<2, T, A>::IDENTITY.0).normalize()));
-
-                assert_test_eq!(
-                    vector * (rotor_1 * rotor_2),
-                    vector * rotor_1 * rotor_2,
-                    abs <= vector.length() * 1e-6 + 1e-4,
-                    0.0 = -0.0
-                );
-            }
-            for (vector, [rotor_1, rotor_2]) in
-                random_iter::<(Vector<3, T, A>, [Rotor<3, T, A>; 2])>()
-            {
-                if !vector.is_finite() || vector.length() > 1e5 {
-                    continue;
-                }
-
-                let [rotor_1, rotor_2] = [rotor_1, rotor_2]
-                    .map(|r| Rotor(r.0.normalize_or(Rotor::<3, T, A>::IDENTITY.0).normalize()));
+                let [rotor_1, rotor_2] =
+                    [rotor_1, rotor_2].map(|r| r.normalize_or(Rotor::IDENTITY).normalize());
 
                 assert_test_eq!(
                     vector * (rotor_1 * rotor_2),
@@ -1558,13 +1572,13 @@ mod tests {
             for (rotor, scalar) in random_iter::<(Rotor<2, T, A>, T)>() {
                 assert_test_eq!(
                     rotor / scalar,
-                    Rotor::<2, T, A>::new(rotor.xy / scalar, rotor.s / scalar)
+                    Rotor::<2, T, A>::from_raw_elements(rotor.xy / scalar, rotor.s / scalar)
                 );
             }
             for (rotor, scalar) in random_iter::<(Rotor<3, T, A>, T)>() {
                 assert_test_eq!(
                     rotor / scalar,
-                    Rotor::<3, T, A>::new(
+                    Rotor::<3, T, A>::from_raw_elements(
                         rotor.xy / scalar,
                         rotor.xz / scalar,
                         rotor.yz / scalar,

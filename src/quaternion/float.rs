@@ -1069,9 +1069,9 @@ mod tests {
 
                 assert_test_eq!(
                     Quaternion::<T, A>::from_matrix(
-                        &(Matrix::<3, T, A>::from_rotation_x(x)
-                            * Matrix::<3, T, A>::from_rotation_y(y)
-                            * Matrix::<3, T, A>::from_rotation_z(z))
+                        &(Matrix::<3, T, A>::from_rotation_yz(x)
+                            * Matrix::<3, T, A>::from_rotation_xz(-y)
+                            * Matrix::<3, T, A>::from_rotation_yz(z))
                     ),
                     Quaternion::<T, A>::from_rotation_x(x)
                         * Quaternion::<T, A>::from_rotation_y(y)
