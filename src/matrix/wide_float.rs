@@ -29,11 +29,11 @@ macro_rules! items {
         #[inline]
         #[must_use]
         #[expect(private_bounds)]
-        pub fn from_rotor(_rotor: Rotor<N, $Wide, A>) -> Self
+        pub fn from_rotor(rotor: Rotor<N, $Wide, A>) -> Self
         where
             Length<N>: TwoOrThree,
         {
-            todo!()
+            specialize_23!(Matrix::<N, $Wide, A>::from_rotor_backend(rotor))
         }
 
         /// Creates a matrix containing a non-uniform `scale` and a `rotation`.
@@ -552,6 +552,15 @@ macro_rules! impl_items {
             }
 
             #[inline(always)]
+            fn from_rotor_backend(rotor: Rotor<2, $Wide, A>) -> Self {
+                let xx = rotor.s * rotor.s - rotor.xy * rotor.xy;
+                let half_xy = rotor.xy * rotor.s;
+                let xy = half_xy + half_xy;
+
+                Self::from_row_array(&[xx, xy, -xy, xx])
+            }
+
+            #[inline(always)]
             fn is_nan_backend(&self) -> $Wide {
                 self.x_axis.is_nan() | self.y_axis.is_nan()
             }
@@ -629,6 +638,24 @@ macro_rules! impl_items {
                     projective.x_axis.truncate(),
                     projective.y_axis.truncate(),
                     projective.z_axis.truncate(),
+                ])
+            }
+
+            #[inline(always)]
+            fn from_rotor_backend(rotor: Rotor<3, $Wide, A>) -> Self {
+                let bivector = rotor.0.xyz();
+                let bivector_2 = bivector + bivector;
+                let [xy_xy_2, xy_xz_2, xy_yz_2] = (bivector * bivector_2.x).to_array();
+                let [xz_xz_2, xz_yz_2, yz_yz_2] = (bivector.yzz() * bivector_2.yyz()).to_array();
+                let [s_xy_2, s_xz_2, s_yz_2] = (bivector_2 * rotor.s).to_array();
+
+                Self::from_rows(&[
+                    Vector::<3, $Wide, A>::new($Wide::ONE, s_xy_2, xy_yz_2)
+                        - Vector::<3, $Wide, A>::new(xz_xz_2 + xy_xy_2, xz_yz_2, -s_xz_2),
+                    Vector::<3, $Wide, A>::new(-xz_yz_2, $Wide::ONE, s_yz_2)
+                        - Vector::<3, $Wide, A>::new(s_xy_2, yz_yz_2 + xy_xy_2, xy_xz_2),
+                    Vector::<3, $Wide, A>::new(xy_yz_2, -xy_xz_2, $Wide::ONE)
+                        - Vector::<3, $Wide, A>::new(s_xz_2, s_yz_2, yz_yz_2 + xz_xz_2),
                 ])
             }
 
