@@ -109,7 +109,7 @@ macro_rules! items {
         where
             Length<N>: TwoOrThree,
         {
-            todo!()
+            specialize_23!(Matrix::<N, $Wide, A>::to_scale_rotation_backend(self))
         }
 
         /// Returns the element-wise reciprocal (inverse) of a matrix,
@@ -612,6 +612,24 @@ macro_rules! impl_items {
             }
 
             #[inline(always)]
+            #[expect(clippy::wrong_self_convention)]
+            fn to_scale_rotation_backend(&self) -> (Vector<2, $Wide, A>, Rotor<2, $Wide, A>) {
+                let determinant = self.determinant();
+
+                let scale = Vector::<2, $Wide, A>::new(
+                    self.x_axis.length() * determinant.signum(),
+                    self.y_axis.length(),
+                );
+
+                let scale_recip = scale.recip();
+
+                let rotation_matrix = Self(self.0 * scale_recip.xxyy());
+                let rotation = Rotor::<2, $Wide, A>::from_matrix(&rotation_matrix);
+
+                (scale, rotation)
+            }
+
+            #[inline(always)]
             fn recip_backend(&self) -> Self {
                 Self(self.0.recip())
             }
@@ -732,6 +750,29 @@ macro_rules! impl_items {
                 let inverse = adjugate * ($Wide::ONE / determinant);
 
                 (inverse, determinant)
+            }
+
+            #[inline(always)]
+            #[expect(clippy::wrong_self_convention)]
+            fn to_scale_rotation_backend(&self) -> (Vector<3, $Wide, A>, Rotor<3, $Wide, A>) {
+                let determinant = self.determinant();
+
+                let scale = Vector::<3, $Wide, A>::new(
+                    self.x_axis.length() * determinant.signum(),
+                    self.y_axis.length(),
+                    self.z_axis.length(),
+                );
+
+                let scale_recip = scale.recip();
+
+                let rotation_matrix = Self::from_rows(&[
+                    self.x_axis * scale_recip.x,
+                    self.y_axis * scale_recip.y,
+                    self.z_axis * scale_recip.z,
+                ]);
+                let rotation = Rotor::<3, $Wide, A>::from_matrix(&rotation_matrix);
+
+                (scale, rotation)
             }
 
             #[inline(always)]
