@@ -225,7 +225,7 @@ where
     where
         Length<N>: TwoOrThree,
     {
-        todo!()
+        specialize_23!(Matrix::<N, T, A>::to_scale_rotation_backend(self))
     }
 
     #[inline]
@@ -473,6 +473,35 @@ where
 
             (inverse, determinant)
         }
+    }
+
+    #[inline(always)]
+    #[track_caller]
+    #[expect(clippy::wrong_self_convention)]
+    fn to_scale_rotation_backend(&self) -> (Vector<2, T, A>, Rotor<2, T, A>) {
+        let determinant = self.determinant();
+
+        let scale = Vector::<2, T, A>::new(
+            self.x_axis.length() * determinant.signum(),
+            self.y_axis.length(),
+        );
+
+        let scale_recip = scale.recip();
+
+        let rotation_matrix = Self(self.0 * scale_recip.xxyy());
+
+        debug_assert!(
+            rotation_matrix
+                .x_axis
+                .dot(rotation_matrix.y_axis)
+                .abs_diff_eq(T::ZERO, T::as_from(1e-4))
+                && determinant != T::ZERO,
+            "matrix contains shearing or determinant is zero"
+        );
+
+        let rotation = Rotor::<2, T, A>::from_matrix(&rotation_matrix);
+
+        (scale, rotation)
     }
 
     #[inline(always)]
@@ -1021,6 +1050,48 @@ where
         let inverse = adjugate * determinant.recip();
 
         (inverse, determinant)
+    }
+
+    #[inline(always)]
+    #[track_caller]
+    #[expect(clippy::wrong_self_convention)]
+    fn to_scale_rotation_backend(&self) -> (Vector<3, T, A>, Rotor<3, T, A>) {
+        let determinant = self.determinant();
+
+        let scale = Vector::<3, T, A>::new(
+            self.x_axis.length() * determinant.signum(),
+            self.y_axis.length(),
+            self.z_axis.length(),
+        );
+
+        let scale_recip = scale.recip();
+
+        let rotation_matrix = Self::from_rows(&[
+            self.x_axis * scale_recip.x,
+            self.y_axis * scale_recip.y,
+            self.z_axis * scale_recip.z,
+        ]);
+
+        debug_assert!(
+            rotation_matrix
+                .x_axis
+                .dot(rotation_matrix.y_axis)
+                .abs_diff_eq(T::ZERO, T::as_from(1e-4))
+                && rotation_matrix
+                    .x_axis
+                    .dot(rotation_matrix.z_axis)
+                    .abs_diff_eq(T::ZERO, T::as_from(1e-4))
+                && rotation_matrix
+                    .y_axis
+                    .dot(rotation_matrix.z_axis)
+                    .abs_diff_eq(T::ZERO, T::as_from(1e-4))
+                && determinant != T::ZERO,
+            "matrix contains shearing or determinant is zero"
+        );
+
+        let rotation = Rotor::<3, T, A>::from_matrix(&rotation_matrix);
+
+        (scale, rotation)
     }
 
     #[inline(always)]
