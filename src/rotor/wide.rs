@@ -219,7 +219,7 @@ where
 {
     #[inline(always)]
     fn from_lanes_backend(lanes: &[Rotor<2, T, A>; LANES]) -> Self {
-        Self::new(
+        Self::from_raw_elements(
             Wide::new(lanes.map(|lane| lane.xy)),
             Wide::new(lanes.map(|lane| lane.s)),
         )
@@ -228,7 +228,7 @@ where
     #[track_caller]
     #[inline(always)]
     fn lane_backend(&self, lane: usize) -> Rotor<2, T, A> {
-        Rotor::<2, T, A>::new(self.xy.as_array()[lane], self.s.as_array()[lane])
+        Rotor::<2, T, A>::from_raw_elements(self.xy.as_array()[lane], self.s.as_array()[lane])
     }
 
     #[track_caller]
@@ -259,7 +259,7 @@ where
 {
     #[inline(always)]
     fn from_lanes_backend(lanes: &[Rotor<3, T, A>; LANES]) -> Self {
-        Self::new(
+        Self::from_raw_elements(
             Wide::new(lanes.map(|lane| lane.xy)),
             Wide::new(lanes.map(|lane| lane.xz)),
             Wide::new(lanes.map(|lane| lane.yz)),
@@ -270,7 +270,7 @@ where
     #[track_caller]
     #[inline(always)]
     fn lane_backend(&self, lane: usize) -> Rotor<3, T, A> {
-        Rotor::<3, T, A>::new(
+        Rotor::<3, T, A>::from_raw_elements(
             self.xy.as_array()[lane],
             self.xz.as_array()[lane],
             self.yz.as_array()[lane],
@@ -321,12 +321,12 @@ mod tests {
     fn test_from_lanes() {
         assert_eq!(
             Rot3::<i32x4>::from_lanes(&[
-                Rot3::new(0, 1, 2, 3),
-                Rot3::new(10, 11, 12, 13),
-                Rot3::new(20, 21, 22, 23),
-                Rot3::new(30, 31, 32, 33),
+                Rot3::from_raw_elements(0, 1, 2, 3),
+                Rot3::from_raw_elements(10, 11, 12, 13),
+                Rot3::from_raw_elements(20, 21, 22, 23),
+                Rot3::from_raw_elements(30, 31, 32, 33),
             ]),
-            Rot3::new(
+            Rot3::from_raw_elements(
                 i32x4::new([0, 10, 20, 30]),
                 i32x4::new([1, 11, 21, 31]),
                 i32x4::new([2, 12, 22, 32]),
@@ -339,12 +339,12 @@ mod tests {
     fn test_from_lane_fn() {
         assert_eq!(
             Rot3::<i32x4>::from_lane_fn(|i| [
-                Rot3::new(0, 1, 2, 3),
-                Rot3::new(10, 11, 12, 13),
-                Rot3::new(20, 21, 22, 23),
-                Rot3::new(30, 31, 32, 33),
+                Rot3::from_raw_elements(0, 1, 2, 3),
+                Rot3::from_raw_elements(10, 11, 12, 13),
+                Rot3::from_raw_elements(20, 21, 22, 23),
+                Rot3::from_raw_elements(30, 31, 32, 33),
             ][i]),
-            Rot3::new(
+            Rot3::from_raw_elements(
                 i32x4::new([0, 10, 20, 30]),
                 i32x4::new([1, 11, 21, 31]),
                 i32x4::new([2, 12, 22, 32]),
@@ -356,7 +356,7 @@ mod tests {
     #[test]
     fn test_to_lanes() {
         assert_eq!(
-            Rot3::new(
+            Rot3::from_raw_elements(
                 i32x4::new([0, 10, 20, 30]),
                 i32x4::new([1, 11, 21, 31]),
                 i32x4::new([2, 12, 22, 32]),
@@ -364,73 +364,73 @@ mod tests {
             )
             .to_lanes(),
             [
-                Rot3::new(0, 1, 2, 3),
-                Rot3::new(10, 11, 12, 13),
-                Rot3::new(20, 21, 22, 23),
-                Rot3::new(30, 31, 32, 33),
+                Rot3::from_raw_elements(0, 1, 2, 3),
+                Rot3::from_raw_elements(10, 11, 12, 13),
+                Rot3::from_raw_elements(20, 21, 22, 23),
+                Rot3::from_raw_elements(30, 31, 32, 33),
             ],
         );
     }
 
     #[test]
     fn test_lane() {
-        let rotor = Rot3::new(
+        let rotor = Rot3::from_raw_elements(
             i32x4::new([0, 10, 20, 30]),
             i32x4::new([1, 11, 21, 31]),
             i32x4::new([2, 12, 22, 32]),
             i32x4::new([3, 13, 23, 33]),
         );
 
-        assert_eq!(rotor.lane(0), Rot3::new(0, 1, 2, 3));
-        assert_eq!(rotor.lane(1), Rot3::new(10, 11, 12, 13));
-        assert_eq!(rotor.lane(2), Rot3::new(20, 21, 22, 23));
-        assert_eq!(rotor.lane(3), Rot3::new(30, 31, 32, 33));
+        assert_eq!(rotor.lane(0), Rot3::from_raw_elements(0, 1, 2, 3));
+        assert_eq!(rotor.lane(1), Rot3::from_raw_elements(10, 11, 12, 13));
+        assert_eq!(rotor.lane(2), Rot3::from_raw_elements(20, 21, 22, 23));
+        assert_eq!(rotor.lane(3), Rot3::from_raw_elements(30, 31, 32, 33));
         assert_panic!(rotor.lane(4));
     }
 
     #[test]
     fn test_set_lane() {
-        let mut rotor = Rot3::new(
+        let mut rotor = Rot3::from_raw_elements(
             i32x4::new([0, 10, 20, 30]),
             i32x4::new([1, 11, 21, 31]),
             i32x4::new([2, 12, 22, 32]),
             i32x4::new([3, 13, 23, 33]),
         );
 
-        rotor.set_lane(0, Rot3::new(-1, -2, -3, -4));
+        rotor.set_lane(0, Rot3::from_raw_elements(-1, -2, -3, -4));
         assert_eq!(
             rotor,
-            Rot3::new(
+            Rot3::from_raw_elements(
                 i32x4::new([-1, 10, 20, 30]),
                 i32x4::new([-2, 11, 21, 31]),
                 i32x4::new([-3, 12, 22, 32]),
                 i32x4::new([-4, 13, 23, 33]),
             )
         );
-        rotor.set_lane(1, Rot3::new(-10, -11, -12, -13));
+        rotor.set_lane(1, Rot3::from_raw_elements(-10, -11, -12, -13));
         assert_eq!(
             rotor,
-            Rot3::new(
+            Rot3::from_raw_elements(
                 i32x4::new([-1, -10, 20, 30]),
                 i32x4::new([-2, -11, 21, 31]),
                 i32x4::new([-3, -12, 22, 32]),
                 i32x4::new([-4, -13, 23, 33]),
             )
         );
-        rotor.set_lane(2, Rot3::new(-20, -21, -22, -23));
+        rotor.set_lane(2, Rot3::from_raw_elements(-20, -21, -22, -23));
         assert_eq!(
             rotor,
-            Rot3::new(
+            Rot3::from_raw_elements(
                 i32x4::new([-1, -10, -20, 30]),
                 i32x4::new([-2, -11, -21, 31]),
                 i32x4::new([-3, -12, -22, 32]),
                 i32x4::new([-4, -13, -23, 33]),
             )
         );
-        rotor.set_lane(3, Rot3::new(-30, -31, -32, -33));
+        rotor.set_lane(3, Rot3::from_raw_elements(-30, -31, -32, -33));
         assert_eq!(
             rotor,
-            Rot3::new(
+            Rot3::from_raw_elements(
                 i32x4::new([-1, -10, -20, -30]),
                 i32x4::new([-2, -11, -21, -31]),
                 i32x4::new([-3, -12, -22, -32]),

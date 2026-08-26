@@ -242,7 +242,7 @@ macro_rules! items_3 {
         #[must_use]
         pub fn from_rotation_xy(angle: $Wide) -> Self {
             let (sin, cos) = (angle * 0.5).sin_cos();
-            Self::new(sin, $Wide::ZERO, $Wide::ZERO, cos)
+            Self::from_raw_elements(sin, $Wide::ZERO, $Wide::ZERO, cos)
         }
 
         /// Creates a rotor from an `angle` (in radians) rotating `+X` to `+Z`.
@@ -250,7 +250,7 @@ macro_rules! items_3 {
         #[must_use]
         pub fn from_rotation_xz(angle: $Wide) -> Self {
             let (sin, cos) = (angle * 0.5).sin_cos();
-            Self::new($Wide::ZERO, sin, $Wide::ZERO, cos)
+            Self::from_raw_elements($Wide::ZERO, sin, $Wide::ZERO, cos)
         }
 
         /// Creates a rotor from an `angle` (in radians) rotating `+Y` to `+Z`.
@@ -258,7 +258,7 @@ macro_rules! items_3 {
         #[must_use]
         pub fn from_rotation_yz(angle: $Wide) -> Self {
             let (sin, cos) = (angle * 0.5).sin_cos();
-            Self::new($Wide::ZERO, $Wide::ZERO, sin, cos)
+            Self::from_raw_elements($Wide::ZERO, $Wide::ZERO, sin, cos)
         }
 
         /// Creates a rotor from a rotation `axis` and `angle` (in radians), using
@@ -278,7 +278,7 @@ macro_rules! items_3 {
         pub fn from_axis_angle(axis: Vector<3, $Wide, A>, angle: $Wide) -> Self {
             let (sin, cos) = (angle * 0.5).sin_cos();
             let xyz = axis * sin;
-            Self::new(xyz.z, -xyz.y, xyz.x, cos)
+            Self::from_raw_elements(xyz.z, -xyz.y, xyz.x, cos)
         }
 
         /// Creates a rotor that rotates `scaled_axis.length()` radians around
@@ -299,7 +299,7 @@ macro_rules! items_3 {
             } else {
                 let (sin, cos) = (angle * 0.5).sin_cos();
                 let xyz = axis * sin;
-                Self::new(xyz.z, -xyz.y, xyz.x, cos)
+                Self::from_raw_elements(xyz.z, -xyz.y, xyz.x, cos)
             }
         }
 

@@ -382,7 +382,7 @@ where
     #[must_use]
     pub fn from_angle(angle: T) -> Self {
         let (sin, cos) = (angle * T::as_from(0.5)).sin_cos();
-        Self::new(sin, cos)
+        Self::from_raw_elements(sin, cos)
     }
 
     /// Converts a 2D rotor to an angle (in radians) rotating `+X` to `+Y`.
@@ -409,7 +409,7 @@ where
     #[inline(always)]
     #[track_caller]
     fn from_rotation_arc_backend(from: Vector<2, T, A>, to: Vector<2, T, A>) -> Self {
-        Self::new(from.wedge(to), T::ONE + from.dot(to)).normalize()
+        Self::from_raw_elements(from.wedge(to), T::ONE + from.dot(to)).normalize()
     }
 
     #[inline(always)]
@@ -421,7 +421,7 @@ where
             to = -to;
         }
 
-        Self::new(from.wedge(to), T::ONE + dot).normalize()
+        Self::from_raw_elements(from.wedge(to), T::ONE + dot).normalize()
     }
 
     #[inline(always)]
@@ -443,7 +443,7 @@ where
             "not a rotation matrix: Rotor::from_matrix({matrix:?})"
         );
 
-        Self::new(matrix.x_axis.y, matrix.x_axis.x + T::ONE).normalize()
+        Self::from_raw_elements(matrix.x_axis.y, matrix.x_axis.x + T::ONE).normalize()
     }
 
     #[inline(always)]
@@ -471,7 +471,7 @@ where
             "not a rotation: Rotor::from_projective({projective:?})"
         );
 
-        Self::new(projective.x_axis.y, projective.x_axis.x + T::ONE).normalize()
+        Self::from_raw_elements(projective.x_axis.y, projective.x_axis.x + T::ONE).normalize()
     }
 
     #[inline(always)]
@@ -506,7 +506,7 @@ where
         let rotation = half_angle * self.0.wedge(other.0).signum() * t;
 
         let (sin, cos) = rotation.sin_cos();
-        Self::new(self.xy * cos - self.s * sin, self.xy * sin + self.s * cos)
+        Self::from_raw_elements(self.xy * cos - self.s * sin, self.xy * sin + self.s * cos)
     }
 
     #[inline(always)]
@@ -551,7 +551,7 @@ where
     #[must_use]
     pub fn from_rotation_xy(angle: T) -> Self {
         let (sin, cos) = (angle * T::as_from(0.5)).sin_cos();
-        Self::new(sin, T::ZERO, T::ZERO, cos)
+        Self::from_raw_elements(sin, T::ZERO, T::ZERO, cos)
     }
 
     /// Creates a rotor from an `angle` (in radians) rotating `+X` to `+Z`.
@@ -559,7 +559,7 @@ where
     #[must_use]
     pub fn from_rotation_xz(angle: T) -> Self {
         let (sin, cos) = (angle * T::as_from(0.5)).sin_cos();
-        Self::new(T::ZERO, sin, T::ZERO, cos)
+        Self::from_raw_elements(T::ZERO, sin, T::ZERO, cos)
     }
 
     /// Creates a rotor from an `angle` (in radians) rotating `+Y` to `+Z`.
@@ -567,7 +567,7 @@ where
     #[must_use]
     pub fn from_rotation_yz(angle: T) -> Self {
         let (sin, cos) = (angle * T::as_from(0.5)).sin_cos();
-        Self::new(T::ZERO, T::ZERO, sin, cos)
+        Self::from_raw_elements(T::ZERO, T::ZERO, sin, cos)
     }
 
     /// Creates a rotor from a rotation `axis` and `angle` (in radians), using
@@ -598,7 +598,7 @@ where
 
         let (sin, cos) = (angle * T::as_from(0.5)).sin_cos();
         let xyz = axis * sin;
-        Self::new(xyz.z, -xyz.y, xyz.x, cos)
+        Self::from_raw_elements(xyz.z, -xyz.y, xyz.x, cos)
     }
 
     /// Creates a rotor that rotates `scaled_axis.length()` radians around
@@ -619,7 +619,7 @@ where
         } else {
             let (sin, cos) = (angle * T::as_from(0.5)).sin_cos();
             let xyz = axis * sin;
-            Self::new(xyz.z, -xyz.y, xyz.x, cos)
+            Self::from_raw_elements(xyz.z, -xyz.y, xyz.x, cos)
         }
     }
 
@@ -871,7 +871,7 @@ where
 
             // sin(angle/2) = sin(𝛕/4) = 1
             // cos(angle/2) = cos(𝛕/4) = 0
-            Self::new(xy, xz, yz, T::ZERO)
+            Self::from_raw_elements(xy, xz, yz, T::ZERO)
         } else {
             // This computes `xy, zx, yz`, so we flip `y` to make it `xz`
             let bivector = (from.zxy() * to - from * to.zxy()).yxz();
@@ -946,13 +946,13 @@ where
                 let four_xsq = omm22 - dif10;
                 let inv4x = T::as_from(0.5) / four_xsq.sqrt();
 
-                Self::new(xz + zx, -xy - yx, four_xsq, yz - zy) * inv4x
+                Self::from_raw_elements(xz + zx, -xy - yx, four_xsq, yz - zy) * inv4x
             } else {
                 // y^2 >= x^2
                 let four_ysq = omm22 + dif10;
                 let inv4y = T::as_from(0.5) / four_ysq.sqrt();
 
-                Self::new(yz + zy, -four_ysq, xy + yx, zx - xz) * inv4y
+                Self::from_raw_elements(yz + zy, -four_ysq, xy + yx, zx - xz) * inv4y
             }
         } else {
             // z^2 + w^2 >= x^2 + y^2
@@ -964,13 +964,13 @@ where
                 let four_zsq = opm22 - sum10;
                 let inv4z = T::as_from(0.5) / four_zsq.sqrt();
 
-                Self::new(four_zsq, -yz - zy, xz + zx, xy - yx) * inv4z
+                Self::from_raw_elements(four_zsq, -yz - zy, xz + zx, xy - yx) * inv4z
             } else {
                 // w^2 >= z^2
                 let four_wsq = opm22 + sum10;
                 let inv4w = T::as_from(0.5) / four_wsq.sqrt();
 
-                Self::new(xy - yx, xz - zx, yz - zy, four_wsq) * inv4w
+                Self::from_raw_elements(xy - yx, xz - zx, yz - zy, four_wsq) * inv4w
             }
         }
     }
@@ -1022,13 +1022,13 @@ where
                 let four_xsq = omm22 - dif10;
                 let inv4x = T::as_from(0.5) / four_xsq.sqrt();
 
-                Self::new(xz + zx, -xy - yx, four_xsq, yz - zy) * inv4x
+                Self::from_raw_elements(xz + zx, -xy - yx, four_xsq, yz - zy) * inv4x
             } else {
                 // y^2 >= x^2
                 let four_ysq = omm22 + dif10;
                 let inv4y = T::as_from(0.5) / four_ysq.sqrt();
 
-                Self::new(yz + zy, -four_ysq, xy + yx, zx - xz) * inv4y
+                Self::from_raw_elements(yz + zy, -four_ysq, xy + yx, zx - xz) * inv4y
             }
         } else {
             // z^2 + w^2 >= x^2 + y^2
@@ -1040,13 +1040,13 @@ where
                 let four_zsq = opm22 - sum10;
                 let inv4z = T::as_from(0.5) / four_zsq.sqrt();
 
-                Self::new(four_zsq, -yz - zy, xz + zx, xy - yx) * inv4z
+                Self::from_raw_elements(four_zsq, -yz - zy, xz + zx, xy - yx) * inv4z
             } else {
                 // w^2 >= z^2
                 let four_wsq = opm22 + sum10;
                 let inv4w = T::as_from(0.5) / four_wsq.sqrt();
 
-                Self::new(xy - yx, xz - zx, yz - zy, four_wsq) * inv4w
+                Self::from_raw_elements(xy - yx, xz - zx, yz - zy, four_wsq) * inv4w
             }
         }
     }

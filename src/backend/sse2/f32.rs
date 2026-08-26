@@ -305,7 +305,7 @@ impl RotorBackend<3, Aligned> for f32 {
     fn rotor_mul(rotor: Rot3A<f32>, rhs: Rot3A<f32>) -> Rot3A<f32> {
         // TODO: Optimize this
         // Compute the geometric product `(rotor)(rhs)`.
-        Rot3A::new(
+        Rot3A::from_raw_elements(
             rotor.xy * rhs.s + rotor.s * rhs.xy + rotor.yz * rhs.xz - rotor.xz * rhs.yz,
             rotor.xz * rhs.s + rotor.s * rhs.xz - rotor.yz * rhs.xy + rotor.xy * rhs.yz,
             rotor.yz * rhs.s + rotor.s * rhs.yz + rotor.xz * rhs.xy - rotor.xy * rhs.xz,
