@@ -1,6 +1,6 @@
 use mint::IntoMint;
 
-use crate::{Alignment, Mask, Matrix, Quaternion, Scalar, Vector};
+use crate::{Alignment, Mask, Matrix, Scalar, Vector};
 
 impl<T, A: Alignment> IntoMint for Vector<2, T, A>
 where
@@ -240,40 +240,6 @@ where
     }
 }
 
-impl<T, A: Alignment> IntoMint for Quaternion<T, A>
-where
-    T: Scalar,
-{
-    type MintType = mint::Quaternion<T>;
-}
-
-impl<T, A: Alignment> From<mint::Quaternion<T>> for Quaternion<T, A>
-where
-    T: Scalar,
-{
-    #[inline]
-    fn from(value: mint::Quaternion<T>) -> Self {
-        Self::from_xyzw(value.v.x, value.v.y, value.v.z, value.s)
-    }
-}
-
-impl<T, A: Alignment> From<Quaternion<T, A>> for mint::Quaternion<T>
-where
-    T: Scalar,
-{
-    #[inline]
-    fn from(value: Quaternion<T, A>) -> Self {
-        Self {
-            v: mint::Vector3 {
-                x: value.x,
-                y: value.y,
-                z: value.z,
-            },
-            s: value.w,
-        }
-    }
-}
-
 impl<T, A: Alignment> IntoMint for Mask<2, T, A>
 where
     T: Scalar,
@@ -370,8 +336,8 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{
-        Mask2, Mask2A, Mask3, Mask3A, Mask4, Mask4A, Mat2, Mat2A, Mat3, Mat3A, Mat4, Mat4A, Quat,
-        QuatA, Vec2, Vec2A, Vec3, Vec3A, Vec4, Vec4A,
+        Mask2, Mask2A, Mask3, Mask3A, Mask4, Mask4A, Mat2, Mat2A, Mat3, Mat3A, Mat4, Mat4A, Vec2,
+        Vec2A, Vec3, Vec3A, Vec4, Vec4A,
     };
 
     #[test]
@@ -432,15 +398,6 @@ mod tests {
             Vec4::new(13, 14, 15, 16),
         ]);
         assert_eq!(matrix, mint::RowMatrix4::from(matrix).into());
-    }
-
-    #[test]
-    fn test_quaternion() {
-        let quat = QuatA::from_xyzw(1, 2, 3, 4);
-        assert_eq!(quat, mint::Quaternion::from(quat).into());
-
-        let quat = Quat::from_xyzw(1, 2, 3, 4);
-        assert_eq!(quat, mint::Quaternion::from(quat).into());
     }
 
     #[test]
