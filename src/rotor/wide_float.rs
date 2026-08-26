@@ -2,12 +2,33 @@ use wide::{f32x4, f32x8, f32x16, f64x2, f64x4, f64x8};
 
 use crate::{
     Affine, Alignment, EulerRot, Length, Matrix, Projective, Rotor, Vector, length::TwoOrThree,
+    utils::transmute_generic,
 };
 
 macro_rules! items {
     ($Wide:ident) => {
         /// A rotor with all elements set to NaN (Not a Number).
-        pub const NAN: Self = todo!();
+        pub const NAN: Self = Self::NAN_INTERNAL_IMPL;
+
+        /// The implementation of [`Self::NAN`].
+        ///
+        /// Because of type system limitations, this implementation looks crazy. Use
+        /// a separate constant so that IDEs do not show the implementation.
+        const NAN_INTERNAL_IMPL: Self = match N {
+            // SAFETY: We are transmuting a type to itself
+            2 => unsafe {
+                transmute_generic::<Rotor<2, $Wide, A>, Rotor<N, $Wide, A>>(Rotor::<2, $Wide, A>(
+                    Vector::<2, $Wide, A>::NAN,
+                ))
+            },
+            // SAFETY: We are transmuting a type to itself
+            3 => unsafe {
+                transmute_generic::<Rotor<3, $Wide, A>, Rotor<N, $Wide, A>>(Rotor::<3, $Wide, A>(
+                    Vector::<4, $Wide, A>::NAN,
+                ))
+            },
+            _ => unreachable!(),
+        };
 
         /// Returns the minimal rotation transforming `from` to `to`.
         ///
