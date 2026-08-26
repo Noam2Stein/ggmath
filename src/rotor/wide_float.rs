@@ -1,8 +1,9 @@
 use wide::{f32x4, f32x8, f32x16, f64x2, f64x4, f64x8};
 
 use crate::{
-    Affine, Alignment, EulerRot, Length, Matrix, Projective, Rotor, Vector, length::TwoOrThree,
-    utils::transmute_generic,
+    Affine, Alignment, EulerRot, Length, Matrix, Projective, Rotor, Vector,
+    length::TwoOrThree,
+    utils::{FloatUtils, specialize_23, transmute_generic},
 };
 
 macro_rules! items {
@@ -40,8 +41,8 @@ macro_rules! items {
         /// `from` and `to` must be normalized.
         #[inline]
         #[must_use]
-        pub fn from_rotation_arc(_from: Vector<N, $Wide, A>, _to: Vector<N, $Wide, A>) -> Self {
-            todo!()
+        pub fn from_rotation_arc(from: Vector<N, $Wide, A>, to: Vector<N, $Wide, A>) -> Self {
+            specialize_23!(Rotor::<N, $Wide, A>::from_rotation_arc_backend(from, to))
         }
 
         /// Returns the minimal rotation transforming `from` to either `to` or
@@ -57,17 +58,19 @@ macro_rules! items {
         #[inline]
         #[must_use]
         pub fn from_rotation_arc_colinear(
-            _from: Vector<N, $Wide, A>,
-            _to: Vector<N, $Wide, A>,
+            from: Vector<N, $Wide, A>,
+            to: Vector<N, $Wide, A>,
         ) -> Self {
-            todo!()
+            specialize_23!(Rotor::<N, $Wide, A>::from_rotation_arc_colinear_backend(
+                from, to
+            ))
         }
 
         /// Converts a rotation matrix to a rotor.
         #[inline]
         #[must_use]
-        pub fn from_matrix(_matrix: &Matrix<N, $Wide, A>) -> Self {
-            todo!()
+        pub fn from_matrix(matrix: &Matrix<N, $Wide, A>) -> Self {
+            specialize_23!(Rotor::<N, $Wide, A>::from_matrix_backend(matrix))
         }
 
         /// Converts an affine transform with rotation to a rotor.
@@ -76,8 +79,8 @@ macro_rules! items {
         /// is fully ignored.
         #[inline]
         #[must_use]
-        pub fn from_affine(_affine: &Affine<N, $Wide, A>) -> Self {
-            todo!()
+        pub fn from_affine(affine: &Affine<N, $Wide, A>) -> Self {
+            Self::from_matrix(&affine.matrix)
         }
 
         /// Converts a projective transform with rotation to a rotor.
@@ -86,22 +89,22 @@ macro_rules! items {
         /// translation, which is ignored.
         #[inline]
         #[must_use]
-        pub fn from_projective(_projective: &Projective<N, $Wide, A>) -> Self {
-            todo!()
+        pub fn from_projective(projective: &Projective<N, $Wide, A>) -> Self {
+            specialize_23!(Rotor::<N, $Wide, A>::from_projective_backend(projective))
         }
 
         /// Returns `true` if any element is NaN.
         #[inline]
         #[must_use]
         pub fn is_nan(self) -> bool {
-            todo!()
+            specialize_23!(Rotor::<N, $Wide, A>::is_nan_backend(self))
         }
 
         /// Returns `true` if all elements are neither infinite nor NaN.
         #[inline]
         #[must_use]
         pub fn is_finite(self) -> bool {
-            todo!()
+            specialize_23!(Rotor::<N, $Wide, A>::is_finite_backend(self))
         }
 
         /// Returns the inverse of a rotor.
@@ -113,7 +116,7 @@ macro_rules! items {
         #[inline]
         #[must_use]
         pub fn inverse(self) -> Self {
-            todo!()
+            self.conjugate()
         }
 
         /// Returns the angle (in radians) for the minimal rotation for
@@ -122,8 +125,9 @@ macro_rules! items {
         /// `self` and `other` must be normalized.
         #[inline]
         #[must_use]
-        pub fn angle_between(self, _other: Self) -> $Wide {
-            todo!()
+        pub fn angle_between(self, other: Self) -> $Wide {
+            let half_angle = self.dot(other).abs().acos_approx();
+            half_angle + half_angle
         }
 
         /// Computes the linear interpolation between `self` and `other` based
@@ -138,7 +142,7 @@ macro_rules! items {
         /// [`slerp`]: Self::slerp
         #[inline]
         #[must_use]
-        pub fn lerp(self, _other: Self, _t: $Wide) -> Self {
+        pub fn lerp(self, other: Self, t: $Wide) -> Self {
             todo!()
         }
 
