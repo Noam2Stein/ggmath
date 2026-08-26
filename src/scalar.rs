@@ -1,8 +1,6 @@
 use crate::{
     Aligned, Alignment, Unaligned,
-    backend::{
-        AffineBackend, DefaultBackend, MaskBackend, QuaternionBackend, RotorBackend, VectorBackend,
-    },
+    backend::{AffineBackend, DefaultBackend, MaskBackend, RotorBackend, VectorBackend},
 };
 
 /// A trait for elements of vectors.
@@ -40,8 +38,6 @@ pub trait Scalar:
     + AffineBackend<4, Unaligned>
     + RotorBackend<3, Aligned>
     + RotorBackend<3, Unaligned>
-    + QuaternionBackend<Aligned>
-    + QuaternionBackend<Unaligned>
     + MaskBackend<2, Aligned>
     + MaskBackend<3, Aligned>
     + MaskBackend<4, Aligned>

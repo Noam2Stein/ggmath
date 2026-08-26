@@ -1,5 +1,5 @@
 use crate::{
-    Affine, Alignment, EulerRot, Length, Matrix, PrimitiveFloat, Projective, Quaternion, Rotor,
+    Affine, Alignment, EulerRot, Length, Matrix, PrimitiveFloat, Projective, Rotor,
     SupportedLength, Vector, length::TwoOrThree, utils::specialize_23,
 };
 
@@ -472,20 +472,6 @@ where
         Self::from_matrix(&Matrix::<3, T, A>::from_rotation_yz(angle))
     }
 
-    /// Creates an affine transform containing a 3D rotation from a quaternion.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if the quaternion is not normalized.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn from_quat(quat: Quaternion<T, A>) -> Self {
-        Self::from_matrix(&Matrix::<3, T, A>::from_quat(quat))
-    }
-
     /// Creates an affine transform containing a rotation from a rotation `axis`
     /// and `angle` (in radians).
     ///
@@ -509,58 +495,6 @@ where
     #[must_use]
     pub fn from_euler(order: EulerRot, a: T, b: T, c: T) -> Self {
         Self::from_matrix(&Matrix::<3, T, A>::from_euler(order, a, b, c))
-    }
-
-    /// Creates an affine transform containing a non-uniform `scale` and a 3D
-    /// `rotation`.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `rotation` is not normalized.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn from_scale_quat(scale: Vector<3, T, A>, rotation: Quaternion<T, A>) -> Self {
-        Self::from_matrix(&Matrix::<3, T, A>::from_scale_quat(scale, rotation))
-    }
-
-    /// Creates an affine transform containing a 3D `rotation` and
-    /// `translation`.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `rotation` is not normalized.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn from_quat_translation(rotation: Quaternion<T, A>, translation: Vector<3, T, A>) -> Self {
-        Self::from_matrix_translation(&Matrix::<3, T, A>::from_quat(rotation), translation)
-    }
-
-    /// Creates an affine transform containing a non-uniform `scale`, a 3D
-    /// `rotation` and `translation`.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `rotation` is not normalized.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn from_scale_quat_translation(
-        scale: Vector<3, T, A>,
-        rotation: Quaternion<T, A>,
-        translation: Vector<3, T, A>,
-    ) -> Self {
-        Self::from_matrix_translation(
-            &Matrix::<3, T, A>::from_scale_quat(scale, rotation),
-            translation,
-        )
     }
 
     /// Takes the `N+1`x`N` affine transform part of an `N+1`x`N+1` homogeneous
@@ -807,43 +741,6 @@ where
         self.matrix.to_euler(order)
     }
 
-    /// Returns the `scale` and `rotation` of `self`.
-    ///
-    /// `self` must be reversible and not contain shearing. Otherwise the result
-    /// is unspecified.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `self` contains shearing or the determinant of `self` is zero.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn to_scale_quat(&self) -> (Vector<3, T, A>, Quaternion<T, A>) {
-        self.matrix.to_scale_quat()
-    }
-
-    /// Returns the `scale`, `rotation` and `translation` of `self`.
-    ///
-    /// `self` must be reversible and not contain shearing. Otherwise the result
-    /// is unspecified.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `self` contains shearing or the determinant of `self` is zero.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn to_scale_quat_translation(
-        &self,
-    ) -> (Vector<3, T, A>, Quaternion<T, A>, Vector<3, T, A>) {
-        let (scale, rotation) = self.matrix.to_scale_quat();
-        (scale, rotation, self.translation)
-    }
-
     #[inline(always)]
     #[track_caller]
     fn from_projective_backend(projective: &Projective<3, T, A>) -> Self {
@@ -868,7 +765,7 @@ mod tests {
     extern crate std;
 
     use crate::{
-        Affine, Affine2, EulerRot, Matrix, Projective, Quaternion, Vec2, Vector,
+        Affine, Affine2, EulerRot, Matrix, Projective, Vec2, Vector,
         test_utils::{
             assert_debug_panic, assert_panic_test_eq, assert_test_eq, for_types, random_iter,
         },
@@ -1328,18 +1225,6 @@ mod tests {
     }
 
     #[test]
-    fn test_from_quat() {
-        for_types!(|T: PrimitiveFloat, A| {
-            for quat in random_iter::<Quaternion<T, A>>() {
-                assert_panic_test_eq!(
-                    Affine::<3, T, A>::from_quat(quat),
-                    Affine::from_matrix(&Matrix::<3, T, A>::from_quat(quat))
-                );
-            }
-        });
-    }
-
-    #[test]
     fn test_from_axis_angle() {
         for_types!(|T: PrimitiveFloat, A| {
             for (axis, angle) in random_iter::<(Vector<3, T, A>, T)>() {
@@ -1361,50 +1246,6 @@ mod tests {
                         Affine::from_matrix(&Matrix::<3, T, A>::from_euler(order, a, b, c))
                     );
                 }
-            }
-        });
-    }
-
-    #[test]
-    fn test_from_scale_rotation() {
-        for_types!(|T: PrimitiveFloat, A| {
-            for (scale, rotation) in random_iter::<(Vector<3, T, A>, Quaternion<T, A>)>() {
-                assert_panic_test_eq!(
-                    Affine::<3, T, A>::from_scale_quat(scale, rotation),
-                    Affine::from_matrix(&Matrix::<3, T, A>::from_scale_quat(scale, rotation))
-                );
-            }
-        });
-    }
-
-    #[test]
-    fn test_from_rotation_translation() {
-        for_types!(|T: PrimitiveFloat, A| {
-            for (rotation, translation) in random_iter::<(Quaternion<T, A>, Vector<3, T, A>)>() {
-                assert_panic_test_eq!(
-                    Affine::<3, T, A>::from_quat_translation(rotation, translation),
-                    Affine::<3, T, A>::from_matrix_translation(
-                        &Matrix::<3, T, A>::from_quat(rotation),
-                        translation
-                    )
-                );
-            }
-        });
-    }
-
-    #[test]
-    fn test_from_scale_rotation_translation() {
-        for_types!(|T: PrimitiveFloat, A| {
-            for (scale, rotation, translation) in
-                random_iter::<(Vector<3, T, A>, Quaternion<T, A>, Vector<3, T, A>)>()
-            {
-                assert_panic_test_eq!(
-                    Affine::<3, T, A>::from_scale_quat_translation(scale, rotation, translation),
-                    Affine::<3, T, A>::from_matrix_translation(
-                        &Matrix::<3, T, A>::from_scale_quat(scale, rotation),
-                        translation
-                    )
-                );
             }
         });
     }
@@ -1512,45 +1353,6 @@ mod tests {
 
                     assert_panic_test_eq!(affine.to_euler(order), affine.matrix.to_euler(order));
                 }
-            }
-        });
-    }
-
-    #[test]
-    fn test_to_scale_rotation() {
-        for_types!(|T: PrimitiveFloat, A| {
-            for (scale, rotation, translation) in
-                random_iter::<(Vector<3, T, A>, Quaternion<T, A>, Vector<3, T, A>)>()
-            {
-                let rotation = rotation.normalize_or(Quaternion::IDENTITY).normalize();
-
-                let affine =
-                    Affine::<3, T, A>::from_scale_quat_translation(scale, rotation, translation);
-
-                assert_panic_test_eq!(affine.to_scale_quat(), affine.matrix.to_scale_quat());
-            }
-        });
-    }
-
-    #[test]
-    fn test_to_scale_rotation_translation() {
-        for_types!(|T: PrimitiveFloat, A| {
-            for (scale, rotation, translation) in
-                random_iter::<(Vector<3, T, A>, Quaternion<T, A>, Vector<3, T, A>)>()
-            {
-                let rotation = rotation.normalize_or(Quaternion::IDENTITY).normalize();
-
-                let affine =
-                    Affine::<3, T, A>::from_scale_quat_translation(scale, rotation, translation);
-
-                assert_panic_test_eq!(
-                    affine.to_scale_quat_translation(),
-                    (
-                        affine.to_scale_quat().0,
-                        affine.to_scale_quat().1,
-                        affine.translation
-                    )
-                );
             }
         });
     }

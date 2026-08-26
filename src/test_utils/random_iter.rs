@@ -5,8 +5,8 @@ extern crate std;
 use std::iter::repeat_n;
 
 use crate::{
-    Affine, Alignment, FloatExt, Length, Mask, Matrix, Projective, Quaternion, Rotor, Scalar,
-    SupportedLength, Vector, length::TwoOrThree, utils::specialize_23,
+    Affine, Alignment, FloatExt, Length, Mask, Matrix, Projective, Rotor, Scalar, SupportedLength,
+    Vector, length::TwoOrThree, utils::specialize_23,
 };
 
 /// Returns an iterator over random values.
@@ -335,17 +335,6 @@ macro_rules! rotor_backend {
 }
 rotor_backend!(2);
 rotor_backend!(3);
-
-impl<T, A: Alignment> Random for Quaternion<T, A>
-where
-    T: Scalar + Random,
-{
-    type Input = T::Input;
-
-    fn random(state: &mut u64, input: Self::Input) -> Self {
-        Self::from_array(Random::random(state, input))
-    }
-}
 
 impl<const N: usize, T, A: Alignment> Random for Mask<N, T, A>
 where

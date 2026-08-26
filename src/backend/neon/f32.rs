@@ -3,11 +3,8 @@ use core::{arch::aarch64::*, mem::transmute};
 #[allow(unused_imports, reason = "rustc incorrectly thinks this is unused")]
 use crate::utils::PrimitiveFloatUtils;
 use crate::{
-    Aligned, Mask, Mask3A, Mask4A, QuatA, Quaternion, Rot3A, Vec3A, Vec4A, Vector,
-    backend::{
-        AffineBackend, FloatVectorBackend, MaskBackend, QuaternionBackend, RotorBackend,
-        VectorBackend,
-    },
+    Aligned, Mask, Mask3A, Mask4A, Rot3A, Vec3A, Vec4A, Vector,
+    backend::{AffineBackend, FloatVectorBackend, MaskBackend, RotorBackend, VectorBackend},
     utils::{Repr4, safe_target_feature},
 };
 
@@ -307,28 +304,6 @@ impl RotorBackend<3, Aligned> for f32 {
             rotor.xz * rhs.s + rotor.s * rhs.xz - rotor.yz * rhs.xy + rotor.xy * rhs.yz,
             rotor.yz * rhs.s + rotor.s * rhs.yz + rotor.xz * rhs.xy - rotor.xy * rhs.xz,
             rotor.s * rhs.s - rotor.xy * rhs.xy - rotor.xz * rhs.xz - rotor.yz * rhs.yz,
-        )
-    }
-}
-
-impl QuaternionBackend<Aligned> for f32 {
-    #[inline]
-    fn quat_mul(quat: QuatA<f32>, rhs: QuatA<f32>) -> QuatA<f32> {
-        const PNPN: Vec4A<f32> = Vec4A::new(0.0, -0.0, 0.0, -0.0);
-        const PPNN: Vec4A<f32> = Vec4A::new(0.0, 0.0, -0.0, -0.0);
-        const NPPN: Vec4A<f32> = Vec4A::new(-0.0, 0.0, 0.0, -0.0);
-
-        Quaternion(
-            quat.0 * rhs.0.wwww()
-                + Vec4A::<f32>::from_bits(
-                    PNPN.to_bits() ^ (quat.0.wzyx() * rhs.0.xxxx()).to_bits(),
-                )
-                + Vec4A::<f32>::from_bits(
-                    PPNN.to_bits() ^ (quat.0.zwxy() * rhs.0.yyyy()).to_bits(),
-                )
-                + Vec4A::<f32>::from_bits(
-                    NPPN.to_bits() ^ (quat.0.yxwz() * rhs.0.zzzz()).to_bits(),
-                ),
         )
     }
 }

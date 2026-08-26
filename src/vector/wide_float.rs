@@ -1,7 +1,7 @@
 use wide::{f32x4, f32x8, f32x16, f64x2, f64x4, f64x8, u32x4, u32x8, u32x16, u64x2, u64x4, u64x8};
 
 use crate::{
-    Alignment, FloatExt, Length, Quaternion, SupportedLength, Vector,
+    Alignment, FloatExt, Length, Rotor, SupportedLength, Vector,
     utils::{FloatUtils, specialize, transmute_generic},
 };
 
@@ -1494,7 +1494,7 @@ macro_rules! impl_items {
 
                             let axis = self.any_orthogonal_vector().normalize();
                             let rotation =
-                                Quaternion::<$Wide, A>::from_axis_angle(axis, t * $Wide::PI);
+                                Rotor::<3, $Wide, A>::from_axis_angle(axis, t * $Wide::PI);
 
                             let result_length = self_length.lerp(other_length, t);
                             self * rotation * (result_length / self_length)
@@ -1531,7 +1531,7 @@ macro_rules! impl_items {
 
                 Self::splat(self.simd_eq(Self::ZERO)).blend(
                     self,
-                    self * Quaternion::<$Wide, A>::from_axis_angle(axis, angle),
+                    self * Rotor::<3, $Wide, A>::from_axis_angle(axis, angle),
                 )
             }
 
