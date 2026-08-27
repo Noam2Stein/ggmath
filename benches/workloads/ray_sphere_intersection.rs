@@ -58,9 +58,9 @@ macro_rules! soa_function {
             let t2 = -b + discriminant_sqrt;
 
             let discriminant_is_positive = discriminant.simd_gt(<$Simd>::ZERO);
-            (discriminant_is_positive & t1.simd_gt(<$Simd>::ZERO)).blend(
+            (discriminant_is_positive & t1.simd_gt(<$Simd>::ZERO)).select(
                 t1,
-                (discriminant_is_positive & t2.simd_gt(<$Simd>::ZERO)).blend(t2, <$Simd>::MAX),
+                (discriminant_is_positive & t2.simd_gt(<$Simd>::ZERO)).select(t2, <$Simd>::MAX),
             )
         }
     };
