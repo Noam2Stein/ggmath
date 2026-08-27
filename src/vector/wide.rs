@@ -662,6 +662,114 @@ where
     }
 }
 
+#[expect(private_bounds)]
+impl<Wide, A: Alignment> Vector<2, Wide, A>
+where
+    Wide: WideTy,
+{
+    #[inline(always)]
+    fn scalar_select_backend<Mask>(mask: Mask, if_true: Self, if_false: Self) -> Self
+    where
+        Mask: Copy + Select<Wide>,
+    {
+        Self::new(
+            mask.select(if_true.x, if_false.x),
+            mask.select(if_true.y, if_false.y),
+        )
+    }
+}
+
+#[expect(private_bounds)]
+impl<Wide, A: Alignment> Vector<3, Wide, A>
+where
+    Wide: WideTy,
+{
+    #[inline(always)]
+    fn scalar_select_backend<Mask>(mask: Mask, if_true: Self, if_false: Self) -> Self
+    where
+        Mask: Copy + Select<Wide>,
+    {
+        Self::new(
+            mask.select(if_true.x, if_false.x),
+            mask.select(if_true.y, if_false.y),
+            mask.select(if_true.z, if_false.z),
+        )
+    }
+}
+
+#[expect(private_bounds)]
+impl<Wide, A: Alignment> Vector<4, Wide, A>
+where
+    Wide: WideTy,
+{
+    #[inline(always)]
+    fn scalar_select_backend<Mask>(mask: Mask, if_true: Self, if_false: Self) -> Self
+    where
+        Mask: Copy + Select<Wide>,
+    {
+        Self::new(
+            mask.select(if_true.x, if_false.x),
+            mask.select(if_true.y, if_false.y),
+            mask.select(if_true.z, if_false.z),
+            mask.select(if_true.w, if_false.w),
+        )
+    }
+}
+
+/// Unfortunately this cannot be done with a generic `Mask` type due to orphan
+/// rules.
+macro_rules! impl_select {
+    ($Mask:ident) => {
+        impl<const N: usize, Wide, A: Alignment> Select<Vector<N, Wide, A>> for wide::$Mask
+        where
+            Length<N>: SupportedLength,
+            wide::$Mask: Select<Wide>,
+            Wide: WideTy,
+        {
+            #[inline]
+            fn select(
+                self,
+                if_true: Vector<N, Wide, A>,
+                if_false: Vector<N, Wide, A>,
+            ) -> Vector<N, Wide, A> {
+                specialize!(Vector::<N, Wide, A>::scalar_select_backend::<wide::$Mask>(
+                    self, if_true, if_false
+                ))
+            }
+        }
+    };
+}
+impl_select!(f32x4);
+impl_select!(f32x8);
+impl_select!(f32x16);
+impl_select!(f64x2);
+impl_select!(f64x4);
+impl_select!(f64x8);
+impl_select!(i8x16);
+impl_select!(i8x32);
+impl_select!(i8x64);
+impl_select!(i16x8);
+impl_select!(i16x16);
+impl_select!(i16x32);
+impl_select!(i32x4);
+impl_select!(i32x8);
+impl_select!(i32x16);
+impl_select!(i64x2);
+impl_select!(i64x4);
+impl_select!(i64x8);
+impl_select!(u8x16);
+impl_select!(u8x32);
+impl_select!(u8x64);
+impl_select!(u16x8);
+impl_select!(u16x16);
+impl_select!(u16x32);
+impl_select!(u32x4);
+impl_select!(u32x8);
+impl_select!(u32x16);
+impl_select!(u64x2);
+impl_select!(u64x4);
+impl_select!(u64x8);
+
 #[cfg(test)]
 mod tests {
     extern crate std;
@@ -927,6 +1035,26 @@ mod tests {
                 let b = mask.select(a, b);
 
                 assert_test_eq!(a.simd_ge_mask(b), Vector::from_fn(|i| a[i].simd_ge(b[i])));
+            }
+        });
+    }
+
+    #[test]
+    fn test_scalar_select() {
+        for_types!(|N| {
+            for (mask, [if_true, if_false]) in
+                random_iter::<(i32x4, [Vector<N, f32x4, Unaligned>; 2])>()
+            {
+                let mask = mask.is_negative();
+
+                assert_test_eq!(
+                    mask.select(if_true, if_false),
+                    Vector::from_lane_fn(|lane| if mask.as_array()[lane].is_negative() {
+                        if_true.lane(lane)
+                    } else {
+                        if_false.lane(lane)
+                    })
+                );
             }
         });
     }

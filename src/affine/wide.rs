@@ -1,5 +1,7 @@
+use wide::Select;
+
 use crate::{
-    Affine, Alignment, Length, Scalar, SupportedLength,
+    Affine, Alignment, Length, Matrix, Scalar, SupportedLength, Vector,
     utils::{WideTy, specialize},
 };
 
@@ -291,11 +293,66 @@ where
     }
 }
 
+/// Unfortunately this cannot be done with a generic `Mask` type due to orphan
+/// rules.
+macro_rules! impl_select {
+    ($Mask:ident) => {
+        impl<const N: usize, Wide, A: Alignment> Select<Affine<N, Wide, A>> for wide::$Mask
+        where
+            Length<N>: SupportedLength,
+            wide::$Mask: Select<Wide>,
+            Wide: WideTy,
+        {
+            #[inline]
+            fn select(
+                self,
+                if_true: Affine<N, Wide, A>,
+                if_false: Affine<N, Wide, A>,
+            ) -> Affine<N, Wide, A> {
+                Affine::from_matrix_translation(
+                    &self.select::<Matrix<N, Wide, A>>(if_true.matrix, if_false.matrix),
+                    self.select::<Vector<N, Wide, A>>(if_true.translation, if_false.translation),
+                )
+            }
+        }
+    };
+}
+impl_select!(f32x4);
+impl_select!(f32x8);
+impl_select!(f32x16);
+impl_select!(f64x2);
+impl_select!(f64x4);
+impl_select!(f64x8);
+impl_select!(i8x16);
+impl_select!(i8x32);
+impl_select!(i8x64);
+impl_select!(i16x8);
+impl_select!(i16x16);
+impl_select!(i16x32);
+impl_select!(i32x4);
+impl_select!(i32x8);
+impl_select!(i32x16);
+impl_select!(i64x2);
+impl_select!(i64x4);
+impl_select!(i64x8);
+impl_select!(u8x16);
+impl_select!(u8x32);
+impl_select!(u8x64);
+impl_select!(u16x8);
+impl_select!(u16x16);
+impl_select!(u16x32);
+impl_select!(u32x4);
+impl_select!(u32x8);
+impl_select!(u32x16);
+impl_select!(u64x2);
+impl_select!(u64x4);
+impl_select!(u64x8);
+
 #[cfg(test)]
 mod tests {
     extern crate std;
 
-    use wide::i32x4;
+    use wide::{f32x4, i32x4};
 
     use crate::{
         Affine, Affine2A, Unaligned,
@@ -492,6 +549,26 @@ mod tests {
                             0.0
                         }
                     ))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_scalar_select() {
+        for_types!(|N| {
+            for (mask, [if_true, if_false]) in
+                random_iter::<(i32x4, [Affine<N, f32x4, Unaligned>; 2])>()
+            {
+                let mask = mask.is_negative();
+
+                assert_test_eq!(
+                    mask.select(if_true, if_false),
+                    Affine::from_lane_fn(|lane| if mask.as_array()[lane].is_negative() {
+                        if_true.lane(lane)
+                    } else {
+                        if_false.lane(lane)
+                    })
                 );
             }
         });
