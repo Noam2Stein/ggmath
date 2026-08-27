@@ -27,8 +27,6 @@ pub(crate) trait WideTy:
 
     fn simd_ge(self, other: Self) -> Self;
 
-    fn blend(self, t: Self, f: Self) -> Self;
-
     fn as_array(&self) -> &Self::Array;
 
     fn as_mut_array(&mut self) -> &mut Self::Array;
@@ -72,11 +70,6 @@ macro_rules! impl_wide {
             #[inline(always)]
             fn simd_ge(self, other: Self) -> Self {
                 self.simd_ge(other)
-            }
-
-            #[inline(always)]
-            fn blend(self, t: Self, f: Self) -> Self {
-                self.blend(t, f)
             }
 
             #[inline(always)]

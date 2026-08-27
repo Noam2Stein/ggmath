@@ -553,7 +553,7 @@ mod tests {
         for_types!(|Wide: WideFloat| {
             for [a, b, mask] in random_iter::<[Proj2<Wide>; 3]>() {
                 let mask = Proj2::from_row_fn(|r| mask[r].sign_negative_mask());
-                let b = Proj2::from_row_fn(|r| mask[r].blend(a[r], b[r]));
+                let b = Proj2::from_row_fn(|r| mask[r].select(a[r], b[r]));
 
                 assert_test_eq!(
                     a.simd_eq(&b),
@@ -569,7 +569,7 @@ mod tests {
 
             for [a, b, mask] in random_iter::<[Proj3<Wide>; 3]>() {
                 let mask = Proj3::from_row_fn(|r| mask[r].sign_negative_mask());
-                let b = Proj3::from_row_fn(|r| mask[r].blend(a[r], b[r]));
+                let b = Proj3::from_row_fn(|r| mask[r].select(a[r], b[r]));
 
                 assert_test_eq!(
                     a.simd_eq(&b),
@@ -590,7 +590,7 @@ mod tests {
         for_types!(|Wide: WideFloat| {
             for [a, b, mask] in random_iter::<[Proj2<Wide>; 3]>() {
                 let mask = Proj2::from_row_fn(|r| mask[r].sign_negative_mask());
-                let b = Proj2::from_row_fn(|r| mask[r].blend(a[r], b[r]));
+                let b = Proj2::from_row_fn(|r| mask[r].select(a[r], b[r]));
 
                 assert_test_eq!(
                     a.simd_ne(&b),
@@ -606,7 +606,7 @@ mod tests {
 
             for [a, b, mask] in random_iter::<[Proj3<Wide>; 3]>() {
                 let mask = Proj3::from_row_fn(|r| mask[r].sign_negative_mask());
-                let b = Proj3::from_row_fn(|r| mask[r].blend(a[r], b[r]));
+                let b = Proj3::from_row_fn(|r| mask[r].select(a[r], b[r]));
 
                 assert_test_eq!(
                     a.simd_ne(&b),

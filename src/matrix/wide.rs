@@ -488,7 +488,7 @@ mod tests {
         for_types!(|N, Wide: WideFloat| {
             for [a, b, mask] in random_iter::<[Matrix<N, Wide, Unaligned>; 3]>() {
                 let mask = Matrix::from_row_fn(|r| mask[r].sign_negative_mask());
-                let b = Matrix::from_row_fn(|r| mask[r].blend(a[r], b[r]));
+                let b = Matrix::from_row_fn(|r| mask[r].select(a[r], b[r]));
 
                 assert_test_eq!(
                     a.simd_eq(&b),
@@ -509,7 +509,7 @@ mod tests {
         for_types!(|N, Wide: WideFloat| {
             for [a, b, mask] in random_iter::<[Matrix<N, Wide, Unaligned>; 3]>() {
                 let mask = Matrix::from_row_fn(|r| mask[r].sign_negative_mask());
-                let b = Matrix::from_row_fn(|r| mask[r].blend(a[r], b[r]));
+                let b = Matrix::from_row_fn(|r| mask[r].select(a[r], b[r]));
 
                 assert_test_eq!(
                     a.simd_ne(&b),

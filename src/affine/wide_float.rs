@@ -798,7 +798,7 @@ mod tests {
         for_types!(|Wide: WideFloat| {
             for (scale, angle) in random_iter::<(Vec2<Wide>, Wide)>() {
                 let condition = scale.length().is_finite();
-                let scale = Vec2::splat(condition).blend(scale, Vec2::ONE);
+                let scale = Vec2::splat(condition).select(scale, Vec2::ONE);
                 let angle = condition.blend(angle, Wide::ONE);
 
                 assert_test_eq!(
@@ -836,9 +836,9 @@ mod tests {
         for_types!(|Wide: WideFloat| {
             for (scale, angle, translation) in random_iter::<(Vec2<Wide>, Wide, Vec2<Wide>)>() {
                 let condition = scale.length().is_finite();
-                let scale = Vec2::splat(condition).blend(scale, Vec2::ONE);
+                let scale = Vec2::splat(condition).select(scale, Vec2::ONE);
                 let angle = condition.blend(angle, Wide::ONE);
-                let translation = Vec2::splat(condition).blend(translation, Vec2::ONE);
+                let translation = Vec2::splat(condition).select(translation, Vec2::ONE);
 
                 assert_test_eq!(
                     Affine2::<Wide>::from_scale_angle_translation(scale, angle, translation),
@@ -999,7 +999,7 @@ mod tests {
             {
                 let condition =
                     axis.length().is_finite() & angle.is_finite() & angle.abs().simd_lt(1e3);
-                let axis = Vec3::splat(condition).blend(axis, Vec3::X);
+                let axis = Vec3::splat(condition).select(axis, Vec3::X);
                 let angle = condition.blend(angle, Wide::ONE);
 
                 assert_test_eq_or_panic!(

@@ -334,7 +334,7 @@ mod tests {
         for_types!(|Wide: WideFloat| {
             for ([a, b], mask) in random_iter::<([Quat<Wide>; 2], Vec4<Wide>)>() {
                 let mask = mask.sign_negative_mask();
-                let b = Quat::from_vector(mask.blend(a.to_vector(), b.to_vector()));
+                let b = Quat::from_vector(mask.select(a.to_vector(), b.to_vector()));
 
                 assert_test_eq!(a.simd_eq(&b), a.to_vector().simd_eq(b.to_vector()));
             }
@@ -346,7 +346,7 @@ mod tests {
         for_types!(|Wide: WideFloat| {
             for ([a, b], mask) in random_iter::<([Quat<Wide>; 2], Vec4<Wide>)>() {
                 let mask = mask.sign_negative_mask();
-                let b = Quat::from_vector(mask.blend(a.to_vector(), b.to_vector()));
+                let b = Quat::from_vector(mask.select(a.to_vector(), b.to_vector()));
 
                 assert_test_eq!(a.simd_ne(&b), a.to_vector().simd_ne(b.to_vector()));
             }
