@@ -58,12 +58,9 @@ macro_rules! items {
             let (sin, cos) = (angle * $Wide::HALF).sin_cos();
             let xyz = scaled_axis / angle * sin;
 
-            Self(
-                Vector::<4, $Wide, A>::splat(angle.simd_eq($Wide::ZERO)).select(
-                    Self::IDENTITY.0,
-                    Vector::<4, $Wide, A>::new(xyz.x, xyz.y, xyz.z, cos),
-                ),
-            )
+            angle
+                .simd_eq($Wide::ZERO)
+                .select(Self::IDENTITY, Self::from_xyzw(xyz.x, xyz.y, xyz.z, cos))
         }
 
         /// For each lane, returns the minimal rotation transforming `from` to
@@ -84,25 +81,17 @@ macro_rules! items {
             let almost_one = $Wide::ONE - $Wide::splat(2.0) * $Wide::splat($T::EPSILON);
 
             let dot = from.dot(to);
-            Self(
-                Vector::<4, $Wide, A>::splat(dot.simd_gt(almost_one)).select(
+            dot.simd_gt(almost_one).select(
+                // 0° singularity: from ≈ to.
+                Self::IDENTITY,
+                dot.simd_lt(-almost_one).select(
+                    // 180° singularity: from ≈ -to.
+                    // Half a turn = 𝛕/2 = 180°.
+                    Self::from_axis_angle(from.any_orthonormal_vector(), $Wide::PI),
                     {
-                        // 0° singularity: from ≈ to.
-                        Vector::W
+                        let cross = from.cross(to);
+                        Self::from_xyzw(cross.x, cross.y, cross.z, $Wide::ONE + dot).normalize()
                     },
-                    Vector::<4, $Wide, A>::splat(dot.simd_lt(-almost_one)).select(
-                        {
-                            // 180° singularity: from ≈ -to.
-                            // Half a turn = 𝛕/2 = 180°.
-                            Self::from_axis_angle(from.any_orthonormal_vector(), $Wide::PI).0
-                        },
-                        {
-                            let cross = from.cross(to);
-                            Self::from_xyzw(cross.x, cross.y, cross.z, $Wide::ONE + dot)
-                                .normalize()
-                                .0
-                        },
-                    ),
                 ),
             )
         }
@@ -133,14 +122,10 @@ macro_rules! items {
             let dot = dot ^ dot_sign;
             let cross = from.cross(to);
 
-            Self(
-                Vector::<4, $Wide, A>::splat(dot.simd_gt(almost_one)).select(
-                    // 0° singularity: from ≈ to.
-                    Self::IDENTITY.0,
-                    Self::from_xyzw(cross.x, cross.y, cross.z, $Wide::ONE + dot)
-                        .normalize()
-                        .0,
-                ),
+            dot.simd_gt(almost_one).select(
+                // 0° singularity: from ≈ to.
+                Self::IDENTITY,
+                Self::from_xyzw(cross.x, cross.y, cross.z, $Wide::ONE + dot).normalize(),
             )
         }
 
@@ -231,35 +216,33 @@ macro_rules! items {
             let four_wsq = opm22 + sum10;
             let inv4w = $Wide::HALF / four_wsq.sqrt();
 
-            Self(
-                Vector::<4, $Wide, A>::splat(m22.simd_le($Wide::ZERO)).select(
-                    Vector::<4, $Wide, A>::splat(dif10.simd_le($Wide::ZERO)).select(
-                        Vector::<4, $Wide, A>::new(
-                            four_xsq * inv4x,
-                            (m01 + m10) * inv4x,
-                            (m02 + m20) * inv4x,
-                            (m12 - m21) * inv4x,
-                        ),
-                        Vector::<4, $Wide, A>::new(
-                            (m01 + m10) * inv4y,
-                            four_ysq * inv4y,
-                            (m12 + m21) * inv4y,
-                            (m20 - m02) * inv4y,
-                        ),
+            m22.simd_le($Wide::ZERO).select(
+                dif10.simd_le($Wide::ZERO).select(
+                    Self::from_xyzw(
+                        four_xsq * inv4x,
+                        (m01 + m10) * inv4x,
+                        (m02 + m20) * inv4x,
+                        (m12 - m21) * inv4x,
                     ),
-                    Vector::<4, $Wide, A>::splat(sum10.simd_le($Wide::ZERO)).select(
-                        Vector::<4, $Wide, A>::new(
-                            (m02 + m20) * inv4z,
-                            (m12 + m21) * inv4z,
-                            four_zsq * inv4z,
-                            (m01 - m10) * inv4z,
-                        ),
-                        Vector::<4, $Wide, A>::new(
-                            (m12 - m21) * inv4w,
-                            (m20 - m02) * inv4w,
-                            (m01 - m10) * inv4w,
-                            four_wsq * inv4w,
-                        ),
+                    Self::from_xyzw(
+                        (m01 + m10) * inv4y,
+                        four_ysq * inv4y,
+                        (m12 + m21) * inv4y,
+                        (m20 - m02) * inv4y,
+                    ),
+                ),
+                sum10.simd_le($Wide::ZERO).select(
+                    Self::from_xyzw(
+                        (m02 + m20) * inv4z,
+                        (m12 + m21) * inv4z,
+                        four_zsq * inv4z,
+                        (m01 - m10) * inv4z,
+                    ),
+                    Self::from_xyzw(
+                        (m12 - m21) * inv4w,
+                        (m20 - m02) * inv4w,
+                        (m01 - m10) * inv4w,
+                        four_wsq * inv4w,
                     ),
                 ),
             )
@@ -327,7 +310,7 @@ macro_rules! items {
 
             let non_zero_mask = length.simd_ge($Wide::splat(1e-8));
             (
-                Vector::<3, $Wide, A>::splat(non_zero_mask).select(axis, Vector::<3, $Wide, A>::X),
+                non_zero_mask.select(axis, Vector::<3, $Wide, A>::X),
                 non_zero_mask.blend(angle, $Wide::ZERO),
             )
         }
@@ -418,24 +401,21 @@ macro_rules! items {
             let other = Self(other.0 ^ dot_sign);
             let dot = dot.abs();
 
-            Self(
-                Vector::<4, $Wide, A>::splat(dot.simd_gt($Wide::ONE - $Wide::splat($T::EPSILON)))
-                    .select(
-                        // If above threshold, perform linear interpolation to avoid divide by zero.
-                        (self * ($Wide::ONE - t) + other * t).normalize().0,
-                        {
-                            let theta = dot.acos();
+            dot.simd_gt($Wide::ONE - $Wide::splat($T::EPSILON)).select(
+                // If above threshold, perform linear interpolation to avoid divide by zero.
+                (self * ($Wide::ONE - t) + other * t).normalize(),
+                {
+                    let theta = dot.acos();
 
-                            let x = $Wide::ONE - t;
-                            let y = t;
-                            let z = $Wide::ONE;
+                    let x = $Wide::ONE - t;
+                    let y = t;
+                    let z = $Wide::ONE;
 
-                            let tmp = Vector::<4, $Wide, A>::new(x, y, z, $Wide::ZERO) * theta;
-                            let tmp = tmp.sin();
+                    let tmp = Vector::<4, $Wide, A>::new(x, y, z, $Wide::ZERO) * theta;
+                    let tmp = tmp.sin();
 
-                            (self.0 * tmp.x + other.0 * tmp.y) / tmp.z
-                        },
-                    ),
+                    Self((self.0 * tmp.x + other.0 * tmp.y) / tmp.z)
+                },
             )
         }
 
@@ -454,10 +434,9 @@ macro_rules! items {
         pub fn rotate_towards(self, target: Self, max_angle: $Wide) -> Self {
             let angle = self.angle_between(target);
             let t = (max_angle / angle).clamp(-$Wide::ONE, $Wide::ONE);
-            Self(
-                Vector::<4, $Wide, A>::splat(angle.simd_le($Wide::splat(1e-4)))
-                    .select(target.0, self.slerp(target, t).0),
-            )
+            angle
+                .simd_le($Wide::splat(1e-4))
+                .select(target, self.slerp(target, t))
         }
 
         /// Returns the length/magnitude of `self`.
@@ -635,7 +614,7 @@ mod tests {
             {
                 let condition =
                     axis.length().is_finite() & angle.is_finite() & angle.abs().simd_lt(1e3);
-                let axis = Vec3::splat(condition).select(axis, Vec3::X);
+                let axis = condition.select(axis, Vec3::X);
                 let angle = condition.blend(angle, Wide::ONE);
 
                 assert_test_eq_or_panic!(

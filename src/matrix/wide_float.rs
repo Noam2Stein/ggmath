@@ -607,13 +607,7 @@ macro_rules! impl_items {
             fn inverse_or_backend(&self, fallback: &Self) -> Self {
                 let (inverse, determinant) = self.inverse_and_determinant();
 
-                let fallback_mask = determinant.simd_eq($Wide::ZERO);
-                Self::from_row_array(&[
-                    fallback_mask.blend(fallback.x_axis.x, inverse.x_axis.x),
-                    fallback_mask.blend(fallback.x_axis.y, inverse.x_axis.y),
-                    fallback_mask.blend(fallback.y_axis.x, inverse.y_axis.x),
-                    fallback_mask.blend(fallback.y_axis.y, inverse.y_axis.y),
-                ])
+                determinant.simd_eq($Wide::ZERO).select(*fallback, inverse)
             }
 
             #[inline(always)]
@@ -688,18 +682,7 @@ macro_rules! impl_items {
             fn inverse_or_backend(&self, fallback: &Self) -> Self {
                 let (inverse, determinant) = self.inverse_and_determinant();
 
-                let fallback_mask = determinant.simd_eq($Wide::ZERO);
-                Self::from_row_array(&[
-                    fallback_mask.blend(fallback.x_axis.x, inverse.x_axis.x),
-                    fallback_mask.blend(fallback.x_axis.y, inverse.x_axis.y),
-                    fallback_mask.blend(fallback.x_axis.z, inverse.x_axis.z),
-                    fallback_mask.blend(fallback.y_axis.x, inverse.y_axis.x),
-                    fallback_mask.blend(fallback.y_axis.y, inverse.y_axis.y),
-                    fallback_mask.blend(fallback.y_axis.z, inverse.y_axis.z),
-                    fallback_mask.blend(fallback.z_axis.x, inverse.z_axis.x),
-                    fallback_mask.blend(fallback.z_axis.y, inverse.z_axis.y),
-                    fallback_mask.blend(fallback.z_axis.z, inverse.z_axis.z),
-                ])
+                determinant.simd_eq($Wide::ZERO).select(*fallback, inverse)
             }
 
             #[inline(always)]
@@ -793,25 +776,7 @@ macro_rules! impl_items {
             fn inverse_or_backend(&self, fallback: &Self) -> Self {
                 let (inverse, determinant) = self.inverse_and_determinant();
 
-                let fallback_mask = determinant.simd_eq($Wide::ZERO);
-                Self::from_row_array(&[
-                    fallback_mask.blend(fallback.x_axis.x, inverse.x_axis.x),
-                    fallback_mask.blend(fallback.x_axis.y, inverse.x_axis.y),
-                    fallback_mask.blend(fallback.x_axis.z, inverse.x_axis.z),
-                    fallback_mask.blend(fallback.x_axis.w, inverse.x_axis.w),
-                    fallback_mask.blend(fallback.y_axis.x, inverse.y_axis.x),
-                    fallback_mask.blend(fallback.y_axis.y, inverse.y_axis.y),
-                    fallback_mask.blend(fallback.y_axis.z, inverse.y_axis.z),
-                    fallback_mask.blend(fallback.y_axis.w, inverse.y_axis.w),
-                    fallback_mask.blend(fallback.z_axis.x, inverse.z_axis.x),
-                    fallback_mask.blend(fallback.z_axis.y, inverse.z_axis.y),
-                    fallback_mask.blend(fallback.z_axis.z, inverse.z_axis.z),
-                    fallback_mask.blend(fallback.z_axis.w, inverse.z_axis.w),
-                    fallback_mask.blend(fallback.w_axis.x, inverse.w_axis.x),
-                    fallback_mask.blend(fallback.w_axis.y, inverse.w_axis.y),
-                    fallback_mask.blend(fallback.w_axis.z, inverse.w_axis.z),
-                    fallback_mask.blend(fallback.w_axis.w, inverse.w_axis.w),
-                ])
+                determinant.simd_eq($Wide::ZERO).select(*fallback, inverse)
             }
 
             #[inline(always)]
@@ -1118,7 +1083,7 @@ mod tests {
     fn test_from_scale_angle() {
         for_types!(|Wide: WideFloat| {
             for (scale, angle) in random_iter::<(Vec2<Wide>, Wide)>() {
-                let scale = Vec2::splat(scale.length().is_finite()).select(scale, Vec2::ONE);
+                let scale = scale.length().is_finite().select(scale, Vec2::ONE);
 
                 assert_test_eq!(
                     Mat2::<Wide>::from_scale_angle(scale, angle),
@@ -1237,7 +1202,7 @@ mod tests {
             {
                 let condition =
                     axis.length().is_finite() & angle.is_finite() & angle.abs().simd_lt(1e3);
-                let axis = Vec3::splat(condition).select(axis, Vec3::X);
+                let axis = condition.select(axis, Vec3::X);
                 let angle = condition.blend(angle, Wide::ONE);
 
                 assert_test_eq_or_panic!(
