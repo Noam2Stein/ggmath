@@ -1,6 +1,6 @@
 use wide::{
-    i8x16, i8x32, i16x8, i16x16, i16x32, i32x4, i32x8, i32x16, i64x2, i64x4, i64x8, u8x16, u8x32,
-    u16x8, u16x16, u16x32, u32x4, u32x8, u32x16, u64x2, u64x4, u64x8,
+    i8x16, i8x32, i8x64, i16x8, i16x16, i16x32, i32x4, i32x8, i32x16, i64x2, i64x4, i64x8, u8x16,
+    u8x32, u8x64, u16x8, u16x16, u16x32, u32x4, u32x8, u32x16, u64x2, u64x4, u64x8,
 };
 
 use crate::{Alignment, Length, SupportedLength, Vector, utils::specialize};
@@ -333,6 +333,7 @@ macro_rules! impl_items {
 }
 impl_items!(i8x16);
 impl_items!(i8x32);
+impl_items!(i8x64);
 impl_items!(i16x8);
 impl_items!(i16x16);
 impl_items!(i16x32);
@@ -344,6 +345,7 @@ impl_items!(i64x4);
 impl_items!(i64x8);
 impl_items!(u8x16);
 impl_items!(u8x32);
+impl_items!(u8x64);
 impl_items!(u16x8);
 impl_items!(u16x16);
 impl_items!(u16x32);
