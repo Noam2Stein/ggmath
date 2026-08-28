@@ -337,9 +337,9 @@ mod wide {
     extern crate std;
 
     use wide::{
-        f32x4, f32x8, f32x16, f64x2, f64x4, f64x8, i8x16, i8x32, i16x8, i16x16, i16x32, i32x4,
-        i32x8, i32x16, i64x2, i64x4, i64x8, u8x16, u8x32, u16x8, u16x16, u16x32, u32x4, u32x8,
-        u32x16, u64x2, u64x4, u64x8,
+        f32x4, f32x8, f32x16, f64x2, f64x4, f64x8, i8x16, i8x32, i8x64, i16x8, i16x16, i16x32,
+        i32x4, i32x8, i32x16, i64x2, i64x4, i64x8, u8x16, u8x32, u8x64, u16x8, u16x16, u16x32,
+        u32x4, u32x8, u32x16, u64x2, u64x4, u64x8,
     };
 
     use crate::test_utils::{Category, Input, Random};
@@ -363,6 +363,7 @@ mod wide {
     wide_impl_random!(f64, 8, f64x8);
     wide_impl_random!(i8, 16, i8x16);
     wide_impl_random!(i8, 32, i8x32);
+    wide_impl_random!(i8, 32, i8x64);
     wide_impl_random!(i16, 8, i16x8);
     wide_impl_random!(i16, 16, i16x16);
     wide_impl_random!(i16, 32, i16x32);
@@ -374,6 +375,7 @@ mod wide {
     wide_impl_random!(i64, 8, i64x8);
     wide_impl_random!(u8, 16, u8x16);
     wide_impl_random!(u8, 32, u8x32);
+    wide_impl_random!(u8, 32, u8x64);
     wide_impl_random!(u16, 8, u16x8);
     wide_impl_random!(u16, 16, u16x16);
     wide_impl_random!(u16, 32, u16x32);

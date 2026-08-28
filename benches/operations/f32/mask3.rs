@@ -30,5 +30,5 @@ bench!(
     (unaligned_glam, glam::Vec3::select),
     (aligned, Mask3A::<f32>::select),
     (aligned_glam, glam::Vec3A::select),
-    (x4_unaligned, Vec3::<f32x4>::blend),
+    (x4_unaligned, Vec3::<f32x4>::select::<f32x4>),
 );

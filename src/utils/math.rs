@@ -160,7 +160,7 @@ mod wide {
                     result *= root;
 
                     // acos(x) = pi - acos(-x) when x < 0
-                    non_negative.blend(result, core::f32::consts::PI - result)
+                    non_negative.select(result, core::f32::consts::PI - result)
                 }
             }
         };
@@ -203,11 +203,11 @@ mod wide {
                     const Q0_ASIN: $Wide = $Wide::splat(-4.918853881490881290097E1);
 
                     let xa = self.abs();
-                    let xa = xa.simd_ge(Self::ONE).blend(Self::ONE, xa);
+                    let xa = xa.simd_ge(Self::ONE).select(Self::ONE, xa);
 
                     let big = xa.simd_ge($Wide::splat(0.625));
 
-                    let x1 = big.blend($Wide::ONE - xa, xa * xa);
+                    let x1 = big.select($Wide::ONE - xa, xa * xa);
 
                     let x2 = x1 * x1;
                     let x3 = x2 * x1;
@@ -237,8 +237,8 @@ mod wide {
                             + x2.mul_add(Q2_ASIN, Q0_ASIN);
                     };
 
-                    let vx = big.blend(rx, px);
-                    let wx = big.blend(sx, qx);
+                    let vx = big.select(rx, px);
+                    let wx = big.select(sx, qx);
 
                     let y1 = vx / wx * x1;
 
@@ -254,9 +254,9 @@ mod wide {
                     }
 
                     // acos
-                    let z3 = self.simd_lt($Wide::ZERO).blend($Wide::PI - z1, z1);
+                    let z3 = self.simd_lt($Wide::ZERO).select($Wide::PI - z1, z1);
                     let z4 = $Wide::FRAC_PI_2 - z2.flip_signs(self);
-                    let acos = big.blend(z3, z4);
+                    let acos = big.select(z3, z4);
 
                     acos
                 }

@@ -1,3 +1,5 @@
+use wide::Select;
+
 use crate::{Alignment, Quaternion, Scalar, Vector, utils::WideTy};
 
 /// Functionality for [SoA] (Structure of Arrays) quaternions.
@@ -197,9 +199,60 @@ where
     }
 }
 
+/// Unfortunately this cannot be done with a generic `Mask` type due to orphan
+/// rules.
+macro_rules! impl_select {
+    ($Mask:ident) => {
+        impl<Wide, A: Alignment> Select<Quaternion<Wide, A>> for wide::$Mask
+        where
+            wide::$Mask: Select<Wide>,
+            Wide: WideTy,
+        {
+            #[inline]
+            fn select(
+                self,
+                if_true: Quaternion<Wide, A>,
+                if_false: Quaternion<Wide, A>,
+            ) -> Quaternion<Wide, A> {
+                Quaternion(self.select::<Vector<4, Wide, A>>(if_true.0, if_false.0))
+            }
+        }
+    };
+}
+impl_select!(f32x4);
+impl_select!(f32x8);
+impl_select!(f32x16);
+impl_select!(f64x2);
+impl_select!(f64x4);
+impl_select!(f64x8);
+impl_select!(i8x16);
+impl_select!(i8x32);
+impl_select!(i8x64);
+impl_select!(i16x8);
+impl_select!(i16x16);
+impl_select!(i16x32);
+impl_select!(i32x4);
+impl_select!(i32x8);
+impl_select!(i32x16);
+impl_select!(i64x2);
+impl_select!(i64x4);
+impl_select!(i64x8);
+impl_select!(u8x16);
+impl_select!(u8x32);
+impl_select!(u8x64);
+impl_select!(u16x8);
+impl_select!(u16x16);
+impl_select!(u16x32);
+impl_select!(u32x4);
+impl_select!(u32x8);
+impl_select!(u32x16);
+impl_select!(u64x2);
+impl_select!(u64x4);
+impl_select!(u64x8);
+
 #[cfg(test)]
 mod tests {
-    use wide::i32x4;
+    use wide::{f32x4, i32x4};
 
     use crate::{
         Quat, QuatA, Vec4,
@@ -334,7 +387,7 @@ mod tests {
         for_types!(|Wide: WideFloat| {
             for ([a, b], mask) in random_iter::<([Quat<Wide>; 2], Vec4<Wide>)>() {
                 let mask = mask.sign_negative_mask();
-                let b = Quat::from_vector(mask.blend(a.to_vector(), b.to_vector()));
+                let b = Quat::from_vector(mask.select(a.to_vector(), b.to_vector()));
 
                 assert_test_eq!(a.simd_eq(&b), a.to_vector().simd_eq(b.to_vector()));
             }
@@ -346,10 +399,26 @@ mod tests {
         for_types!(|Wide: WideFloat| {
             for ([a, b], mask) in random_iter::<([Quat<Wide>; 2], Vec4<Wide>)>() {
                 let mask = mask.sign_negative_mask();
-                let b = Quat::from_vector(mask.blend(a.to_vector(), b.to_vector()));
+                let b = Quat::from_vector(mask.select(a.to_vector(), b.to_vector()));
 
                 assert_test_eq!(a.simd_ne(&b), a.to_vector().simd_ne(b.to_vector()));
             }
         });
+    }
+
+    #[test]
+    fn test_scalar_select() {
+        for (mask, [if_true, if_false]) in random_iter::<(i32x4, [Quat<f32x4>; 2])>() {
+            let mask = mask.is_negative();
+
+            assert_test_eq!(
+                mask.select(if_true, if_false),
+                Quat::from_lane_fn(|lane| if mask.as_array()[lane].is_negative() {
+                    if_true.lane(lane)
+                } else {
+                    if_false.lane(lane)
+                })
+            );
+        }
     }
 }

@@ -1,3 +1,5 @@
+use wide::Select;
+
 use crate::{
     Alignment, Length, Projective, Scalar, Vector,
     length::TwoOrThree,
@@ -345,14 +347,107 @@ where
     }
 }
 
+#[expect(private_bounds)]
+impl<Wide, A: Alignment> Projective<2, Wide, A>
+where
+    Wide: WideTy,
+{
+    #[inline(always)]
+    fn scalar_select_backend<Mask>(mask: Mask, if_true: Self, if_false: Self) -> Self
+    where
+        Mask: Copy + Select<Wide> + Select<Vector<3, Wide, A>>,
+    {
+        Self::from_rows(&[
+            mask.select(if_true.x_axis, if_false.x_axis),
+            mask.select(if_true.y_axis, if_false.y_axis),
+            mask.select(if_true.z_axis, if_false.z_axis),
+        ])
+    }
+}
+
+#[expect(private_bounds)]
+impl<Wide, A: Alignment> Projective<3, Wide, A>
+where
+    Wide: WideTy,
+{
+    #[inline(always)]
+    fn scalar_select_backend<Mask>(mask: Mask, if_true: Self, if_false: Self) -> Self
+    where
+        Mask: Copy + Select<Wide> + Select<Vector<4, Wide, A>>,
+    {
+        Self::from_rows(&[
+            mask.select(if_true.x_axis, if_false.x_axis),
+            mask.select(if_true.y_axis, if_false.y_axis),
+            mask.select(if_true.z_axis, if_false.z_axis),
+            mask.select(if_true.w_axis, if_false.w_axis),
+        ])
+    }
+}
+
+/// Unfortunately this cannot be done with a generic `Mask` type due to orphan
+/// rules.
+macro_rules! impl_select {
+    ($Mask:ident) => {
+        impl<const N: usize, Wide, A: Alignment> Select<Projective<N, Wide, A>> for wide::$Mask
+        where
+            Length<N>: TwoOrThree,
+            wide::$Mask: Select<Wide>,
+            Wide: WideTy,
+        {
+            #[inline]
+            fn select(
+                self,
+                if_true: Projective<N, Wide, A>,
+                if_false: Projective<N, Wide, A>,
+            ) -> Projective<N, Wide, A> {
+                specialize_23!(
+                    Projective::<N, Wide, A>::scalar_select_backend::<wide::$Mask>(
+                        self, if_true, if_false
+                    )
+                )
+            }
+        }
+    };
+}
+impl_select!(f32x4);
+impl_select!(f32x8);
+impl_select!(f32x16);
+impl_select!(f64x2);
+impl_select!(f64x4);
+impl_select!(f64x8);
+impl_select!(i8x16);
+impl_select!(i8x32);
+impl_select!(i8x64);
+impl_select!(i16x8);
+impl_select!(i16x16);
+impl_select!(i16x32);
+impl_select!(i32x4);
+impl_select!(i32x8);
+impl_select!(i32x16);
+impl_select!(i64x2);
+impl_select!(i64x4);
+impl_select!(i64x8);
+impl_select!(u8x16);
+impl_select!(u8x32);
+impl_select!(u8x64);
+impl_select!(u16x8);
+impl_select!(u16x16);
+impl_select!(u16x32);
+impl_select!(u32x4);
+impl_select!(u32x8);
+impl_select!(u32x16);
+impl_select!(u64x2);
+impl_select!(u64x4);
+impl_select!(u64x8);
+
 #[cfg(test)]
 mod tests {
     extern crate std;
 
-    use wide::i32x4;
+    use wide::{f32x4, i32x4};
 
     use crate::{
-        Proj2, Proj3, Projective,
+        Proj2, Proj3, Projective, Unaligned,
         test_utils::{assert_panic, assert_test_eq, for_types, random_iter},
     };
 
@@ -553,7 +648,7 @@ mod tests {
         for_types!(|Wide: WideFloat| {
             for [a, b, mask] in random_iter::<[Proj2<Wide>; 3]>() {
                 let mask = Proj2::from_row_fn(|r| mask[r].sign_negative_mask());
-                let b = Proj2::from_row_fn(|r| mask[r].blend(a[r], b[r]));
+                let b = Proj2::from_row_fn(|r| mask[r].select(a[r], b[r]));
 
                 assert_test_eq!(
                     a.simd_eq(&b),
@@ -569,7 +664,7 @@ mod tests {
 
             for [a, b, mask] in random_iter::<[Proj3<Wide>; 3]>() {
                 let mask = Proj3::from_row_fn(|r| mask[r].sign_negative_mask());
-                let b = Proj3::from_row_fn(|r| mask[r].blend(a[r], b[r]));
+                let b = Proj3::from_row_fn(|r| mask[r].select(a[r], b[r]));
 
                 assert_test_eq!(
                     a.simd_eq(&b),
@@ -590,7 +685,7 @@ mod tests {
         for_types!(|Wide: WideFloat| {
             for [a, b, mask] in random_iter::<[Proj2<Wide>; 3]>() {
                 let mask = Proj2::from_row_fn(|r| mask[r].sign_negative_mask());
-                let b = Proj2::from_row_fn(|r| mask[r].blend(a[r], b[r]));
+                let b = Proj2::from_row_fn(|r| mask[r].select(a[r], b[r]));
 
                 assert_test_eq!(
                     a.simd_ne(&b),
@@ -606,7 +701,7 @@ mod tests {
 
             for [a, b, mask] in random_iter::<[Proj3<Wide>; 3]>() {
                 let mask = Proj3::from_row_fn(|r| mask[r].sign_negative_mask());
-                let b = Proj3::from_row_fn(|r| mask[r].blend(a[r], b[r]));
+                let b = Proj3::from_row_fn(|r| mask[r].select(a[r], b[r]));
 
                 assert_test_eq!(
                     a.simd_ne(&b),
@@ -617,6 +712,26 @@ mod tests {
                             0.0
                         }
                     ))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_scalar_select() {
+        for_types!(|N: TwoOrThree| {
+            for (mask, [if_true, if_false]) in
+                random_iter::<(i32x4, [Projective<N, f32x4, Unaligned>; 2])>()
+            {
+                let mask = mask.is_negative();
+
+                assert_test_eq!(
+                    mask.select(if_true, if_false),
+                    Projective::from_lane_fn(|lane| if mask.as_array()[lane].is_negative() {
+                        if_true.lane(lane)
+                    } else {
+                        if_false.lane(lane)
+                    })
                 );
             }
         });

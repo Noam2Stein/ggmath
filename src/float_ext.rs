@@ -83,7 +83,7 @@ mod wide {
                     let delta_abs = delta.abs();
 
                     (delta_abs.simd_le(max_delta) | delta_abs.simd_le($Wide::splat(1e-4)))
-                        .blend(target, self + max_delta * delta.signum())
+                        .select(target, self + max_delta * delta.signum())
                 }
 
                 #[inline]

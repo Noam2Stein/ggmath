@@ -29,6 +29,8 @@ stabilized, which should not affect most users.
 
 - `to_homogeneous` and `from_homogeneous` for 2D vectors
 
+- Implementations of `wide::Select` for math types
+
 ### Changed
 
 - `Mat4` functions for 3D transformations, and `Mat3` functions for 2D
@@ -44,6 +46,13 @@ stabilized, which should not affect most users.
   - `to/from_affine`
   - `to/from_projective`
   - `to/from_homogeneous`
+
+- Updated dependency `wide`
+
+- SoA vector function `blend` has been replaced with `select`, following the
+  same change in `wide`
+
+- Slightly optimized SoA functions with the new `wide::Select` trait
 
 - `rustdoc` documentation now shows all integer vector functions as generic over
   `T`, even though some of them (ones with names that conflict with float

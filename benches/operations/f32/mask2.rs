@@ -24,5 +24,5 @@ bench!(
     ARRAY_LEN,
     (unaligned, Mask2::<f32>::select),
     (unaligned_glam, glam::Vec2::select),
-    (x4_unaligned, Vec2::<f32x4>::blend),
+    (x4_unaligned, Vec2::<f32x4>::select::<f32x4>),
 );

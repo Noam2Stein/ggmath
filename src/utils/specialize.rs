@@ -101,7 +101,7 @@ macro_rules! specialize {
             )
         })($($arg),*)
     };
-    ($Struct:ident::<$N:tt, $T:ident, $A:tt>::$f:ident($($arg:expr),*$(,)?)) => {
+    ($Struct:ident::<$N:tt, $T:ident, $A:tt>::$f:ident$(::<$G0:ty>)?($($arg:expr),*$(,)?)) => {
         (const {
             $crate::utils::specialize_helper::<
                 $N,
@@ -114,12 +114,12 @@ macro_rules! specialize {
                 $crate::utils::specialize!(@fn($($arg),*)),
                 $crate::utils::specialize!(@fn($($arg),*)),
             >(
-                <$Struct::<2, $T, $crate::Aligned>>::$f,
-                <$Struct::<3, $T, $crate::Aligned>>::$f,
-                <$Struct::<4, $T, $crate::Aligned>>::$f,
-                <$Struct::<2, $T, $crate::Unaligned>>::$f,
-                <$Struct::<3, $T, $crate::Unaligned>>::$f,
-                <$Struct::<4, $T, $crate::Unaligned>>::$f,
+                <$Struct::<2, $T, $crate::Aligned>>::$f$(::<$G0>)?,
+                <$Struct::<3, $T, $crate::Aligned>>::$f$(::<$G0>)?,
+                <$Struct::<4, $T, $crate::Aligned>>::$f$(::<$G0>)?,
+                <$Struct::<2, $T, $crate::Unaligned>>::$f$(::<$G0>)?,
+                <$Struct::<3, $T, $crate::Unaligned>>::$f$(::<$G0>)?,
+                <$Struct::<4, $T, $crate::Unaligned>>::$f$(::<$G0>)?,
             )
         })($($arg),*)
     };
@@ -169,7 +169,7 @@ macro_rules! specialize_23 {
             )
         })($($arg),*)
     };
-    ($Struct:ident::<$N:tt, $T:ident, $A:tt>::$f:ident($($arg:expr),*$(,)?)) => {
+    ($Struct:ident::<$N:tt, $T:ident, $A:tt>::$f:ident$(::<$G0:ty>)?($($arg:expr),*$(,)?)) => {
         (const {
             $crate::utils::specialize_23_helper::<
                 $N,
@@ -180,10 +180,10 @@ macro_rules! specialize_23 {
                 $crate::utils::specialize!(@fn($($arg),*)),
                 $crate::utils::specialize!(@fn($($arg),*)),
             >(
-                <$Struct::<2, $T, $crate::Aligned>>::$f,
-                <$Struct::<3, $T, $crate::Aligned>>::$f,
-                <$Struct::<2, $T, $crate::Unaligned>>::$f,
-                <$Struct::<3, $T, $crate::Unaligned>>::$f,
+                <$Struct::<2, $T, $crate::Aligned>>::$f$(::<$G0>)?,
+                <$Struct::<3, $T, $crate::Aligned>>::$f$(::<$G0>)?,
+                <$Struct::<2, $T, $crate::Unaligned>>::$f$(::<$G0>)?,
+                <$Struct::<3, $T, $crate::Unaligned>>::$f$(::<$G0>)?,
             )
         })($($arg),*)
     };

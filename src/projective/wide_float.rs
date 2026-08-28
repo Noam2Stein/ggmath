@@ -1420,7 +1420,7 @@ mod tests {
     fn test_from_scale_angle() {
         for_types!(|Wide: WideFloat| {
             for (scale, angle) in random_iter::<(Vec2<Wide>, Wide)>() {
-                let scale = Vec2::splat(scale.length().is_finite()).blend(scale, Vec2::ONE);
+                let scale = scale.length().is_finite().select(scale, Vec2::ONE);
 
                 assert_test_eq!(
                     Proj2::<Wide>::from_scale_angle(scale, angle),
@@ -1457,7 +1457,7 @@ mod tests {
     fn test_from_scale_angle_translation() {
         for_types!(|Wide: WideFloat| {
             for (scale, angle, translation) in random_iter::<(Vec2<Wide>, Wide, Vec2<Wide>)>() {
-                let scale = Vec2::splat(scale.length().is_finite()).blend(scale, Vec2::ONE);
+                let scale = scale.length().is_finite().select(scale, Vec2::ONE);
 
                 assert_test_eq!(
                     Proj2::<Wide>::from_scale_angle_translation(scale, angle, translation),
@@ -1598,8 +1598,8 @@ mod tests {
             {
                 let condition =
                     axis.length().is_finite() & angle.is_finite() & angle.abs().simd_lt(1e3);
-                let axis = Vec3::splat(condition).blend(axis, Vec3::X);
-                let angle = condition.blend(angle, Wide::ONE);
+                let axis = condition.select(axis, Vec3::X);
+                let angle = condition.select(angle, Wide::ONE);
 
                 assert_test_eq_or_panic!(
                     Proj3::<Wide>::from_axis_angle(axis, angle),
@@ -1778,7 +1778,7 @@ mod tests {
             for [vertical_fov, near_plane, far_plane, aspect_ratio] in random_iter::<[Wide; 4]>() {
                 let [vertical_fov, near_plane, far_plane, aspect_ratio] =
                     [vertical_fov, near_plane, far_plane, aspect_ratio]
-                        .map(|x| (x.is_finite() & x.abs().simd_lt(1e3)).blend(x, Wide::ONE));
+                        .map(|x| (x.is_finite() & x.abs().simd_lt(1e3)).select(x, Wide::ONE));
 
                 assert_test_eq_or_panic!(
                     Proj3::<Wide>::perspective_lh(
@@ -1813,7 +1813,7 @@ mod tests {
             for [vertical_fov, near_plane, far_plane, aspect_ratio] in random_iter::<[Wide; 4]>() {
                 let [vertical_fov, near_plane, far_plane, aspect_ratio] =
                     [vertical_fov, near_plane, far_plane, aspect_ratio]
-                        .map(|x| (x.is_finite() & x.abs().simd_lt(1e3)).blend(x, Wide::ONE));
+                        .map(|x| (x.is_finite() & x.abs().simd_lt(1e3)).select(x, Wide::ONE));
 
                 assert_test_eq_or_panic!(
                     Proj3::<Wide>::perspective_rh(
@@ -1848,7 +1848,7 @@ mod tests {
             for [vertical_fov, near_plane, far_plane, aspect_ratio] in random_iter::<[Wide; 4]>() {
                 let [vertical_fov, near_plane, far_plane, aspect_ratio] =
                     [vertical_fov, near_plane, far_plane, aspect_ratio]
-                        .map(|x| (x.is_finite() & x.abs().simd_lt(1e3)).blend(x, Wide::ONE));
+                        .map(|x| (x.is_finite() & x.abs().simd_lt(1e3)).select(x, Wide::ONE));
 
                 assert_test_eq_or_panic!(
                     Proj3::<Wide>::perspective_rh_gl(
@@ -1883,7 +1883,7 @@ mod tests {
             for [vertical_fov, near_plane, aspect_ratio] in random_iter::<[Wide; 3]>() {
                 let [vertical_fov, near_plane, aspect_ratio] =
                     [vertical_fov, near_plane, aspect_ratio]
-                        .map(|x| (x.is_finite() & x.abs().simd_lt(1e3)).blend(x, Wide::ONE));
+                        .map(|x| (x.is_finite() & x.abs().simd_lt(1e3)).select(x, Wide::ONE));
 
                 assert_test_eq_or_panic!(
                     Proj3::<Wide>::perspective_infinite_lh(vertical_fov, aspect_ratio, near_plane),
@@ -1911,7 +1911,7 @@ mod tests {
             for [vertical_fov, near_plane, aspect_ratio] in random_iter::<[Wide; 3]>() {
                 let [vertical_fov, near_plane, aspect_ratio] =
                     [vertical_fov, near_plane, aspect_ratio]
-                        .map(|x| (x.is_finite() & x.abs().simd_lt(1e3)).blend(x, Wide::ONE));
+                        .map(|x| (x.is_finite() & x.abs().simd_lt(1e3)).select(x, Wide::ONE));
 
                 assert_test_eq_or_panic!(
                     Proj3::<Wide>::perspective_infinite_rh(vertical_fov, aspect_ratio, near_plane),
@@ -1939,7 +1939,7 @@ mod tests {
             for [vertical_fov, near_plane, aspect_ratio] in random_iter::<[Wide; 3]>() {
                 let [vertical_fov, near_plane, aspect_ratio] =
                     [vertical_fov, near_plane, aspect_ratio]
-                        .map(|x| (x.is_finite() & x.abs().simd_lt(1e3)).blend(x, Wide::ONE));
+                        .map(|x| (x.is_finite() & x.abs().simd_lt(1e3)).select(x, Wide::ONE));
 
                 assert_test_eq_or_panic!(
                     Proj3::<Wide>::perspective_infinite_reverse_lh(
@@ -1971,7 +1971,7 @@ mod tests {
             for [vertical_fov, near_plane, aspect_ratio] in random_iter::<[Wide; 3]>() {
                 let [vertical_fov, near_plane, aspect_ratio] =
                     [vertical_fov, near_plane, aspect_ratio]
-                        .map(|x| (x.is_finite() & x.abs().simd_lt(1e3)).blend(x, Wide::ONE));
+                        .map(|x| (x.is_finite() & x.abs().simd_lt(1e3)).select(x, Wide::ONE));
 
                 assert_test_eq_or_panic!(
                     Proj3::<Wide>::perspective_infinite_reverse_rh(

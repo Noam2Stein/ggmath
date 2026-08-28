@@ -6,7 +6,7 @@ use crate::{
 };
 
 macro_rules! items {
-    ($Wide:ident, $UnsignedWide:ty, $powf:ident) => {
+    ($Wide:ident, $UnsignedWide:ty) => {
         /// A vector with all elements set to [`MIN`].
         ///
         /// [`MIN`]: f32::MIN
@@ -502,8 +502,8 @@ macro_rules! items {
             let delta = target - self;
             let delta_length = delta.length();
 
-            Self::splat(delta_length.simd_le(max_delta) | delta_length.simd_le($Wide::splat(1e-4)))
-                .blend(target, self + delta / delta_length * max_delta)
+            (delta_length.simd_le(max_delta) | delta_length.simd_le($Wide::splat(1e-4)))
+                .select(target, self + delta / delta_length * max_delta)
         }
 
         /// For each lane, computes the spherical linear interpolation between
@@ -576,8 +576,8 @@ macro_rules! items {
         pub fn normalize_or(self, fallback: Self) -> Self {
             let length_recip = $Wide::ONE / self.length();
 
-            Self::splat(length_recip.is_finite() & length_recip.simd_gt($Wide::ZERO))
-                .blend(self * length_recip, fallback)
+            (length_recip.is_finite() & length_recip.simd_gt($Wide::ZERO))
+                .select(self * length_recip, fallback)
         }
 
         /// Returns [`normalize`] for each lane, or a zero vector if `self` is
@@ -592,8 +592,8 @@ macro_rules! items {
         pub fn normalize_or_zero(self) -> Self {
             let length_recip = $Wide::ONE / self.length();
 
-            Self::splat(length_recip.is_finite() & length_recip.simd_gt($Wide::ZERO))
-                .blend(self * length_recip, Self::ZERO)
+            (length_recip.is_finite() & length_recip.simd_gt($Wide::ZERO))
+                .select(self * length_recip, Self::ZERO)
         }
 
         /// Simultaneously computes [`normalize`] and [`length`].
@@ -627,8 +627,9 @@ macro_rules! items {
         #[must_use]
         pub fn with_max_length(self, max: $Wide) -> Self {
             let length_squared = self.length_squared();
-            Self::splat(length_squared.simd_gt(max * max))
-                .blend(self / length_squared.sqrt() * max, self)
+            length_squared
+                .simd_gt(max * max)
+                .select(self / length_squared.sqrt() * max, self)
         }
 
         /// For any lane, returns `self` with a length of no less than `min`.
@@ -638,8 +639,9 @@ macro_rules! items {
         #[must_use]
         pub fn with_min_length(self, min: $Wide) -> Self {
             let length_squared = self.length_squared();
-            Self::splat(length_squared.simd_lt(min * min.abs()))
-                .blend(self / length_squared.sqrt() * min, self)
+            length_squared
+                .simd_lt(min * min.abs())
+                .select(self / length_squared.sqrt() * min, self)
         }
 
         /// For each lane, returns `self` with a length of no less than `min`
@@ -650,10 +652,11 @@ macro_rules! items {
         #[must_use]
         pub fn clamp_length(self, min: $Wide, max: $Wide) -> Self {
             let length_squared = self.length_squared();
-            Self::splat(length_squared.simd_lt(min * min.abs())).blend(
+            length_squared.simd_lt(min * min.abs()).select(
                 self / length_squared.sqrt() * min,
-                Self::splat(length_squared.simd_gt(max * max))
-                    .blend(self / length_squared.sqrt() * max, self),
+                length_squared
+                    .simd_gt(max * max)
+                    .select(self / length_squared.sqrt() * max, self),
             )
         }
 
@@ -740,7 +743,7 @@ macro_rules! items {
             let self_dot_normal = self.dot(normal);
             let k = $Wide::ONE - eta * eta * ($Wide::ONE - self_dot_normal * self_dot_normal);
 
-            Self::splat(k.simd_ge($Wide::ZERO)).blend(
+            k.simd_ge($Wide::ZERO).select(
                 self * eta - normal * (eta * self_dot_normal + k.sqrt()),
                 Self::ZERO,
             )
@@ -819,7 +822,7 @@ macro_rules! items {
 }
 
 macro_rules! items_2 {
-    ($Wide:ident, $UnsignedWide:ty, $powf:ident) => {
+    ($Wide:ident, $UnsignedWide:ty) => {
         /// For each lane, creates a 2D vector from homogeneous coordinates by
         /// performing perspective divide.
         ///
@@ -892,7 +895,7 @@ macro_rules! items_2 {
 }
 
 macro_rules! items_3 {
-    ($Wide:ident, $UnsignedWide:ty, $powf:ident) => {
+    ($Wide:ident, $UnsignedWide:ty) => {
         /// For each lane, creates a 3D vector from homogeneous coordinates by
         /// performing perspective divide.
         ///
@@ -1020,7 +1023,7 @@ where
     Length<N>: SupportedLength,
     Wide: WideFloat,
 {
-    items!(Wide, <Wide as WideFloat>::Bits, powf);
+    items!(Wide, <Wide as WideFloat>::Bits);
 }
 
 /// Functionality for [SoA] (Structure of Arrays) float vector2s.
@@ -1037,7 +1040,7 @@ impl<Wide, A: Alignment> Vector<2, Wide, A>
 where
     Wide: WideFloat,
 {
-    items_2!(Wide, <Wide as WideFloat>::Bits, powf);
+    items_2!(Wide, <Wide as WideFloat>::Bits);
 }
 
 /// Functionality for [SoA] (Structure of Arrays) float vector3s.
@@ -1054,22 +1057,22 @@ impl<Wide, A: Alignment> Vector<3, Wide, A>
 where
     Wide: WideFloat,
 {
-    items_3!(Wide, <Wide as WideFloat>::Bits, powf);
+    items_3!(Wide, <Wide as WideFloat>::Bits);
 }
 
 macro_rules! impl_items {
-    ($Wide:ident, $UnsignedWide:ty, $powf:ident) => {
+    ($Wide:ident, $UnsignedWide:ty) => {
         #[cfg(not(doc))]
         impl<const N: usize, A: Alignment> Vector<N, $Wide, A>
         where
             Length<N>: SupportedLength,
         {
-            items!($Wide, $UnsignedWide, $powf);
+            items!($Wide, $UnsignedWide);
         }
 
         #[cfg(not(doc))]
         impl<A: Alignment> Vector<2, $Wide, A> {
-            items_2!($Wide, $UnsignedWide, $powf);
+            items_2!($Wide, $UnsignedWide);
 
             #[inline(always)]
             fn nan_mask_backend(self) -> Self {
@@ -1163,7 +1166,7 @@ macro_rules! impl_items {
 
             #[inline(always)]
             fn powf_backend(self, n: $Wide) -> Self {
-                Self::new(self.x.$powf(n), self.y.$powf(n))
+                Self::new(self.x.powf_simd(n), self.y.powf_simd(n))
             }
 
             #[inline(always)]
@@ -1255,15 +1258,14 @@ macro_rules! impl_items {
 
                 let target_angle = (self.dot(target) / self_length / target_length).acos_approx();
                 let angle_sign = self.wedge(target).signum();
-                let angle = max_angle.simd_lt(target_angle - $Wide::PI).blend(
+                let angle = max_angle.simd_lt(target_angle - $Wide::PI).select(
                     target_angle - $Wide::PI,
                     max_angle
                         .simd_gt(target_angle)
-                        .blend(target_angle, max_angle),
+                        .select(target_angle, max_angle),
                 ) * angle_sign;
 
-                Vector::<2, $Wide, A>::splat(self.simd_eq(Self::ZERO))
-                    .blend(self, self.rotate(angle))
+                self.simd_eq(Self::ZERO).select(self, self.rotate(angle))
             }
 
             #[inline(always)]
@@ -1279,7 +1281,7 @@ macro_rules! impl_items {
 
         #[cfg(not(doc))]
         impl<A: Alignment> Vector<3, $Wide, A> {
-            items_3!($Wide, $UnsignedWide, $powf);
+            items_3!($Wide, $UnsignedWide);
 
             #[inline(always)]
             fn nan_mask_backend(self) -> Self {
@@ -1405,7 +1407,11 @@ macro_rules! impl_items {
 
             #[inline(always)]
             fn powf_backend(self, n: $Wide) -> Self {
-                Self::new(self.x.$powf(n), self.y.$powf(n), self.z.$powf(n))
+                Self::new(
+                    self.x.powf_simd(n),
+                    self.y.powf_simd(n),
+                    self.z.powf_simd(n),
+                )
             }
 
             #[inline(always)]
@@ -1486,7 +1492,7 @@ macro_rules! impl_items {
                 // If `angle_cos` is close to `1` or `-1` or is NaN the normal
                 // calculation breaks down.
 
-                Self::splat(angle_cos.abs().simd_lt($Wide::splat(1.0 - 3e-7))).blend(
+                angle_cos.abs().simd_lt($Wide::splat(1.0 - 3e-7)).select(
                     {
                         let angle = angle_cos.acos_approx();
                         let angle_sin = angle.sin();
@@ -1499,7 +1505,7 @@ macro_rules! impl_items {
                             + other * (result_length / other_length) * other_factor)
                             / angle_sin
                     },
-                    Self::splat(angle_cos.is_sign_negative()).blend(
+                    angle_cos.is_sign_negative().select(
                         {
                             // Vectors are almost parallel in opposing directions.
 
@@ -1530,17 +1536,17 @@ macro_rules! impl_items {
                 }
 
                 let target_angle = (self.dot(target) / (self_length * target_length)).acos_approx();
-                let angle = max_angle.simd_lt(target_angle - $Wide::PI).blend(
+                let angle = max_angle.simd_lt(target_angle - $Wide::PI).select(
                     target_angle - $Wide::PI,
                     max_angle
                         .simd_gt(target_angle)
-                        .blend(target_angle, max_angle),
+                        .select(target_angle, max_angle),
                 );
                 let axis = self
                     .cross(target)
                     .normalize_or(self.any_orthonormal_vector());
 
-                Self::splat(self.simd_eq(Self::ZERO)).blend(
+                self.simd_eq(Self::ZERO).select(
                     self,
                     self * Quaternion::<$Wide, A>::from_axis_angle(axis, angle),
                 )
@@ -1548,7 +1554,7 @@ macro_rules! impl_items {
 
             #[inline(always)]
             fn any_orthogonal_vector_backend(self) -> Self {
-                Self::splat(self.x.abs().simd_gt(self.y.abs())).blend(
+                self.x.abs().simd_gt(self.y.abs()).select(
                     Self::new(-self.z, $Wide::ZERO, self.x),
                     Self::new($Wide::ZERO, self.z, -self.y),
                 )
@@ -1730,10 +1736,10 @@ macro_rules! impl_items {
             #[inline(always)]
             fn powf_backend(self, n: $Wide) -> Self {
                 Self::new(
-                    self.x.$powf(n),
-                    self.y.$powf(n),
-                    self.z.$powf(n),
-                    self.w.$powf(n),
+                    self.x.powf_simd(n),
+                    self.y.powf_simd(n),
+                    self.z.powf_simd(n),
+                    self.w.powf_simd(n),
                 )
             }
 
@@ -1815,7 +1821,7 @@ macro_rules! impl_items {
 
                 // If `angle_cos` is close to `1` or `-1` or is NaN the normal
                 // calculation breaks down.
-                Self::splat(angle_cos.abs().simd_lt($Wide::splat(1.0 - 3e-7))).blend(
+                angle_cos.abs().simd_lt($Wide::splat(1.0 - 3e-7)).select(
                     {
                         let angle = angle_cos.acos_approx();
                         let angle_sin = angle.sin();
@@ -1828,7 +1834,7 @@ macro_rules! impl_items {
                             + other * (result_length / other_length) * t2)
                             / angle_sin
                     },
-                    Self::splat(angle_cos.is_sign_negative()).blend(
+                    angle_cos.is_sign_negative().select(
                         {
                             // Vectors are almost parallel in opposing directions.
 
@@ -1860,11 +1866,11 @@ macro_rules! impl_items {
 
                 let target_angle_cos = self.dot(target) / (self_length * target_length);
                 let target_angle = target_angle_cos.acos_approx();
-                let angle = max_angle.simd_lt(target_angle - $Wide::PI).blend(
+                let angle = max_angle.simd_lt(target_angle - $Wide::PI).select(
                     target_angle - $Wide::PI,
                     max_angle
                         .simd_gt(target_angle)
-                        .blend(target_angle, max_angle),
+                        .select(target_angle, max_angle),
                 );
 
                 if angle == $Wide::ZERO {
@@ -1873,8 +1879,10 @@ macro_rules! impl_items {
 
                 // If `target_angle_cos` is close to `1` or `-1` or is NaN the
                 // normal calculation breaks down.
-                let result = Self::splat(target_angle_cos.abs().simd_le($Wide::splat(1.0 - 3e-7)))
-                    .blend(
+                let result = target_angle_cos
+                    .abs()
+                    .simd_le($Wide::splat(1.0 - 3e-7))
+                    .select(
                         {
                             let self_factor = (target_angle - angle).sin();
                             let target_factor = angle.sin();
@@ -1883,7 +1891,7 @@ macro_rules! impl_items {
 
                             result / result.length() * self_length
                         },
-                        Self::splat(target_angle_cos.is_sign_negative()).blend(
+                        target_angle_cos.is_sign_negative().select(
                             {
                                 // Vectors are almost parallel in opposing directions.
 
@@ -1901,20 +1909,19 @@ macro_rules! impl_items {
                         ),
                     );
 
-                Self::splat(self.simd_eq(Self::ZERO) | angle.simd_eq($Wide::ZERO))
-                    .blend(self, result)
+                (self.simd_eq(Self::ZERO) | angle.simd_eq($Wide::ZERO)).select(self, result)
             }
 
             #[inline(always)]
             fn any_orthogonal_vector_backend(self) -> Self {
                 let self_abs = self.abs();
 
-                Self::splat(self_abs.x.simd_gt(self_abs.y)).blend(
-                    Self::splat(self_abs.x.simd_gt(self_abs.z)).blend(
+                self_abs.x.simd_gt(self_abs.y).select(
+                    self_abs.x.simd_gt(self_abs.z).select(
                         Self::new(-self.w, $Wide::ZERO, $Wide::ZERO, self.x),
                         Self::new($Wide::ZERO, $Wide::ZERO, -self.w, self.z),
                     ),
-                    Self::splat(self_abs.y.simd_gt(self_abs.z)).blend(
+                    self_abs.y.simd_gt(self_abs.z).select(
                         Self::new($Wide::ZERO, -self.w, $Wide::ZERO, self.y),
                         Self::new($Wide::ZERO, $Wide::ZERO, -self.w, self.z),
                     ),
@@ -1928,12 +1935,12 @@ macro_rules! impl_items {
         }
     };
 }
-impl_items!(f32x4, u32x4, pow_f32x4);
-impl_items!(f32x8, u32x8, pow_f32x8);
-impl_items!(f32x16, u32x16, pow_f32x16);
-impl_items!(f64x2, u64x2, pow_f64x2);
-impl_items!(f64x4, u64x4, pow_f64x4);
-impl_items!(f64x8, u64x8, pow_f64x8);
+impl_items!(f32x4, u32x4);
+impl_items!(f32x8, u32x8);
+impl_items!(f32x16, u32x16);
+impl_items!(f64x2, u64x2);
+impl_items!(f64x4, u64x4);
+impl_items!(f64x8, u64x8);
 
 #[cfg(test)]
 mod tests {
@@ -2051,8 +2058,8 @@ mod tests {
     fn test_max() {
         for_types!(|N| {
             for [a, b] in random_iter::<[Vector<N, f32x4, Unaligned>; 2]>() {
-                let a = a.nan_mask().blend(Vector::ZERO, a);
-                let b = b.nan_mask().blend(Vector::ZERO, b);
+                let a = a.nan_mask().select(Vector::ZERO, a);
+                let b = b.nan_mask().select(Vector::ZERO, b);
 
                 assert_test_eq!(a.max(b), Vector::from_fn(|i| a[i].max(b[i])), 0.0 = -0.0);
             }
@@ -2063,8 +2070,8 @@ mod tests {
     fn test_min() {
         for_types!(|N| {
             for [a, b] in random_iter::<[Vector<N, f32x4, Unaligned>; 2]>() {
-                let a = a.nan_mask().blend(Vector::ZERO, a);
-                let b = b.nan_mask().blend(Vector::ZERO, b);
+                let a = a.nan_mask().select(Vector::ZERO, a);
+                let b = b.nan_mask().select(Vector::ZERO, b);
 
                 assert_test_eq!(a.min(b), Vector::from_fn(|i| a[i].min(b[i])), 0.0 = -0.0);
             }
@@ -2075,9 +2082,9 @@ mod tests {
     fn test_clamp() {
         for_types!(|N| {
             for [vector, min, max] in random_iter::<[Vector<N, f32x4, Unaligned>; 3]>() {
-                let vector = vector.nan_mask().blend(Vector::ZERO, vector);
-                let min = min.nan_mask().blend(Vector::ZERO, min);
-                let max = min.nan_mask().blend(Vector::ZERO, max);
+                let vector = vector.nan_mask().select(Vector::ZERO, vector);
+                let min = min.nan_mask().select(Vector::ZERO, min);
+                let max = min.nan_mask().select(Vector::ZERO, max);
                 let max = max.max(min);
 
                 assert_test_eq!(
@@ -2092,7 +2099,7 @@ mod tests {
     #[test]
     fn test_max_element() {
         for vector in random_iter::<Vec4<f32x4>>() {
-            let vector = vector.nan_mask().blend(Vector::ZERO, vector);
+            let vector = vector.nan_mask().select(Vector::ZERO, vector);
 
             assert_test_eq!(vector.xy().max_element(), vector.x.max(vector.y));
             assert_test_eq!(
@@ -2109,7 +2116,7 @@ mod tests {
     #[test]
     fn test_min_element() {
         for vector in random_iter::<Vec4<f32x4>>() {
-            let vector = vector.nan_mask().blend(Vector::ZERO, vector);
+            let vector = vector.nan_mask().select(Vector::ZERO, vector);
 
             assert_test_eq!(vector.xy().min_element(), vector.x.min(vector.y));
             assert_test_eq!(
@@ -2232,7 +2239,7 @@ mod tests {
     fn test_powf() {
         for_types!(|N| {
             for (vector, n) in random_iter::<(Vector<N, f32x4, Unaligned>, f32x4)>() {
-                assert_test_eq!(vector.powf(n), Vector::from_fn(|i| vector[i].pow_f32x4(n)));
+                assert_test_eq!(vector.powf(n), Vector::from_fn(|i| vector[i].powf_simd(n)));
             }
         });
     }
@@ -2395,9 +2402,8 @@ mod tests {
                     & b.is_finite()
                     & a.length().simd_lt(1e4)
                     & b.length().simd_lt(1e4);
-                let [a, b] = [a, b]
-                    .map(|v| Vector::<N, Wide, Unaligned>::splat(condition).blend(v, Vector::ZERO));
-                let t = condition.blend(
+                let [a, b] = [a, b].map(|v| condition.select(v, Vector::ZERO));
+                let t = condition.select(
                     (t / 10.0).clamp(Wide::splat(-100.0), Wide::splat(100.0)),
                     Wide::ZERO,
                 );

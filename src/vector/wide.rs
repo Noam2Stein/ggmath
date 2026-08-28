@@ -1,3 +1,5 @@
+use wide::Select;
+
 use crate::{
     Alignment, Length, Scalar, SupportedLength, Vector,
     utils::{WideTy, specialize},
@@ -190,12 +192,26 @@ where
         specialize!(Vector::<N, Wide, A>::any_backend(self))
     }
 
-    /// For each lane, selects between the elements of `if_true` and `if_false`
-    /// based on the boolean elements of `self`.
+    /// Selects between the elements of `if_true` and `if_false` based on the
+    /// boolean elements of `self`.
+    ///
+    /// This assumes each SIMD vector in `self` is a [mask].
+    ///
+    /// [mask]: https://docs.rs/wide/latest/wide/#masks
     #[inline]
     #[must_use]
-    pub fn blend(self, if_true: Self, if_false: Self) -> Self {
-        specialize!(Vector::<N, Wide, A>::blend_backend(self, if_true, if_false))
+    pub fn select<Output>(
+        self,
+        if_true: Vector<N, Output, A>,
+        if_false: Vector<N, Output, A>,
+    ) -> Vector<N, Output, A>
+    where
+        Output: Scalar,
+        Wide: Select<Output>,
+    {
+        specialize!(Vector::<N, Wide, A>::select_backend(
+            self, if_true, if_false
+        ))
     }
 
     /// For each lane, returns `true` if `self` is equal to `other`.
@@ -324,10 +340,18 @@ where
     }
 
     #[inline(always)]
-    fn blend_backend(self, if_true: Self, if_false: Self) -> Self {
-        Self::new(
-            self.x.blend(if_true.x, if_false.x),
-            self.y.blend(if_true.y, if_false.y),
+    fn select_backend<Output>(
+        self,
+        if_true: Vector<2, Output, A>,
+        if_false: Vector<2, Output, A>,
+    ) -> Vector<2, Output, A>
+    where
+        Output: Scalar,
+        Wide: Select<Output>,
+    {
+        Vector::<2, Output, A>::new(
+            self.x.select(if_true.x, if_false.x),
+            self.y.select(if_true.y, if_false.y),
         )
     }
 
@@ -416,11 +440,19 @@ where
     }
 
     #[inline(always)]
-    fn blend_backend(self, if_true: Self, if_false: Self) -> Self {
-        Self::new(
-            self.x.blend(if_true.x, if_false.x),
-            self.y.blend(if_true.y, if_false.y),
-            self.z.blend(if_true.z, if_false.z),
+    fn select_backend<Output>(
+        self,
+        if_true: Vector<3, Output, A>,
+        if_false: Vector<3, Output, A>,
+    ) -> Vector<3, Output, A>
+    where
+        Output: Scalar,
+        Wide: Select<Output>,
+    {
+        Vector::<3, Output, A>::new(
+            self.x.select(if_true.x, if_false.x),
+            self.y.select(if_true.y, if_false.y),
+            self.z.select(if_true.z, if_false.z),
         )
     }
 
@@ -536,12 +568,20 @@ where
     }
 
     #[inline(always)]
-    fn blend_backend(self, if_true: Self, if_false: Self) -> Self {
-        Self::new(
-            self.x.blend(if_true.x, if_false.x),
-            self.y.blend(if_true.y, if_false.y),
-            self.z.blend(if_true.z, if_false.z),
-            self.w.blend(if_true.w, if_false.w),
+    fn select_backend<Output>(
+        self,
+        if_true: Vector<4, Output, A>,
+        if_false: Vector<4, Output, A>,
+    ) -> Vector<4, Output, A>
+    where
+        Output: Scalar,
+        Wide: Select<Output>,
+    {
+        Vector::<4, Output, A>::new(
+            self.x.select(if_true.x, if_false.x),
+            self.y.select(if_true.y, if_false.y),
+            self.z.select(if_true.z, if_false.z),
+            self.w.select(if_true.w, if_false.w),
         )
     }
 
@@ -621,6 +661,114 @@ where
         )
     }
 }
+
+#[expect(private_bounds)]
+impl<Wide, A: Alignment> Vector<2, Wide, A>
+where
+    Wide: WideTy,
+{
+    #[inline(always)]
+    fn scalar_select_backend<Mask>(mask: Mask, if_true: Self, if_false: Self) -> Self
+    where
+        Mask: Copy + Select<Wide>,
+    {
+        Self::new(
+            mask.select(if_true.x, if_false.x),
+            mask.select(if_true.y, if_false.y),
+        )
+    }
+}
+
+#[expect(private_bounds)]
+impl<Wide, A: Alignment> Vector<3, Wide, A>
+where
+    Wide: WideTy,
+{
+    #[inline(always)]
+    fn scalar_select_backend<Mask>(mask: Mask, if_true: Self, if_false: Self) -> Self
+    where
+        Mask: Copy + Select<Wide>,
+    {
+        Self::new(
+            mask.select(if_true.x, if_false.x),
+            mask.select(if_true.y, if_false.y),
+            mask.select(if_true.z, if_false.z),
+        )
+    }
+}
+
+#[expect(private_bounds)]
+impl<Wide, A: Alignment> Vector<4, Wide, A>
+where
+    Wide: WideTy,
+{
+    #[inline(always)]
+    fn scalar_select_backend<Mask>(mask: Mask, if_true: Self, if_false: Self) -> Self
+    where
+        Mask: Copy + Select<Wide>,
+    {
+        Self::new(
+            mask.select(if_true.x, if_false.x),
+            mask.select(if_true.y, if_false.y),
+            mask.select(if_true.z, if_false.z),
+            mask.select(if_true.w, if_false.w),
+        )
+    }
+}
+
+/// Unfortunately this cannot be done with a generic `Mask` type due to orphan
+/// rules.
+macro_rules! impl_select {
+    ($Mask:ident) => {
+        impl<const N: usize, Wide, A: Alignment> Select<Vector<N, Wide, A>> for wide::$Mask
+        where
+            Length<N>: SupportedLength,
+            wide::$Mask: Select<Wide>,
+            Wide: WideTy,
+        {
+            #[inline]
+            fn select(
+                self,
+                if_true: Vector<N, Wide, A>,
+                if_false: Vector<N, Wide, A>,
+            ) -> Vector<N, Wide, A> {
+                specialize!(Vector::<N, Wide, A>::scalar_select_backend::<wide::$Mask>(
+                    self, if_true, if_false
+                ))
+            }
+        }
+    };
+}
+impl_select!(f32x4);
+impl_select!(f32x8);
+impl_select!(f32x16);
+impl_select!(f64x2);
+impl_select!(f64x4);
+impl_select!(f64x8);
+impl_select!(i8x16);
+impl_select!(i8x32);
+impl_select!(i8x64);
+impl_select!(i16x8);
+impl_select!(i16x16);
+impl_select!(i16x32);
+impl_select!(i32x4);
+impl_select!(i32x8);
+impl_select!(i32x16);
+impl_select!(i64x2);
+impl_select!(i64x4);
+impl_select!(i64x8);
+impl_select!(u8x16);
+impl_select!(u8x32);
+impl_select!(u8x64);
+impl_select!(u16x8);
+impl_select!(u16x16);
+impl_select!(u16x32);
+impl_select!(u32x4);
+impl_select!(u32x8);
+impl_select!(u32x16);
+impl_select!(u64x2);
+impl_select!(u64x4);
+impl_select!(u64x8);
 
 #[cfg(test)]
 mod tests {
@@ -766,12 +914,12 @@ mod tests {
     }
 
     #[test]
-    fn test_blend() {
+    fn test_select() {
         for_types!(|N| {
             for [mask, if_true, if_false] in random_iter::<[Vector<N, f32x4, Unaligned>; 3]>() {
                 assert_test_eq!(
-                    mask.blend(if_true, if_false),
-                    Vector::from_fn(|i| mask[i].blend(if_true[i], if_false[i]))
+                    mask.select(if_true, if_false),
+                    Vector::from_fn(|i| mask[i].select(if_true[i], if_false[i]))
                 );
             }
         });
@@ -782,7 +930,7 @@ mod tests {
         for_types!(|N| {
             for [a, b, mask] in random_iter::<[Vector<N, f32x4, Unaligned>; 3]>() {
                 let mask = mask.sign_negative_mask();
-                let b = mask.blend(a, b);
+                let b = mask.select(a, b);
 
                 assert_test_eq!(
                     a.simd_eq(b),
@@ -803,7 +951,7 @@ mod tests {
         for_types!(|N| {
             for [a, b, mask] in random_iter::<[Vector<N, f32x4, Unaligned>; 3]>() {
                 let mask = mask.sign_negative_mask();
-                let b = mask.blend(a, b);
+                let b = mask.select(a, b);
 
                 assert_test_eq!(
                     a.simd_ne(b),
@@ -824,7 +972,7 @@ mod tests {
         for_types!(|N| {
             for [a, b, mask] in random_iter::<[Vector<N, f32x4, Unaligned>; 3]>() {
                 let mask = mask.sign_negative_mask();
-                let b = mask.blend(a, b);
+                let b = mask.select(a, b);
 
                 assert_test_eq!(a.simd_eq_mask(b), Vector::from_fn(|i| a[i].simd_eq(b[i])));
             }
@@ -836,7 +984,7 @@ mod tests {
         for_types!(|N| {
             for [a, b, mask] in random_iter::<[Vector<N, f32x4, Unaligned>; 3]>() {
                 let mask = mask.sign_negative_mask();
-                let b = mask.blend(a, b);
+                let b = mask.select(a, b);
 
                 assert_test_eq!(a.simd_ne_mask(b), Vector::from_fn(|i| a[i].simd_ne(b[i])));
             }
@@ -848,7 +996,7 @@ mod tests {
         for_types!(|N| {
             for [a, b, mask] in random_iter::<[Vector<N, f32x4, Unaligned>; 3]>() {
                 let mask = mask.sign_negative_mask();
-                let b = mask.blend(a, b);
+                let b = mask.select(a, b);
 
                 assert_test_eq!(a.simd_lt_mask(b), Vector::from_fn(|i| a[i].simd_lt(b[i])));
             }
@@ -860,7 +1008,7 @@ mod tests {
         for_types!(|N| {
             for [a, b, mask] in random_iter::<[Vector<N, f32x4, Unaligned>; 3]>() {
                 let mask = mask.sign_negative_mask();
-                let b = mask.blend(a, b);
+                let b = mask.select(a, b);
 
                 assert_test_eq!(a.simd_gt_mask(b), Vector::from_fn(|i| a[i].simd_gt(b[i])));
             }
@@ -872,7 +1020,7 @@ mod tests {
         for_types!(|N| {
             for [a, b, mask] in random_iter::<[Vector<N, f32x4, Unaligned>; 3]>() {
                 let mask = mask.sign_negative_mask();
-                let b = mask.blend(a, b);
+                let b = mask.select(a, b);
 
                 assert_test_eq!(a.simd_le_mask(b), Vector::from_fn(|i| a[i].simd_le(b[i])));
             }
@@ -884,9 +1032,29 @@ mod tests {
         for_types!(|N| {
             for [a, b, mask] in random_iter::<[Vector<N, f32x4, Unaligned>; 3]>() {
                 let mask = mask.sign_negative_mask();
-                let b = mask.blend(a, b);
+                let b = mask.select(a, b);
 
                 assert_test_eq!(a.simd_ge_mask(b), Vector::from_fn(|i| a[i].simd_ge(b[i])));
+            }
+        });
+    }
+
+    #[test]
+    fn test_scalar_select() {
+        for_types!(|N| {
+            for (mask, [if_true, if_false]) in
+                random_iter::<(i32x4, [Vector<N, f32x4, Unaligned>; 2])>()
+            {
+                let mask = mask.is_negative();
+
+                assert_test_eq!(
+                    mask.select(if_true, if_false),
+                    Vector::from_lane_fn(|lane| if mask.as_array()[lane].is_negative() {
+                        if_true.lane(lane)
+                    } else {
+                        if_false.lane(lane)
+                    })
+                );
             }
         });
     }
