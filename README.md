@@ -6,7 +6,7 @@ A fast linear algebra library for games and graphics.
 - Square Matrices: [`Mat2<T>`], [`Mat3<T>`], [`Mat4<T>`]
 - Affine Transforms: [`Affine2<T>`], [`Affine3<T>`]
 - Projective Transforms: [`Proj2<T>`], [`Proj3<T>`]
-- Quaternions: [`Quat<T>`]
+- Rotors: [`Rot2<T>`], [`Rot3<T>`]
 - Masks: [`Mask2<T>`], [`Mask3<T>`], [`Mask4<T>`]
 
 SIMD variants:
@@ -15,7 +15,7 @@ SIMD variants:
 - Square Matrices: [`Mat2A<T>`], [`Mat3A<T>`], [`Mat4A<T>`]
 - Affine Transforms: [`Affine2A<T>`], [`Affine3A<T>`]
 - Projective Transforms: [`Proj2A<T>`], [`Proj3A<T>`]
-- Quaternions: [`QuatA<T>`]
+- Rotors: [`Rot2A<T>`], [`Rot3A<T>`]
 - Masks: [`Mask2A<T>`], [`Mask3A<T>`], [`Mask4A<T>`]
 
 Underlying generic types:
@@ -24,7 +24,7 @@ Underlying generic types:
 - [`Matrix<N, T, A>`]
 - [`Affine<N, T, A>`]
 - [`Projective<N, T, A>`]
-- [`Quaternion<T, A>`]
+- [`Rotor<N, T, A>`]
 - [`Mask<N, T, A>`]
 
 ## SIMD
@@ -102,6 +102,22 @@ transforms, which are more efficient than projective transforms. See
 
 > This table is true only for target architectures that have SIMD and are
 > supported.
+
+## Rotors
+
+A rotor is a mathematical object used to represent rotations. In comparison to
+rotation matrices and Euler angles, rotors are more compact and efficient, and
+avoid common issues in 3D, such as the infamous gimbal lock.
+
+If you are familiar with quaternions, you already know how to use rotors. Rotors
+work the same way as quaternions, resolve to the same math, have equal
+performance, etc. However rotors tend to be easier to understand, and extend
+better to 2D.
+
+> If you are curious about the underlying math, rotors come from Geometric
+> Algebra. I recommend
+> [this resource](https://www.youtube.com/playlist?list=PLVuwZXwFua-0Ks3rRS4tIkswgUmDLqqRy)
+> for learning more.
 
 ## Masks
 
@@ -241,7 +257,8 @@ it serves the same purpose as [`glam`] but with generics.
 [`Affine3<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Affine3.html
 [`Proj2<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Proj2.html
 [`Proj3<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Proj3.html
-[`Quat<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Quat.html
+[`Rot2<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Rot2.html
+[`Rot3<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Rot3.html
 [`Mask2<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Mask2.html
 [`Mask3<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Mask3.html
 [`Mask4<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Mask4.html
@@ -256,7 +273,8 @@ it serves the same purpose as [`glam`] but with generics.
 [`Affine3A<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Affine3A.html
 [`Proj2A<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Proj2A.html
 [`Proj3A<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Proj3A.html
-[`QuatA<T>`]: https://docs.rs/ggmath/latest/ggmath/type.QuatA.html
+[`Rot2A<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Rot2A.html
+[`Rot3A<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Rot3A.html
 [`Mask2A<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Mask2A.html
 [`Mask3A<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Mask3A.html
 [`Mask4A<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Mask4A.html
@@ -265,7 +283,7 @@ it serves the same purpose as [`glam`] but with generics.
 [`Matrix<N, T, A>`]: https://docs.rs/ggmath/latest/ggmath/struct.Matrix.html
 [`Affine<N, T, A>`]: https://docs.rs/ggmath/latest/ggmath/struct.Affine.html
 [`Projective<N, T, A>`]: https://docs.rs/ggmath/latest/ggmath/struct.Projective.html
-[`Quaternion<T, A>`]: https://docs.rs/ggmath/latest/ggmath/struct.Quaternion.html
+[`Rotor<N, T, A>`]: https://docs.rs/ggmath/latest/ggmath/struct.Rotor.html
 [`Mask<N, T, A>`]: https://docs.rs/ggmath/latest/ggmath/struct.Mask.html
 
 [`Vec3<f32>`]: https://docs.rs/ggmath/latest/ggmath/type.Vec3.html

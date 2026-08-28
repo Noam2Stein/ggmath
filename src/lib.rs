@@ -4,7 +4,7 @@
 //! - Square Matrices: [`Mat2<T>`], [`Mat3<T>`], [`Mat4<T>`]
 //! - Affine Transforms: [`Affine2<T>`], [`Affine3<T>`]
 //! - Projective Transforms: [`Proj2<T>`], [`Proj3<T>`]
-//! - Quaternions: [`Quat<T>`]
+//! - Rotors: [`Rot2<T>`], [`Rot3<T>`]
 //! - Masks: [`Mask2<T>`], [`Mask3<T>`], [`Mask4<T>`]
 //!
 //! SIMD variants:
@@ -13,7 +13,7 @@
 //! - Square Matrices: [`Mat2A<T>`], [`Mat3A<T>`], [`Mat4A<T>`]
 //! - Affine Transforms: [`Affine2A<T>`], [`Affine3A<T>`]
 //! - Projective Transforms: [`Proj2A<T>`], [`Proj3A<T>`]
-//! - Quaternions: [`QuatA<T>`]
+//! - Rotors: [`Rot2A<T>`], [`Rot3A<T>`]
 //! - Masks: [`Mask2A<T>`], [`Mask3A<T>`], [`Mask4A<T>`]
 //!
 //! Underlying generic types:
@@ -22,7 +22,7 @@
 //! - [`Matrix<N, T, A>`]
 //! - [`Affine<N, T, A>`]
 //! - [`Projective<N, T, A>`]
-//! - [`Quaternion<T, A>`]
+//! - [`Rotor<N, T, A>`]
 //! - [`Mask<N, T, A>`]
 //!
 //! # SIMD
@@ -101,6 +101,22 @@
 //!
 //! > This table is true only for target architectures that have SIMD and are
 //! > supported.
+//!
+//! # Rotors
+//!
+//! A rotor is a mathematical object used to represent rotations. In comparison
+//! to rotation matrices and Euler angles, rotors are more compact and
+//! efficient, and avoid common issues in 3D, such as the infamous gimbal lock.
+//!
+//! If you are familiar with quaternions, you already know how to use rotors.
+//! Rotors work the same way as quaternions, resolve to the same math, have
+//! equal performance, etc. However rotors tend to be easier to understand, and
+//! extend better to 2D.
+//!
+//! > If you are curious about the underlying math, rotors come from Geometric
+//! > Algebra. I recommend
+//! > [this resource](https://www.youtube.com/playlist?list=PLVuwZXwFua-0Ks3rRS4tIkswgUmDLqqRy)
+//! > for learning more.
 //!
 //! # Masks
 //!
@@ -251,7 +267,7 @@ pub use crate::{
     matrix::{Mat2, Mat2A, Mat3, Mat3A, Mat4, Mat4A, Matrix},
     primitive_traits::{PrimitiveFloat, PrimitiveInteger, PrimitiveSigned, PrimitiveUnsigned},
     projective::{Proj2, Proj2A, Proj3, Proj3A, Projective},
-    quaternion::{Quat, QuatA, Quaternion},
+    rotor::{Rot2, Rot2A, Rot3, Rot3A, Rotor},
     scalar::{CustomScalar, Scalar},
     vector::{Vec2, Vec2A, Vec3, Vec3A, Vec4, Vec4A, Vector},
 };
@@ -267,7 +283,7 @@ mod mask;
 mod matrix;
 mod primitive_traits;
 mod projective;
-mod quaternion;
+mod rotor;
 mod scalar;
 mod third_party;
 mod utils;

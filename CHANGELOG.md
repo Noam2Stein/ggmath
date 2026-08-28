@@ -17,6 +17,11 @@ switch to the new `Proj3` and `Proj2` types. From now on, normal matrices are
 only used for linear transformations in `N` dimensions, and not projective
 transformations in `N-1` dimensions.
 
+Quaternions have been removed and replaced with rotors. The new 3D rotor behaves
+the same as the old quaternion type, with minor differences in representation
+conventions. If you only use high level methods, migration should be straight
+forward.
+
 From now on, there should be way less breaking changes. Future breaking changes
 will most likely consist of minor function renames, optimizations that are
 slightly breaking, and simplifying the API when new Rust features are
@@ -26,6 +31,9 @@ stabilized, which should not affect most users.
 
 - `Projective<N, T, A>` type with `Proj2<T>`, `Proj3<T>`, `Proj2A<T>` and
   `Proj3A<T>` type aliases
+
+- `Rotor<N, T, A>` type with `Rot2<T>`, `Rot3<T>`, `Rot2A<T>` and `Rot3A<T>`
+  type aliases
 
 - `to_homogeneous` and `from_homogeneous` for 2D vectors
 
@@ -45,6 +53,7 @@ stabilized, which should not affect most users.
   - `to/from_matrix`
   - `to/from_affine`
   - `to/from_projective`
+  - `to/from_rotor`
   - `to/from_homogeneous`
 
 - Updated dependency `wide`

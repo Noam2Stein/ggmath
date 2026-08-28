@@ -1,5 +1,5 @@
 use crate::{
-    Alignment, EulerRot, FloatExt, Length, Matrix, PrimitiveFloat, Projective, Quaternion,
+    Alignment, EulerRot, FloatExt, Length, Matrix, PrimitiveFloat, Projective, Rotor,
     SupportedLength, Vector,
     length::TwoOrThree,
     utils::{specialize, specialize_23},
@@ -53,6 +53,47 @@ where
         Length<N>: TwoOrThree,
     {
         specialize_23!(Matrix::<N, T, A>::from_projective_backend(projective))
+    }
+
+    /// Creates a rotation matrix from a rotor.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if the rotor is not normalized.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    #[expect(private_bounds)]
+    pub fn from_rotor(rotor: Rotor<N, T, A>) -> Self
+    where
+        Length<N>: TwoOrThree,
+    {
+        debug_assert!(
+            rotor.is_normalized(),
+            "rotor is not normalized: Matrix::from_rotor({rotor:?})"
+        );
+
+        specialize_23!(Matrix::<N, T, A>::from_rotor_backend(rotor))
+    }
+
+    /// Creates a matrix containing a non-uniform `scale` and a `rotation`.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `rotation` is not normalized.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    #[expect(private_bounds)]
+    pub fn from_scale_rotation(scale: Vector<N, T, A>, rotation: Rotor<N, T, A>) -> Self
+    where
+        Length<N>: TwoOrThree,
+    {
+        Self::from_rotor(rotation).prepend_scale(scale)
     }
 
     /// Returns `true` if any element is NaN.
@@ -165,6 +206,26 @@ where
         } else {
             inverse
         }
+    }
+
+    /// Returns the `scale` and `rotation` of `self`.
+    ///
+    /// `self` must not contain shearing. Otherwise the result is unspecified.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` contains shearing or the determinant of `self` is zero.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    #[expect(private_bounds)]
+    pub fn to_scale_rotation(&self) -> (Vector<N, T, A>, Rotor<N, T, A>)
+    where
+        Length<N>: TwoOrThree,
+    {
+        todo!()
     }
 
     #[inline]
@@ -367,6 +428,15 @@ where
     }
 
     #[inline(always)]
+    fn from_rotor_backend(rotor: Rotor<2, T, A>) -> Self {
+        let xx = rotor.s * rotor.s - rotor.xy * rotor.xy;
+        let half_xy = rotor.xy * rotor.s;
+        let xy = half_xy + half_xy;
+
+        Self::from_row_array(&[xx, xy, -xy, xx])
+    }
+
+    #[inline(always)]
     fn is_nan_backend(&self) -> bool {
         self.0.is_nan()
     }
@@ -425,43 +495,11 @@ impl<T, A: Alignment> Matrix<3, T, A>
 where
     T: PrimitiveFloat,
 {
-    /// Creates a 3D rotation matrix from `angle` (in radians) around the x
-    /// axis.
-    ///
-    /// This rotates `+Y` to `+Z`.
+    /// Creates a 3D rotation matrix from an `angle` (in radians) rotating `+X`
+    /// to `+Y`.
     #[inline]
     #[must_use]
-    pub fn from_rotation_x(angle: T) -> Self {
-        let (sin, cos) = angle.sin_cos();
-        Self::from_rows(&[
-            Vector::<3, T, A>::X,
-            Vector::<3, T, A>::new(T::ZERO, cos, sin),
-            Vector::<3, T, A>::new(T::ZERO, -sin, cos),
-        ])
-    }
-
-    /// Creates a 3D rotation matrix from `angle` (in radians) around the y
-    /// axis.
-    ///
-    /// This rotates `+Z` to `+X`.
-    #[inline]
-    #[must_use]
-    pub fn from_rotation_y(angle: T) -> Self {
-        let (sin, cos) = angle.sin_cos();
-        Self::from_rows(&[
-            Vector::<3, T, A>::new(cos, T::ZERO, -sin),
-            Vector::<3, T, A>::Y,
-            Vector::<3, T, A>::new(sin, T::ZERO, cos),
-        ])
-    }
-
-    /// Creates a 3D rotation matrix from `angle` (in radians) around the z
-    /// axis.
-    ///
-    /// This rotates `+X` to `+Y`.
-    #[inline]
-    #[must_use]
-    pub fn from_rotation_z(angle: T) -> Self {
+    pub fn from_rotation_xy(angle: T) -> Self {
         let (sin, cos) = angle.sin_cos();
         Self::from_rows(&[
             Vector::<3, T, A>::new(cos, sin, T::ZERO),
@@ -470,46 +508,30 @@ where
         ])
     }
 
-    #[inline(always)]
-    fn quat_to_axes(quat: Quaternion<T, A>) -> [Vector<3, T, A>; 3] {
-        let x2 = quat.x + quat.x;
-        let y2 = quat.y + quat.y;
-        let z2 = quat.z + quat.z;
-        let xx2 = quat.x * x2;
-        let xy2 = quat.x * y2;
-        let xz2 = quat.x * z2;
-        let yy2 = quat.y * y2;
-        let yz2 = quat.y * z2;
-        let zz2 = quat.z * z2;
-        let wx2 = quat.w * x2;
-        let wy2 = quat.w * y2;
-        let wz2 = quat.w * z2;
-
-        [
-            Vector::<3, T, A>::new(T::ONE - (yy2 + zz2), xy2 + wz2, xz2 - wy2),
-            Vector::<3, T, A>::new(xy2 - wz2, T::ONE - (xx2 + zz2), yz2 + wx2),
-            Vector::<3, T, A>::new(xz2 + wy2, yz2 - wx2, T::ONE - (xx2 + yy2)),
-        ]
-    }
-
-    /// Creates a 3D rotation matrix from a quaternion.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if the quaternion is not normalized.
+    /// Creates a 3D rotation matrix from an `angle` (in radians) rotating `+X`
+    /// to `+Z`.
     #[inline]
     #[must_use]
-    #[track_caller]
-    pub fn from_quat(quat: Quaternion<T, A>) -> Self {
-        debug_assert!(
-            quat.is_normalized(),
-            "quat is not normalized: Matrix::from_quat({quat:?})"
-        );
+    pub fn from_rotation_xz(angle: T) -> Self {
+        let (sin, cos) = angle.sin_cos();
+        Self::from_rows(&[
+            Vector::<3, T, A>::new(cos, T::ZERO, sin),
+            Vector::<3, T, A>::Y,
+            Vector::<3, T, A>::new(-sin, T::ZERO, cos),
+        ])
+    }
 
-        let [x_axis, y_axis, z_axis] = Self::quat_to_axes(quat);
-        Self::from_rows(&[x_axis, y_axis, z_axis])
+    /// Creates a 3D rotation matrix from an `angle` (in radians) rotating `+Y`
+    /// to `+Z`.
+    #[inline]
+    #[must_use]
+    pub fn from_rotation_yz(angle: T) -> Self {
+        let (sin, cos) = angle.sin_cos();
+        Self::from_rows(&[
+            Vector::<3, T, A>::X,
+            Vector::<3, T, A>::new(T::ZERO, cos, sin),
+            Vector::<3, T, A>::new(T::ZERO, -sin, cos),
+        ])
     }
 
     /// Creates a 3D rotation matrix from a rotation `axis` and `angle` (in
@@ -605,30 +627,6 @@ where
         }
 
         result
-    }
-
-    /// Creates a matrix containing a non-uniform `scale` and a 3D `rotation`.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `rotation` is not normalized.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn from_scale_rotation(scale: Vector<3, T, A>, rotation: Quaternion<T, A>) -> Self {
-        debug_assert!(
-            rotation.is_normalized(),
-            "rotation is not normalized: from_scale_rotation({scale:?}, {rotation:?})"
-        );
-
-        let [rotation_x, rotation_y, rotation_z] = Self::quat_to_axes(rotation);
-        Self::from_rows(&[
-            rotation_x * scale.x,
-            rotation_y * scale.y,
-            rotation_z * scale.z,
-        ])
     }
 
     /// Takes the `N`x`N` linear transformation part of an `N+1`x`N+1`
@@ -929,57 +927,6 @@ where
         (ea.x, ea.y, ea.z)
     }
 
-    /// Returns the `scale` and `rotation` of `self`.
-    ///
-    /// `self` must not contain shearing. Otherwise the result is unspecified.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `self` contains shearing or the determinant of `self` is zero.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn to_scale_rotation(&self) -> (Vector<3, T, A>, Quaternion<T, A>) {
-        let determinant = self.determinant();
-
-        let scale = Vector::<3, T, A>::new(
-            self.x_axis.length() * determinant.signum(),
-            self.y_axis.length(),
-            self.z_axis.length(),
-        );
-
-        let scale_recip = scale.recip();
-
-        let rotation_matrix = Self::from_rows(&[
-            self.x_axis * scale_recip.x,
-            self.y_axis * scale_recip.y,
-            self.z_axis * scale_recip.z,
-        ]);
-
-        debug_assert!(
-            rotation_matrix
-                .x_axis
-                .dot(rotation_matrix.y_axis)
-                .abs_diff_eq(T::ZERO, T::as_from(1e-4))
-                && rotation_matrix
-                    .x_axis
-                    .dot(rotation_matrix.z_axis)
-                    .abs_diff_eq(T::ZERO, T::as_from(1e-4))
-                && rotation_matrix
-                    .y_axis
-                    .dot(rotation_matrix.z_axis)
-                    .abs_diff_eq(T::ZERO, T::as_from(1e-4))
-                && determinant != T::ZERO,
-            "matrix contains shearing or determinant is zero"
-        );
-
-        let rotation = Quaternion::<T, A>::from_matrix(&rotation_matrix);
-
-        (scale, rotation)
-    }
-
     #[inline(always)]
     #[track_caller]
     fn from_projective_backend(projective: &Projective<3, T, A>) -> Self {
@@ -994,6 +941,24 @@ where
             projective.x_axis.truncate(),
             projective.y_axis.truncate(),
             projective.z_axis.truncate(),
+        ])
+    }
+
+    #[inline(always)]
+    fn from_rotor_backend(rotor: Rotor<3, T, A>) -> Self {
+        let bivector = rotor.0.xyz();
+        let bivector_2 = bivector + bivector;
+        let [xy_xy_2, xy_xz_2, xy_yz_2] = (bivector * bivector_2.x).to_array();
+        let [xz_xz_2, xz_yz_2, yz_yz_2] = (bivector.yzz() * bivector_2.yyz()).to_array();
+        let [s_xy_2, s_xz_2, s_yz_2] = (bivector_2 * rotor.s).to_array();
+
+        Self::from_rows(&[
+            Vector::<3, T, A>::new(T::ONE, s_xy_2, xy_yz_2)
+                - Vector::<3, T, A>::new(xz_xz_2 + xy_xy_2, xz_yz_2, -s_xz_2),
+            Vector::<3, T, A>::new(-xz_yz_2, T::ONE, s_yz_2)
+                - Vector::<3, T, A>::new(s_xy_2, yz_yz_2 + xy_xy_2, xy_xz_2),
+            Vector::<3, T, A>::new(xy_yz_2, -xy_xz_2, T::ONE)
+                - Vector::<3, T, A>::new(s_xz_2, s_yz_2, yz_yz_2 + xz_xz_2),
         ])
     }
 
@@ -1202,7 +1167,7 @@ mod tests {
     extern crate std;
 
     use crate::{
-        EulerRot, FloatExt, Matrix, Projective, Quaternion, Vector,
+        EulerRot, FloatExt, Matrix, Projective, Rotor, Vector,
         test_utils::{assert_debug_panic, assert_test_eq, for_types, random_iter},
     };
 
@@ -1607,7 +1572,7 @@ mod tests {
     }
 
     #[test]
-    fn test_from_rotation_x() {
+    fn test_from_rotation_xy() {
         for_types!(|T: PrimitiveFloat, A| {
             for (vector, angle) in random_iter::<(Vector<3, T, A>, T)>() {
                 if !vector.is_finite() || !angle.is_finite() {
@@ -1615,8 +1580,8 @@ mod tests {
                 }
 
                 assert_test_eq!(
-                    vector * Matrix::<3, T, A>::from_rotation_x(angle),
-                    vector.rotate_x(angle),
+                    vector * Matrix::<3, T, A>::from_rotation_xy(angle),
+                    vector.rotate_xy(angle),
                     0.0 = -0.0
                 );
             }
@@ -1624,7 +1589,7 @@ mod tests {
     }
 
     #[test]
-    fn test_from_rotation_y() {
+    fn test_from_rotation_xz() {
         for_types!(|T: PrimitiveFloat, A| {
             for (vector, angle) in random_iter::<(Vector<3, T, A>, T)>() {
                 if !vector.is_finite() || !angle.is_finite() {
@@ -1632,8 +1597,8 @@ mod tests {
                 }
 
                 assert_test_eq!(
-                    vector * Matrix::<3, T, A>::from_rotation_y(angle),
-                    vector.rotate_y(angle),
+                    vector * Matrix::<3, T, A>::from_rotation_xz(angle),
+                    vector.rotate_xz(angle),
                     0.0 = -0.0
                 );
             }
@@ -1641,7 +1606,7 @@ mod tests {
     }
 
     #[test]
-    fn test_from_rotation_z() {
+    fn test_from_rotation_yz() {
         for_types!(|T: PrimitiveFloat, A| {
             for (vector, angle) in random_iter::<(Vector<3, T, A>, T)>() {
                 if !vector.is_finite() || !angle.is_finite() {
@@ -1649,39 +1614,8 @@ mod tests {
                 }
 
                 assert_test_eq!(
-                    vector * Matrix::<3, T, A>::from_rotation_z(angle),
-                    vector.rotate_z(angle),
-                    0.0 = -0.0
-                );
-            }
-        });
-    }
-
-    #[test]
-    fn test_from_quat() {
-        for_types!(|T: PrimitiveFloat, A| {
-            assert_test_eq!(
-                Matrix::<3, T, A>::from_quat(Quaternion::IDENTITY),
-                Matrix::IDENTITY
-            );
-
-            for quat in random_iter::<Quaternion<T, A>>() {
-                if !quat.is_normalized() {
-                    assert_debug_panic!(Matrix::<3, T, A>::from_quat(quat));
-                }
-
-                let quat = quat.normalize_or(Quaternion::IDENTITY).normalize();
-                assert_test_eq!(
-                    Matrix::<3, T, A>::from_quat(quat).determinant(),
-                    1.0,
-                    abs <= 1e-5
-                );
-
-                let (axis, angle) = quat.to_axis_angle();
-                assert_test_eq!(
-                    Matrix::<3, T, A>::from_quat(quat),
-                    Matrix::<3, T, A>::from_axis_angle(axis, angle),
-                    abs <= 1e-5,
+                    vector * Matrix::<3, T, A>::from_rotation_yz(angle),
+                    vector.rotate_yz(angle),
                     0.0 = -0.0
                 );
             }
@@ -1698,19 +1632,19 @@ mod tests {
 
                 assert_test_eq!(
                     Matrix::<3, T, A>::from_axis_angle(Vector::<3, T, A>::X, angle),
-                    Matrix::<3, T, A>::from_rotation_x(angle),
+                    Matrix::<3, T, A>::from_rotation_yz(angle),
                     abs <= 1e-4,
                     0.0 = -0.0
                 );
                 assert_test_eq!(
                     Matrix::<3, T, A>::from_axis_angle(Vector::<3, T, A>::Y, angle),
-                    Matrix::<3, T, A>::from_rotation_y(angle),
+                    Matrix::<3, T, A>::from_rotation_xz(-angle),
                     abs <= 1e-4,
                     0.0 = -0.0
                 );
                 assert_test_eq!(
                     Matrix::<3, T, A>::from_axis_angle(Vector::<3, T, A>::Z, angle),
-                    Matrix::<3, T, A>::from_rotation_z(angle),
+                    Matrix::<3, T, A>::from_rotation_xy(angle),
                     abs <= 1e-4,
                     0.0 = -0.0
                 );
@@ -1722,15 +1656,15 @@ mod tests {
     fn test_from_euler() {
         for_types!(|T: PrimitiveFloat, A| {
             for [x, y, z] in random_iter::<[T; 3]>() {
-                let rot_x = Matrix::<3, T, A>::from_rotation_x(x);
-                let rot_y = Matrix::<3, T, A>::from_rotation_y(y);
-                let rot_z = Matrix::<3, T, A>::from_rotation_z(z);
-                let rot_x_by_y = Matrix::<3, T, A>::from_rotation_x(y);
-                let rot_x_by_z = Matrix::<3, T, A>::from_rotation_x(z);
-                let rot_y_by_x = Matrix::<3, T, A>::from_rotation_y(x);
-                let rot_y_by_z = Matrix::<3, T, A>::from_rotation_y(z);
-                let rot_z_by_x = Matrix::<3, T, A>::from_rotation_z(x);
-                let rot_z_by_y = Matrix::<3, T, A>::from_rotation_z(y);
+                let rot_x = Matrix::<3, T, A>::from_rotation_yz(x);
+                let rot_y = Matrix::<3, T, A>::from_rotation_xz(-y);
+                let rot_z = Matrix::<3, T, A>::from_rotation_xy(z);
+                let rot_x_by_y = Matrix::<3, T, A>::from_rotation_yz(y);
+                let rot_x_by_z = Matrix::<3, T, A>::from_rotation_yz(z);
+                let rot_y_by_x = Matrix::<3, T, A>::from_rotation_xz(-x);
+                let rot_y_by_z = Matrix::<3, T, A>::from_rotation_xz(-z);
+                let rot_z_by_x = Matrix::<3, T, A>::from_rotation_xy(x);
+                let rot_z_by_y = Matrix::<3, T, A>::from_rotation_xy(y);
 
                 for (order, a, b, c, result) in [
                     (EulerRot::Xyz, x, y, z, rot_z * rot_y * rot_x),
@@ -1765,25 +1699,6 @@ mod tests {
                         0.0 = -0.0
                     );
                 }
-            }
-        });
-    }
-
-    #[test]
-    fn test_from_scale_rotation() {
-        for_types!(|T: PrimitiveFloat, A| {
-            for (scale, rotation) in random_iter::<(Vector<3, T, A>, Quaternion<T, A>)>() {
-                if !rotation.is_normalized() {
-                    assert_debug_panic!(Matrix::<3, T, A>::from_scale_rotation(scale, rotation));
-                }
-
-                let rotation = rotation.normalize_or(Quaternion::IDENTITY).normalize();
-
-                assert_test_eq!(
-                    Matrix::<3, T, A>::from_scale_rotation(scale, rotation),
-                    Matrix::<3, T, A>::from_scale(scale) * Matrix::<3, T, A>::from_quat(rotation),
-                    0.0 = -0.0
-                );
             }
         });
     }
@@ -1922,55 +1837,19 @@ mod tests {
                     }
                 }
 
-                for quat in random_iter::<Quaternion<T, A>>() {
-                    let quat = quat.normalize_or(Quaternion::IDENTITY).normalize();
-                    let matrix = Matrix::<3, T, A>::from_quat(quat);
+                for rotor in random_iter::<Rotor<3, T, A>>() {
+                    let rotor = rotor.normalize_or(Rotor::IDENTITY).normalize();
+                    let matrix = Matrix::<3, T, A>::from_rotor(rotor);
 
                     let result = matrix.to_euler(order);
                     assert_test_eq!(
-                        Quaternion::<T, A>::from_euler(order, result.0, result.1, result.2),
-                        quat,
-                        abs <= quat.to_vector().abs() * 1e-3 + 1e-2,
+                        Rotor::<3, T, A>::from_euler(order, result.0, result.1, result.2),
+                        rotor,
+                        abs <= Rotor(rotor.to_raw_vector().abs() * 1e-3 + 1e-2),
                         0.0 = -0.0,
-                        quat = -quat
+                        rotor = -rotor
                     );
                 }
-            }
-        });
-    }
-
-    #[test]
-    fn test_to_scale_rotation() {
-        for_types!(|T: PrimitiveFloat, A| {
-            assert_debug_panic!(Matrix::<3, T, A>::ZERO.to_scale_rotation());
-            assert_debug_panic!(
-                Matrix::<3, T, A>::from_rows(&[
-                    Vector::<3, T, A>::new(0.3, 0.4, -0.2),
-                    Vector::<3, T, A>::new(0.4, 0.6, -0.1),
-                    Vector::<3, T, A>::new(1.0, 1.0, 1.0)
-                ])
-                .to_scale_rotation()
-            );
-
-            for (scale, rotation) in random_iter::<(Vector<3, T, A>, Quaternion<T, A>)>() {
-                let rotation = rotation.normalize_or(Quaternion::IDENTITY).normalize();
-
-                let matrix = Matrix::<3, T, A>::from_scale_rotation(scale, rotation);
-
-                if scale.iter().any(|x| x > 1e10)
-                    || !matrix.is_finite()
-                    || !(1e-5..1e8).contains(&matrix.determinant().abs())
-                {
-                    continue;
-                }
-
-                let (result_scale, result_rotation) = matrix.to_scale_rotation();
-                assert_test_eq!(
-                    Matrix::<3, T, A>::from_scale_rotation(result_scale, result_rotation),
-                    matrix,
-                    abs <= matrix.abs() * 1e-4 + Matrix::<3, T, A>::from_row_array(&[1e-3; 9]),
-                    0.0 = -0.0
-                );
             }
         });
     }

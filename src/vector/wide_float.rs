@@ -1,7 +1,7 @@
 use wide::{f32x4, f32x8, f32x16, f64x2, f64x4, f64x8, u32x4, u32x8, u32x16, u64x2, u64x4, u64x8};
 
 use crate::{
-    Alignment, FloatExt, Length, Quaternion, SupportedLength, Vector,
+    Alignment, FloatExt, Length, Rotor, SupportedLength, Vector,
     utils::{FloatUtils, specialize, transmute_generic},
 };
 
@@ -873,9 +873,7 @@ macro_rules! items_2 {
             self.angle_between(other) * outer_product.signum()
         }
 
-        /// For each lane, rotates `self` by `angle` (in radians).
-        ///
-        /// This rotates `+X` to `+Y`.
+        /// Rotates `self` by an `angle` (in radians) rotating `+X` to `+Y`.
         ///
         /// # Unspecified precision
         ///
@@ -906,10 +904,7 @@ macro_rules! items_3 {
             homogeneous.xyz() / homogeneous.w
         }
 
-        /// For each lane, rotates `self` around the x axis by `angle` (in
-        /// radians).
-        ///
-        /// This rotates `+Y` to `+Z`.
+        /// Rotates `self` by an `angle` (in radians) rotating `+X` to `+Y`.
         ///
         /// # Unspecified precision
         ///
@@ -918,54 +913,48 @@ macro_rules! items_3 {
         /// execution from one invocation to the next.
         #[inline]
         #[must_use]
-        pub fn rotate_x(self, angle: $Wide) -> Self {
-            let (angle_sin, angle_cos) = angle.sin_cos();
-            Self::new(
-                self.x,
-                self.y * angle_cos - self.z * angle_sin,
-                self.y * angle_sin + self.z * angle_cos,
-            )
-        }
-
-        /// For each lane, rotates `self` around the y axis by `angle` (in
-        /// radians).
-        ///
-        /// This rotates `+Z` to `+X`.
-        ///
-        /// # Unspecified precision
-        ///
-        /// The precision of this function is non-deterministic. This means it
-        /// varies by platform, version, and can even differ within the same
-        /// execution from one invocation to the next.
-        #[inline]
-        #[must_use]
-        pub fn rotate_y(self, angle: $Wide) -> Self {
-            let (angle_sin, angle_cos) = angle.sin_cos();
-            Self::new(
-                self.x * angle_cos + self.z * angle_sin,
-                self.y,
-                self.x * -angle_sin + self.z * angle_cos,
-            )
-        }
-
-        /// For each lane, rotates `self` around the z axis by `angle` (in
-        /// radians).
-        ///
-        /// This rotates `+X` to `+Y`.
-        ///
-        /// # Unspecified precision
-        ///
-        /// The precision of this function is non-deterministic. This means it
-        /// varies by platform, version, and can even differ within the same
-        /// execution from one invocation to the next.
-        #[inline]
-        #[must_use]
-        pub fn rotate_z(self, angle: $Wide) -> Self {
+        pub fn rotate_xy(self, angle: $Wide) -> Self {
             let (angle_sin, angle_cos) = angle.sin_cos();
             Self::new(
                 self.x * angle_cos - self.y * angle_sin,
                 self.x * angle_sin + self.y * angle_cos,
                 self.z,
+            )
+        }
+
+        /// Rotates `self` by an `angle` (in radians) rotating `+X` to `+Z`.
+        ///
+        /// # Unspecified precision
+        ///
+        /// The precision of this function is non-deterministic. This means it
+        /// varies by platform, version, and can even differ within the same
+        /// execution from one invocation to the next.
+        #[inline]
+        #[must_use]
+        pub fn rotate_xz(self, angle: $Wide) -> Self {
+            let (angle_sin, angle_cos) = angle.sin_cos();
+            Self::new(
+                self.x * angle_cos - self.z * angle_sin,
+                self.y,
+                self.x * angle_sin + self.z * angle_cos,
+            )
+        }
+
+        /// Rotates `self` by an `angle` (in radians) rotating `+Y` to `+Z`.
+        ///
+        /// # Unspecified precision
+        ///
+        /// The precision of this function is non-deterministic. This means it
+        /// varies by platform, version, and can even differ within the same
+        /// execution from one invocation to the next.
+        #[inline]
+        #[must_use]
+        pub fn rotate_yz(self, angle: $Wide) -> Self {
+            let (angle_sin, angle_cos) = angle.sin_cos();
+            Self::new(
+                self.x,
+                self.y * angle_cos - self.z * angle_sin,
+                self.y * angle_sin + self.z * angle_cos,
             )
         }
 
@@ -1511,7 +1500,7 @@ macro_rules! impl_items {
 
                             let axis = self.any_orthogonal_vector().normalize();
                             let rotation =
-                                Quaternion::<$Wide, A>::from_axis_angle(axis, t * $Wide::PI);
+                                Rotor::<3, $Wide, A>::from_axis_angle(axis, t * $Wide::PI);
 
                             let result_length = self_length.lerp(other_length, t);
                             self * rotation * (result_length / self_length)
@@ -1548,7 +1537,7 @@ macro_rules! impl_items {
 
                 self.simd_eq(Self::ZERO).select(
                     self,
-                    self * Quaternion::<$Wide, A>::from_axis_angle(axis, angle),
+                    self * Rotor::<3, $Wide, A>::from_axis_angle(axis, angle),
                 )
             }
 
@@ -2822,12 +2811,14 @@ mod tests {
     }
 
     #[test]
-    fn test_rotate_x() {
+    fn test_rotate_xy() {
         for_types!(|Wide: WideFloat| {
             for (vector, angle) in random_iter::<(Vec3<Wide>, Wide)>() {
                 assert_test_eq!(
-                    vector.rotate_x(angle),
-                    Vector::from_lane_fn(|lane| vector.lane(lane).rotate_x(angle.to_array()[lane])),
+                    vector.rotate_xy(angle),
+                    Vector::from_lane_fn(|lane| vector
+                        .lane(lane)
+                        .rotate_xy(angle.to_array()[lane])),
                     abs <= (vector.length() * angle.abs() * 1e-4).max(Wide::splat(1e-3)),
                     0.0 = -0.0,
                     INFINITY = NAN
@@ -2837,12 +2828,14 @@ mod tests {
     }
 
     #[test]
-    fn test_rotate_y() {
+    fn test_rotate_xz() {
         for_types!(|Wide: WideFloat| {
             for (vector, angle) in random_iter::<(Vec3<Wide>, Wide)>() {
                 assert_test_eq!(
-                    vector.rotate_y(angle),
-                    Vector::from_lane_fn(|lane| vector.lane(lane).rotate_y(angle.to_array()[lane])),
+                    vector.rotate_xz(angle),
+                    Vector::from_lane_fn(|lane| vector
+                        .lane(lane)
+                        .rotate_xz(angle.to_array()[lane])),
                     abs <= (vector.length() * angle.abs() * 1e-4).max(Wide::splat(1e-3)),
                     0.0 = -0.0,
                     INFINITY = NAN
@@ -2852,12 +2845,14 @@ mod tests {
     }
 
     #[test]
-    fn test_rotate_z() {
+    fn test_rotate_yz() {
         for_types!(|Wide: WideFloat| {
             for (vector, angle) in random_iter::<(Vec3<Wide>, Wide)>() {
                 assert_test_eq!(
-                    vector.rotate_z(angle),
-                    Vector::from_lane_fn(|lane| vector.lane(lane).rotate_z(angle.to_array()[lane])),
+                    vector.rotate_yz(angle),
+                    Vector::from_lane_fn(|lane| vector
+                        .lane(lane)
+                        .rotate_yz(angle.to_array()[lane])),
                     abs <= (vector.length() * angle.abs() * 1e-4).max(Wide::splat(1e-3)),
                     0.0 = -0.0,
                     INFINITY = NAN

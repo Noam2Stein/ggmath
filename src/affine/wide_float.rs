@@ -1,7 +1,7 @@
 use wide::{f32x4, f32x8, f32x16, f64x2, f64x4, f64x8};
 
 use crate::{
-    Affine, Alignment, EulerRot, Length, Matrix, Projective, Quaternion, SupportedLength, Vector,
+    Affine, Alignment, EulerRot, Length, Matrix, Projective, Rotor, SupportedLength, Vector,
     length::TwoOrThree,
     utils::{specialize, specialize_23},
 };
@@ -24,6 +24,62 @@ macro_rules! items {
             Length<N>: TwoOrThree,
         {
             specialize_23!(Affine::<N, $Wide, A>::from_projective_backend(projective))
+        }
+
+        /// Creates a rotation affine transform from a rotor.
+        #[inline]
+        #[must_use]
+        #[expect(private_bounds)]
+        pub fn from_rotor(rotor: Rotor<N, $Wide, A>) -> Self
+        where
+            Length<N>: TwoOrThree,
+        {
+            Self::from_matrix(&Matrix::<N, $Wide, A>::from_rotor(rotor))
+        }
+
+        /// Creates an affine transform containing a non-uniform `scale` and a
+        /// `rotation`.
+        #[inline]
+        #[must_use]
+        #[expect(private_bounds)]
+        pub fn from_scale_rotation(scale: Vector<N, $Wide, A>, rotation: Rotor<N, $Wide, A>) -> Self
+        where
+            Length<N>: TwoOrThree,
+        {
+            Self::from_matrix(&Matrix::<N, $Wide, A>::from_scale_rotation(scale, rotation))
+        }
+
+        /// Creates an affine transform containing `rotation` and `translation`.
+        #[inline]
+        #[must_use]
+        #[expect(private_bounds)]
+        pub fn from_rotation_translation(
+            rotation: Rotor<N, $Wide, A>,
+            translation: Vector<N, $Wide, A>,
+        ) -> Self
+        where
+            Length<N>: TwoOrThree,
+        {
+            Self::from_matrix_translation(&Matrix::<N, $Wide, A>::from_rotor(rotation), translation)
+        }
+
+        /// Creates an affine transform containing a non-uniform `scale`,
+        /// `rotation` and `translation`.
+        #[inline]
+        #[must_use]
+        #[expect(private_bounds)]
+        pub fn from_scale_rotation_translation(
+            scale: Vector<N, $Wide, A>,
+            rotation: Rotor<N, $Wide, A>,
+            translation: Vector<N, $Wide, A>,
+        ) -> Self
+        where
+            Length<N>: TwoOrThree,
+        {
+            Self::from_matrix_translation(
+                &Matrix::<N, $Wide, A>::from_scale_rotation(scale, rotation),
+                translation,
+            )
         }
 
         /// Returns `true` if any element is NaN.
@@ -91,6 +147,35 @@ macro_rules! items {
                 && self
                     .translation
                     .abs_diff_eq(other.translation, max_abs_diff)
+        }
+
+        /// Returns the `scale` and `rotation` of `self`.
+        ///
+        /// `self` must not contain shearing. Otherwise the result is unspecified.
+        #[inline]
+        #[must_use]
+        #[expect(private_bounds)]
+        pub fn to_scale_rotation(&self) -> (Vector<N, $Wide, A>, Rotor<N, $Wide, A>)
+        where
+            Length<N>: TwoOrThree,
+        {
+            self.matrix.to_scale_rotation()
+        }
+
+        /// Returns the `scale`, `rotation` and `translation` of `self`.
+        ///
+        /// `self` must not contain shearing. Otherwise the result is unspecified.
+        #[inline]
+        #[must_use]
+        #[expect(private_bounds)]
+        pub fn to_scale_rotation_translation(
+            &self,
+        ) -> (Vector<N, $Wide, A>, Rotor<N, $Wide, A>, Vector<N, $Wide, A>)
+        where
+            Length<N>: TwoOrThree,
+        {
+            let (scale, rotation) = self.matrix.to_scale_rotation();
+            (scale, rotation, self.translation)
         }
     };
 }
@@ -186,42 +271,28 @@ macro_rules! items_2 {
 
 macro_rules! items_3 {
     ($Wide:ident) => {
-        /// Creates an affine transform containing a 3D rotation from `angle`
-        /// (in radians) around the x axis.
-        ///
-        /// This rotates `+Y` to `+Z`.
+        /// Creates an affine transform containing a 3D rotation from an `angle`
+        /// (in radians) rotating `+X` to `+Y`.
         #[inline]
         #[must_use]
-        pub fn from_rotation_x(angle: $Wide) -> Self {
-            Self::from_matrix(&Matrix::<3, $Wide, A>::from_rotation_x(angle))
+        pub fn from_rotation_xy(angle: $Wide) -> Self {
+            Self::from_matrix(&Matrix::<3, $Wide, A>::from_rotation_xy(angle))
         }
 
-        /// Creates an affine transform containing a 3D rotation from `angle`
-        /// (in radians) around the y axis.
-        ///
-        /// This rotates `+Z` to `+X`.
+        /// Creates an affine transform containing a 3D rotation from an `angle`
+        /// (in radians) rotating `+X` to `+Z`.
         #[inline]
         #[must_use]
-        pub fn from_rotation_y(angle: $Wide) -> Self {
-            Self::from_matrix(&Matrix::<3, $Wide, A>::from_rotation_y(angle))
+        pub fn from_rotation_xz(angle: $Wide) -> Self {
+            Self::from_matrix(&Matrix::<3, $Wide, A>::from_rotation_xz(angle))
         }
 
-        /// Creates an affine transform containing a 3D rotation from `angle`
-        /// (in radians) around the z axis.
-        ///
-        /// This rotates `+X` to `+Y`.
+        /// Creates an affine transform containing a 3D rotation from an `angle`
+        /// (in radians) rotating `+Y` to `+Z`.
         #[inline]
         #[must_use]
-        pub fn from_rotation_z(angle: $Wide) -> Self {
-            Self::from_matrix(&Matrix::<3, $Wide, A>::from_rotation_z(angle))
-        }
-
-        /// Creates an affine transform containing a 3D rotation from a
-        /// quaternion.
-        #[inline]
-        #[must_use]
-        pub fn from_quat(quat: Quaternion<$Wide, A>) -> Self {
-            Self::from_matrix(&Matrix::<3, $Wide, A>::from_quat(quat))
+        pub fn from_rotation_yz(angle: $Wide) -> Self {
+            Self::from_matrix(&Matrix::<3, $Wide, A>::from_rotation_yz(angle))
         }
 
         /// Creates an affine transform containing a rotation from a rotation
@@ -240,43 +311,6 @@ macro_rules! items_3 {
         #[must_use]
         pub fn from_euler(order: EulerRot, a: $Wide, b: $Wide, c: $Wide) -> Self {
             Self::from_matrix(&Matrix::<3, $Wide, A>::from_euler(order, a, b, c))
-        }
-
-        /// Creates an affine transform containing a non-uniform `scale` and a
-        /// 3D `rotation`.
-        #[inline]
-        #[must_use]
-        pub fn from_scale_rotation(
-            scale: Vector<3, $Wide, A>,
-            rotation: Quaternion<$Wide, A>,
-        ) -> Self {
-            Self::from_matrix(&Matrix::<3, $Wide, A>::from_scale_rotation(scale, rotation))
-        }
-
-        /// Creates an affine transform containing a 3D `rotation` and
-        /// `translation`.
-        #[inline]
-        #[must_use]
-        pub fn from_rotation_translation(
-            rotation: Quaternion<$Wide, A>,
-            translation: Vector<3, $Wide, A>,
-        ) -> Self {
-            Self::from_matrix_translation(&Matrix::<3, $Wide, A>::from_quat(rotation), translation)
-        }
-
-        /// Creates an affine transform containing a non-uniform `scale`, a 3D
-        /// `rotation` and `translation`.
-        #[inline]
-        #[must_use]
-        pub fn from_scale_rotation_translation(
-            scale: Vector<3, $Wide, A>,
-            rotation: Quaternion<$Wide, A>,
-            translation: Vector<3, $Wide, A>,
-        ) -> Self {
-            Self::from_matrix_translation(
-                &Matrix::<3, $Wide, A>::from_scale_rotation(scale, rotation),
-                translation,
-            )
         }
 
         /// Takes the `N+1`x`N` affine transform part of an `N+1`x`N+1`
@@ -379,34 +413,6 @@ macro_rules! items_3 {
         #[must_use]
         pub fn to_euler(&self, order: EulerRot) -> ($Wide, $Wide, $Wide) {
             self.matrix.to_euler(order)
-        }
-
-        /// For each lane, returns the `scale` and `rotation` of `self`.
-        ///
-        /// `self` must be reversible and not contain shearing. Otherwise the
-        /// result is unspecified.
-        #[inline]
-        #[must_use]
-        pub fn to_scale_rotation(&self) -> (Vector<3, $Wide, A>, Quaternion<$Wide, A>) {
-            self.matrix.to_scale_rotation()
-        }
-
-        /// For each lane, returns the `scale`, `rotation` and `translation` of
-        /// `self`.
-        ///
-        /// `self` must be reversible and not contain shearing. Otherwise the
-        /// result is unspecified.
-        #[inline]
-        #[must_use]
-        pub fn to_scale_rotation_translation(
-            &self,
-        ) -> (
-            Vector<3, $Wide, A>,
-            Quaternion<$Wide, A>,
-            Vector<3, $Wide, A>,
-        ) {
-            let (scale, rotation) = self.matrix.to_scale_rotation();
-            (scale, rotation, self.translation)
         }
     };
 }
@@ -636,8 +642,8 @@ mod tests {
     use wide::f32x4;
 
     use crate::{
-        Affine, Affine2, Affine3, EulerRot, Mat3, Mat4, Matrix, Projective, Quat, Unaligned, Vec2,
-        Vec3, Vector,
+        Affine, Affine2, Affine3, EulerRot, Mat3, Mat4, Matrix, Projective, Unaligned, Vec2, Vec3,
+        Vector,
         test_utils::{assert_test_eq, assert_test_eq_or_panic, for_types, random_iter},
     };
 
@@ -897,12 +903,12 @@ mod tests {
     }
 
     #[test]
-    fn test_from_rotation_x() {
+    fn test_from_rotation_xy() {
         for_types!(|Wide: WideFloat| {
             for angle in random_iter::<Wide>() {
                 assert_test_eq!(
-                    Affine3::<Wide>::from_rotation_x(angle),
-                    Affine3::from_lane_fn(|lane| Affine3::<T>::from_rotation_x(
+                    Affine3::<Wide>::from_rotation_xy(angle),
+                    Affine3::from_lane_fn(|lane| Affine3::<T>::from_rotation_xy(
                         angle.to_array()[lane]
                     )),
                     abs <= angle.abs() * 1e-4 + 1e-3,
@@ -913,12 +919,12 @@ mod tests {
     }
 
     #[test]
-    fn test_from_rotation_y() {
+    fn test_from_rotation_xz() {
         for_types!(|Wide: WideFloat| {
             for angle in random_iter::<Wide>() {
                 assert_test_eq!(
-                    Affine3::<Wide>::from_rotation_y(angle),
-                    Affine3::from_lane_fn(|lane| Affine3::<T>::from_rotation_y(
+                    Affine3::<Wide>::from_rotation_xz(angle),
+                    Affine3::from_lane_fn(|lane| Affine3::<T>::from_rotation_xz(
                         angle.to_array()[lane]
                     )),
                     abs <= angle.abs() * 1e-4 + 1e-3,
@@ -929,28 +935,16 @@ mod tests {
     }
 
     #[test]
-    fn test_from_rotation_z() {
+    fn test_from_rotation_yz() {
         for_types!(|Wide: WideFloat| {
             for angle in random_iter::<Wide>() {
                 assert_test_eq!(
-                    Affine3::<Wide>::from_rotation_z(angle),
-                    Affine3::from_lane_fn(|lane| Affine3::<T>::from_rotation_z(
+                    Affine3::<Wide>::from_rotation_yz(angle),
+                    Affine3::from_lane_fn(|lane| Affine3::<T>::from_rotation_yz(
                         angle.to_array()[lane]
                     )),
                     abs <= angle.abs() * 1e-4 + 1e-3,
                     0.0 = -0.0
-                );
-            }
-        });
-    }
-
-    #[test]
-    fn test_from_quat() {
-        for_types!(|Wide: WideFloat| {
-            for quat in random_iter::<Quat<Wide>>().flat_map(|quat| [quat, quat.normalize()]) {
-                assert_test_eq_or_panic!(
-                    Affine3::<Wide>::from_quat(quat),
-                    Affine3::from_lane_fn(|lane| Affine3::<T>::from_quat(quat.lane(lane)))
                 );
             }
         });
@@ -1003,67 +997,6 @@ mod tests {
                         0.0 = -0.0
                     );
                 }
-            }
-        });
-    }
-
-    #[test]
-    fn test_from_scale_rotation() {
-        for_types!(|Wide: WideFloat| {
-            for (scale, rotation) in random_iter::<(Vec3<Wide>, Quat<Wide>)>()
-                .flat_map(|(scale, quat)| [(scale, quat), (scale, quat.normalize())])
-            {
-                assert_test_eq_or_panic!(
-                    Affine3::<Wide>::from_scale_rotation(scale, rotation),
-                    Affine3::from_lane_fn(|lane| Affine3::<T>::from_scale_rotation(
-                        scale.lane(lane),
-                        rotation.lane(lane)
-                    ))
-                );
-            }
-        });
-    }
-
-    #[test]
-    fn test_from_rotation_translation() {
-        for_types!(|Wide: WideFloat| {
-            for (rotation, translation) in
-                random_iter::<(Quat<Wide>, Vec3<Wide>)>().flat_map(|(rotation, translation)| {
-                    [(rotation, translation), (rotation.normalize(), translation)]
-                })
-            {
-                assert_test_eq_or_panic!(
-                    Affine3::<Wide>::from_rotation_translation(rotation, translation),
-                    Affine3::from_lane_fn(|lane| Affine3::<T>::from_rotation_translation(
-                        rotation.lane(lane),
-                        translation.lane(lane)
-                    ))
-                );
-            }
-        });
-    }
-
-    #[test]
-    fn test_from_scale_rotation_translation() {
-        for_types!(|Wide: WideFloat| {
-            for (scale, rotation, translation) in
-                random_iter::<(Vec3<Wide>, Quat<Wide>, Vec3<Wide>)>().flat_map(
-                    |(scale, rotation, translation)| {
-                        [
-                            (scale, rotation, translation),
-                            (scale, rotation.normalize(), translation),
-                        ]
-                    },
-                )
-            {
-                assert_test_eq_or_panic!(
-                    Affine3::<Wide>::from_scale_rotation_translation(scale, rotation, translation),
-                    Affine3::from_lane_fn(|lane| Affine3::<T>::from_scale_rotation_translation(
-                        scale.lane(lane),
-                        rotation.lane(lane),
-                        translation.lane(lane)
-                    ))
-                );
             }
         });
     }
@@ -1168,66 +1101,6 @@ mod tests {
                         0.0 = -0.0
                     );
                 }
-            }
-        });
-    }
-
-    #[test]
-    fn test_to_scale_rotation() {
-        for_types!(|Wide: WideFloat| {
-            for affine in random_iter::<Affine3<Wide>>().chain(
-                random_iter::<(Vec3<Wide>, Quat<Wide>, Vec3<Wide>)>().map(
-                    |(scale, rotation, translation)| {
-                        Affine3::<Wide>::from_scale_rotation_translation(
-                            scale,
-                            rotation.normalize(),
-                            translation,
-                        )
-                    },
-                ),
-            ) {
-                assert_test_eq_or_panic!(
-                    affine.to_scale_rotation(),
-                    (
-                        Vec3::from_lane_fn(|lane| affine.lane(lane).to_scale_rotation().0),
-                        Quat::from_lane_fn(|lane| affine.lane(lane).to_scale_rotation().1)
-                    )
-                );
-            }
-        });
-    }
-
-    #[test]
-    fn test_to_scale_rotation_translation() {
-        for_types!(|Wide: WideFloat| {
-            for affine in random_iter::<Affine3<Wide>>().chain(
-                random_iter::<(Vec3<Wide>, Quat<Wide>, Vec3<Wide>)>().map(
-                    |(scale, rotation, translation)| {
-                        Affine3::<Wide>::from_scale_rotation_translation(
-                            scale,
-                            rotation.normalize(),
-                            translation,
-                        )
-                    },
-                ),
-            ) {
-                assert_test_eq_or_panic!(
-                    affine.to_scale_rotation_translation(),
-                    (
-                        Vec3::from_lane_fn(|lane| affine
-                            .lane(lane)
-                            .to_scale_rotation_translation()
-                            .0),
-                        Quat::from_lane_fn(|lane| affine
-                            .lane(lane)
-                            .to_scale_rotation_translation()
-                            .1),
-                        Vec3::from_lane_fn(|lane| affine
-                            .lane(lane)
-                            .to_scale_rotation_translation()
-                            .2)
-                    )
-                );
             }
         });
     }

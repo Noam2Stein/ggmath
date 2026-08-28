@@ -1,8 +1,9 @@
 use core::ops::{Add, BitAnd, BitOr, BitXor, Div, Mul, Neg, Not, Rem, Shl, Shr, Sub};
 
 use crate::{
-    Aligned, Alignment, Length, Mask, PrimitiveFloat, PrimitiveInteger, PrimitiveSigned,
-    Quaternion, Scalar, SupportedLength, Unaligned, Vector,
+    Aligned, Alignment, Length, Mask, PrimitiveFloat, PrimitiveInteger, PrimitiveSigned, Rotor,
+    Scalar, SupportedLength, Unaligned, Vector,
+    length::TwoOrThree,
     utils::{Repr2, Repr3, Repr4},
 };
 
@@ -171,9 +172,21 @@ pub(crate) unsafe trait AffineBackend<const N: usize, A: Alignment> {
     type Inner: Copy;
 }
 
-pub(crate) trait QuaternionBackend<A: Alignment> {
+pub(crate) trait RotorBackend<const N: usize, A: Alignment>
+where
+    Length<N>: TwoOrThree,
+{
     #[track_caller]
-    fn quat_mul(quat: Quaternion<Self, A>, rhs: Quaternion<Self, A>) -> Quaternion<Self, A>
+    fn rotor_vector_mul(vector: Vector<N, Self, A>, rhs: Rotor<N, Self, A>) -> Vector<N, Self, A>
+    where
+        Self: Scalar
+            + Neg<Output = Self>
+            + Add<Output = Self>
+            + Sub<Output = Self>
+            + Mul<Output = Self>;
+
+    #[track_caller]
+    fn rotor_mul(rotor: Rotor<N, Self, A>, rhs: Rotor<N, Self, A>) -> Rotor<N, Self, A>
     where
         Self: Scalar
             + Neg<Output = Self>
@@ -1150,23 +1163,42 @@ where
     type Inner = [Vector<4, T, A>; 5];
 }
 
-impl<T, A: Alignment> QuaternionBackend<A> for T
+impl<T, A: Alignment> RotorBackend<3, A> for T
 where
     T: DefaultBackend<4, A>,
 {
     #[inline]
-    fn quat_mul(quat: Quaternion<Self, A>, rhs: Quaternion<Self, A>) -> Quaternion<Self, A>
+    fn rotor_vector_mul(vector: Vector<3, Self, A>, rhs: Rotor<3, Self, A>) -> Vector<3, Self, A>
     where
         Self: Neg<Output = Self> + Add<Output = Self> + Sub<Output = Self> + Mul<Output = Self>,
     {
-        let [x0, y0, z0, w0] = quat.to_array();
-        let [x1, y1, z1, w1] = rhs.to_array();
+        // This is the expansion of the geometric product `R^(-1)vR`. We
+        // intentionally use `R^(-1)vR` and not `RvR^(-1)` so that the rotor is
+        // `e^(B/2)` and not `e^(-B/2)`.
 
-        Quaternion::from_xyzw(
-            x0 * w1 + w0 * x1 + z0 * y1 - y0 * z1,
-            y0 * w1 - z0 * x1 + w0 * y1 + x0 * z1,
-            z0 * w1 + y0 * x1 - x0 * y1 + w0 * z1,
-            w0 * w1 - x0 * x1 - y0 * y1 - z0 * z1,
+        let fx = rhs.s * vector.x - rhs.xy * vector.y - rhs.xz * vector.z;
+        let fy = rhs.s * vector.y + rhs.xy * vector.x - rhs.yz * vector.z;
+        let fz = rhs.s * vector.z + rhs.xz * vector.x + rhs.yz * vector.y;
+        let fw = -rhs.xy * vector.z + rhs.xz * vector.y - rhs.yz * vector.x;
+
+        Vector::<3, T, A>::new(
+            rhs.s * fx - rhs.xy * fy - rhs.xz * fz - rhs.yz * fw,
+            rhs.s * fy + rhs.xy * fx + rhs.xz * fw - rhs.yz * fz,
+            rhs.s * fz - rhs.xy * fw + rhs.xz * fx + rhs.yz * fy,
+        )
+    }
+
+    #[inline]
+    fn rotor_mul(rotor: Rotor<3, Self, A>, rhs: Rotor<3, Self, A>) -> Rotor<3, Self, A>
+    where
+        Self: Neg<Output = Self> + Add<Output = Self> + Sub<Output = Self> + Mul<Output = Self>,
+    {
+        // Compute the geometric product `(rotor)(rhs)`.
+        Rotor::<3, T, A>::from_raw_elements(
+            rotor.xy * rhs.s + rotor.s * rhs.xy + rotor.yz * rhs.xz - rotor.xz * rhs.yz,
+            rotor.xz * rhs.s + rotor.s * rhs.xz - rotor.yz * rhs.xy + rotor.xy * rhs.yz,
+            rotor.yz * rhs.s + rotor.s * rhs.yz + rotor.xz * rhs.xy - rotor.xy * rhs.xz,
+            rotor.s * rhs.s - rotor.xy * rhs.xy - rotor.xz * rhs.xz - rotor.yz * rhs.yz,
         )
     }
 }

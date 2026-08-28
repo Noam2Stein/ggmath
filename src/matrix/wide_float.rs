@@ -1,7 +1,7 @@
 use wide::{f32x4, f32x8, f32x16, f64x2, f64x4, f64x8};
 
 use crate::{
-    Alignment, EulerRot, Length, Matrix, Projective, Quaternion, SupportedLength, Vector,
+    Alignment, EulerRot, Length, Matrix, Projective, Rotor, SupportedLength, Vector,
     length::TwoOrThree,
     utils::{specialize, specialize_23},
 };
@@ -23,6 +23,28 @@ macro_rules! items {
             Length<N>: TwoOrThree,
         {
             specialize_23!(Matrix::<N, $Wide, A>::from_projective_backend(projective))
+        }
+
+        /// Creates a rotation matrix from a rotor.
+        #[inline]
+        #[must_use]
+        #[expect(private_bounds)]
+        pub fn from_rotor(_rotor: Rotor<N, $Wide, A>) -> Self
+        where
+            Length<N>: TwoOrThree,
+        {
+            todo!()
+        }
+
+        /// Creates a matrix containing a non-uniform `scale` and a `rotation`.
+        #[inline]
+        #[must_use]
+        #[expect(private_bounds)]
+        pub fn from_scale_rotation(scale: Vector<N, $Wide, A>, rotation: Rotor<N, $Wide, A>) -> Self
+        where
+            Length<N>: TwoOrThree,
+        {
+            Self::from_rotor(rotation).prepend_scale(scale)
         }
 
         /// For each lane, returns `true` if any element is NaN.
@@ -74,6 +96,20 @@ macro_rules! items {
         #[inline]
         pub(crate) fn inverse_and_determinant(&self) -> (Self, $Wide) {
             specialize!(Matrix::<N, $Wide, A>::inverse_and_determinant_backend(self))
+        }
+
+        /// Returns the `scale` and `rotation` of `self`.
+        ///
+        /// `self` must not contain shearing. Otherwise the result is
+        /// unspecified.
+        #[inline]
+        #[must_use]
+        #[expect(private_bounds)]
+        pub fn to_scale_rotation(&self) -> (Vector<N, $Wide, A>, Rotor<N, $Wide, A>)
+        where
+            Length<N>: TwoOrThree,
+        {
+            todo!()
         }
 
         /// Returns the element-wise reciprocal (inverse) of a matrix,
@@ -175,43 +211,11 @@ macro_rules! items_2 {
 
 macro_rules! items_3 {
     ($Wide:ident, $T:ident) => {
-        /// Creates a 3D rotation matrix from `angle` (in radians) around the x
-        /// axis.
-        ///
-        /// This rotates `+Y` to `+Z`.
+        /// Creates a 3D rotation matrix from an `angle` (in radians) rotating
+        /// `+X` to `+Y`.
         #[inline]
         #[must_use]
-        pub fn from_rotation_x(angle: $Wide) -> Self {
-            let (sin, cos) = angle.sin_cos();
-            Self::from_rows(&[
-                Vector::<3, $Wide, A>::X,
-                Vector::<3, $Wide, A>::new($Wide::ZERO, cos, sin),
-                Vector::<3, $Wide, A>::new($Wide::ZERO, -sin, cos),
-            ])
-        }
-
-        /// Creates a 3D rotation matrix from `angle` (in radians) around the y
-        /// axis.
-        ///
-        /// This rotates `+Z` to `+X`.
-        #[inline]
-        #[must_use]
-        pub fn from_rotation_y(angle: $Wide) -> Self {
-            let (sin, cos) = angle.sin_cos();
-            Self::from_rows(&[
-                Vector::<3, $Wide, A>::new(cos, $Wide::ZERO, -sin),
-                Vector::<3, $Wide, A>::Y,
-                Vector::<3, $Wide, A>::new(sin, $Wide::ZERO, cos),
-            ])
-        }
-
-        /// Creates a 3D rotation matrix from `angle` (in radians) around the z
-        /// axis.
-        ///
-        /// This rotates `+X` to `+Y`.
-        #[inline]
-        #[must_use]
-        pub fn from_rotation_z(angle: $Wide) -> Self {
+        pub fn from_rotation_xy(angle: $Wide) -> Self {
             let (sin, cos) = angle.sin_cos();
             Self::from_rows(&[
                 Vector::<3, $Wide, A>::new(cos, sin, $Wide::ZERO),
@@ -220,34 +224,30 @@ macro_rules! items_3 {
             ])
         }
 
-        #[inline]
-        fn quat_to_axes(quat: Quaternion<$Wide, A>) -> [Vector<3, $Wide, A>; 3] {
-            let x2 = quat.x + quat.x;
-            let y2 = quat.y + quat.y;
-            let z2 = quat.z + quat.z;
-            let xx2 = quat.x * x2;
-            let xy2 = quat.x * y2;
-            let xz2 = quat.x * z2;
-            let yy2 = quat.y * y2;
-            let yz2 = quat.y * z2;
-            let zz2 = quat.z * z2;
-            let wx2 = quat.w * x2;
-            let wy2 = quat.w * y2;
-            let wz2 = quat.w * z2;
-
-            [
-                Vector::<3, $Wide, A>::new($Wide::ONE - (yy2 + zz2), xy2 + wz2, xz2 - wy2),
-                Vector::<3, $Wide, A>::new(xy2 - wz2, $Wide::ONE - (xx2 + zz2), yz2 + wx2),
-                Vector::<3, $Wide, A>::new(xz2 + wy2, yz2 - wx2, $Wide::ONE - (xx2 + yy2)),
-            ]
-        }
-
-        /// Creates a 3D rotation matrix from a quaternion.
+        /// Creates a 3D rotation matrix from an `angle` (in radians) rotating
+        /// `+X` to `+Z`.
         #[inline]
         #[must_use]
-        pub fn from_quat(quat: Quaternion<$Wide, A>) -> Self {
-            let [x_axis, y_axis, z_axis] = Self::quat_to_axes(quat);
-            Self::from_rows(&[x_axis, y_axis, z_axis])
+        pub fn from_rotation_xz(angle: $Wide) -> Self {
+            let (sin, cos) = angle.sin_cos();
+            Self::from_rows(&[
+                Vector::<3, $Wide, A>::new(cos, $Wide::ZERO, sin),
+                Vector::<3, $Wide, A>::Y,
+                Vector::<3, $Wide, A>::new(-sin, $Wide::ZERO, cos),
+            ])
+        }
+
+        /// Creates a 3D rotation matrix from an `angle` (in radians) rotating
+        /// `+Y` to `+Z`.
+        #[inline]
+        #[must_use]
+        pub fn from_rotation_yz(angle: $Wide) -> Self {
+            let (sin, cos) = angle.sin_cos();
+            Self::from_rows(&[
+                Vector::<3, $Wide, A>::X,
+                Vector::<3, $Wide, A>::new($Wide::ZERO, cos, sin),
+                Vector::<3, $Wide, A>::new($Wide::ZERO, -sin, cos),
+            ])
         }
 
         /// Creates a 3D rotation matrix from a rotation `axis` and `angle` (in
@@ -331,22 +331,6 @@ macro_rules! items_3 {
             }
 
             result
-        }
-
-        /// Creates a matrix containing a non-uniform `scale` and a 3D
-        /// `rotation`.
-        #[inline]
-        #[must_use]
-        pub fn from_scale_rotation(
-            scale: Vector<3, $Wide, A>,
-            rotation: Quaternion<$Wide, A>,
-        ) -> Self {
-            let [rotation_x, rotation_y, rotation_z] = Self::quat_to_axes(rotation);
-            Self::from_rows(&[
-                rotation_x * scale.x,
-                rotation_y * scale.y,
-                rotation_z * scale.z,
-            ])
         }
 
         /// Takes the `N`x`N` linear transformation part of an `N+1`x`N+1`
@@ -479,32 +463,6 @@ macro_rules! items_3 {
             }
 
             (ea.x, ea.y, ea.z)
-        }
-
-        /// For each lane, returns the `scale` and `rotation` of `self`.
-        ///
-        /// `self` must not contain shearing. Otherwise the result is
-        /// unspecified.
-        #[inline]
-        #[must_use]
-        pub fn to_scale_rotation(&self) -> (Vector<3, $Wide, A>, Quaternion<$Wide, A>) {
-            let determinant = self.determinant();
-
-            let scale = Vector::<3, $Wide, A>::new(
-                self.x_axis.length() * determinant.signum(),
-                self.y_axis.length(),
-                self.z_axis.length(),
-            );
-
-            let scale_recip = scale.recip();
-
-            let rotation = Quaternion::<$Wide, A>::from_matrix(&Self::from_rows(&[
-                self.x_axis * scale_recip.x,
-                self.y_axis * scale_recip.y,
-                self.z_axis * scale_recip.z,
-            ]));
-
-            (scale, rotation)
         }
     };
 }
@@ -921,7 +879,7 @@ mod tests {
     use wide::f32x4;
 
     use crate::{
-        EulerRot, Mat2, Mat3, Mat4, Matrix, Projective, Quat, Unaligned, Vec2, Vec3, Vector,
+        EulerRot, Mat2, Mat3, Mat4, Matrix, Projective, Unaligned, Vec2, Vec3, Vector,
         test_utils::{assert_test_eq, assert_test_eq_or_panic, for_types, random_iter},
     };
 
@@ -1141,12 +1099,12 @@ mod tests {
     }
 
     #[test]
-    fn test_from_rotation_x() {
+    fn test_from_rotation_xy() {
         for_types!(|Wide: WideFloat| {
             for angle in random_iter::<Wide>() {
                 assert_test_eq!(
-                    Mat3::<Wide>::from_rotation_x(angle),
-                    Mat3::from_lane_fn(|lane| Mat3::<T>::from_rotation_x(angle.to_array()[lane])),
+                    Mat3::<Wide>::from_rotation_xy(angle),
+                    Mat3::from_lane_fn(|lane| Mat3::<T>::from_rotation_xy(angle.to_array()[lane])),
                     abs <= angle.abs() * 1e-4 + 1e-3,
                     0.0 = -0.0
                 );
@@ -1155,12 +1113,12 @@ mod tests {
     }
 
     #[test]
-    fn test_from_rotation_y() {
+    fn test_from_rotation_xz() {
         for_types!(|Wide: WideFloat| {
             for angle in random_iter::<Wide>() {
                 assert_test_eq!(
-                    Mat3::<Wide>::from_rotation_y(angle),
-                    Mat3::from_lane_fn(|lane| Mat3::<T>::from_rotation_y(angle.to_array()[lane])),
+                    Mat3::<Wide>::from_rotation_xz(angle),
+                    Mat3::from_lane_fn(|lane| Mat3::<T>::from_rotation_xz(angle.to_array()[lane])),
                     abs <= angle.abs() * 1e-4 + 1e-3,
                     0.0 = -0.0
                 );
@@ -1169,26 +1127,14 @@ mod tests {
     }
 
     #[test]
-    fn test_from_rotation_z() {
+    fn test_from_rotation_yz() {
         for_types!(|Wide: WideFloat| {
             for angle in random_iter::<Wide>() {
                 assert_test_eq!(
-                    Mat3::<Wide>::from_rotation_z(angle),
-                    Mat3::from_lane_fn(|lane| Mat3::<T>::from_rotation_z(angle.to_array()[lane])),
+                    Mat3::<Wide>::from_rotation_yz(angle),
+                    Mat3::from_lane_fn(|lane| Mat3::<T>::from_rotation_yz(angle.to_array()[lane])),
                     abs <= angle.abs() * 1e-4 + 1e-3,
                     0.0 = -0.0
-                );
-            }
-        });
-    }
-
-    #[test]
-    fn test_from_quat() {
-        for_types!(|Wide: WideFloat| {
-            for quat in random_iter::<Quat<Wide>>().flat_map(|quat| [quat, quat.normalize()]) {
-                assert_test_eq_or_panic!(
-                    Mat3::<Wide>::from_quat(quat),
-                    Mat3::from_lane_fn(|lane| Mat3::<T>::from_quat(quat.lane(lane)))
                 );
             }
         });
@@ -1239,23 +1185,6 @@ mod tests {
                         0.0 = -0.0
                     );
                 }
-            }
-        });
-    }
-
-    #[test]
-    fn test_from_scale_rotation() {
-        for_types!(|Wide: WideFloat| {
-            for (scale, rotation) in random_iter::<(Vec3<Wide>, Quat<Wide>)>()
-                .flat_map(|(scale, quat)| [(scale, quat), (scale, quat.normalize())])
-            {
-                assert_test_eq_or_panic!(
-                    Mat3::<Wide>::from_scale_rotation(scale, rotation),
-                    Mat3::from_lane_fn(|lane| Mat3::<T>::from_scale_rotation(
-                        scale.lane(lane),
-                        rotation.lane(lane)
-                    ))
-                );
             }
         });
     }
@@ -1352,26 +1281,6 @@ mod tests {
                         0.0 = -0.0
                     );
                 }
-            }
-        });
-    }
-
-    #[test]
-    fn test_to_scale_rotation() {
-        for_types!(|Wide: WideFloat| {
-            for matrix in random_iter::<(Vec3<Wide>, Quat<Wide>)>()
-                .map(|(scale, rotation)| {
-                    Mat3::<Wide>::from_scale_rotation(scale, rotation.normalize())
-                })
-                .chain(random_iter())
-            {
-                assert_test_eq_or_panic!(
-                    matrix.to_scale_rotation(),
-                    (
-                        Vec3::from_lane_fn(|lane| matrix.lane(lane).to_scale_rotation().0),
-                        Quat::from_lane_fn(|lane| matrix.lane(lane).to_scale_rotation().1)
-                    )
-                );
             }
         });
     }

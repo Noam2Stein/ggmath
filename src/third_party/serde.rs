@@ -1,8 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    Affine, Alignment, Length, Mask, Matrix, Projective, Quaternion, Scalar, SupportedLength,
-    Vector,
+    Affine, Alignment, Length, Mask, Matrix, Projective, Scalar, SupportedLength, Vector,
     length::TwoOrThree,
     utils::{transmute_generic, transmute_ref},
 };
@@ -239,30 +238,6 @@ where
     }
 }
 
-impl<T, A: Alignment> Serialize for Quaternion<T, A>
-where
-    T: Scalar + Serialize,
-{
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        self.to_array().serialize(serializer)
-    }
-}
-
-impl<'de, T, A: Alignment> Deserialize<'de> for Quaternion<T, A>
-where
-    T: Scalar + Deserialize<'de>,
-{
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        Ok(Self::from_array(Deserialize::deserialize(deserializer)?))
-    }
-}
-
 impl<const N: usize, T, A: Alignment> Serialize for Mask<N, T, A>
 where
     Length<N>: SupportedLength,
@@ -316,8 +291,8 @@ mod tests {
 
     use crate::{
         Affine, Affine2, Affine2A, Affine3, Affine3A, Aligned, Mask2, Mask2A, Mask3, Mask3A, Mask4,
-        Mask4A, Mat2, Mat2A, Mat3, Mat3A, Mat4, Mat4A, Proj2, Proj2A, Proj3, Proj3A, Quat, QuatA,
-        Unaligned, Vec2, Vec2A, Vec3, Vec3A, Vec4, Vec4A,
+        Mask4A, Mat2, Mat2A, Mat3, Mat3A, Mat4, Mat4A, Proj2, Proj2A, Proj3, Proj3A, Unaligned,
+        Vec2, Vec2A, Vec3, Vec3A, Vec4, Vec4A,
     };
 
     #[test]
@@ -566,19 +541,6 @@ mod tests {
         assert_eq!(projective.align(), from_str(&to_string(&projective)?)?);
         assert!(from_str::<Proj2A<i32>>(&to_string(&projective)?).is_err());
         assert!(from_str::<Proj2<i32>>(&to_string(&projective)?).is_err());
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_quaternion() -> Result<(), Box<dyn Error>> {
-        let quat = QuatA::<i32>::from_xyzw(1, 2, 3, 4);
-        assert_eq!(quat, from_str(&to_string(&quat)?)?);
-        assert_eq!(quat.unalign(), from_str(&to_string(&quat)?)?);
-
-        let quat = Quat::<i32>::from_xyzw(1, 2, 3, 4);
-        assert_eq!(quat, from_str(&to_string(&quat)?)?);
-        assert_eq!(quat.align(), from_str(&to_string(&quat)?)?);
 
         Ok(())
     }

@@ -1,8 +1,6 @@
 //! A module containing the [`bench!`] helper macro.
 
-use ggmath::{
-    Affine, Alignment, Length, Mask, Matrix, Quaternion, Scalar, SupportedLength, Vector,
-};
+use ggmath::{Affine, Alignment, Length, Mask, Matrix, Rotor, Scalar, SupportedLength, Vector};
 use rand::{RngExt, SeedableRng, rngs::StdRng};
 use wide::{f32x4, f32x8, f64x4};
 
@@ -284,14 +282,25 @@ where
     }
 }
 
-impl<T, A: Alignment> BenchIo for Quaternion<T, A>
+impl<T, A: Alignment> BenchIo for Rotor<2, T, A>
 where
     T: Scalar + BenchIo,
 {
     const LANES: usize = T::LANES;
 
     fn random(rng: &mut StdRng) -> Self {
-        Self::from_vector(BenchIo::random(rng))
+        Self::from_raw_vector(BenchIo::random(rng))
+    }
+}
+
+impl<T, A: Alignment> BenchIo for Rotor<3, T, A>
+where
+    T: Scalar + BenchIo,
+{
+    const LANES: usize = T::LANES;
+
+    fn random(rng: &mut StdRng) -> Self {
+        Self::from_raw_vector(BenchIo::random(rng))
     }
 }
 
