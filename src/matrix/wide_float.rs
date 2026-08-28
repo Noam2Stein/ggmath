@@ -451,7 +451,7 @@ macro_rules! items_3 {
                 let sy = (self[i][j] * self[i][j] + self[i][k] * self[i][k]).sqrt();
 
                 let mask = sy.simd_gt($Wide::splat(16.0 * $T::EPSILON));
-                ea.x = mask.blend(
+                ea.x = mask.select(
                     self[i][j].atan2(self[i][k]),
                     (-self[j][k]).atan2(self[j][j]),
                 );
@@ -461,7 +461,7 @@ macro_rules! items_3 {
                 let cy = (self[i][i] * self[i][i] + self[j][i] * self[j][i]).sqrt();
 
                 let mask = cy.simd_gt($Wide::splat(16.0 * $T::EPSILON));
-                ea.x = mask.blend(
+                ea.x = mask.select(
                     self[k][j].atan2(self[k][k]),
                     (-self[j][k]).atan2(self[j][j]),
                 );
@@ -1203,7 +1203,7 @@ mod tests {
                 let condition =
                     axis.length().is_finite() & angle.is_finite() & angle.abs().simd_lt(1e3);
                 let axis = condition.select(axis, Vec3::X);
-                let angle = condition.blend(angle, Wide::ONE);
+                let angle = condition.select(angle, Wide::ONE);
 
                 assert_test_eq_or_panic!(
                     Mat3::<Wide>::from_axis_angle(axis, angle),

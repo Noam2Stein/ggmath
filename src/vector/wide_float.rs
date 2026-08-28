@@ -1258,11 +1258,11 @@ macro_rules! impl_items {
 
                 let target_angle = (self.dot(target) / self_length / target_length).acos_approx();
                 let angle_sign = self.wedge(target).signum();
-                let angle = max_angle.simd_lt(target_angle - $Wide::PI).blend(
+                let angle = max_angle.simd_lt(target_angle - $Wide::PI).select(
                     target_angle - $Wide::PI,
                     max_angle
                         .simd_gt(target_angle)
-                        .blend(target_angle, max_angle),
+                        .select(target_angle, max_angle),
                 ) * angle_sign;
 
                 self.simd_eq(Self::ZERO).select(self, self.rotate(angle))
@@ -1532,11 +1532,11 @@ macro_rules! impl_items {
                 }
 
                 let target_angle = (self.dot(target) / (self_length * target_length)).acos_approx();
-                let angle = max_angle.simd_lt(target_angle - $Wide::PI).blend(
+                let angle = max_angle.simd_lt(target_angle - $Wide::PI).select(
                     target_angle - $Wide::PI,
                     max_angle
                         .simd_gt(target_angle)
-                        .blend(target_angle, max_angle),
+                        .select(target_angle, max_angle),
                 );
                 let axis = self
                     .cross(target)
@@ -1862,11 +1862,11 @@ macro_rules! impl_items {
 
                 let target_angle_cos = self.dot(target) / (self_length * target_length);
                 let target_angle = target_angle_cos.acos_approx();
-                let angle = max_angle.simd_lt(target_angle - $Wide::PI).blend(
+                let angle = max_angle.simd_lt(target_angle - $Wide::PI).select(
                     target_angle - $Wide::PI,
                     max_angle
                         .simd_gt(target_angle)
-                        .blend(target_angle, max_angle),
+                        .select(target_angle, max_angle),
                 );
 
                 if angle == $Wide::ZERO {
@@ -2399,7 +2399,7 @@ mod tests {
                     & a.length().simd_lt(1e4)
                     & b.length().simd_lt(1e4);
                 let [a, b] = [a, b].map(|v| condition.select(v, Vector::ZERO));
-                let t = condition.blend(
+                let t = condition.select(
                     (t / 10.0).clamp(Wide::splat(-100.0), Wide::splat(100.0)),
                     Wide::ZERO,
                 );

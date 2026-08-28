@@ -311,7 +311,7 @@ macro_rules! items {
             let non_zero_mask = length.simd_ge($Wide::splat(1e-8));
             (
                 non_zero_mask.select(axis, Vector::<3, $Wide, A>::X),
-                non_zero_mask.blend(angle, $Wide::ZERO),
+                non_zero_mask.select(angle, $Wide::ZERO),
             )
         }
 
@@ -615,7 +615,7 @@ mod tests {
                 let condition =
                     axis.length().is_finite() & angle.is_finite() & angle.abs().simd_lt(1e3);
                 let axis = condition.select(axis, Vec3::X);
-                let angle = condition.blend(angle, Wide::ONE);
+                let angle = condition.select(angle, Wide::ONE);
 
                 assert_test_eq_or_panic!(
                     Quat::<Wide>::from_axis_angle(axis, angle),
