@@ -6,7 +6,7 @@ use crate::{
 };
 
 macro_rules! items {
-    ($Wide:ident, $UnsignedWide:ty, $powf:ident) => {
+    ($Wide:ident, $UnsignedWide:ty) => {
         /// A vector with all elements set to [`MIN`].
         ///
         /// [`MIN`]: f32::MIN
@@ -822,7 +822,7 @@ macro_rules! items {
 }
 
 macro_rules! items_2 {
-    ($Wide:ident, $UnsignedWide:ty, $powf:ident) => {
+    ($Wide:ident, $UnsignedWide:ty) => {
         /// For each lane, creates a 2D vector from homogeneous coordinates by
         /// performing perspective divide.
         ///
@@ -895,7 +895,7 @@ macro_rules! items_2 {
 }
 
 macro_rules! items_3 {
-    ($Wide:ident, $UnsignedWide:ty, $powf:ident) => {
+    ($Wide:ident, $UnsignedWide:ty) => {
         /// For each lane, creates a 3D vector from homogeneous coordinates by
         /// performing perspective divide.
         ///
@@ -1023,7 +1023,7 @@ where
     Length<N>: SupportedLength,
     Wide: WideFloat,
 {
-    items!(Wide, <Wide as WideFloat>::Bits, powf);
+    items!(Wide, <Wide as WideFloat>::Bits);
 }
 
 /// Functionality for [SoA] (Structure of Arrays) float vector2s.
@@ -1040,7 +1040,7 @@ impl<Wide, A: Alignment> Vector<2, Wide, A>
 where
     Wide: WideFloat,
 {
-    items_2!(Wide, <Wide as WideFloat>::Bits, powf);
+    items_2!(Wide, <Wide as WideFloat>::Bits);
 }
 
 /// Functionality for [SoA] (Structure of Arrays) float vector3s.
@@ -1057,22 +1057,22 @@ impl<Wide, A: Alignment> Vector<3, Wide, A>
 where
     Wide: WideFloat,
 {
-    items_3!(Wide, <Wide as WideFloat>::Bits, powf);
+    items_3!(Wide, <Wide as WideFloat>::Bits);
 }
 
 macro_rules! impl_items {
-    ($Wide:ident, $UnsignedWide:ty, $powf:ident) => {
+    ($Wide:ident, $UnsignedWide:ty) => {
         #[cfg(not(doc))]
         impl<const N: usize, A: Alignment> Vector<N, $Wide, A>
         where
             Length<N>: SupportedLength,
         {
-            items!($Wide, $UnsignedWide, $powf);
+            items!($Wide, $UnsignedWide);
         }
 
         #[cfg(not(doc))]
         impl<A: Alignment> Vector<2, $Wide, A> {
-            items_2!($Wide, $UnsignedWide, $powf);
+            items_2!($Wide, $UnsignedWide);
 
             #[inline(always)]
             fn nan_mask_backend(self) -> Self {
@@ -1166,7 +1166,7 @@ macro_rules! impl_items {
 
             #[inline(always)]
             fn powf_backend(self, n: $Wide) -> Self {
-                Self::new(self.x.$powf(n), self.y.$powf(n))
+                Self::new(self.x.powf_simd(n), self.y.powf_simd(n))
             }
 
             #[inline(always)]
@@ -1281,7 +1281,7 @@ macro_rules! impl_items {
 
         #[cfg(not(doc))]
         impl<A: Alignment> Vector<3, $Wide, A> {
-            items_3!($Wide, $UnsignedWide, $powf);
+            items_3!($Wide, $UnsignedWide);
 
             #[inline(always)]
             fn nan_mask_backend(self) -> Self {
@@ -1407,7 +1407,11 @@ macro_rules! impl_items {
 
             #[inline(always)]
             fn powf_backend(self, n: $Wide) -> Self {
-                Self::new(self.x.$powf(n), self.y.$powf(n), self.z.$powf(n))
+                Self::new(
+                    self.x.powf_simd(n),
+                    self.y.powf_simd(n),
+                    self.z.powf_simd(n),
+                )
             }
 
             #[inline(always)]
@@ -1732,10 +1736,10 @@ macro_rules! impl_items {
             #[inline(always)]
             fn powf_backend(self, n: $Wide) -> Self {
                 Self::new(
-                    self.x.$powf(n),
-                    self.y.$powf(n),
-                    self.z.$powf(n),
-                    self.w.$powf(n),
+                    self.x.powf_simd(n),
+                    self.y.powf_simd(n),
+                    self.z.powf_simd(n),
+                    self.w.powf_simd(n),
                 )
             }
 
@@ -1931,12 +1935,12 @@ macro_rules! impl_items {
         }
     };
 }
-impl_items!(f32x4, u32x4, pow_f32x4);
-impl_items!(f32x8, u32x8, pow_f32x8);
-impl_items!(f32x16, u32x16, pow_f32x16);
-impl_items!(f64x2, u64x2, pow_f64x2);
-impl_items!(f64x4, u64x4, pow_f64x4);
-impl_items!(f64x8, u64x8, pow_f64x8);
+impl_items!(f32x4, u32x4);
+impl_items!(f32x8, u32x8);
+impl_items!(f32x16, u32x16);
+impl_items!(f64x2, u64x2);
+impl_items!(f64x4, u64x4);
+impl_items!(f64x8, u64x8);
 
 #[cfg(test)]
 mod tests {
@@ -2235,7 +2239,7 @@ mod tests {
     fn test_powf() {
         for_types!(|N| {
             for (vector, n) in random_iter::<(Vector<N, f32x4, Unaligned>, f32x4)>() {
-                assert_test_eq!(vector.powf(n), Vector::from_fn(|i| vector[i].pow_f32x4(n)));
+                assert_test_eq!(vector.powf(n), Vector::from_fn(|i| vector[i].powf_simd(n)));
             }
         });
     }
