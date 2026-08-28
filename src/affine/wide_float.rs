@@ -675,6 +675,26 @@ mod tests {
     }
 
     #[test]
+    fn test_from_rotor() {
+        todo!()
+    }
+
+    #[test]
+    fn test_from_scale_rotation() {
+        todo!()
+    }
+
+    #[test]
+    fn test_from_rotation_translation() {
+        todo!()
+    }
+
+    #[test]
+    fn test_from_scale_rotation_translation() {
+        todo!()
+    }
+
+    #[test]
     fn test_is_nan() {
         for_types!(|N, Wide: WideFloat| {
             for affine in random_iter::<Affine<N, Wide, Unaligned>>() {
@@ -748,6 +768,16 @@ mod tests {
                 );
             }
         });
+    }
+
+    #[test]
+    fn test_to_scale_rotation() {
+        todo!()
+    }
+
+    #[test]
+    fn test_to_scale_rotation_translation() {
+        todo!()
     }
 
     #[test]

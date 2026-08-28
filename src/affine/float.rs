@@ -833,6 +833,26 @@ mod tests {
     }
 
     #[test]
+    fn test_from_rotor() {
+        todo!()
+    }
+
+    #[test]
+    fn test_from_scale_rotation() {
+        todo!()
+    }
+
+    #[test]
+    fn test_from_rotation_translation() {
+        todo!()
+    }
+
+    #[test]
+    fn test_from_scale_rotation_translation() {
+        todo!()
+    }
+
+    #[test]
     fn test_is_nan() {
         for_types!(|T: PrimitiveFloat, A| {
             let one = Vector::ONE;
@@ -1045,6 +1065,16 @@ mod tests {
                 )
             );
         });
+    }
+
+    #[test]
+    fn test_to_scale_rotation() {
+        todo!()
+    }
+
+    #[test]
+    fn test_to_scale_rotation_translation() {
+        todo!()
     }
 
     #[test]
