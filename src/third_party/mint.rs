@@ -1,6 +1,8 @@
+use core::ops::Neg;
+
 use mint::IntoMint;
 
-use crate::{Alignment, Mask, Matrix, Scalar, Vector};
+use crate::{Alignment, Mask, Matrix, Rotor, Scalar, Vector};
 
 impl<T, A: Alignment> IntoMint for Vector<2, T, A>
 where
@@ -240,6 +242,34 @@ where
     }
 }
 
+impl<T, A: Alignment> From<mint::Quaternion<T>> for Rotor<3, T, A>
+where
+    T: Scalar + Neg<Output = T>,
+{
+    #[inline]
+    fn from(value: mint::Quaternion<T>) -> Self {
+        Self::from_raw_elements(value.v.z, -value.v.y, value.v.x, value.s)
+    }
+}
+
+impl<T, A: Alignment> From<Rotor<3, T, A>> for mint::Quaternion<T>
+where
+    T: Scalar + Neg<Output = T>,
+{
+    #[inline]
+    #[track_caller]
+    fn from(value: Rotor<3, T, A>) -> Self {
+        Self {
+            v: mint::Vector3 {
+                x: value.yz,
+                y: -value.xz,
+                z: value.xy,
+            },
+            s: value.s,
+        }
+    }
+}
+
 impl<T, A: Alignment> IntoMint for Mask<2, T, A>
 where
     T: Scalar,
@@ -336,8 +366,8 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{
-        Mask2, Mask2A, Mask3, Mask3A, Mask4, Mask4A, Mat2, Mat2A, Mat3, Mat3A, Mat4, Mat4A, Vec2,
-        Vec2A, Vec3, Vec3A, Vec4, Vec4A,
+        Mask2, Mask2A, Mask3, Mask3A, Mask4, Mask4A, Mat2, Mat2A, Mat3, Mat3A, Mat4, Mat4A, Rot3,
+        Rot3A, Vec2, Vec2A, Vec3, Vec3A, Vec4, Vec4A,
     };
 
     #[test]
@@ -398,6 +428,15 @@ mod tests {
             Vec4::new(13, 14, 15, 16),
         ]);
         assert_eq!(matrix, mint::RowMatrix4::from(matrix).into());
+    }
+
+    #[test]
+    fn test_rotor() {
+        let rotor = Rot3::<f32>::from_raw_elements(0.1, 0.2, 0.3, 0.4);
+        assert_eq!(rotor, mint::Quaternion::<f32>::from(rotor).into());
+
+        let rotor = Rot3A::<f32>::from_raw_elements(0.1, 0.2, 0.3, 0.4);
+        assert_eq!(rotor, mint::Quaternion::<f32>::from(rotor).into());
     }
 
     #[test]

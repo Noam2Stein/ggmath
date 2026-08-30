@@ -4,7 +4,7 @@ use rand::{
 };
 
 use crate::{
-    Affine, Alignment, Length, Mask, Matrix, Projective, Scalar, SupportedLength, Vector,
+    Affine, Alignment, Length, Mask, Matrix, Projective, Rotor, Scalar, SupportedLength, Vector,
     length::TwoOrThree, utils::specialize_23,
 };
 
@@ -78,6 +78,18 @@ where
     #[inline(always)]
     fn sample_backend<R: Rng + ?Sized>((rng,): (&mut R,)) -> Self {
         Self(rng.random::<Matrix<4, T, A>>())
+    }
+}
+
+impl<const N: usize, T, A: Alignment> Distribution<Rotor<N, T, A>> for StandardUniform
+where
+    Length<N>: TwoOrThree,
+    T: Scalar,
+    StandardUniform: Distribution<T>,
+{
+    #[inline]
+    fn sample<R: Rng + ?Sized>(&self, _rng: &mut R) -> Rotor<N, T, A> {
+        todo!()
     }
 }
 
@@ -172,6 +184,11 @@ mod tests {
                 Projective(rng().random())
             );
         });
+    }
+
+    #[test]
+    fn test_rotor() {
+        todo!()
     }
 
     #[test]

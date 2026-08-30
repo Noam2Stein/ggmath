@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    Affine, Alignment, Length, Mask, Matrix, Projective, Scalar, SupportedLength, Vector,
+    Affine, Alignment, Length, Mask, Matrix, Projective, Rotor, Scalar, SupportedLength, Vector,
     length::TwoOrThree,
     utils::{transmute_generic, transmute_ref},
 };
@@ -235,6 +235,32 @@ where
 
             _ => unreachable!(),
         })
+    }
+}
+
+impl<const N: usize, T, A: Alignment> Serialize for Rotor<N, T, A>
+where
+    Length<N>: TwoOrThree,
+    T: Scalar + Serialize,
+{
+    fn serialize<S>(&self, _serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        todo!()
+    }
+}
+
+impl<'de, const N: usize, T, A: Alignment> Deserialize<'de> for Rotor<N, T, A>
+where
+    Length<N>: TwoOrThree,
+    T: Scalar + Deserialize<'de>,
+{
+    fn deserialize<D>(_deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        todo!()
     }
 }
 
@@ -543,6 +569,11 @@ mod tests {
         assert!(from_str::<Proj2<i32>>(&to_string(&projective)?).is_err());
 
         Ok(())
+    }
+
+    #[test]
+    fn test_rotor() -> Result<(), Box<dyn Error>> {
+        todo!()
     }
 
     #[test]
