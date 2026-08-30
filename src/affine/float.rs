@@ -361,7 +361,7 @@ where
     }
 
     /// Creates an affine transform containing a rotation from a rotation `axis`
-    /// and `angle` (in radians).
+    /// and `angle` (in radians) using the right-hand rule.
     ///
     /// `axis` must be normalized. Otherwise the result is unspecified.
     ///

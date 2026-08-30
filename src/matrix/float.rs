@@ -506,7 +506,7 @@ where
     }
 
     /// Creates a 3D rotation matrix from a rotation `axis` and `angle` (in
-    /// radians).
+    /// radians) using the right-hand rule.
     ///
     /// `axis` must be normalized. Otherwise the result is unspecified.
     ///

@@ -491,7 +491,7 @@ where
     }
 
     /// Creates a 3D projective transform containing a rotation from a
-    /// rotation `axis` and `angle` (in radians).
+    /// rotation `axis` and `angle` (in radians) using the right-hand rule.
     ///
     /// `axis` must be normalized. Otherwise the result is unspecified.
     ///

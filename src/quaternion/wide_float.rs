@@ -35,7 +35,7 @@ macro_rules! items {
         }
 
         /// Creates a quaternion from a rotation `axis` and `angle` (in
-        /// radians).
+        /// radians) using the right-hand rule.
         ///
         /// `axis` must be normalized.
         #[inline]
@@ -47,7 +47,7 @@ macro_rules! items {
         }
 
         /// Creates a quaternion that rotates `scaled_axis.length()` radians
-        /// around `scaled_axis.normalize()`.
+        /// around `scaled_axis.normalize()` using the right-hand rule.
         #[inline]
         #[must_use]
         pub fn from_scaled_axis(scaled_axis: Vector<3, $Wide, A>) -> Self {
@@ -296,7 +296,7 @@ macro_rules! items {
         }
 
         /// Converts the quaternion `self` to a normalized rotation axis and an
-        /// angle (in radians).
+        /// angle (in radians) using the right-hand rule.
         #[inline]
         #[must_use]
         pub fn to_axis_angle(self) -> (Vector<3, $Wide, A>, $Wide) {
@@ -313,7 +313,7 @@ macro_rules! items {
         }
 
         /// Converts the quaternion `self` to a rotation axis scaled by an angle
-        /// (in radians).
+        /// (in radians) using the right-hand rule.
         #[inline]
         #[must_use]
         pub fn to_scaled_axis(self) -> Vector<3, $Wide, A> {

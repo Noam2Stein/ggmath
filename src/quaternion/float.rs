@@ -31,7 +31,8 @@ where
         Self::from_xyzw(sin, T::ZERO, T::ZERO, cos)
     }
 
-    /// Creates a quaternion from a rotation `axis` and `angle` (in radians).
+    /// Creates a quaternion from a rotation `axis` and `angle` (in radians)
+    /// using the right-hand rule.
     ///
     /// `axis` must be normalized.
     ///
@@ -55,7 +56,7 @@ where
     }
 
     /// Creates a quaternion that rotates `scaled_axis.length()` radians around
-    /// `scaled_axis.normalize()`.
+    /// `scaled_axis.normalize()` using the right-hand rule.
     #[inline]
     #[must_use]
     pub fn from_scaled_axis(scaled_axis: Vector<3, T, A>) -> Self {
@@ -393,7 +394,7 @@ where
     }
 
     /// Converts the quaternion `self` to a normalized rotation axis and an
-    /// angle (in radians).
+    /// angle (in radians) using the right-hand rule.
     ///
     /// # Panics
     ///
@@ -423,7 +424,7 @@ where
     }
 
     /// Converts the quaternion `self` to a rotation axis scaled by an angle (in
-    /// radians).
+    /// radians) using the right-hand rule.
     ///
     /// # Panics
     ///
