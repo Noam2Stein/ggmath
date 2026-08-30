@@ -230,10 +230,8 @@ impl<T, A: Alignment> Projective<2, T, A>
 where
     T: PrimitiveFloat,
 {
-    /// Creates a 2D projective transform containing a rotation of `angle` (in
-    /// radians).
-    ///
-    /// This rotates `+X` to `+Y`.
+    /// Creates a projective transform containing a rotation from an `angle` (in
+    /// radians) rotating `+X` to `+Y`.
     #[inline]
     #[must_use]
     pub fn from_angle(angle: T) -> Self {
