@@ -1,7 +1,7 @@
 use wide::{f32x4, f32x8, f32x16, f64x2, f64x4, f64x8, u32x4, u32x8, u32x16, u64x2, u64x4, u64x8};
 
 use crate::{
-    Alignment, FloatExt, Length, Quaternion, SupportedLength, Vector,
+    Alignment, FloatExt, Length, SupportedLength, Vector,
     utils::{FloatUtils, specialize, transmute_generic},
 };
 
@@ -1470,9 +1470,11 @@ macro_rules! impl_items {
             }
 
             #[inline(always)]
-            fn slerp_backend(self, other: Self, t: $Wide) -> Self {
+            fn slerp_backend(self, _other: Self, _t: $Wide) -> Self {
                 // Ported from `https://github.com/bitshifter/glam-rs`.
 
+                todo!("replace quaternions with rotors")
+                /*
                 let self_length = self.length();
                 let other_length = other.length();
 
@@ -1511,12 +1513,15 @@ macro_rules! impl_items {
                         },
                     ),
                 )
+                */
             }
 
             #[inline(always)]
-            fn rotate_towards_backend(self, target: Self, max_angle: $Wide) -> Self {
+            fn rotate_towards_backend(self, _target: Self, _max_angle: $Wide) -> Self {
                 // Ported from `https://github.com/bitshifter/glam-rs`.
 
+                todo!("replace quaternions with rotors")
+                /*
                 let self_length = self.length();
                 let target_length = target.length();
 
@@ -1539,6 +1544,7 @@ macro_rules! impl_items {
                     self,
                     self * Quaternion::<$Wide, A>::from_axis_angle(axis, angle),
                 )
+                */
             }
 
             #[inline(always)]

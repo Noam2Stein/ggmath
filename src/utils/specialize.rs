@@ -1,6 +1,6 @@
 use crate::{
-    Affine, Aligned, Alignment, Length, Mask, Matrix, Projective, Quaternion, Scalar,
-    SupportedLength, Unaligned, Vector, length::TwoOrThree, utils::transmute_generic,
+    Affine, Aligned, Alignment, Length, Mask, Matrix, Projective, Scalar, SupportedLength,
+    Unaligned, Vector, length::TwoOrThree, utils::transmute_generic,
 };
 
 /// Bypasses a type system limitation to perform specialization.
@@ -492,16 +492,6 @@ where
     T: Scalar,
     Length<N>: TwoOrThree,
     Length<N2>: TwoOrThree,
-{
-}
-
-// SAFETY: `A == A2` => `Quaternion<T, A> == Quaternion<T, A2>`.
-unsafe impl<T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
-    Specialize<Quaternion<T, A2>, N, N2, A, A2> for Quaternion<T, A>
-where
-    T: Scalar,
-    Length<N>: SupportedLength,
-    Length<N2>: SupportedLength,
 {
 }
 

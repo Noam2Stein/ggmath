@@ -1,8 +1,8 @@
 use core::ops::{Add, BitAnd, BitOr, BitXor, Div, Mul, Neg, Not, Rem, Shl, Shr, Sub};
 
 use crate::{
-    Aligned, Alignment, Length, Mask, PrimitiveFloat, PrimitiveInteger, PrimitiveSigned,
-    Quaternion, Scalar, SupportedLength, Unaligned, Vector,
+    Aligned, Alignment, Length, Mask, PrimitiveFloat, PrimitiveInteger, PrimitiveSigned, Scalar,
+    SupportedLength, Unaligned, Vector,
     utils::{Repr2, Repr3, Repr4},
 };
 
@@ -169,17 +169,6 @@ where
 /// - `Inner` has the alignment of `Matrix<N, T, A>`
 pub(crate) unsafe trait AffineBackend<const N: usize, A: Alignment> {
     type Inner: Copy;
-}
-
-pub(crate) trait QuaternionBackend<A: Alignment> {
-    #[track_caller]
-    fn quat_mul(quat: Quaternion<Self, A>, rhs: Quaternion<Self, A>) -> Quaternion<Self, A>
-    where
-        Self: Scalar
-            + Neg<Output = Self>
-            + Add<Output = Self>
-            + Sub<Output = Self>
-            + Mul<Output = Self>;
 }
 
 /// # Safety
@@ -1148,27 +1137,6 @@ where
     T: Scalar,
 {
     type Inner = [Vector<4, T, A>; 5];
-}
-
-impl<T, A: Alignment> QuaternionBackend<A> for T
-where
-    T: DefaultBackend<4, A>,
-{
-    #[inline]
-    fn quat_mul(quat: Quaternion<Self, A>, rhs: Quaternion<Self, A>) -> Quaternion<Self, A>
-    where
-        Self: Neg<Output = Self> + Add<Output = Self> + Sub<Output = Self> + Mul<Output = Self>,
-    {
-        let [x0, y0, z0, w0] = quat.to_array();
-        let [x1, y1, z1, w1] = rhs.to_array();
-
-        Quaternion::from_xyzw(
-            x0 * w1 + w0 * x1 + z0 * y1 - y0 * z1,
-            y0 * w1 - z0 * x1 + w0 * y1 + x0 * z1,
-            z0 * w1 + y0 * x1 - x0 * y1 + w0 * z1,
-            w0 * w1 - x0 * x1 - y0 * y1 - z0 * z1,
-        )
-    }
 }
 
 // SAFETY: `Inner` follows its requirements.

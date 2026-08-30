@@ -1,5 +1,5 @@
 use crate::{
-    Alignment, EulerRot, Length, Matrix, PrimitiveFloat, Projective, Quaternion, Vector,
+    Alignment, EulerRot, Length, Matrix, PrimitiveFloat, Projective, Vector,
     length::TwoOrThree,
     utils::{specialize_23, transmute_generic},
 };
@@ -447,49 +447,6 @@ where
         ])
     }
 
-    #[inline(always)]
-    fn quat_to_axes(quat: Quaternion<T, A>) -> [Vector<4, T, A>; 3] {
-        let x2 = quat.x + quat.x;
-        let y2 = quat.y + quat.y;
-        let z2 = quat.z + quat.z;
-        let xx2 = quat.x * x2;
-        let xy2 = quat.x * y2;
-        let xz2 = quat.x * z2;
-        let yy2 = quat.y * y2;
-        let yz2 = quat.y * z2;
-        let zz2 = quat.z * z2;
-        let wx2 = quat.w * x2;
-        let wy2 = quat.w * y2;
-        let wz2 = quat.w * z2;
-
-        [
-            Vector::<4, T, A>::new(T::ONE - (yy2 + zz2), xy2 + wz2, xz2 - wy2, T::ZERO),
-            Vector::<4, T, A>::new(xy2 - wz2, T::ONE - (xx2 + zz2), yz2 + wx2, T::ZERO),
-            Vector::<4, T, A>::new(xz2 + wy2, yz2 - wx2, T::ONE - (xx2 + yy2), T::ZERO),
-        ]
-    }
-
-    /// Creates a 3D projective transform containing a rotation from a
-    /// quaternion.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if the quaternion is not normalized.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn from_quat(quat: Quaternion<T, A>) -> Self {
-        debug_assert!(
-            quat.is_normalized(),
-            "quat is not normalized: Matrix::from_quat({quat:?})"
-        );
-
-        let [x_axis, y_axis, z_axis] = Self::quat_to_axes(quat);
-        Self::from_rows(&[x_axis, y_axis, z_axis, Vector::W])
-    }
-
     /// Creates a 3D projective transform containing a rotation from a
     /// rotation `axis` and `angle` (in radians) using the right-hand rule.
     ///
@@ -532,91 +489,6 @@ where
     #[must_use]
     pub fn from_euler(order: EulerRot, a: T, b: T, c: T) -> Self {
         Self::from_matrix(&Matrix::<3, T, A>::from_euler(order, a, b, c))
-    }
-
-    /// Creates a 3D projective transform containing a non-uniform `scale` and a
-    /// 3D `rotation`.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `rotation` is not normalized.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn from_scale_rotation(scale: Vector<3, T, A>, rotation: Quaternion<T, A>) -> Self {
-        debug_assert!(
-            rotation.is_normalized(),
-            "rotation is not normalized: from_scale_rotation({scale:?}, {rotation:?})"
-        );
-
-        let [rotation_x, rotation_y, rotation_z] = Self::quat_to_axes(rotation);
-        Self::from_rows(&[
-            rotation_x * scale.x,
-            rotation_y * scale.y,
-            rotation_z * scale.z,
-            Vector::W,
-        ])
-    }
-
-    /// Creates a 3D projective transform containing a 3D `rotation` and
-    /// `translation`.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `rotation` is not normalized.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn from_rotation_translation(
-        rotation: Quaternion<T, A>,
-        translation: Vector<3, T, A>,
-    ) -> Self {
-        debug_assert!(
-            rotation.is_normalized(),
-            "rotation is not normalized: from_rotation_translation({rotation:?}, {translation:?})"
-        );
-
-        let [x_axis, y_axis, z_axis] = Self::quat_to_axes(rotation);
-        Self::from_rows(&[
-            x_axis,
-            y_axis,
-            z_axis,
-            Vector::<4, T, A>::new(translation.x, translation.y, translation.z, T::ONE),
-        ])
-    }
-
-    /// Creates a 3D projective transform containing a non-uniform `scale`, a 3D
-    /// `rotation` and `translation`.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `rotation` is not normalized.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn from_scale_rotation_translation(
-        scale: Vector<3, T, A>,
-        rotation: Quaternion<T, A>,
-        translation: Vector<3, T, A>,
-    ) -> Self {
-        debug_assert!(
-            rotation.is_normalized(),
-            "rotation is not normalized: from_scale_rotation_translation({scale:?}, {rotation:?}, {translation:?})"
-        );
-
-        let [rotation_x, rotation_y, rotation_z] = Self::quat_to_axes(rotation);
-        Self::from_rows(&[
-            rotation_x * scale.x,
-            rotation_y * scale.y,
-            rotation_z * scale.z,
-            Vector::<4, T, A>::new(translation.x, translation.y, translation.z, T::ONE),
-        ])
     }
 
     /// Creates a left-handed view transform from a camera position, a facing
@@ -1265,43 +1137,6 @@ where
         Matrix::<3, T, A>::from_projective(self).to_euler(order)
     }
 
-    /// Returns the `scale` and `rotation` of `self`.
-    ///
-    /// This function assumes `self` contains an affine transform with no shear
-    /// or projections. `self` can contain translation which is ignored.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `self` contains shearing or the determinant of `self` is zero.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn to_scale_rotation(&self) -> (Vector<3, T, A>, Quaternion<T, A>) {
-        Matrix::<3, T, A>::from_projective(self).to_scale_rotation()
-    }
-
-    /// Returns the `scale`, `rotation` and `translation` of `self`.
-    ///
-    /// This function assumes `self` contains an affine transform with no shear
-    /// or projections.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `self` contains shearing or the determinant of `self` is zero.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn to_scale_rotation_translation(
-        &self,
-    ) -> (Vector<3, T, A>, Quaternion<T, A>, Vector<3, T, A>) {
-        let (scale, rotation) = self.to_scale_rotation();
-        (scale, rotation, self.translation())
-    }
-
     #[inline(always)]
     fn is_nan_backend(&self) -> bool {
         self.x_axis.is_nan() || self.y_axis.is_nan() || self.z_axis.is_nan() || self.w_axis.is_nan()
@@ -1384,8 +1219,7 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{
-        Affine, EulerRot, Matrix, Proj2A, Proj3A, Projective, Quaternion, Vec2A, Vec3A, Vec4A,
-        Vector,
+        Affine, EulerRot, Matrix, Proj2A, Proj3A, Projective, Vec2A, Vec3A, Vec4A, Vector,
         test_utils::{
             assert_debug_panic, assert_panic_test_eq, assert_test_eq, for_types, random_iter,
         },
@@ -1889,18 +1723,6 @@ mod tests {
     }
 
     #[test]
-    fn test_from_quat() {
-        for_types!(|T: PrimitiveFloat, A| {
-            for quat in random_iter::<Quaternion<T, A>>() {
-                assert_panic_test_eq!(
-                    Projective::<3, T, A>::from_quat(quat),
-                    Projective::<3, T, A>::from_matrix(&Matrix::<3, T, A>::from_quat(quat))
-                );
-            }
-        });
-    }
-
-    #[test]
     fn test_from_axis_angle() {
         for_types!(|T: PrimitiveFloat, A| {
             for (axis, angle) in random_iter::<(Vector<3, T, A>, T)>() {
@@ -1924,65 +1746,6 @@ mod tests {
                         Projective::<3, T, A>::from_matrix(&Matrix::<3, T, A>::from_euler(
                             order, a, b, c
                         ))
-                    );
-                }
-            }
-        });
-    }
-
-    #[test]
-    fn test_from_scale_rotation() {
-        for_types!(|T: PrimitiveFloat, A| {
-            for (scale, rotation) in random_iter::<(Vector<3, T, A>, Quaternion<T, A>)>() {
-                if scale.is_finite() && rotation.is_finite() {
-                    assert_panic_test_eq!(
-                        Projective::<3, T, A>::from_scale_rotation(scale, rotation),
-                        Projective::<3, T, A>::from_matrix(
-                            &Matrix::<3, T, A>::from_scale_rotation(scale, rotation)
-                        ),
-                        0.0 = -0.0
-                    );
-                }
-            }
-        });
-    }
-
-    #[test]
-    fn test_from_rotation_translation() {
-        for_types!(|T: PrimitiveFloat, A| {
-            for (rotation, translation) in random_iter::<(Quaternion<T, A>, Vector<3, T, A>)>() {
-                assert_panic_test_eq!(
-                    Projective::<3, T, A>::from_rotation_translation(rotation, translation),
-                    Projective::<3, T, A>::from_affine(
-                        &Affine::<3, T, A>::from_rotation_translation(rotation, translation)
-                    ),
-                    0.0 = -0.0
-                );
-            }
-        });
-    }
-
-    #[test]
-    fn test_from_scale_rotation_translation() {
-        for_types!(|T: PrimitiveFloat, A| {
-            for (scale, rotation, translation) in
-                random_iter::<(Vector<3, T, A>, Quaternion<T, A>, Vector<3, T, A>)>()
-            {
-                if scale.is_finite() && rotation.is_finite() {
-                    assert_panic_test_eq!(
-                        Projective::<3, T, A>::from_scale_rotation_translation(
-                            scale,
-                            rotation,
-                            translation
-                        ),
-                        Projective::<3, T, A>::from_affine(
-                            &Affine::<3, T, A>::from_scale_rotation_translation(
-                                scale,
-                                rotation,
-                                translation,
-                            )
-                        ),
-                        0.0 = -0.0
                     );
                 }
             }
@@ -2519,6 +2282,8 @@ mod tests {
 
     #[test]
     fn test_to_euler() {
+        todo!("replace this part with rotors")
+        /*
         for_types!(|T: PrimitiveFloat, A| {
             for order in EulerRot::values() {
                 for projective in random_iter::<Quaternion<T, A>>()
@@ -2535,49 +2300,6 @@ mod tests {
                 }
             }
         });
-    }
-
-    #[test]
-    fn test_to_scale_rotation() {
-        for_types!(|T: PrimitiveFloat, A| {
-            for projective in random_iter::<(Vector<3, T, A>, Quaternion<T, A>, Vector<3, T, A>)>()
-                .map(|(scale, rotation, translation)| {
-                    let rotation = rotation.normalize_or(Quaternion::IDENTITY).normalize();
-                    Projective::<3, T, A>::from_scale_rotation_translation(
-                        scale,
-                        rotation,
-                        translation,
-                    )
-                })
-                .chain(random_iter::<Projective<3, T, A>>().take(20))
-            {
-                assert_panic_test_eq!(
-                    projective.to_scale_rotation(),
-                    Matrix::<3, T, A>::from_projective(&projective).to_scale_rotation()
-                );
-            }
-        });
-    }
-
-    #[test]
-    fn test_to_scale_rotation_translation() {
-        for_types!(|T: PrimitiveFloat, A| {
-            for projective in random_iter::<(Vector<3, T, A>, Quaternion<T, A>, Vector<3, T, A>)>()
-                .map(|(scale, rotation, translation)| {
-                    let rotation = rotation.normalize_or(Quaternion::IDENTITY).normalize();
-                    Projective::<3, T, A>::from_scale_rotation_translation(
-                        scale,
-                        rotation,
-                        translation,
-                    )
-                })
-                .chain(random_iter::<Projective<3, T, A>>().take(20))
-            {
-                assert_panic_test_eq!(
-                    projective.to_scale_rotation_translation(),
-                    Affine::<3, T, A>::from_projective(&projective).to_scale_rotation_translation()
-                );
-            }
-        });
+        */
     }
 }

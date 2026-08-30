@@ -1,7 +1,7 @@
 use core::cmp::Ordering;
 
 use crate::{
-    Alignment, FloatExt, Length, Mask, PrimitiveFloat, Quaternion, SupportedLength, Vector,
+    Alignment, FloatExt, Length, Mask, PrimitiveFloat, SupportedLength, Vector,
     backend::FloatVectorBackend,
     utils::{specialize, transmute_generic},
 };
@@ -1817,11 +1817,14 @@ where
         } else if angle_cos.is_sign_negative() {
             // Vectors are almost parallel in opposing directions.
 
+            todo!("replace quaternions with rotors")
+            /*
             let axis = self.any_orthogonal_vector().normalize();
             let rotation = Quaternion::<T, A>::from_axis_angle(axis, t * T::PI);
 
             let result_length = self_length.lerp(other_length, t);
             self * rotation * (result_length / self_length)
+            */
         } else {
             // Vectors are almost parallel in the same direction.
             self.lerp(other, t)
@@ -1830,9 +1833,11 @@ where
 
     #[track_caller]
     #[inline(always)]
-    fn rotate_towards_backend(self, target: Self, max_angle: T) -> Self {
+    fn rotate_towards_backend(self, _target: Self, _max_angle: T) -> Self {
         // Ported from `https://github.com/bitshifter/glam-rs`.
 
+        todo!("replace quaternions with rotors")
+        /*
         let self_length = self.length();
         let target_length = target.length();
 
@@ -1859,6 +1864,7 @@ where
             .unwrap_or_else(|| self.any_orthonormal_vector());
 
         self * Quaternion::<T, A>::from_axis_angle(axis, angle)
+        */
     }
 
     #[track_caller]

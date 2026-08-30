@@ -4,8 +4,8 @@ use rand::{
 };
 
 use crate::{
-    Affine, Alignment, Length, Mask, Matrix, Projective, Quaternion, Scalar, SupportedLength,
-    Vector, length::TwoOrThree, utils::specialize_23,
+    Affine, Alignment, Length, Mask, Matrix, Projective, Scalar, SupportedLength, Vector,
+    length::TwoOrThree, utils::specialize_23,
 };
 
 impl<const N: usize, T, A: Alignment> Distribution<Vector<N, T, A>> for StandardUniform
@@ -81,17 +81,6 @@ where
     }
 }
 
-impl<T, A: Alignment> Distribution<Quaternion<T, A>> for StandardUniform
-where
-    T: Scalar,
-    StandardUniform: Distribution<T>,
-{
-    #[inline]
-    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Quaternion<T, A> {
-        Quaternion::from_array(rng.random::<[T; 4]>())
-    }
-}
-
 impl<const N: usize, T, A: Alignment> Distribution<Mask<N, T, A>> for StandardUniform
 where
     Length<N>: SupportedLength,
@@ -107,7 +96,7 @@ where
 mod tests {
     use rand::{RngExt, SeedableRng, rngs::StdRng};
 
-    use crate::{Affine, Mask, Matrix, Projective, Quaternion, Vector, test_utils::for_types};
+    use crate::{Affine, Mask, Matrix, Projective, Vector, test_utils::for_types};
 
     #[test]
     fn test_vector() {
@@ -181,18 +170,6 @@ mod tests {
             assert_eq!(
                 rng().random::<Projective<3, f32, A>>(),
                 Projective(rng().random())
-            );
-        });
-    }
-
-    #[test]
-    fn test_quaternion() {
-        for_types!(|A| {
-            let rng = || StdRng::from_seed([0; 32]);
-
-            assert_eq!(
-                rng().random::<Quaternion<f32, A>>(),
-                Quaternion::from_array(rng().random())
             );
         });
     }

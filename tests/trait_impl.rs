@@ -18,8 +18,7 @@ use fixed::{
     FixedU128,
 };
 use ggmath::{
-    Affine, Alignment, Length, Mask, Matrix, NegOne, One, Quaternion, Scalar, SupportedLength,
-    Vector, Zero,
+    Affine, Alignment, Length, Mask, Matrix, NegOne, One, Scalar, SupportedLength, Vector, Zero,
 };
 #[cfg(feature = "mint")]
 use mint::IntoMint;
@@ -57,7 +56,6 @@ assert_impl!(
         where T: Debug {
             Vector<N, T, A>: Debug,
             Matrix<N, T, A>: Debug,
-            Quaternion<T, A>: Debug,
             Affine<N, T, A>: Debug,
         }
 
@@ -65,19 +63,16 @@ assert_impl!(
         where T: Display {
             Vector<N, T, A>: Display,
             Matrix<N, T, A>: Display,
-            Quaternion<T, A>: Display,
             Affine<N, T, A>: Display,
         }
 
         Vector<N, T, A>: Clone,
         Matrix<N, T, A>: Clone,
-        Quaternion<T, A>: Clone,
         Affine<N, T, A>: Clone,
         Mask<N, T, A>: Clone,
 
         Vector<N, T, A>: Copy,
         Matrix<N, T, A>: Copy,
-        Quaternion<T, A>: Copy,
         Affine<N, T, A>: Copy,
         Mask<N, T, A>: Copy,
 
@@ -85,7 +80,6 @@ assert_impl!(
         where T: PartialEq {
             Vector<N, T, A>: PartialEq,
             Matrix<N, T, A>: PartialEq,
-            Quaternion<T, A>: PartialEq,
             Affine<N, T, A>: PartialEq,
         }
 
@@ -93,7 +87,6 @@ assert_impl!(
         where T: Eq {
             Vector<N, T, A>: Eq,
             Matrix<N, T, A>: Eq,
-            Quaternion<T, A>: Eq,
             Affine<N, T, A>: Eq,
         }
 
@@ -101,7 +94,6 @@ assert_impl!(
         where T: Hash {
             Vector<N, T, A>: Hash,
             Matrix<N, T, A>: Hash,
-            Quaternion<T, A>: Hash,
             Affine<N, T, A>: Hash,
         }
 
@@ -111,7 +103,6 @@ assert_impl!(
         }
         where T: Zero + One {
             Matrix<N, T, A>: Default,
-            Quaternion<T, A>: Default,
             Affine<N, T, A>: Default,
         }
 
@@ -133,7 +124,6 @@ assert_impl!(
         Matrix<2, T, A>: Deref,
         Matrix<3, T, A>: Deref,
         Matrix<4, T, A>: Deref,
-        Quaternion<T, A>: Deref,
 
         Vector<2, T, A>: DerefMut,
         Vector<3, T, A>: DerefMut,
@@ -141,12 +131,10 @@ assert_impl!(
         Matrix<2, T, A>: DerefMut,
         Matrix<3, T, A>: DerefMut,
         Matrix<4, T, A>: DerefMut,
-        Quaternion<T, A>: DerefMut,
 
         where T: Neg<Output = T> {
             Vector<N, T, A>: Neg<Output = Vector<N, T, A>>,
             Matrix<N, T, A>: Neg<Output = Matrix<N, T, A>>,
-            Quaternion<T, A>: Neg<Output = Quaternion<T, A>>,
             for<'a> where T: 'a {
                 &'a Vector<N, T, A>: Neg<Output = Vector<N, T, A>>,
                 &'a Matrix<N, T, A>: Neg<Output = Matrix<N, T, A>>,
@@ -168,7 +156,6 @@ assert_impl!(
             Vector<N, T, A>: Add<Output = Vector<N, T, A>>,
             Vector<N, T, A>: Add<T, Output = Vector<N, T, A>>,
             Matrix<N, T, A>: Add<Output = Matrix<N, T, A>>,
-            Quaternion<T, A>: Add<Output = Quaternion<T, A>>,
             for<'a> where T: 'a {
                 Vector<N, T, A>: Add<&'a Vector<N, T, A>, Output = Vector<N, T, A>>,
                 Vector<N, T, A>: Add<&'a T, Output = Vector<N, T, A>>,
@@ -186,7 +173,6 @@ assert_impl!(
             Vector<N, T, A>: AddAssign,
             Vector<N, T, A>: AddAssign<T>,
             Matrix<N, T, A>: AddAssign,
-            Quaternion<T, A>: AddAssign,
             for<'a> where T: 'a {
                 Vector<N, T, A>: AddAssign<&'a Vector<N, T, A>>,
                 Vector<N, T, A>: AddAssign<&'a T>,
@@ -198,7 +184,6 @@ assert_impl!(
             Vector<N, T, A>: Sub<Output = Vector<N, T, A>>,
             Vector<N, T, A>: Sub<T, Output = Vector<N, T, A>>,
             Matrix<N, T, A>: Sub<Output = Matrix<N, T, A>>,
-            Quaternion<T, A>: Sub<Output = Quaternion<T, A>>,
             for<'a> where T: 'a {
                 Vector<N, T, A>: Sub<&'a Vector<N, T, A>, Output = Vector<N, T, A>>,
                 Vector<N, T, A>: Sub<&'a T, Output = Vector<N, T, A>>,
@@ -216,7 +201,6 @@ assert_impl!(
             Vector<N, T, A>: SubAssign,
             Vector<N, T, A>: SubAssign<T>,
             Matrix<N, T, A>: SubAssign,
-            Quaternion<T, A>: SubAssign,
             for<'a> where T: 'a {
                 Vector<N, T, A>: SubAssign<&'a Vector<N, T, A>>,
                 Vector<N, T, A>: SubAssign<&'a T>,
@@ -227,7 +211,6 @@ assert_impl!(
         where T: Mul<Output = T> {
             Vector<N, T, A>: Mul<Output = Vector<N, T, A>>,
             Vector<N, T, A>: Mul<T, Output = Vector<N, T, A>>,
-            Quaternion<T, A>: Mul<T, Output = Quaternion<T, A>>,
             for<'a> where T: 'a {
                 Vector<N, T, A>: Mul<&'a Vector<N, T, A>, Output = Vector<N, T, A>>,
                 Vector<N, T, A>: Mul<&'a T, Output = Vector<N, T, A>>,
@@ -241,7 +224,6 @@ assert_impl!(
         where T: Mul<Output = T> {
             Vector<N, T, A>: MulAssign,
             Vector<N, T, A>: MulAssign<T>,
-            Quaternion<T, A>: MulAssign<T>,
             for<'a> where T: 'a {
                 Vector<N, T, A>: MulAssign<&'a Vector<N, T, A>>,
                 Vector<N, T, A>: MulAssign<&'a T>,
@@ -453,7 +435,6 @@ assert_impl!(
         for<'a> where T: 'a {
             Vector<N, T, A>: 'a,
             Matrix<N, T, A>: 'a,
-            Quaternion<T, A>: 'a,
             Affine<N, T, A>: 'a,
             Mask<N, T, A>: 'a,
         }
@@ -462,7 +443,6 @@ assert_impl!(
         where T: Send {
             Vector<N, T, A>: Send,
             Matrix<N, T, A>: Send,
-            Quaternion<T, A>: Send,
             Affine<N, T, A>: Send,
         }
 
@@ -470,7 +450,6 @@ assert_impl!(
         where T: Sync {
             Vector<N, T, A>: Sync,
             Matrix<N, T, A>: Sync,
-            Quaternion<T, A>: Sync,
             Affine<N, T, A>: Sync,
         }
 
@@ -478,7 +457,6 @@ assert_impl!(
         where T: Unpin {
             Vector<N, T, A>: Unpin,
             Matrix<N, T, A>: Unpin,
-            Quaternion<T, A>: Unpin,
             Affine<N, T, A>: Unpin,
         }
 
@@ -486,7 +464,6 @@ assert_impl!(
         where T: UnwindSafe {
             Vector<N, T, A>: UnwindSafe,
             Matrix<N, T, A>: UnwindSafe,
-            Quaternion<T, A>: UnwindSafe,
             Affine<N, T, A>: UnwindSafe,
         }
 
@@ -494,7 +471,6 @@ assert_impl!(
         where T: RefUnwindSafe {
             Vector<N, T, A>: RefUnwindSafe,
             Matrix<N, T, A>: RefUnwindSafe,
-            Quaternion<T, A>: RefUnwindSafe,
             Affine<N, T, A>: RefUnwindSafe,
         }
     }
@@ -549,28 +525,6 @@ assert_impl!(
         Matrix<N, u128, A>: AnyBitPattern + NoUninit + Pod + Zeroable,
         Matrix<N, usize, A>: AnyBitPattern + NoUninit + Pod + Zeroable,
         Matrix<N, bool, A>: Zeroable,
-
-        for<T: Scalar + Pod> {
-            Quaternion<T, A>: Pod,
-        }
-        for<T: Scalar + Zeroable> {
-            Quaternion<T, A>: Zeroable,
-        }
-        Quaternion<f32, A>: AnyBitPattern + NoUninit + Pod + Zeroable,
-        Quaternion<f64, A>: AnyBitPattern + NoUninit + Pod + Zeroable,
-        Quaternion<i8, A>: AnyBitPattern + NoUninit + Pod + Zeroable,
-        Quaternion<i16, A>: AnyBitPattern + NoUninit + Pod + Zeroable,
-        Quaternion<i32, A>: AnyBitPattern + NoUninit + Pod + Zeroable,
-        Quaternion<i64, A>: AnyBitPattern + NoUninit + Pod + Zeroable,
-        Quaternion<i128, A>: AnyBitPattern + NoUninit + Pod + Zeroable,
-        Quaternion<isize, A>: AnyBitPattern + NoUninit + Pod + Zeroable,
-        Quaternion<u8, A>: AnyBitPattern + NoUninit + Pod + Zeroable,
-        Quaternion<u16, A>: AnyBitPattern + NoUninit + Pod + Zeroable,
-        Quaternion<u32, A>: AnyBitPattern + NoUninit + Pod + Zeroable,
-        Quaternion<u64, A>: AnyBitPattern + NoUninit + Pod + Zeroable,
-        Quaternion<u128, A>: AnyBitPattern + NoUninit + Pod + Zeroable,
-        Quaternion<usize, A>: AnyBitPattern + NoUninit + Pod + Zeroable,
-        Quaternion<bool, A>: Zeroable,
 
         for<T: Scalar + Pod> {
             Affine<N, T, A>: Pod,
@@ -656,10 +610,6 @@ assert_impl!(
         Matrix<4, T, A>: From<mint::RowMatrix4<T>>,
         Matrix<4, T, A>: Into<mint::RowMatrix4<T>>,
 
-        Quaternion<T, A>: IntoMint<MintType = mint::Quaternion<T>>,
-        Quaternion<T, A>: From<mint::Quaternion<T>>,
-        Quaternion<T, A>: Into<mint::Quaternion<T>>,
-
         Mask<2, T, A>: IntoMint<MintType = mint::Vector2<bool>>,
         Mask<2, T, A>: From<mint::Vector2<bool>>,
         Mask<2, T, A>: Into<mint::Vector2<bool>>,
@@ -685,7 +635,6 @@ assert_impl!(
         where T: Serialize {
             Vector<N, T, A>: Serialize,
             Matrix<N, T, A>: Serialize,
-            Quaternion<T, A>: Serialize,
             Affine<N, T, A>: Serialize,
         }
 
@@ -694,7 +643,6 @@ assert_impl!(
             where T: Deserialize<'de> {
                 Vector<N, T, A>: Deserialize<'de>,
                 Matrix<N, T, A>: Deserialize<'de>,
-                Quaternion<T, A>: Deserialize<'de>,
                 Affine<N, T, A>: Deserialize<'de>,
             }
         }
