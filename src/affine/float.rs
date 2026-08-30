@@ -171,10 +171,8 @@ impl<T, A: Alignment> Affine<2, T, A>
 where
     T: PrimitiveFloat,
 {
-    /// Creates an affine transform containing a rotation of `angle`
-    /// (in radians).
-    ///
-    /// This rotates `+X` to `+Y`.
+    /// Creates an affine transform containing a rotation from an `angle`
+    /// (in radians) rotating `+X` to `+Y`.
     #[inline]
     #[must_use]
     pub fn from_angle(angle: T) -> Self {

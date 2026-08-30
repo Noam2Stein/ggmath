@@ -97,10 +97,8 @@ macro_rules! items {
 
 macro_rules! items_2 {
     ($Wide:ident) => {
-        /// Creates an affine transform containing a rotation of `angle` (in
-        /// radians).
-        ///
-        /// This rotates `+X` to `+Y`.
+        /// Creates an affine transform containing a rotation from an `angle`
+        /// (in radians) rotating `+X` to `+Y`.
         #[inline]
         #[must_use]
         pub fn from_angle(angle: $Wide) -> Self {
