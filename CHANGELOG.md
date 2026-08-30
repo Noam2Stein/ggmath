@@ -47,6 +47,11 @@ stabilized, which should not affect most users.
   - `to/from_projective`
   - `to/from_homogeneous`
 
+- Rotation functions `rotate_x/y/z` and `from_rotation_x/y/z` have been replaced
+  with new ones `rotate_xy/xz/yz` and `from_rotation_xy/xz/yz` that use plane
+  notation instead of axis notation. Other rotation functions also have modified
+  documentation.
+
 - Updated dependency `wide`
 
 - SoA vector function `blend` has been replaced with `select`, following the
