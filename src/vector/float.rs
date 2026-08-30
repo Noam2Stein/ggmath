@@ -1609,9 +1609,7 @@ where
         angle_between * outer_product.signum()
     }
 
-    /// Rotates `self` by `angle` (in radians).
-    ///
-    /// This rotates `+X` to `+Y`.
+    /// Rotates a vector by an `angle` (in radians) rotating `+X` to `+Y`.
     ///
     /// # Unspecified precision
     ///

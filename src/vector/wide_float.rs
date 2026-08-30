@@ -873,9 +873,7 @@ macro_rules! items_2 {
             self.angle_between(other) * outer_product.signum()
         }
 
-        /// For each lane, rotates `self` by `angle` (in radians).
-        ///
-        /// This rotates `+X` to `+Y`.
+        /// Rotates a vector by an `angle` (in radians) rotating `+X` to `+Y`.
         ///
         /// # Unspecified precision
         ///
