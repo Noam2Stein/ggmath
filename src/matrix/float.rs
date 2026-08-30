@@ -1616,7 +1616,7 @@ mod tests {
 
                 assert_test_eq!(
                     vector * Matrix::<3, T, A>::from_rotation_x(angle),
-                    vector.rotate_x(angle),
+                    vector.rotate_yz(angle),
                     0.0 = -0.0
                 );
             }
@@ -1633,7 +1633,7 @@ mod tests {
 
                 assert_test_eq!(
                     vector * Matrix::<3, T, A>::from_rotation_y(angle),
-                    vector.rotate_y(angle),
+                    vector.rotate_xz(-angle),
                     0.0 = -0.0
                 );
             }
@@ -1650,7 +1650,7 @@ mod tests {
 
                 assert_test_eq!(
                     vector * Matrix::<3, T, A>::from_rotation_z(angle),
-                    vector.rotate_z(angle),
+                    vector.rotate_xy(angle),
                     0.0 = -0.0
                 );
             }
