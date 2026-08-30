@@ -171,10 +171,8 @@ impl<T, A: Alignment> Affine<2, T, A>
 where
     T: PrimitiveFloat,
 {
-    /// Creates an affine transform containing a rotation of `angle`
-    /// (in radians).
-    ///
-    /// This rotates `+X` to `+Y`.
+    /// Creates an affine transform containing a rotation from an `angle`
+    /// (in radians) rotating `+X` to `+Y`.
     #[inline]
     #[must_use]
     pub fn from_angle(angle: T) -> Self {
@@ -324,34 +322,28 @@ impl<T, A: Alignment> Affine<3, T, A>
 where
     T: PrimitiveFloat,
 {
-    /// Creates an affine transform containing a 3D rotation from `angle` (in
-    /// radians) around the x axis.
-    ///
-    /// This rotates `+Y` to `+Z`.
+    /// Creates an affine transform containing a rotation from an `angle` (in
+    /// radians) rotating `+X` to `+Y`.
     #[inline]
     #[must_use]
-    pub fn from_rotation_x(angle: T) -> Self {
-        Self::from_matrix(&Matrix::<3, T, A>::from_rotation_x(angle))
+    pub fn from_rotation_xy(angle: T) -> Self {
+        Self::from_matrix(&Matrix::<3, T, A>::from_rotation_xy(angle))
     }
 
-    /// Creates an affine transform containing a 3D rotation from `angle` (in
-    /// radians) around the y axis.
-    ///
-    /// This rotates `+Z` to `+X`.
+    /// Creates an affine transform containing a rotation from an `angle` (in
+    /// radians) rotating `+X` to `+Z`.
     #[inline]
     #[must_use]
-    pub fn from_rotation_y(angle: T) -> Self {
-        Self::from_matrix(&Matrix::<3, T, A>::from_rotation_y(angle))
+    pub fn from_rotation_xz(angle: T) -> Self {
+        Self::from_matrix(&Matrix::<3, T, A>::from_rotation_xz(angle))
     }
 
-    /// Creates an affine transform containing a 3D rotation from `angle` (in
-    /// radians) around the z axis.
-    ///
-    /// This rotates `+X` to `+Y`.
+    /// Creates an affine transform containing a rotation from an `angle` (in
+    /// radians) rotating `+Y` to `+Z`.
     #[inline]
     #[must_use]
-    pub fn from_rotation_z(angle: T) -> Self {
-        Self::from_matrix(&Matrix::<3, T, A>::from_rotation_z(angle))
+    pub fn from_rotation_yz(angle: T) -> Self {
+        Self::from_matrix(&Matrix::<3, T, A>::from_rotation_yz(angle))
     }
 
     /// Creates an affine transform containing a 3D rotation from a quaternion.
@@ -369,7 +361,7 @@ where
     }
 
     /// Creates an affine transform containing a rotation from a rotation `axis`
-    /// and `angle` (in radians).
+    /// and `angle` (in radians) using the right-hand rule.
     ///
     /// `axis` must be normalized. Otherwise the result is unspecified.
     ///
@@ -1177,36 +1169,36 @@ mod tests {
     }
 
     #[test]
-    fn test_from_rotation_x() {
+    fn test_from_rotation_xy() {
         for_types!(|T: PrimitiveFloat, A| {
             for angle in random_iter::<T>() {
                 assert_test_eq!(
-                    Affine::<3, T, A>::from_rotation_x(angle),
-                    Affine::from_matrix(&Matrix::<3, T, A>::from_rotation_x(angle))
+                    Affine::<3, T, A>::from_rotation_xy(angle),
+                    Affine::from_matrix(&Matrix::<3, T, A>::from_rotation_xy(angle))
                 );
             }
         });
     }
 
     #[test]
-    fn test_from_rotation_y() {
+    fn test_from_rotation_xz() {
         for_types!(|T: PrimitiveFloat, A| {
             for angle in random_iter::<T>() {
                 assert_test_eq!(
-                    Affine::<3, T, A>::from_rotation_y(angle),
-                    Affine::from_matrix(&Matrix::<3, T, A>::from_rotation_y(angle))
+                    Affine::<3, T, A>::from_rotation_xz(angle),
+                    Affine::from_matrix(&Matrix::<3, T, A>::from_rotation_xz(angle))
                 );
             }
         });
     }
 
     #[test]
-    fn test_from_rotation_z() {
+    fn test_from_rotation_yz() {
         for_types!(|T: PrimitiveFloat, A| {
             for angle in random_iter::<T>() {
                 assert_test_eq!(
-                    Affine::<3, T, A>::from_rotation_z(angle),
-                    Affine::from_matrix(&Matrix::<3, T, A>::from_rotation_z(angle))
+                    Affine::<3, T, A>::from_rotation_yz(angle),
+                    Affine::from_matrix(&Matrix::<3, T, A>::from_rotation_yz(angle))
                 );
             }
         });

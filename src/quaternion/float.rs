@@ -7,37 +7,32 @@ where
     /// A quaternion with all elements set to NaN (Not a Number).
     pub const NAN: Self = Self::from_vector(Vector::<4, T, A>::NAN);
 
-    /// Creates a quaternion from an `angle` (in radians) around the x axis.
-    ///
-    /// This rotates `+Y` to `+Z`.
+    /// Creates a quaternion from an `angle` (in radians) rotating `+X` to `+Y`.
     #[inline]
     #[must_use]
-    pub fn from_rotation_x(angle: T) -> Self {
-        let (sin, cos) = (angle * T::as_from(0.5)).sin_cos();
-        Self::from_xyzw(sin, T::ZERO, T::ZERO, cos)
-    }
-
-    /// Creates a quaternion from an `angle` (in radians) around the y axis.
-    ///
-    /// This rotates `+Z` to `+X`.
-    #[inline]
-    #[must_use]
-    pub fn from_rotation_y(angle: T) -> Self {
-        let (sin, cos) = (angle * T::as_from(0.5)).sin_cos();
-        Self::from_xyzw(T::ZERO, sin, T::ZERO, cos)
-    }
-
-    /// Creates a quaternion from an `angle` (in radians) around the z axis.
-    ///
-    /// This rotates `+X` to `+Y`.
-    #[inline]
-    #[must_use]
-    pub fn from_rotation_z(angle: T) -> Self {
+    pub fn from_rotation_xy(angle: T) -> Self {
         let (sin, cos) = (angle * T::as_from(0.5)).sin_cos();
         Self::from_xyzw(T::ZERO, T::ZERO, sin, cos)
     }
 
-    /// Creates a quaternion from a rotation `axis` and `angle` (in radians).
+    /// Creates a quaternion from an `angle` (in radians) rotating `+X` to `+Z`.
+    #[inline]
+    #[must_use]
+    pub fn from_rotation_xz(angle: T) -> Self {
+        let (sin, cos) = (angle * T::as_from(0.5)).sin_cos();
+        Self::from_xyzw(T::ZERO, -sin, T::ZERO, cos)
+    }
+
+    /// Creates a quaternion from an `angle` (in radians) rotating `+Y` to `+Z`.
+    #[inline]
+    #[must_use]
+    pub fn from_rotation_yz(angle: T) -> Self {
+        let (sin, cos) = (angle * T::as_from(0.5)).sin_cos();
+        Self::from_xyzw(sin, T::ZERO, T::ZERO, cos)
+    }
+
+    /// Creates a quaternion from a rotation `axis` and `angle` (in radians)
+    /// using the right-hand rule.
     ///
     /// `axis` must be normalized.
     ///
@@ -61,7 +56,7 @@ where
     }
 
     /// Creates a quaternion that rotates `scaled_axis.length()` radians around
-    /// `scaled_axis.normalize()`.
+    /// `scaled_axis.normalize()` using the right-hand rule.
     #[inline]
     #[must_use]
     pub fn from_scaled_axis(scaled_axis: Vector<3, T, A>) -> Self {
@@ -399,7 +394,7 @@ where
     }
 
     /// Converts the quaternion `self` to a normalized rotation axis and an
-    /// angle (in radians).
+    /// angle (in radians) using the right-hand rule.
     ///
     /// # Panics
     ///
@@ -429,7 +424,7 @@ where
     }
 
     /// Converts the quaternion `self` to a rotation axis scaled by an angle (in
-    /// radians).
+    /// radians) using the right-hand rule.
     ///
     /// # Panics
     ///
@@ -836,40 +831,40 @@ mod tests {
     }
 
     #[test]
-    fn test_from_rotation_x() {
+    fn test_from_rotation_xy() {
         for_types!(|T: PrimitiveFloat, A| {
             for angle in random_iter() {
                 assert_test_eq!(
-                    Quaternion::<T, A>::from_rotation_x(angle),
-                    Quaternion::from_xyzw((angle * 0.5).sin(), 0.0, 0.0, (angle * 0.5).cos()),
-                    abs <= angle.abs() * 1e-4 + 1e-3,
-                    0.0 = -0.0
-                );
-            }
-        });
-    }
-
-    #[test]
-    fn test_from_rotation_y() {
-        for_types!(|T: PrimitiveFloat, A| {
-            for angle in random_iter() {
-                assert_test_eq!(
-                    Quaternion::<T, A>::from_rotation_y(angle),
-                    Quaternion::from_xyzw(0.0, (angle * 0.5).sin(), 0.0, (angle * 0.5).cos()),
-                    abs <= angle.abs() * 1e-4 + 1e-3,
-                    0.0 = -0.0
-                );
-            }
-        });
-    }
-
-    #[test]
-    fn test_from_rotation_z() {
-        for_types!(|T: PrimitiveFloat, A| {
-            for angle in random_iter() {
-                assert_test_eq!(
-                    Quaternion::<T, A>::from_rotation_z(angle),
+                    Quaternion::<T, A>::from_rotation_xy(angle),
                     Quaternion::from_xyzw(0.0, 0.0, (angle * 0.5).sin(), (angle * 0.5).cos()),
+                    abs <= angle.abs() * 1e-4 + 1e-3,
+                    0.0 = -0.0
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_rotation_xz() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for angle in random_iter() {
+                assert_test_eq!(
+                    Quaternion::<T, A>::from_rotation_xz(angle),
+                    Quaternion::from_xyzw(0.0, (-angle * 0.5).sin(), 0.0, (-angle * 0.5).cos()),
+                    abs <= angle.abs() * 1e-4 + 1e-3,
+                    0.0 = -0.0
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_rotation_yz() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for angle in random_iter() {
+                assert_test_eq!(
+                    Quaternion::<T, A>::from_rotation_yz(angle),
+                    Quaternion::from_xyzw((angle * 0.5).sin(), 0.0, 0.0, (angle * 0.5).cos()),
                     abs <= angle.abs() * 1e-4 + 1e-3,
                     0.0 = -0.0
                 );
@@ -1062,20 +1057,20 @@ mod tests {
     #[test]
     fn test_from_matrix() {
         for_types!(|T: PrimitiveFloat, A| {
-            for [x, y, z] in random_iter::<[T; 3]>() {
-                if [x, y, z].into_iter().any(|x| !x.is_finite() || x > 1e6) {
+            for [xy, xz, yz] in random_iter::<[T; 3]>() {
+                if [xy, xz, yz].into_iter().any(|x| !x.is_finite() || x > 1e6) {
                     continue;
                 };
 
                 assert_test_eq!(
                     Quaternion::<T, A>::from_matrix(
-                        &(Matrix::<3, T, A>::from_rotation_x(x)
-                            * Matrix::<3, T, A>::from_rotation_y(y)
-                            * Matrix::<3, T, A>::from_rotation_z(z))
+                        &(Matrix::<3, T, A>::from_rotation_xy(xy)
+                            * Matrix::<3, T, A>::from_rotation_xz(xz)
+                            * Matrix::<3, T, A>::from_rotation_yz(yz))
                     ),
-                    Quaternion::<T, A>::from_rotation_x(x)
-                        * Quaternion::<T, A>::from_rotation_y(y)
-                        * Quaternion::<T, A>::from_rotation_z(z),
+                    Quaternion::<T, A>::from_rotation_xy(xy)
+                        * Quaternion::<T, A>::from_rotation_xz(xz)
+                        * Quaternion::<T, A>::from_rotation_yz(yz),
                     abs <= 1e-6,
                     0.0 = -0.0,
                     quat = -quat

@@ -97,10 +97,8 @@ macro_rules! items {
 
 macro_rules! items_2 {
     ($Wide:ident) => {
-        /// Creates an affine transform containing a rotation of `angle` (in
-        /// radians).
-        ///
-        /// This rotates `+X` to `+Y`.
+        /// Creates an affine transform containing a rotation from an `angle`
+        /// (in radians) rotating `+X` to `+Y`.
         #[inline]
         #[must_use]
         pub fn from_angle(angle: $Wide) -> Self {
@@ -186,34 +184,28 @@ macro_rules! items_2 {
 
 macro_rules! items_3 {
     ($Wide:ident) => {
-        /// Creates an affine transform containing a 3D rotation from `angle`
-        /// (in radians) around the x axis.
-        ///
-        /// This rotates `+Y` to `+Z`.
+        /// Creates an affine transform containing a rotation from an `angle`
+        /// (in radians) rotating `+X` to `+Y`.
         #[inline]
         #[must_use]
-        pub fn from_rotation_x(angle: $Wide) -> Self {
-            Self::from_matrix(&Matrix::<3, $Wide, A>::from_rotation_x(angle))
+        pub fn from_rotation_xy(angle: $Wide) -> Self {
+            Self::from_matrix(&Matrix::<3, $Wide, A>::from_rotation_xy(angle))
         }
 
-        /// Creates an affine transform containing a 3D rotation from `angle`
-        /// (in radians) around the y axis.
-        ///
-        /// This rotates `+Z` to `+X`.
+        /// Creates an affine transform containing a rotation from an `angle`
+        /// (in radians) rotating `+X` to `+Z`.
         #[inline]
         #[must_use]
-        pub fn from_rotation_y(angle: $Wide) -> Self {
-            Self::from_matrix(&Matrix::<3, $Wide, A>::from_rotation_y(angle))
+        pub fn from_rotation_xz(angle: $Wide) -> Self {
+            Self::from_matrix(&Matrix::<3, $Wide, A>::from_rotation_xz(angle))
         }
 
-        /// Creates an affine transform containing a 3D rotation from `angle`
-        /// (in radians) around the z axis.
-        ///
-        /// This rotates `+X` to `+Y`.
+        /// Creates an affine transform containing a rotation from an `angle`
+        /// (in radians) rotating `+Y` to `+Z`.
         #[inline]
         #[must_use]
-        pub fn from_rotation_z(angle: $Wide) -> Self {
-            Self::from_matrix(&Matrix::<3, $Wide, A>::from_rotation_z(angle))
+        pub fn from_rotation_yz(angle: $Wide) -> Self {
+            Self::from_matrix(&Matrix::<3, $Wide, A>::from_rotation_yz(angle))
         }
 
         /// Creates an affine transform containing a 3D rotation from a
@@ -225,7 +217,7 @@ macro_rules! items_3 {
         }
 
         /// Creates an affine transform containing a rotation from a rotation
-        /// `axis` and `angle` (in radians).
+        /// `axis` and `angle` (in radians) using the right-hand rule.
         ///
         /// `axis` must be normalized. Otherwise the result is unspecified.
         #[inline]
@@ -897,12 +889,12 @@ mod tests {
     }
 
     #[test]
-    fn test_from_rotation_x() {
+    fn test_from_rotation_xy() {
         for_types!(|Wide: WideFloat| {
             for angle in random_iter::<Wide>() {
                 assert_test_eq!(
-                    Affine3::<Wide>::from_rotation_x(angle),
-                    Affine3::from_lane_fn(|lane| Affine3::<T>::from_rotation_x(
+                    Affine3::<Wide>::from_rotation_xy(angle),
+                    Affine3::from_lane_fn(|lane| Affine3::<T>::from_rotation_xy(
                         angle.to_array()[lane]
                     )),
                     abs <= angle.abs() * 1e-4 + 1e-3,
@@ -913,12 +905,12 @@ mod tests {
     }
 
     #[test]
-    fn test_from_rotation_y() {
+    fn test_from_rotation_xz() {
         for_types!(|Wide: WideFloat| {
             for angle in random_iter::<Wide>() {
                 assert_test_eq!(
-                    Affine3::<Wide>::from_rotation_y(angle),
-                    Affine3::from_lane_fn(|lane| Affine3::<T>::from_rotation_y(
+                    Affine3::<Wide>::from_rotation_xz(angle),
+                    Affine3::from_lane_fn(|lane| Affine3::<T>::from_rotation_xz(
                         angle.to_array()[lane]
                     )),
                     abs <= angle.abs() * 1e-4 + 1e-3,
@@ -929,12 +921,12 @@ mod tests {
     }
 
     #[test]
-    fn test_from_rotation_z() {
+    fn test_from_rotation_yz() {
         for_types!(|Wide: WideFloat| {
             for angle in random_iter::<Wide>() {
                 assert_test_eq!(
-                    Affine3::<Wide>::from_rotation_z(angle),
-                    Affine3::from_lane_fn(|lane| Affine3::<T>::from_rotation_z(
+                    Affine3::<Wide>::from_rotation_yz(angle),
+                    Affine3::from_lane_fn(|lane| Affine3::<T>::from_rotation_yz(
                         angle.to_array()[lane]
                     )),
                     abs <= angle.abs() * 1e-4 + 1e-3,

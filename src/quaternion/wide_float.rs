@@ -7,38 +7,35 @@ macro_rules! items {
         /// A quaternion with all elements set to NaN (Not a Number).
         pub const NAN: Self = Self::from_vector(Vector::<4, $Wide, A>::NAN);
 
-        /// Creates a quaternion from an `angle` (in radians) around the x axis.
-        ///
-        /// This rotates `+Y` to `+Z`.
+        /// Creates a quaternion from an `angle` (in radians) rotating `+X` to
+        /// `+Y`.
         #[inline]
         #[must_use]
-        pub fn from_rotation_x(angle: $Wide) -> Self {
-            let (sin, cos) = (angle * $Wide::HALF).sin_cos();
-            Self::from_xyzw(sin, $Wide::ZERO, $Wide::ZERO, cos)
-        }
-
-        /// Creates a quaternion from an `angle` (in radians) around the y axis.
-        ///
-        /// This rotates `+Z` to `+X`.
-        #[inline]
-        #[must_use]
-        pub fn from_rotation_y(angle: $Wide) -> Self {
-            let (sin, cos) = (angle * $Wide::HALF).sin_cos();
-            Self::from_xyzw($Wide::ZERO, sin, $Wide::ZERO, cos)
-        }
-
-        /// Creates a quaternion from an `angle` (in radians) around the z axis.
-        ///
-        /// This rotates `+X` to `+Y`.
-        #[inline]
-        #[must_use]
-        pub fn from_rotation_z(angle: $Wide) -> Self {
+        pub fn from_rotation_xy(angle: $Wide) -> Self {
             let (sin, cos) = (angle * $Wide::HALF).sin_cos();
             Self::from_xyzw($Wide::ZERO, $Wide::ZERO, sin, cos)
         }
 
+        /// Creates a quaternion from an `angle` (in radians) rotating `+X` to
+        /// `+Z`.
+        #[inline]
+        #[must_use]
+        pub fn from_rotation_xz(angle: $Wide) -> Self {
+            let (sin, cos) = (angle * $Wide::HALF).sin_cos();
+            Self::from_xyzw($Wide::ZERO, -sin, $Wide::ZERO, cos)
+        }
+
+        /// Creates a quaternion from an `angle` (in radians) rotating `+Y` to
+        /// `+Z`.
+        #[inline]
+        #[must_use]
+        pub fn from_rotation_yz(angle: $Wide) -> Self {
+            let (sin, cos) = (angle * $Wide::HALF).sin_cos();
+            Self::from_xyzw(sin, $Wide::ZERO, $Wide::ZERO, cos)
+        }
+
         /// Creates a quaternion from a rotation `axis` and `angle` (in
-        /// radians).
+        /// radians) using the right-hand rule.
         ///
         /// `axis` must be normalized.
         #[inline]
@@ -50,7 +47,7 @@ macro_rules! items {
         }
 
         /// Creates a quaternion that rotates `scaled_axis.length()` radians
-        /// around `scaled_axis.normalize()`.
+        /// around `scaled_axis.normalize()` using the right-hand rule.
         #[inline]
         #[must_use]
         pub fn from_scaled_axis(scaled_axis: Vector<3, $Wide, A>) -> Self {
@@ -299,7 +296,7 @@ macro_rules! items {
         }
 
         /// Converts the quaternion `self` to a normalized rotation axis and an
-        /// angle (in radians).
+        /// angle (in radians) using the right-hand rule.
         #[inline]
         #[must_use]
         pub fn to_axis_angle(self) -> (Vector<3, $Wide, A>, $Wide) {
@@ -316,7 +313,7 @@ macro_rules! items {
         }
 
         /// Converts the quaternion `self` to a rotation axis scaled by an angle
-        /// (in radians).
+        /// (in radians) using the right-hand rule.
         #[inline]
         #[must_use]
         pub fn to_scaled_axis(self) -> Vector<3, $Wide, A> {
@@ -568,12 +565,12 @@ mod tests {
     }
 
     #[test]
-    fn test_from_rotation_x() {
+    fn test_from_rotation_xy() {
         for_types!(|Wide: WideFloat| {
             for angle in random_iter::<Wide>() {
                 assert_test_eq!(
-                    Quat::<Wide>::from_rotation_x(angle),
-                    Quat::from_lane_fn(|lane| Quat::<T>::from_rotation_x(angle.to_array()[lane])),
+                    Quat::<Wide>::from_rotation_xy(angle),
+                    Quat::from_lane_fn(|lane| Quat::<T>::from_rotation_xy(angle.to_array()[lane])),
                     abs <= angle.abs() * 1e-4 + 1e-3
                 );
             }
@@ -581,12 +578,12 @@ mod tests {
     }
 
     #[test]
-    fn test_from_rotation_y() {
+    fn test_from_rotation_xz() {
         for_types!(|Wide: WideFloat| {
             for angle in random_iter::<Wide>() {
                 assert_test_eq!(
-                    Quat::<Wide>::from_rotation_y(angle),
-                    Quat::from_lane_fn(|lane| Quat::<T>::from_rotation_y(angle.to_array()[lane])),
+                    Quat::<Wide>::from_rotation_xz(angle),
+                    Quat::from_lane_fn(|lane| Quat::<T>::from_rotation_xz(angle.to_array()[lane])),
                     abs <= angle.abs() * 1e-4 + 1e-3
                 );
             }
@@ -594,12 +591,12 @@ mod tests {
     }
 
     #[test]
-    fn test_from_rotation_z() {
+    fn test_from_rotation_yz() {
         for_types!(|Wide: WideFloat| {
             for angle in random_iter::<Wide>() {
                 assert_test_eq!(
-                    Quat::<Wide>::from_rotation_z(angle),
-                    Quat::from_lane_fn(|lane| Quat::<T>::from_rotation_z(angle.to_array()[lane])),
+                    Quat::<Wide>::from_rotation_yz(angle),
+                    Quat::from_lane_fn(|lane| Quat::<T>::from_rotation_yz(angle.to_array()[lane])),
                     abs <= angle.abs() * 1e-4 + 1e-3
                 );
             }
@@ -702,10 +699,10 @@ mod tests {
     #[test]
     fn test_from_matrix() {
         for_types!(|Wide: WideFloat| {
-            for [x, y, z] in random_iter::<[Wide; 3]>() {
-                let matrix = Mat3::<Wide>::from_rotation_x(x)
-                    * Mat3::<Wide>::from_rotation_y(y)
-                    * Mat3::<Wide>::from_rotation_z(z);
+            for [xy, xz, yz] in random_iter::<[Wide; 3]>() {
+                let matrix = Mat3::<Wide>::from_rotation_xy(xy)
+                    * Mat3::<Wide>::from_rotation_xz(xz)
+                    * Mat3::<Wide>::from_rotation_yz(yz);
 
                 assert_test_eq_or_panic!(
                     Quat::<Wide>::from_matrix(&matrix),
