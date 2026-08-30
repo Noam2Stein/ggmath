@@ -1,6 +1,6 @@
 use crate::{
-    Alignment, EulerRot, FloatExt, Length, Matrix, PrimitiveFloat, Projective, SupportedLength,
-    Vector,
+    Alignment, EulerRot, FloatExt, Length, Matrix, PrimitiveFloat, Projective, Rotor,
+    SupportedLength, Vector,
     length::TwoOrThree,
     utils::{specialize, specialize_23},
 };
@@ -53,6 +53,30 @@ where
         Length<N>: TwoOrThree,
     {
         specialize_23!(Matrix::<N, T, A>::from_projective_backend(projective))
+    }
+
+    /// TODO
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    #[expect(private_bounds)]
+    pub fn from_rotor(_rotor: Rotor<N, T, A>) -> Self
+    where
+        Length<N>: TwoOrThree,
+    {
+        todo!()
+    }
+
+    /// TODO
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    #[expect(private_bounds)]
+    pub fn from_scale_rotation(_scale: Vector<N, T, A>, _rotation: Rotor<N, T, A>) -> Self
+    where
+        Length<N>: TwoOrThree,
+    {
+        todo!()
     }
 
     /// Returns `true` if any element is NaN.
@@ -228,6 +252,18 @@ where
     #[must_use]
     pub fn abs(&self) -> Self {
         specialize!(Matrix::<N, T, A>::abs_backend(self))
+    }
+
+    /// TODO
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    #[expect(private_bounds)]
+    pub fn to_scale_rotation(&self) -> (Vector<N, T, A>, Rotor<N, T, A>)
+    where
+        Length<N>: TwoOrThree,
+    {
+        todo!()
     }
 
     /// Returns `true` if the absolute difference of all elements between `self`
@@ -1142,6 +1178,16 @@ mod tests {
     }
 
     #[test]
+    fn test_from_rotor() {
+        todo!()
+    }
+
+    #[test]
+    fn test_from_scale_rotation() {
+        todo!()
+    }
+
+    #[test]
     fn test_is_nan() {
         for_types!(|T: PrimitiveFloat, A| {
             let one = Vector::ONE;
@@ -1290,6 +1336,11 @@ mod tests {
                 assert_test_eq!(matrix.abs(), Matrix::from_row_fn(|r| matrix[r].abs()));
             }
         });
+    }
+
+    #[test]
+    fn test_to_scale_rotation() {
+        todo!()
     }
 
     #[test]

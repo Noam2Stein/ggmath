@@ -1,7 +1,7 @@
 use wide::{f32x4, f32x8, f32x16, f64x2, f64x4, f64x8};
 
 use crate::{
-    Alignment, EulerRot, Length, Matrix, Projective, Vector,
+    Alignment, EulerRot, Length, Matrix, Projective, Rotor, Vector,
     length::TwoOrThree,
     utils::{specialize_23, transmute_generic},
 };
@@ -39,6 +39,59 @@ macro_rules! items {
                 },
                 _ => unreachable!(),
             };
+
+        /// TODO
+        #[inline]
+        #[must_use]
+        pub fn from_rotor(_rotor: Rotor<N, $Wide, A>) -> Self {
+            todo!()
+        }
+
+        /// TODO
+        #[inline]
+        #[must_use]
+        #[track_caller]
+        #[expect(private_bounds)]
+        pub fn from_scale_rotation(
+            _scale: Vector<N, $Wide, A>,
+            _rotation: Rotor<N, $Wide, A>,
+        ) -> Self
+        where
+            Length<N>: TwoOrThree,
+        {
+            todo!()
+        }
+
+        /// TODO
+        #[inline]
+        #[must_use]
+        #[track_caller]
+        #[expect(private_bounds)]
+        pub fn from_rotation_translation(
+            _rotation: Rotor<N, $Wide, A>,
+            _translation: Vector<N, $Wide, A>,
+        ) -> Self
+        where
+            Length<N>: TwoOrThree,
+        {
+            todo!()
+        }
+
+        /// TODO
+        #[inline]
+        #[must_use]
+        #[track_caller]
+        #[expect(private_bounds)]
+        pub fn from_scale_rotation_translation(
+            _scale: Vector<N, $Wide, A>,
+            _rotation: Rotor<N, $Wide, A>,
+            _translation: Vector<N, $Wide, A>,
+        ) -> Self
+        where
+            Length<N>: TwoOrThree,
+        {
+            todo!()
+        }
 
         /// For each lane, returns `true` if any element is NaN.
         #[inline]
@@ -138,6 +191,44 @@ macro_rules! items {
         #[must_use]
         pub fn abs(&self) -> Self {
             specialize_23!(Projective::<N, $Wide, A>::abs_backend(self))
+        }
+
+        /// TODO
+        #[inline]
+        #[must_use]
+        #[track_caller]
+        #[expect(private_bounds)]
+        pub fn to_scale_rotation(&self) -> (Vector<N, $Wide, A>, Rotor<N, $Wide, A>)
+        where
+            Length<N>: TwoOrThree,
+        {
+            todo!()
+        }
+
+        /// TODO
+        #[inline]
+        #[must_use]
+        #[track_caller]
+        #[expect(private_bounds)]
+        pub fn to_rotation_translation(&self) -> (Rotor<N, $Wide, A>, Vector<N, $Wide, A>)
+        where
+            Length<N>: TwoOrThree,
+        {
+            todo!()
+        }
+
+        /// TODO
+        #[inline]
+        #[must_use]
+        #[track_caller]
+        #[expect(private_bounds)]
+        pub fn to_scale_rotation_translation(
+            &self,
+        ) -> (Vector<N, $Wide, A>, Rotor<N, $Wide, A>, Vector<N, $Wide, A>)
+        where
+            Length<N>: TwoOrThree,
+        {
+            todo!()
         }
 
         /// Returns `true` if the absolute difference of all elements between
@@ -1100,6 +1191,26 @@ mod tests {
     }
 
     #[test]
+    fn test_from_rotor() {
+        todo!()
+    }
+
+    #[test]
+    fn test_from_scale_rotation() {
+        todo!()
+    }
+
+    #[test]
+    fn test_from_rotation_translation() {
+        todo!()
+    }
+
+    #[test]
+    fn test_from_scale_rotation_translation() {
+        todo!()
+    }
+
+    #[test]
     fn test_is_nan() {
         for_types!(|Wide: WideFloat| {
             for [x, y, z, w] in random_iter::<[Wide; 4]>() {
@@ -1251,6 +1362,21 @@ mod tests {
                 );
             }
         });
+    }
+
+    #[test]
+    fn test_to_scale_rotation() {
+        todo!()
+    }
+
+    #[test]
+    fn test_to_rotation_translation() {
+        todo!()
+    }
+
+    #[test]
+    fn test_to_scale_rotation_translation() {
+        todo!()
     }
 
     #[test]

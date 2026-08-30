@@ -1,7 +1,7 @@
 use wide::{f32x4, f32x8, f32x16, f64x2, f64x4, f64x8};
 
 use crate::{
-    Alignment, EulerRot, Length, Matrix, Projective, SupportedLength, Vector,
+    Alignment, EulerRot, Length, Matrix, Projective, Rotor, SupportedLength, Vector,
     length::TwoOrThree,
     utils::{specialize, specialize_23},
 };
@@ -23,6 +23,31 @@ macro_rules! items {
             Length<N>: TwoOrThree,
         {
             specialize_23!(Matrix::<N, $Wide, A>::from_projective_backend(projective))
+        }
+
+        /// TODO
+        #[inline]
+        #[must_use]
+        #[expect(private_bounds)]
+        pub fn from_rotor(_rotor: Rotor<N, $Wide, A>) -> Self
+        where
+            Length<N>: TwoOrThree,
+        {
+            todo!()
+        }
+
+        /// TODO
+        #[inline]
+        #[must_use]
+        #[expect(private_bounds)]
+        pub fn from_scale_rotation(
+            _scale: Vector<N, $Wide, A>,
+            _rotation: Rotor<N, $Wide, A>,
+        ) -> Self
+        where
+            Length<N>: TwoOrThree,
+        {
+            todo!()
         }
 
         /// For each lane, returns `true` if any element is NaN.
@@ -91,6 +116,17 @@ macro_rules! items {
         #[must_use]
         pub fn abs(&self) -> Self {
             specialize!(Matrix::<N, $Wide, A>::abs_backend(self))
+        }
+
+        /// TODO
+        #[inline]
+        #[must_use]
+        #[expect(private_bounds)]
+        pub fn to_scale_rotation(&self) -> (Vector<N, $Wide, A>, Rotor<N, $Wide, A>)
+        where
+            Length<N>: TwoOrThree,
+        {
+            todo!()
         }
 
         /// Returns `true` if the absolute difference of all elements between
@@ -871,6 +907,16 @@ mod tests {
     }
 
     #[test]
+    fn test_from_rotor() {
+        todo!()
+    }
+
+    #[test]
+    fn test_from_scale_rotation() {
+        todo!()
+    }
+
+    #[test]
     fn test_is_nan() {
         for_types!(|Wide: WideFloat| {
             for [x, y, z, w] in random_iter::<[Wide; 4]>() {
@@ -970,6 +1016,11 @@ mod tests {
                 );
             }
         });
+    }
+
+    #[test]
+    fn test_to_scale_rotation() {
+        todo!()
     }
 
     #[test]

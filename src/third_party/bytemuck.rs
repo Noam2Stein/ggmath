@@ -1,7 +1,7 @@
 use bytemuck::{NoUninit, Pod, Zeroable};
 
 use crate::{
-    Affine, Alignment, Length, Mask, Matrix, Projective, Scalar, SupportedLength, Vector,
+    Affine, Alignment, Length, Mask, Matrix, Projective, Rotor, Scalar, SupportedLength, Vector,
     length::TwoOrThree,
 };
 
@@ -78,6 +78,24 @@ where
 // SAFETY: Projective is a simple wrapper over `Matrix`, which also implements
 // this trait.
 unsafe impl<const N: usize, T, A: Alignment> Zeroable for Projective<N, T, A>
+where
+    Length<N>: TwoOrThree,
+    T: Scalar + Zeroable,
+{
+}
+
+// SAFETY: `Rotor` is a simple wrapper over `Vector`, which also implements
+// this trait.
+unsafe impl<const N: usize, T, A: Alignment> Pod for Rotor<N, T, A>
+where
+    Length<N>: TwoOrThree,
+    T: Scalar + Pod,
+{
+}
+
+// SAFETY: `Rotor` is a simple wrapper over `Vector`, which also implements
+// this trait.
+unsafe impl<const N: usize, T, A: Alignment> Zeroable for Rotor<N, T, A>
 where
     Length<N>: TwoOrThree,
     T: Scalar + Zeroable,
