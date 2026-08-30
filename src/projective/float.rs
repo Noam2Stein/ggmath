@@ -405,50 +405,44 @@ impl<T, A: Alignment> Projective<3, T, A>
 where
     T: PrimitiveFloat,
 {
-    /// Creates a 3D projective transform containing a rotation from `angle` (in
-    /// radians) around the x axis.
-    ///
-    /// This rotates `+Y` to `+Z`.
+    /// Creates a projective transform containing a rotation from an `angle` (in
+    /// radians) rotating `+X` to `+Y`.
     #[inline]
     #[must_use]
-    pub fn from_rotation_x(angle: T) -> Self {
-        let (sin, cos) = angle.sin_cos();
-        Self::from_rows(&[
-            Vector::<4, T, A>::X,
-            Vector::<4, T, A>::new(T::ZERO, cos, sin, T::ZERO),
-            Vector::<4, T, A>::new(T::ZERO, -sin, cos, T::ZERO),
-            Vector::<4, T, A>::W,
-        ])
-    }
-
-    /// Creates a 3D projective transform containing a rotation from `angle` (in
-    /// radians) around the y axis.
-    ///
-    /// This rotates `+Z` to `+X`.
-    #[inline]
-    #[must_use]
-    pub fn from_rotation_y(angle: T) -> Self {
-        let (sin, cos) = angle.sin_cos();
-        Self::from_rows(&[
-            Vector::<4, T, A>::new(cos, T::ZERO, -sin, T::ZERO),
-            Vector::<4, T, A>::Y,
-            Vector::<4, T, A>::new(sin, T::ZERO, cos, T::ZERO),
-            Vector::<4, T, A>::W,
-        ])
-    }
-
-    /// Creates a 3D projective transform containing a rotation from `angle` (in
-    /// radians) around the z axis.
-    ///
-    /// This rotates `+X` to `+Y`.
-    #[inline]
-    #[must_use]
-    pub fn from_rotation_z(angle: T) -> Self {
+    pub fn from_rotation_xy(angle: T) -> Self {
         let (sin, cos) = angle.sin_cos();
         Self::from_rows(&[
             Vector::<4, T, A>::new(cos, sin, T::ZERO, T::ZERO),
             Vector::<4, T, A>::new(-sin, cos, T::ZERO, T::ZERO),
             Vector::<4, T, A>::Z,
+            Vector::<4, T, A>::W,
+        ])
+    }
+
+    /// Creates a projective transform containing a rotation from an `angle` (in
+    /// radians) rotating `+X` to `+Z`.
+    #[inline]
+    #[must_use]
+    pub fn from_rotation_xz(angle: T) -> Self {
+        let (sin, cos) = angle.sin_cos();
+        Self::from_rows(&[
+            Vector::<4, T, A>::new(cos, T::ZERO, sin, T::ZERO),
+            Vector::<4, T, A>::Y,
+            Vector::<4, T, A>::new(-sin, T::ZERO, cos, T::ZERO),
+            Vector::<4, T, A>::W,
+        ])
+    }
+
+    /// Creates a projective transform containing a rotation from an `angle` (in
+    /// radians) rotating `+Y` to `+Z`.
+    #[inline]
+    #[must_use]
+    pub fn from_rotation_yz(angle: T) -> Self {
+        let (sin, cos) = angle.sin_cos();
+        Self::from_rows(&[
+            Vector::<4, T, A>::X,
+            Vector::<4, T, A>::new(T::ZERO, cos, sin, T::ZERO),
+            Vector::<4, T, A>::new(T::ZERO, -sin, cos, T::ZERO),
             Vector::<4, T, A>::W,
         ])
     }
@@ -1859,36 +1853,36 @@ mod tests {
     }
 
     #[test]
-    fn test_from_rotation_x() {
+    fn test_from_rotation_xy() {
         for_types!(|T: PrimitiveFloat, A| {
             for angle in random_iter::<T>() {
                 assert_test_eq!(
-                    Projective::<3, T, A>::from_rotation_x(angle),
-                    Projective::<3, T, A>::from_matrix(&Matrix::<3, T, A>::from_rotation_x(angle))
+                    Projective::<3, T, A>::from_rotation_xy(angle),
+                    Projective::<3, T, A>::from_matrix(&Matrix::<3, T, A>::from_rotation_xy(angle))
                 );
             }
         });
     }
 
     #[test]
-    fn test_from_rotation_y() {
+    fn test_from_rotation_xz() {
         for_types!(|T: PrimitiveFloat, A| {
             for angle in random_iter::<T>() {
                 assert_test_eq!(
-                    Projective::<3, T, A>::from_rotation_y(angle),
-                    Projective::<3, T, A>::from_matrix(&Matrix::<3, T, A>::from_rotation_y(angle))
+                    Projective::<3, T, A>::from_rotation_xz(angle),
+                    Projective::<3, T, A>::from_matrix(&Matrix::<3, T, A>::from_rotation_xz(angle))
                 );
             }
         });
     }
 
     #[test]
-    fn test_from_rotation_z() {
+    fn test_from_rotation_yz() {
         for_types!(|T: PrimitiveFloat, A| {
             for angle in random_iter::<T>() {
                 assert_test_eq!(
-                    Projective::<3, T, A>::from_rotation_z(angle),
-                    Projective::<3, T, A>::from_matrix(&Matrix::<3, T, A>::from_rotation_z(angle))
+                    Projective::<3, T, A>::from_rotation_yz(angle),
+                    Projective::<3, T, A>::from_matrix(&Matrix::<3, T, A>::from_rotation_yz(angle))
                 );
             }
         });

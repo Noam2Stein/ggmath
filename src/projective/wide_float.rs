@@ -252,50 +252,44 @@ macro_rules! items_2 {
 
 macro_rules! items_3 {
     ($Wide:ident, $T:ident) => {
-        /// Creates a 3D projective transform containing a rotation from `angle`
-        /// (in radians) around the x axis.
-        ///
-        /// This rotates `+Y` to `+Z`.
+        /// Creates a projective transform containing a rotation from an `angle`
+        /// (in radians) rotating `+X` to `+Y`.
         #[inline]
         #[must_use]
-        pub fn from_rotation_x(angle: $Wide) -> Self {
-            let (sin, cos) = angle.sin_cos();
-            Self::from_rows(&[
-                Vector::<4, $Wide, A>::X,
-                Vector::<4, $Wide, A>::new($Wide::ZERO, cos, sin, $Wide::ZERO),
-                Vector::<4, $Wide, A>::new($Wide::ZERO, -sin, cos, $Wide::ZERO),
-                Vector::<4, $Wide, A>::W,
-            ])
-        }
-
-        /// Creates a 3D projective transform containing a rotation from `angle`
-        /// (in radians) around the y axis.
-        ///
-        /// This rotates `+Z` to `+X`.
-        #[inline]
-        #[must_use]
-        pub fn from_rotation_y(angle: $Wide) -> Self {
-            let (sin, cos) = angle.sin_cos();
-            Self::from_rows(&[
-                Vector::<4, $Wide, A>::new(cos, $Wide::ZERO, -sin, $Wide::ZERO),
-                Vector::<4, $Wide, A>::Y,
-                Vector::<4, $Wide, A>::new(sin, $Wide::ZERO, cos, $Wide::ZERO),
-                Vector::<4, $Wide, A>::W,
-            ])
-        }
-
-        /// Creates a 3D projective transform containing a rotation from `angle`
-        /// (in radians) around the z axis.
-        ///
-        /// This rotates `+X` to `+Y`.
-        #[inline]
-        #[must_use]
-        pub fn from_rotation_z(angle: $Wide) -> Self {
+        pub fn from_rotation_xy(angle: $Wide) -> Self {
             let (sin, cos) = angle.sin_cos();
             Self::from_rows(&[
                 Vector::<4, $Wide, A>::new(cos, sin, $Wide::ZERO, $Wide::ZERO),
                 Vector::<4, $Wide, A>::new(-sin, cos, $Wide::ZERO, $Wide::ZERO),
                 Vector::<4, $Wide, A>::Z,
+                Vector::<4, $Wide, A>::W,
+            ])
+        }
+
+        /// Creates a projective transform containing a rotation from an `angle`
+        /// (in radians) rotating `+X` to `+Z`.
+        #[inline]
+        #[must_use]
+        pub fn from_rotation_xz(angle: $Wide) -> Self {
+            let (sin, cos) = angle.sin_cos();
+            Self::from_rows(&[
+                Vector::<4, $Wide, A>::new(cos, $Wide::ZERO, sin, $Wide::ZERO),
+                Vector::<4, $Wide, A>::Y,
+                Vector::<4, $Wide, A>::new(-sin, $Wide::ZERO, cos, $Wide::ZERO),
+                Vector::<4, $Wide, A>::W,
+            ])
+        }
+
+        /// Creates a projective transform containing a rotation from an `angle`
+        /// (in radians) rotating `+Y` to `+Z`.
+        #[inline]
+        #[must_use]
+        pub fn from_rotation_yz(angle: $Wide) -> Self {
+            let (sin, cos) = angle.sin_cos();
+            Self::from_rows(&[
+                Vector::<4, $Wide, A>::X,
+                Vector::<4, $Wide, A>::new($Wide::ZERO, cos, sin, $Wide::ZERO),
+                Vector::<4, $Wide, A>::new($Wide::ZERO, -sin, cos, $Wide::ZERO),
                 Vector::<4, $Wide, A>::W,
             ])
         }
@@ -1535,12 +1529,14 @@ mod tests {
     }
 
     #[test]
-    fn test_from_rotation_x() {
+    fn test_from_rotation_xy() {
         for_types!(|Wide: WideFloat| {
             for angle in random_iter::<Wide>() {
                 assert_test_eq!(
-                    Proj3::<Wide>::from_rotation_x(angle),
-                    Proj3::from_lane_fn(|lane| Proj3::<T>::from_rotation_x(angle.to_array()[lane])),
+                    Proj3::<Wide>::from_rotation_xy(angle),
+                    Proj3::from_lane_fn(|lane| Proj3::<T>::from_rotation_xy(
+                        angle.to_array()[lane]
+                    )),
                     abs <= angle.abs() * 1e-4 + 1e-3,
                     0.0 = -0.0
                 );
@@ -1549,12 +1545,14 @@ mod tests {
     }
 
     #[test]
-    fn test_from_rotation_y() {
+    fn test_from_rotation_xz() {
         for_types!(|Wide: WideFloat| {
             for angle in random_iter::<Wide>() {
                 assert_test_eq!(
-                    Proj3::<Wide>::from_rotation_y(angle),
-                    Proj3::from_lane_fn(|lane| Proj3::<T>::from_rotation_y(angle.to_array()[lane])),
+                    Proj3::<Wide>::from_rotation_xz(angle),
+                    Proj3::from_lane_fn(|lane| Proj3::<T>::from_rotation_xz(
+                        angle.to_array()[lane]
+                    )),
                     abs <= angle.abs() * 1e-4 + 1e-3,
                     0.0 = -0.0
                 );
@@ -1563,12 +1561,14 @@ mod tests {
     }
 
     #[test]
-    fn test_from_rotation_z() {
+    fn test_from_rotation_yz() {
         for_types!(|Wide: WideFloat| {
             for angle in random_iter::<Wide>() {
                 assert_test_eq!(
-                    Proj3::<Wide>::from_rotation_z(angle),
-                    Proj3::from_lane_fn(|lane| Proj3::<T>::from_rotation_z(angle.to_array()[lane])),
+                    Proj3::<Wide>::from_rotation_yz(angle),
+                    Proj3::from_lane_fn(|lane| Proj3::<T>::from_rotation_yz(
+                        angle.to_array()[lane]
+                    )),
                     abs <= angle.abs() * 1e-4 + 1e-3,
                     0.0 = -0.0
                 );
