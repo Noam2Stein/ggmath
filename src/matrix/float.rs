@@ -250,9 +250,8 @@ impl<T, A: Alignment> Matrix<2, T, A>
 where
     T: PrimitiveFloat,
 {
-    /// Creates a matrix containing a rotation of `angle` (in radians).
-    ///
-    /// This rotates `+X` to `+Y`.
+    /// Creates a rotation matrix from an `angle` (in radians) rotating `+X` to
+    /// `+Y`.
     #[inline]
     #[must_use]
     pub fn from_angle(angle: T) -> Self {
