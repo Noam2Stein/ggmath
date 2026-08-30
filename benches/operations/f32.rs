@@ -6,6 +6,8 @@ mod mask4;
 mod mat2;
 mod mat3;
 mod mat4;
+mod rotor2;
+mod rotor3;
 mod vec2;
 mod vec3;
 mod vec4;
