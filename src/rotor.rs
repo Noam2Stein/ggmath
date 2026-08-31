@@ -25,7 +25,67 @@ mod wide;
 #[cfg(feature = "wide")]
 mod wide_float;
 
-/// TODO
+/// A rotor representing rotation.
+///
+/// A rotor is a mathematical object used to represent rotations. In comparison
+/// to rotation matrices, rotors are more compact and are easier to blend.
+/// Rotors are basically identical to quaternions, which you may be familiar
+/// with, but tend to be easier to understand, and extend better to dimensions
+/// other than 3D.
+///
+/// > If you are curious about the underlying math, rotors come from Geometric
+/// > Algebra. I recommend
+/// > [this resource](https://www.youtube.com/playlist?list=PLVuwZXwFua-0Ks3rRS4tIkswgUmDLqqRy)
+/// > for learning more.
+///
+/// This rotor is intended to be normalized, but may denormalize due to floating
+/// point "error creep" which can occur when successive operations are applied.
+/// Use [`rotor.normalize()`] to maintain precision.
+///
+/// # Type aliases
+///
+/// - [`Rot2<T>`] for [`Rotor<2, T, Unaligned>`].
+/// - [`Rot3<T>`] for [`Rotor<3, T, Unaligned>`].
+/// - [`Rot2A<T>`] for [`Rotor<2, T, Aligned>`].
+/// - [`Rot3A<T>`] for [`Rotor<3, T, Aligned>`].
+///
+/// # Representation and Fields
+///
+/// Unless you are familiar with rotor/quaternion math, avoid using raw rotor
+/// elements directly. Instead, use higher level helper functions. You may have
+/// an easier time reading documentation specific to
+/// [2D](Rot2#representation-and-fields) and
+/// [3D](Rot3#representation-and-fields) first. This section explains rotor
+/// representation in a dimension agnostic manner, and uses advance Geometric
+/// Algebra terms.
+///
+/// This type stores all multivector elements that have an even grade, with
+/// signs determined by increasing index order, with the scalar element being
+/// last, and other elements ordered by increasing grade then lexicographically.
+///
+/// - In 2D, this is: `xy, s`
+/// - In 3D, this is: `xy, xz, yz, s`
+/// - In 4D, this is: `xy, xz, xw, yz, yw, zw, xyzw, s`
+///
+/// > The scalar element being last enables an optimization where getting the
+/// > bivector of a [`Rot3A`] is a no-op.
+///
+/// This type uses the sign convention `R = e^(B/2)`, with vector multiplication
+/// `R~vR`. This differs from the traditional convention, `R = e^(-B/2)` and
+/// `RvR~`.
+///
+/// Fields are exposed by implementing [`Deref`] and [`DerefMut`].
+///
+/// # Memory layout
+///
+/// [`Rotor<2, T, A>`] is a transparent wrapper around [`Vector<2, T, A>`], and
+/// [`Rotor<3, T, A>`] is a transparent wrapper around [`Vector<4, T, A>`].
+///
+/// If additional dimensions are ever supported, [`Rotor<N, T, A>`] would remain
+/// a transparent wrapper around [`Vector<rotor_len(N), T, A>`], where
+/// `rotor_len(n) = sum((0..=n).step_by(2).map(|k| (n choose k)))`.
+///
+/// [`rotor.normalize()`]: Rotor#method.normalize
 #[expect(private_bounds)]
 pub struct Rotor<const N: usize, T, A: Alignment>(
     pub(crate) <Length<N> as TwoOrThree>::Select<Vector<2, T, A>, Vector<4, T, A>>,
@@ -34,16 +94,192 @@ where
     Length<N>: TwoOrThree,
     T: Scalar;
 
-/// TODO
+/// A 2D rotor representing 2D rotation.
+///
+/// A rotor is a mathematical object used to represent rotations. In comparison
+/// to rotation matrices, rotors are more compact and are easier to blend.
+/// Rotors are basically identical to quaternions, which you may be familiar
+/// with, but tend to be easier to understand, and extend better to dimensions
+/// other than 3D.
+///
+/// > If you are curious about the underlying math, rotors come from Geometric
+/// > Algebra. I recommend
+/// > [this resource](https://www.youtube.com/playlist?list=PLVuwZXwFua-0Ks3rRS4tIkswgUmDLqqRy)
+/// > for learning more.
+///
+/// This rotor is intended to be normalized, but may denormalize due to floating
+/// point "error creep" which can occur when successive operations are applied.
+/// Use [`rotor.normalize()`] to maintain precision.
+///
+/// # No SIMD alignment
+///
+/// [`Rot2<T>`] does not have SIMD alignment, for that use [`Rot2A<T>`].
+///
+/// # Representation and Fields
+///
+/// Unless you are familiar with rotor/quaternion math, avoid using raw rotor
+/// elements directly. Instead, use higher level helper functions.
+///
+/// This type stores two elements, with this order in memory:
+///
+/// - `xy: T = sin(angle/2)`
+/// - `s: T = cos(angle/2)`
+///
+/// Even though we could instead store `sin(angle), cos(angle)`, the half-angle
+/// has benefits even in 2D that make it worth the slight performance overhead.
+///
+/// > In advanced Geometric Algebra terms, the precise definition of this type
+/// > is `R = e^(B/2)`, with vector multiplication `R~vR`. This differs from the
+/// > traditional rotor convention, `R = e^(-B/2)` and `RvR~`.
+///
+/// Note that these fields are only exposed by implementing [`Deref`] and
+/// [`DerefMut`].
+///
+/// [`rotor.normalize()`]: Rotor#method.normalize
 pub type Rot2<T> = Rotor<2, T, Unaligned>;
 
-/// TODO
+/// A 3D rotor representing 3D rotation.
+///
+/// A rotor is a mathematical object used to represent rotations. In comparison
+/// to rotation matrices, rotors are more compact and are easier to blend.
+/// Rotors are basically identical to quaternions, which you may be familiar
+/// with, but tend to be easier to understand, and extend better to dimensions
+/// other than 3D.
+///
+/// > If you are curious about the underlying math, rotors come from Geometric
+/// > Algebra. I recommend
+/// > [this resource](https://www.youtube.com/playlist?list=PLVuwZXwFua-0Ks3rRS4tIkswgUmDLqqRy)
+/// > for learning more.
+///
+/// This rotor is intended to be normalized, but may denormalize due to floating
+/// point "error creep" which can occur when successive operations are applied.
+/// Use [`rotor.normalize()`] to maintain precision.
+///
+/// # No SIMD alignment
+///
+/// [`Rot3<T>`] does not have SIMD alignment, for that use [`Rot3A<T>`].
+///
+/// # Representation and Fields
+///
+/// Unless you are familiar with rotor/quaternion math, avoid using raw rotor
+/// elements directly. Instead, use higher level helper functions.
+///
+/// This type stores four elements, with this order in memory:
+///
+/// - `xy: T = plane_of_rotation.xy * sin(angle/2)`
+/// - `xz: T = plane_of_rotation.xz * sin(angle/2)`
+/// - `yz: T = plane_of_rotation.yz * sin(angle/2)`
+/// - `s: T = cos(angle/2)`
+///
+/// Each plane element rotates one axis to another (e.g., `xy` rotates `+X` to
+/// `+Y`). This representation uses lexicographical ordering `xy, xz, yz`, which
+/// differs from right-hand rule conventions that might expect `yz, zx, xy`
+/// (which is `x, y, z` in axis-angle notation). Even though the half-angle
+/// looks odd, its benefits are what make rotors a useful and efficient object.
+///
+/// > In advanced Geometric Algebra terms, the precise definition of this type
+/// > is `R = e^(B/2)`, with vector multiplication `R~vR`. This differs from the
+/// > traditional rotor convention, `R = e^(-B/2)` and `RvR~`.
+///
+/// Note that these fields are only exposed by implementing [`Deref`] and
+/// [`DerefMut`].
+///
+/// [`rotor.normalize()`]: Rotor#method.normalize
 pub type Rot3<T> = Rotor<3, T, Unaligned>;
 
-/// TODO
+/// A 2D rotor representing 2D rotation.
+///
+/// A rotor is a mathematical object used to represent rotations. In comparison
+/// to rotation matrices, rotors are more compact and are easier to blend.
+/// Rotors are basically identical to quaternions, which you may be familiar
+/// with, but tend to be easier to understand, and extend better to dimensions
+/// other than 3D.
+///
+/// > If you are curious about the underlying math, rotors come from Geometric
+/// > Algebra. I recommend
+/// > [this resource](https://www.youtube.com/playlist?list=PLVuwZXwFua-0Ks3rRS4tIkswgUmDLqqRy)
+/// > for learning more.
+///
+/// This rotor is intended to be normalized, but may denormalize due to floating
+/// point "error creep" which can occur when successive operations are applied.
+/// Use [`rotor.normalize()`] to maintain precision.
+///
+/// # SIMD alignment
+///
+/// For appropriate `T` types, [`Rot2A<T>`] has SIMD alignment. For no SIMD use
+/// [`Rot2<T>`].
+///
+/// # Representation and Fields
+///
+/// Unless you are familiar with rotor/quaternion math, avoid using raw rotor
+/// elements directly. Instead, use higher level helper functions.
+///
+/// This type stores two elements, with this order in memory:
+///
+/// - `xy: T = sin(angle/2)`
+/// - `s: T = cos(angle/2)`
+///
+/// Even though we could instead store `sin(angle), cos(angle)`, the half-angle
+/// has benefits even in 2D that make it worth the slight performance overhead.
+///
+/// > In advanced Geometric Algebra terms, the precise definition of this type
+/// > is `R = e^(B/2)`, with vector multiplication `R~vR`. This differs from the
+/// > traditional rotor convention, `R = e^(-B/2)` and `RvR~`.
+///
+/// Note that these fields are only exposed by implementing [`Deref`] and
+/// [`DerefMut`].
+///
+/// [`rotor.normalize()`]: Rotor#method.normalize
 pub type Rot2A<T> = Rotor<2, T, Aligned>;
 
-/// TODO
+/// A 3D rotor representing 3D rotation.
+///
+/// A rotor is a mathematical object used to represent rotations. In comparison
+/// to rotation matrices, rotors are more compact and are easier to blend.
+/// Rotors are basically identical to quaternions, which you may be familiar
+/// with, but tend to be easier to understand, and extend better to dimensions
+/// other than 3D.
+///
+/// > If you are curious about the underlying math, rotors come from Geometric
+/// > Algebra. I recommend
+/// > [this resource](https://www.youtube.com/playlist?list=PLVuwZXwFua-0Ks3rRS4tIkswgUmDLqqRy)
+/// > for learning more.
+///
+/// This rotor is intended to be normalized, but may denormalize due to floating
+/// point "error creep" which can occur when successive operations are applied.
+/// Use [`rotor.normalize()`] to maintain precision.
+///
+/// # SIMD alignment
+///
+/// For appropriate `T` types, [`Rot3A<T>`] has SIMD alignment. For no SIMD use
+/// [`Rot3<T>`].
+///
+/// # Representation and Fields
+///
+/// Unless you are familiar with rotor/quaternion math, avoid using raw rotor
+/// elements directly. Instead, use higher level helper functions.
+///
+/// This type stores four elements, with this order in memory:
+///
+/// - `xy: T = plane_of_rotation.xy * sin(angle/2)`
+/// - `xz: T = plane_of_rotation.xz * sin(angle/2)`
+/// - `yz: T = plane_of_rotation.yz * sin(angle/2)`
+/// - `s: T = cos(angle/2)`
+///
+/// Each plane element rotates one axis to another (e.g., `xy` rotates `+X` to
+/// `+Y`). This representation uses lexicographical ordering `xy, xz, yz`, which
+/// differs from right-hand rule conventions that might expect `yz, zx, xy`
+/// (which is `x, y, z` in axis-angle notation). Even though the half-angle
+/// looks odd, its benefits are what make rotors a useful and efficient object.
+///
+/// > In advanced Geometric Algebra terms, the precise definition of this type
+/// > is `R = e^(B/2)`, with vector multiplication `R~vR`. This differs from the
+/// > traditional rotor convention, `R = e^(-B/2)` and `RvR~`.
+///
+/// Note that these fields are only exposed by implementing [`Deref`] and
+/// [`DerefMut`].
+///
+/// [`rotor.normalize()`]: Rotor#method.normalize
 pub type Rot3A<T> = Rotor<3, T, Aligned>;
 
 impl<const N: usize, T, A: Alignment> Clone for Rotor<N, T, A>
@@ -67,9 +303,19 @@ where
 #[doc(hidden)]
 #[repr(C)]
 pub struct Rot2Fields<T> {
-    /// TODO
+    /// The basis plane element of a rotor, rotating `+X` to `+Y`.
+    ///
+    /// Equal to `sin(angle/2)`.
+    ///
+    /// Unless you are familiar with rotor/quaternion math, avoid using raw
+    /// rotor elements directly. Instead, use higher level helper functions.
     pub xy: T,
-    /// TODO
+    /// The scalar part of a rotor.
+    ///
+    /// Equal to `cos(angle/2)`.
+    ///
+    /// Unless you are familiar with rotor/quaternion math, avoid using raw
+    /// rotor elements directly. Instead, use higher level helper functions.
     pub s: T,
 }
 
@@ -102,13 +348,33 @@ where
 #[doc(hidden)]
 #[repr(C)]
 pub struct Rot3Fields<T> {
-    /// TODO
+    /// The first basis plane element of a rotor, rotating `+X` to `+Y`.
+    ///
+    /// Equal to `plane_of_rotation.xy * sin(angle/2)`.
+    ///
+    /// Unless you are familiar with rotor/quaternion math, avoid using raw
+    /// rotor elements directly. Instead, use higher level helper functions.
     pub xy: T,
-    /// TODO
+    /// The second basis plane element of a rotor, rotating `+X` to `+Z`.
+    ///
+    /// Equal to `plane_of_rotation.xz * sin(angle/2)`.
+    ///
+    /// Unless you are familiar with rotor/quaternion math, avoid using raw
+    /// rotor elements directly. Instead, use higher level helper functions.
     pub xz: T,
-    /// TODO
+    /// The third basis plane element of a rotor, rotating `+Y` to `+Z`.
+    ///
+    /// Equal to `plane_of_rotation.yz * sin(angle/2)`.
+    ///
+    /// Unless you are familiar with rotor/quaternion math, avoid using raw
+    /// rotor elements directly. Instead, use higher level helper functions.
     pub yz: T,
-    /// TODO
+    /// The scalar part of a rotor.
+    ///
+    /// Equal to `cos(angle/2)`.
+    ///
+    /// Unless you are familiar with rotor/quaternion math, avoid using raw
+    /// rotor elements directly. Instead, use higher level helper functions.
     pub s: T,
 }
 
@@ -226,7 +492,12 @@ macro_rules! impl_neg {
     };
 }
 impl_neg!(
-    /// TODO
+    /// Negates the elements of a rotor.
+    ///
+    /// The resulting rotor still represents the same rotation. To invert a
+    /// rotation, use [`rotor.inverse()`].
+    ///
+    /// [`rotor.inverse()`]: Rotor#method.inverse
 );
 
 macro_rules! impl_add {
@@ -319,7 +590,11 @@ macro_rules! impl_add {
     };
 }
 impl_add!(
-    /// TODO
+    /// Adds together the elements of two rotors.
+    ///
+    /// The resulting rotor most likely does not represent a valid rotation.
+    /// Only use this if you know what you are doing. If you want to "chain"
+    /// two rotations, use `rotor * rotor` instead.
 );
 
 macro_rules! impl_sub {
@@ -412,7 +687,10 @@ macro_rules! impl_sub {
     };
 }
 impl_sub!(
-    /// TODO
+    /// Performs subtraction for the elements of two rotors.
+    ///
+    /// The resulting rotor most likely does not represent a valid rotation.
+    /// Only use this if you know what you are doing.
 );
 
 macro_rules! impl_mul_scalar {
@@ -505,7 +783,10 @@ macro_rules! impl_mul_scalar {
     };
 }
 impl_mul_scalar!(
-    /// TODO
+    /// Multiplies each element of a rotor by a scalar.
+    ///
+    /// The resulting rotor most likely does not represent a valid rotation.
+    /// Only use this if you know what you are doing.
 );
 
 macro_rules! impl_vector_mul {
@@ -572,7 +853,10 @@ macro_rules! impl_vector_mul {
     };
 }
 impl_vector_mul!(
-    /// TODO
+    /// Transforms a vector by a rotor.
+    ///
+    /// If the rotor is normalized, this applies rotation. If the rotor is not
+    /// normalized, this also scales the vector by `rotor.length_squared()`.
 );
 
 macro_rules! impl_mul {
@@ -665,7 +949,8 @@ macro_rules! impl_mul {
     };
 }
 impl_mul!(
-    /// TODO
+    /// Multiplies two rotors together, resulting in a rotor equivalent to first
+    /// applying the left rotor then applying the right rotor.
 );
 
 macro_rules! impl_div_scalar {
@@ -758,7 +1043,10 @@ macro_rules! impl_div_scalar {
     };
 }
 impl_div_scalar!(
-    /// TODO
+    /// Divides each element of a rotor by a scalar.
+    ///
+    /// The resulting rotor most likely does not represent a valid rotation.
+    /// Only use this if you know what you are doing.
 );
 
 // SAFETY: Rotors are equivalent to consecutive values of `T` plus padding.

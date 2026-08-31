@@ -40,14 +40,19 @@ macro_rules! items {
                 _ => unreachable!(),
             };
 
-        /// TODO
+        /// Creates a projective transform from a rotor.
+        ///
+        /// This assumes the rotor is normalized.
         #[inline]
         #[must_use]
         pub fn from_rotor(_rotor: Rotor<N, $Wide, A>) -> Self {
             todo!()
         }
 
-        /// TODO
+        /// Creates a projective transform from non-uniform `scale` and
+        /// `rotation`.
+        ///
+        /// This assumes `rotation` is normalized.
         #[inline]
         #[must_use]
         #[track_caller]
@@ -62,7 +67,9 @@ macro_rules! items {
             todo!()
         }
 
-        /// TODO
+        /// Creates a projective transform from `rotation` and `translation`.
+        ///
+        /// This assumes `rotation` is normalized.
         #[inline]
         #[must_use]
         #[track_caller]
@@ -77,7 +84,10 @@ macro_rules! items {
             todo!()
         }
 
-        /// TODO
+        /// Creates a projective transform from non-uniform `scale`, `rotation`
+        /// and `translation`.
+        ///
+        /// This assumes `rotation` is normalized.
         #[inline]
         #[must_use]
         #[track_caller]
@@ -193,7 +203,10 @@ macro_rules! items {
             specialize_23!(Projective::<N, $Wide, A>::abs_backend(self))
         }
 
-        /// TODO
+        /// Converts a projective transform to non-uniform scale and rotation.
+        ///
+        /// This assumes the transform only contains scale, rotation, and
+        /// translation which is ignored.
         #[inline]
         #[must_use]
         #[track_caller]
@@ -205,7 +218,9 @@ macro_rules! items {
             todo!()
         }
 
-        /// TODO
+        /// Converts a projective transform to rotation and translation.
+        ///
+        /// This assumes the transform only contains rotation and translation.
         #[inline]
         #[must_use]
         #[track_caller]
@@ -217,7 +232,11 @@ macro_rules! items {
             todo!()
         }
 
-        /// TODO
+        /// Converts a projective transform to non-uniform scale, rotation and
+        /// translation.
+        ///
+        /// This assumes the transform only contains scale, rotation and
+        /// translation.
         #[inline]
         #[must_use]
         #[track_caller]
