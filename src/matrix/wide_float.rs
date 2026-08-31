@@ -25,7 +25,9 @@ macro_rules! items {
             specialize_23!(Matrix::<N, $Wide, A>::from_projective_backend(projective))
         }
 
-        /// TODO
+        /// Creates a matrix from a rotor.
+        ///
+        /// This assumes the rotor is normalized.
         #[inline]
         #[must_use]
         #[expect(private_bounds)]
@@ -36,7 +38,9 @@ macro_rules! items {
             todo!()
         }
 
-        /// TODO
+        /// Creates a matrix from non-uniform `scale` and `rotation`.
+        ///
+        /// This assumes `rotation` is normalized.
         #[inline]
         #[must_use]
         #[expect(private_bounds)]
@@ -118,7 +122,9 @@ macro_rules! items {
             specialize!(Matrix::<N, $Wide, A>::abs_backend(self))
         }
 
-        /// TODO
+        /// Converts a matrix to non-uniform scale and rotation.
+        ///
+        /// This assumes the matrix only contains scale and rotation.
         #[inline]
         #[must_use]
         #[expect(private_bounds)]

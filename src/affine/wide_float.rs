@@ -26,7 +26,9 @@ macro_rules! items {
             specialize_23!(Affine::<N, $Wide, A>::from_projective_backend(projective))
         }
 
-        /// TODO
+        /// Creates an affine transform from a rotor.
+        ///
+        /// This assumes the rotor is normalized.
         #[inline]
         #[must_use]
         #[expect(private_bounds)]
@@ -37,7 +39,9 @@ macro_rules! items {
             todo!()
         }
 
-        /// TODO
+        /// Creates an affine transform from non-uniform `scale` and `rotation`.
+        ///
+        /// This assumes `rotation` is normalized.
         #[inline]
         #[must_use]
         #[expect(private_bounds)]
@@ -51,7 +55,9 @@ macro_rules! items {
             todo!()
         }
 
-        /// TODO
+        /// Creates an affine transform from `rotation` and `translation`.
+        ///
+        /// This assumes `rotation` is normalized.
         #[inline]
         #[must_use]
         #[expect(private_bounds)]
@@ -65,7 +71,10 @@ macro_rules! items {
             todo!()
         }
 
-        /// TODO
+        /// Creates an affine transform from non-uniform `scale`, `rotation` and
+        /// `translation`.
+        ///
+        /// This assumes `rotation` is normalized.
         #[inline]
         #[must_use]
         #[expect(private_bounds)]
@@ -131,7 +140,10 @@ macro_rules! items {
             specialize!(Affine::<N, $Wide, A>::inverse_or_zero_backend(self))
         }
 
-        /// TODO
+        /// Converts an affine transform to non-uniform scale and rotation.
+        ///
+        /// This assumes the transform only contains scale, rotation, and
+        /// translation which is ignored.
         #[inline]
         #[must_use]
         #[expect(private_bounds)]
@@ -142,7 +154,9 @@ macro_rules! items {
             todo!()
         }
 
-        /// TODO
+        /// Converts an affine transform to rotation and translation.
+        ///
+        /// This assumes the transform only contains rotation and translation.
         #[inline]
         #[must_use]
         #[expect(private_bounds)]
@@ -153,7 +167,11 @@ macro_rules! items {
             todo!()
         }
 
-        /// TODO
+        /// Converts an affine transform to non-uniform scale, rotation and
+        /// translation.
+        ///
+        /// This assumes the transform only contains scale, rotation and
+        /// translation.
         #[inline]
         #[must_use]
         #[expect(private_bounds)]

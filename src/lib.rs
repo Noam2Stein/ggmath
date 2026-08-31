@@ -4,6 +4,7 @@
 //! - Square Matrices: [`Mat2<T>`], [`Mat3<T>`], [`Mat4<T>`]
 //! - Affine Transforms: [`Affine2<T>`], [`Affine3<T>`]
 //! - Projective Transforms: [`Proj2<T>`], [`Proj3<T>`]
+//! - Rotors: [`Rotor2<T>`], [`Rotor3<T>`]
 //! - Masks: [`Mask2<T>`], [`Mask3<T>`], [`Mask4<T>`]
 //!
 //! SIMD variants:
@@ -12,6 +13,7 @@
 //! - Square Matrices: [`Mat2A<T>`], [`Mat3A<T>`], [`Mat4A<T>`]
 //! - Affine Transforms: [`Affine2A<T>`], [`Affine3A<T>`]
 //! - Projective Transforms: [`Proj2A<T>`], [`Proj3A<T>`]
+//! - Rotors: [`Rotor2A<T>`], [`Rotor3A<T>`]
 //! - Masks: [`Mask2A<T>`], [`Mask3A<T>`], [`Mask4A<T>`]
 //!
 //! Underlying generic types:
@@ -20,6 +22,7 @@
 //! - [`Matrix<N, T, A>`]
 //! - [`Affine<N, T, A>`]
 //! - [`Projective<N, T, A>`]
+//! - [`Rotor<N, T, A>`]
 //! - [`Mask<N, T, A>`]
 //!
 //! # SIMD
@@ -98,6 +101,19 @@
 //!
 //! > This table is true only for target architectures that have SIMD and are
 //! > supported.
+//!
+//! # Rotors
+//!
+//! A rotor is a mathematical object used to represent rotations. In comparison
+//! to rotation matrices, rotors are more compact and are easier to blend.
+//! Rotors are basically identical to quaternions, which you may be familiar
+//! with, but tend to be easier to understand, and extend better to dimensions
+//! other than 3D.
+//!
+//! > If you are curious about the underlying math, rotors come from Geometric
+//! > Algebra. I recommend
+//! > [this resource](https://www.youtube.com/playlist?list=PLVuwZXwFua-0Ks3rRS4tIkswgUmDLqqRy)
+//! > for learning more.
 //!
 //! # Masks
 //!

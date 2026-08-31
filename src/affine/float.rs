@@ -54,7 +54,15 @@ where
         specialize_23!(Affine::<N, T, A>::from_projective_backend(projective))
     }
 
-    /// TODO
+    /// Creates an affine transform from a rotor.
+    ///
+    /// This assumes the rotor is normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if the rotor is not normalized.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -66,7 +74,15 @@ where
         todo!()
     }
 
-    /// TODO
+    /// Creates an affine transform from non-uniform `scale` and `rotation`.
+    ///
+    /// This assumes `rotation` is normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `rotation` is not normalized.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -78,7 +94,15 @@ where
         todo!()
     }
 
-    /// TODO
+    /// Creates an affine transform from `rotation` and `translation`.
+    ///
+    /// This assumes `rotation` is normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `rotation` is not normalized.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -93,7 +117,16 @@ where
         todo!()
     }
 
-    /// TODO
+    /// Creates an affine transform from non-uniform `scale`, `rotation` and
+    /// `translation`.
+    ///
+    /// This assumes `rotation` is normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `rotation` is not normalized.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -207,7 +240,17 @@ where
         self.try_inverse().unwrap_or(Self::ZERO)
     }
 
-    /// TODO
+    /// Converts an affine transform to non-uniform scale and rotation.
+    ///
+    /// This assumes the transform only contains scale, rotation, and
+    /// translation which is ignored.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if the transform contains anything but scale, rotation and
+    /// translation.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -219,7 +262,15 @@ where
         todo!()
     }
 
-    /// TODO
+    /// Converts an affine transform to rotation and translation.
+    ///
+    /// This assumes the transform only contains rotation and translation.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if the transform contains anything but rotation and translation.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -231,7 +282,18 @@ where
         todo!()
     }
 
-    /// TODO
+    /// Converts an affine transform to non-uniform scale, rotation and
+    /// translation.
+    ///
+    /// This assumes the transform only contains scale, rotation and
+    /// translation.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if the transform contains anything but scale, rotation and
+    /// translation.
     #[inline]
     #[must_use]
     #[track_caller]
