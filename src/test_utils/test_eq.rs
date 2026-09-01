@@ -1,10 +1,13 @@
 extern crate std;
 
-use std::fmt::{Debug, Display};
+use std::{
+    fmt::{Debug, Display},
+    ops::Neg,
+};
 
 use crate::{
-    Affine, Alignment, Length, Matrix, PrimitiveInteger, Projective, Scalar, SupportedLength,
-    Vector, length::TwoOrThree, utils::specialize_23,
+    Affine, Alignment, Length, Matrix, PrimitiveInteger, Projective, Rotor, Scalar,
+    SupportedLength, Vector, length::TwoOrThree, utils::specialize_23,
 };
 
 /// Asserts equality with specific rules for each type.
@@ -22,18 +25,33 @@ use crate::{
 /// - `0.0 = -0.0`: Treats zeros with different signs as equal.
 ///
 /// - `INFINITY = NAN`: Treats infinity, negative infinity and NaNs as equal.
+///
+/// - `rotor = -rotor`: treats opposite rotors as equal, because they represent
+///   the same rotation.
 macro_rules! assert_test_eq {
     ($actual:expr, $expected:expr $(,)?) => {
-        crate::test_utils::assert_test_eq_helper(&$actual, &$expected, false, false, "")
+        crate::test_utils::assert_test_eq_helper(&$actual, &$expected, false, false, false, "")
     };
     ($actual:expr, $expected:expr, 0.0 = -0.0 $(,)?) => {
-        crate::test_utils::assert_test_eq_helper(&$actual, &$expected, true, false, "")
+        crate::test_utils::assert_test_eq_helper(&$actual, &$expected, true, false, false, "")
     };
     ($actual:expr, $expected:expr, INFINITY = NAN $(,)?) => {
-        crate::test_utils::assert_test_eq_helper(&$actual, &$expected, false, true, "")
+        crate::test_utils::assert_test_eq_helper(&$actual, &$expected, false, true, false, "")
     };
     ($actual:expr, $expected:expr, 0.0 = -0.0, INFINITY = NAN $(,)?) => {
-        crate::test_utils::assert_test_eq_helper(&$actual, &$expected, true, true, "")
+        crate::test_utils::assert_test_eq_helper(&$actual, &$expected, true, true, false, "")
+    };
+    ($actual:expr, $expected:expr, rotor = -rotor $(,)?) => {
+        crate::test_utils::assert_test_eq_helper(&$actual, &$expected, false, false, true, "")
+    };
+    ($actual:expr, $expected:expr, 0.0 = -0.0, rotor = -rotor $(,)?) => {
+        crate::test_utils::assert_test_eq_helper(&$actual, &$expected, true, false, true, "")
+    };
+    ($actual:expr, $expected:expr, INFINITY = NAN, rotor = -rotor $(,)?) => {
+        crate::test_utils::assert_test_eq_helper(&$actual, &$expected, false, true, true, "")
+    };
+    ($actual:expr, $expected:expr, 0.0 = -0.0, INFINITY = NAN, rotor = -rotor $(,)?) => {
+        crate::test_utils::assert_test_eq_helper(&$actual, &$expected, true, true, true, "")
     };
     ($actual:expr, $expected:expr, abs <= $tol:expr $(,)?) => {
         crate::test_utils::assert_test_eq_abs_helper(
@@ -42,17 +60,112 @@ macro_rules! assert_test_eq {
             &$tol,
             false,
             false,
+            false,
             "",
         )
     };
     ($actual:expr, $expected:expr, abs <= $tol:expr, 0.0 = -0.0 $(,)?) => {
-        crate::test_utils::assert_test_eq_abs_helper(&$actual, &$expected, &$tol, true, false, "")
+        crate::test_utils::assert_test_eq_abs_helper(&$actual, &$expected, &$tol, true, false, false, "")
     };
     ($actual:expr, $expected:expr, abs <= $tol:expr, INFINITY = NAN $(,)?) => {
-        crate::test_utils::assert_test_eq_abs_helper(&$actual, &$expected, &$tol, false, true, "")
+        crate::test_utils::assert_test_eq_abs_helper(&$actual, &$expected, &$tol, false, true, false, "")
     };
     ($actual:expr, $expected:expr, abs <= $tol:expr, 0.0 = -0.0, INFINITY = NAN $(,)?) => {
-        crate::test_utils::assert_test_eq_abs_helper(&$actual, &$expected, &$tol, true, true, "")
+        crate::test_utils::assert_test_eq_abs_helper(&$actual, &$expected, &$tol, true, true, false, "")
+    };
+    ($actual:expr, $expected:expr, abs <= $tol:expr, rotor = -rotor $(,)?) => {
+        crate::test_utils::assert_test_eq_abs_helper(&$actual, &$expected, &$tol, false, false, true, "")
+    };
+    ($actual:expr, $expected:expr, abs <= $tol:expr, 0.0 = -0.0, rotor = -rotor $(,)?) => {
+        crate::test_utils::assert_test_eq_abs_helper(&$actual, &$expected, &$tol, true, false, true, "")
+    };
+    ($actual:expr, $expected:expr, abs <= $tol:expr, INFINITY = NAN, rotor = -rotor $(,)?) => {
+        crate::test_utils::assert_test_eq_abs_helper(&$actual, &$expected, &$tol, false, true, true, "")
+    };
+    (
+        $actual:expr,
+        $expected:expr,
+        abs <= $tol:expr,
+        0.0 = -0.0,
+        INFINITY = NAN,
+        rotor = -rotor
+        $(,)?
+    ) => {
+        crate::test_utils::assert_test_eq_abs_helper(
+            &$actual,
+            &$expected,
+            &$tol,
+            true,
+            true,
+            true,
+            "",
+        )
+    };
+    (
+        $actual:expr,
+        $expected:expr,
+        abs <= $tol:expr,
+        0.0 = -0.0,
+        INFINITY = NAN,
+        rotor = -rotor,
+        $($message:tt)+
+    ) => {
+        crate::test_utils::assert_test_eq_abs_helper(
+            &$actual,
+            &$expected,
+            &$tol,
+            true,
+            true,
+            true,
+            format_args!($($message)+),
+        )
+    };
+    (
+        $actual:expr,
+        $expected:expr,
+        abs <= $tol:expr,
+        INFINITY = NAN,
+        rotor = -rotor,
+        $($message:tt)+
+    ) => {
+        crate::test_utils::assert_test_eq_abs_helper(
+            &$actual,
+            &$expected,
+            &$tol,
+            false,
+            true,
+            true,
+            format_args!($($message)+),
+        )
+    };
+    (
+        $actual:expr,
+        $expected:expr,
+        abs <= $tol:expr,
+        0.0 = -0.0,
+        rotor = -rotor,
+        $($message:tt)+
+    ) => {
+        crate::test_utils::assert_test_eq_abs_helper(
+            &$actual,
+            &$expected,
+            &$tol,
+            true,
+            false,
+            true,
+            format_args!($($message)+),
+        )
+    };
+    ($actual:expr, $expected:expr, abs <= $tol:expr, rotor = -rotor, $($message:tt)+) => {
+        crate::test_utils::assert_test_eq_abs_helper(
+            &$actual,
+            &$expected,
+            &$tol,
+            false,
+            false,
+            true,
+            format_args!($($message)+),
+        )
     };
     (
         $actual:expr,
@@ -68,6 +181,7 @@ macro_rules! assert_test_eq {
             &$tol,
             true,
             true,
+            false,
             format_args!($($message)+),
         )
     };
@@ -78,6 +192,7 @@ macro_rules! assert_test_eq {
             &$tol,
             false,
             true,
+            false,
             format_args!($($message)+),
         )
     };
@@ -87,6 +202,7 @@ macro_rules! assert_test_eq {
             &$expected,
             &$tol,
             true,
+            false,
             false,
             format_args!($($message)+),
         )
@@ -98,6 +214,47 @@ macro_rules! assert_test_eq {
             &$tol,
             false,
             false,
+            false,
+            format_args!($($message)+),
+        )
+    };
+    ($actual:expr, $expected:expr, 0.0 = -0.0, INFINITY = NAN, rotor = -rotor, $($message:tt)+) => {
+        crate::test_utils::assert_test_eq_helper(
+            &$actual,
+            &$expected,
+            true,
+            true,
+            true,
+            format_args!($($message)+),
+        )
+    };
+    ($actual:expr, $expected:expr, INFINITY = NAN, rotor = -rotor, $($message:tt)+) => {
+        crate::test_utils::assert_test_eq_helper(
+            &$actual,
+            &$expected,
+            false,
+            true,
+            true,
+            format_args!($($message)+),
+        )
+    };
+    ($actual:expr, $expected:expr, 0.0 = -0.0, rotor = -rotor, $($message:tt)+) => {
+        crate::test_utils::assert_test_eq_helper(
+            &$actual,
+            &$expected,
+            true,
+            false,
+            true,
+            format_args!($($message)+),
+        )
+    };
+    ($actual:expr, $expected:expr, rotor = -rotor, $($message:tt)+) => {
+        crate::test_utils::assert_test_eq_helper(
+            &$actual,
+            &$expected,
+            false,
+            false,
+            true,
             format_args!($($message)+),
         )
     };
@@ -107,6 +264,7 @@ macro_rules! assert_test_eq {
             &$expected,
             true,
             true,
+            false,
             format_args!($($message)+),
         )
     };
@@ -116,6 +274,7 @@ macro_rules! assert_test_eq {
             &$expected,
             false,
             true,
+            false,
             format_args!($($message)+),
         )
     };
@@ -125,6 +284,7 @@ macro_rules! assert_test_eq {
             &$expected,
             true,
             false,
+            false,
             format_args!($($message)+),
         )
     };
@@ -132,6 +292,7 @@ macro_rules! assert_test_eq {
         crate::test_utils::assert_test_eq_helper(
             &$actual,
             &$expected,
+            false,
             false,
             false,
             format_args!($($message)+),
@@ -148,11 +309,17 @@ pub fn assert_test_eq_helper<T>(
     expected: &T,
     zero_eq_neg_zero: bool,
     infinity_eq_nan: bool,
+    rotor_eq_neg_rotor: bool,
     message: impl Display,
 ) where
     T: Debug + TestEq,
 {
-    if !actual.eq(expected, zero_eq_neg_zero, infinity_eq_nan) {
+    if !actual.eq(
+        expected,
+        zero_eq_neg_zero,
+        infinity_eq_nan,
+        rotor_eq_neg_rotor,
+    ) {
         panic!(
             concat!(
                 "assertion `actual == expected` failed\n",
@@ -174,12 +341,19 @@ pub fn assert_test_eq_abs_helper<T, Tol>(
     tol: &Tol,
     zero_eq_neg_zero: bool,
     infinity_eq_nan: bool,
+    rotor_eq_neg_rotor: bool,
     message: impl Display,
 ) where
     T: Debug + TestEqAbs<Tol>,
     Tol: Debug,
 {
-    if !actual.eq(expected, tol, zero_eq_neg_zero, infinity_eq_nan) {
+    if !actual.eq(
+        expected,
+        tol,
+        zero_eq_neg_zero,
+        infinity_eq_nan,
+        rotor_eq_neg_rotor,
+    ) {
         panic!(
             concat!(
                 "assertion `actual == expected` failed\n",
@@ -194,18 +368,36 @@ pub fn assert_test_eq_abs_helper<T, Tol>(
 }
 
 trait TestEq: Sized {
-    fn eq(&self, expected: &Self, zero_eq_neg_zero: bool, infinity_eq_nan: bool) -> bool;
+    fn eq(
+        &self,
+        expected: &Self,
+        zero_eq_neg_zero: bool,
+        infinity_eq_nan: bool,
+        rotor_eq_neg_rotor: bool,
+    ) -> bool;
 }
 
 trait TestEqAbs<Tol = Self> {
-    fn eq(&self, expected: &Self, tol: &Tol, zero_eq_neg_zero: bool, infinity_eq_nan: bool)
-    -> bool;
+    fn eq(
+        &self,
+        expected: &Self,
+        tol: &Tol,
+        zero_eq_neg_zero: bool,
+        infinity_eq_nan: bool,
+        rotor_eq_neg_rotor: bool,
+    ) -> bool;
 }
 
 macro_rules! float_impl {
     ($T:ident) => {
         impl TestEq for $T {
-            fn eq(&self, expected: &Self, zero_eq_neg_zero: bool, infinity_eq_nan: bool) -> bool {
+            fn eq(
+                &self,
+                expected: &Self,
+                zero_eq_neg_zero: bool,
+                infinity_eq_nan: bool,
+                _rotor_eq_neg_rotor: bool,
+            ) -> bool {
                 if infinity_eq_nan && !self.is_finite() && !expected.is_finite() {
                     true
                 } else if self.is_nan() || expected.is_nan() {
@@ -225,6 +417,7 @@ macro_rules! float_impl {
                 tol: &Self,
                 zero_eq_neg_zero: bool,
                 infinity_eq_nan: bool,
+                _rotor_eq_neg_rotor: bool,
             ) -> bool {
                 if infinity_eq_nan && !self.is_finite() && !expected.is_finite() {
                     true
@@ -252,19 +445,37 @@ impl<T> TestEq for T
 where
     T: PrimitiveInteger,
 {
-    fn eq(&self, expected: &Self, _zero_eq_neg_zero: bool, _infinity_eq_nan: bool) -> bool {
+    fn eq(
+        &self,
+        expected: &Self,
+        _zero_eq_neg_zero: bool,
+        _infinity_eq_nan: bool,
+        _rotor_eq_neg_rotor: bool,
+    ) -> bool {
         self == expected
     }
 }
 
 impl TestEq for bool {
-    fn eq(&self, expected: &Self, _zero_eq_neg_zero: bool, _infinity_eq_nan: bool) -> bool {
+    fn eq(
+        &self,
+        expected: &Self,
+        _zero_eq_neg_zero: bool,
+        _infinity_eq_nan: bool,
+        _rotor_eq_neg_rotor: bool,
+    ) -> bool {
         self == expected
     }
 }
 
 impl TestEq for () {
-    fn eq(&self, (): &Self, _zero_eq_neg_zero: bool, _infinity_eq_nan: bool) -> bool {
+    fn eq(
+        &self,
+        (): &Self,
+        _zero_eq_neg_zero: bool,
+        _infinity_eq_nan: bool,
+        _rotor_eq_neg_rotor: bool,
+    ) -> bool {
         true
     }
 }
@@ -274,9 +485,24 @@ where
     T0: TestEq,
     T1: TestEq,
 {
-    fn eq(&self, expected: &Self, zero_eq_neg_zero: bool, infinity_eq_nan: bool) -> bool {
-        self.0.eq(&expected.0, zero_eq_neg_zero, infinity_eq_nan)
-            && self.1.eq(&expected.1, zero_eq_neg_zero, infinity_eq_nan)
+    fn eq(
+        &self,
+        expected: &Self,
+        zero_eq_neg_zero: bool,
+        infinity_eq_nan: bool,
+        rotor_eq_neg_rotor: bool,
+    ) -> bool {
+        self.0.eq(
+            &expected.0,
+            zero_eq_neg_zero,
+            infinity_eq_nan,
+            rotor_eq_neg_rotor,
+        ) && self.1.eq(
+            &expected.1,
+            zero_eq_neg_zero,
+            infinity_eq_nan,
+            rotor_eq_neg_rotor,
+        )
     }
 }
 
@@ -291,12 +517,21 @@ where
         tol: &(Tol0, Tol1),
         zero_eq_neg_zero: bool,
         infinity_eq_nan: bool,
+        rotor_eq_neg_rotor: bool,
     ) -> bool {
-        self.0
-            .eq(&expected.0, &tol.0, zero_eq_neg_zero, infinity_eq_nan)
-            && self
-                .1
-                .eq(&expected.1, &tol.1, zero_eq_neg_zero, infinity_eq_nan)
+        self.0.eq(
+            &expected.0,
+            &tol.0,
+            zero_eq_neg_zero,
+            infinity_eq_nan,
+            rotor_eq_neg_rotor,
+        ) && self.1.eq(
+            &expected.1,
+            &tol.1,
+            zero_eq_neg_zero,
+            infinity_eq_nan,
+            rotor_eq_neg_rotor,
+        )
     }
 }
 
@@ -306,10 +541,29 @@ where
     T1: TestEq,
     T2: TestEq,
 {
-    fn eq(&self, expected: &Self, zero_eq_neg_zero: bool, infinity_eq_nan: bool) -> bool {
-        self.0.eq(&expected.0, zero_eq_neg_zero, infinity_eq_nan)
-            && self.1.eq(&expected.1, zero_eq_neg_zero, infinity_eq_nan)
-            && self.2.eq(&expected.2, zero_eq_neg_zero, infinity_eq_nan)
+    fn eq(
+        &self,
+        expected: &Self,
+        zero_eq_neg_zero: bool,
+        infinity_eq_nan: bool,
+        rotor_eq_neg_rotor: bool,
+    ) -> bool {
+        self.0.eq(
+            &expected.0,
+            zero_eq_neg_zero,
+            infinity_eq_nan,
+            rotor_eq_neg_rotor,
+        ) && self.1.eq(
+            &expected.1,
+            zero_eq_neg_zero,
+            infinity_eq_nan,
+            rotor_eq_neg_rotor,
+        ) && self.2.eq(
+            &expected.2,
+            zero_eq_neg_zero,
+            infinity_eq_nan,
+            rotor_eq_neg_rotor,
+        )
     }
 }
 
@@ -325,15 +579,27 @@ where
         tol: &(Tol0, Tol1, Tol2),
         zero_eq_neg_zero: bool,
         infinity_eq_nan: bool,
+        rotor_eq_neg_rotor: bool,
     ) -> bool {
-        self.0
-            .eq(&expected.0, &tol.0, zero_eq_neg_zero, infinity_eq_nan)
-            && self
-                .1
-                .eq(&expected.1, &tol.1, zero_eq_neg_zero, infinity_eq_nan)
-            && self
-                .2
-                .eq(&expected.2, &tol.2, zero_eq_neg_zero, infinity_eq_nan)
+        self.0.eq(
+            &expected.0,
+            &tol.0,
+            zero_eq_neg_zero,
+            infinity_eq_nan,
+            rotor_eq_neg_rotor,
+        ) && self.1.eq(
+            &expected.1,
+            &tol.1,
+            zero_eq_neg_zero,
+            infinity_eq_nan,
+            rotor_eq_neg_rotor,
+        ) && self.2.eq(
+            &expected.2,
+            &tol.2,
+            zero_eq_neg_zero,
+            infinity_eq_nan,
+            rotor_eq_neg_rotor,
+        )
     }
 }
 
@@ -341,11 +607,20 @@ impl<T> TestEq for Option<T>
 where
     T: TestEq,
 {
-    fn eq(&self, expected: &Self, zero_eq_neg_zero: bool, infinity_eq_nan: bool) -> bool {
+    fn eq(
+        &self,
+        expected: &Self,
+        zero_eq_neg_zero: bool,
+        infinity_eq_nan: bool,
+        rotor_eq_neg_rotor: bool,
+    ) -> bool {
         match (self, expected) {
-            (Some(actual), Some(expected)) => {
-                actual.eq(expected, zero_eq_neg_zero, infinity_eq_nan)
-            }
+            (Some(actual), Some(expected)) => actual.eq(
+                expected,
+                zero_eq_neg_zero,
+                infinity_eq_nan,
+                rotor_eq_neg_rotor,
+            ),
             (Some(_), None) | (None, Some(_)) => false,
             (None, None) => true,
         }
@@ -357,8 +632,21 @@ where
     Length<N>: SupportedLength,
     T: Scalar + TestEq,
 {
-    fn eq(&self, expected: &Self, zero_eq_neg_zero: bool, infinity_eq_nan: bool) -> bool {
-        (0..N).all(|i| self[i].eq(&expected[i], zero_eq_neg_zero, infinity_eq_nan))
+    fn eq(
+        &self,
+        expected: &Self,
+        zero_eq_neg_zero: bool,
+        infinity_eq_nan: bool,
+        rotor_eq_neg_rotor: bool,
+    ) -> bool {
+        (0..N).all(|i| {
+            self[i].eq(
+                &expected[i],
+                zero_eq_neg_zero,
+                infinity_eq_nan,
+                rotor_eq_neg_rotor,
+            )
+        })
     }
 }
 
@@ -373,8 +661,17 @@ where
         tol: &Self,
         zero_eq_neg_zero: bool,
         infinity_eq_nan: bool,
+        rotor_eq_neg_rotor: bool,
     ) -> bool {
-        (0..N).all(|i| self[i].eq(&expected[i], &tol[i], zero_eq_neg_zero, infinity_eq_nan))
+        (0..N).all(|i| {
+            self[i].eq(
+                &expected[i],
+                &tol[i],
+                zero_eq_neg_zero,
+                infinity_eq_nan,
+                rotor_eq_neg_rotor,
+            )
+        })
     }
 }
 
@@ -383,8 +680,23 @@ where
     Length<N>: SupportedLength,
     T: Scalar + TestEqAbs,
 {
-    fn eq(&self, expected: &Self, tol: &T, zero_eq_neg_zero: bool, infinity_eq_nan: bool) -> bool {
-        (0..N).all(|i| self[i].eq(&expected[i], tol, zero_eq_neg_zero, infinity_eq_nan))
+    fn eq(
+        &self,
+        expected: &Self,
+        tol: &T,
+        zero_eq_neg_zero: bool,
+        infinity_eq_nan: bool,
+        rotor_eq_neg_rotor: bool,
+    ) -> bool {
+        (0..N).all(|i| {
+            self[i].eq(
+                &expected[i],
+                tol,
+                zero_eq_neg_zero,
+                infinity_eq_nan,
+                rotor_eq_neg_rotor,
+            )
+        })
     }
 }
 
@@ -393,8 +705,21 @@ where
     Length<N>: SupportedLength,
     T: Scalar + TestEq,
 {
-    fn eq(&self, expected: &Self, zero_eq_neg_zero: bool, infinity_eq_nan: bool) -> bool {
-        (0..N).all(|i| self[i].eq(&expected[i], zero_eq_neg_zero, infinity_eq_nan))
+    fn eq(
+        &self,
+        expected: &Self,
+        zero_eq_neg_zero: bool,
+        infinity_eq_nan: bool,
+        rotor_eq_neg_rotor: bool,
+    ) -> bool {
+        (0..N).all(|i| {
+            self[i].eq(
+                &expected[i],
+                zero_eq_neg_zero,
+                infinity_eq_nan,
+                rotor_eq_neg_rotor,
+            )
+        })
     }
 }
 
@@ -409,8 +734,17 @@ where
         tol: &Self,
         zero_eq_neg_zero: bool,
         infinity_eq_nan: bool,
+        rotor_eq_neg_rotor: bool,
     ) -> bool {
-        (0..N).all(|i| self[i].eq(&expected[i], &tol[i], zero_eq_neg_zero, infinity_eq_nan))
+        (0..N).all(|i| {
+            self[i].eq(
+                &expected[i],
+                &tol[i],
+                zero_eq_neg_zero,
+                infinity_eq_nan,
+                rotor_eq_neg_rotor,
+            )
+        })
     }
 }
 
@@ -419,8 +753,23 @@ where
     Length<N>: SupportedLength,
     T: Scalar + TestEqAbs,
 {
-    fn eq(&self, expected: &Self, tol: &T, zero_eq_neg_zero: bool, infinity_eq_nan: bool) -> bool {
-        (0..N).all(|i| self[i].eq(&expected[i], tol, zero_eq_neg_zero, infinity_eq_nan))
+    fn eq(
+        &self,
+        expected: &Self,
+        tol: &T,
+        zero_eq_neg_zero: bool,
+        infinity_eq_nan: bool,
+        rotor_eq_neg_rotor: bool,
+    ) -> bool {
+        (0..N).all(|i| {
+            self[i].eq(
+                &expected[i],
+                tol,
+                zero_eq_neg_zero,
+                infinity_eq_nan,
+                rotor_eq_neg_rotor,
+            )
+        })
     }
 }
 
@@ -429,12 +778,24 @@ where
     Length<N>: SupportedLength,
     T: Scalar + TestEq,
 {
-    fn eq(&self, expected: &Self, zero_eq_neg_zero: bool, infinity_eq_nan: bool) -> bool {
-        self.matrix
-            .eq(&expected.matrix, zero_eq_neg_zero, infinity_eq_nan)
-            && self
-                .translation
-                .eq(&expected.translation, zero_eq_neg_zero, infinity_eq_nan)
+    fn eq(
+        &self,
+        expected: &Self,
+        zero_eq_neg_zero: bool,
+        infinity_eq_nan: bool,
+        rotor_eq_neg_rotor: bool,
+    ) -> bool {
+        self.matrix.eq(
+            &expected.matrix,
+            zero_eq_neg_zero,
+            infinity_eq_nan,
+            rotor_eq_neg_rotor,
+        ) && self.translation.eq(
+            &expected.translation,
+            zero_eq_neg_zero,
+            infinity_eq_nan,
+            rotor_eq_neg_rotor,
+        )
     }
 }
 
@@ -449,17 +810,20 @@ where
         tol: &Self,
         zero_eq_neg_zero: bool,
         infinity_eq_nan: bool,
+        rotor_eq_neg_rotor: bool,
     ) -> bool {
         self.matrix.eq(
             &expected.matrix,
             &tol.matrix,
             zero_eq_neg_zero,
             infinity_eq_nan,
+            rotor_eq_neg_rotor,
         ) && self.translation.eq(
             &expected.translation,
             &tol.translation,
             zero_eq_neg_zero,
             infinity_eq_nan,
+            rotor_eq_neg_rotor,
         )
     }
 }
@@ -469,15 +833,27 @@ where
     Length<N>: SupportedLength,
     T: Scalar + TestEqAbs,
 {
-    fn eq(&self, expected: &Self, tol: &T, zero_eq_neg_zero: bool, infinity_eq_nan: bool) -> bool {
-        self.matrix
-            .eq(&expected.matrix, tol, zero_eq_neg_zero, infinity_eq_nan)
-            && self.translation.eq(
-                &expected.translation,
-                tol,
-                zero_eq_neg_zero,
-                infinity_eq_nan,
-            )
+    fn eq(
+        &self,
+        expected: &Self,
+        tol: &T,
+        zero_eq_neg_zero: bool,
+        infinity_eq_nan: bool,
+        rotor_eq_neg_rotor: bool,
+    ) -> bool {
+        self.matrix.eq(
+            &expected.matrix,
+            tol,
+            zero_eq_neg_zero,
+            infinity_eq_nan,
+            rotor_eq_neg_rotor,
+        ) && self.translation.eq(
+            &expected.translation,
+            tol,
+            zero_eq_neg_zero,
+            infinity_eq_nan,
+            rotor_eq_neg_rotor,
+        )
     }
 }
 
@@ -486,12 +862,19 @@ where
     Length<N>: TwoOrThree,
     T: Scalar + TestEq,
 {
-    fn eq(&self, expected: &Self, zero_eq_neg_zero: bool, infinity_eq_nan: bool) -> bool {
+    fn eq(
+        &self,
+        expected: &Self,
+        zero_eq_neg_zero: bool,
+        infinity_eq_nan: bool,
+        rotor_eq_neg_rotor: bool,
+    ) -> bool {
         specialize_23!(Projective::<N, T, A>::test_eq_backend(
             self,
             expected,
             zero_eq_neg_zero,
             infinity_eq_nan,
+            rotor_eq_neg_rotor,
         ))
     }
 }
@@ -507,6 +890,7 @@ where
         tol: &Self,
         zero_eq_neg_zero: bool,
         infinity_eq_nan: bool,
+        rotor_eq_neg_rotor: bool,
     ) -> bool {
         specialize_23!(Projective::<N, T, A>::test_eq_abs_backend(
             self,
@@ -514,6 +898,7 @@ where
             tol,
             zero_eq_neg_zero,
             infinity_eq_nan,
+            rotor_eq_neg_rotor,
         ))
     }
 }
@@ -523,13 +908,21 @@ where
     Length<N>: TwoOrThree,
     T: Scalar + TestEqAbs,
 {
-    fn eq(&self, expected: &Self, tol: &T, zero_eq_neg_zero: bool, infinity_eq_nan: bool) -> bool {
+    fn eq(
+        &self,
+        expected: &Self,
+        tol: &T,
+        zero_eq_neg_zero: bool,
+        infinity_eq_nan: bool,
+        rotor_eq_neg_rotor: bool,
+    ) -> bool {
         specialize_23!(Projective::<N, T, A>::test_eq_abs_scalar_backend(
             self,
             expected,
             *tol,
             zero_eq_neg_zero,
             infinity_eq_nan,
+            rotor_eq_neg_rotor,
         ))
     }
 }
@@ -545,11 +938,17 @@ macro_rules! projective_backend {
                 expected: &Self,
                 zero_eq_neg_zero: bool,
                 infinity_eq_nan: bool,
+                rotor_eq_neg_rotor: bool,
             ) -> bool
             where
                 T: TestEq,
             {
-                self.0.eq(&expected.0, zero_eq_neg_zero, infinity_eq_nan)
+                self.0.eq(
+                    &expected.0,
+                    zero_eq_neg_zero,
+                    infinity_eq_nan,
+                    rotor_eq_neg_rotor,
+                )
             }
 
             fn test_eq_abs_backend(
@@ -558,12 +957,18 @@ macro_rules! projective_backend {
                 tol: &Self,
                 zero_eq_neg_zero: bool,
                 infinity_eq_nan: bool,
+                rotor_eq_neg_rotor: bool,
             ) -> bool
             where
                 T: TestEqAbs,
             {
-                self.0
-                    .eq(&expected.0, &tol.0, zero_eq_neg_zero, infinity_eq_nan)
+                self.0.eq(
+                    &expected.0,
+                    &tol.0,
+                    zero_eq_neg_zero,
+                    infinity_eq_nan,
+                    rotor_eq_neg_rotor,
+                )
             }
 
             fn test_eq_abs_scalar_backend(
@@ -572,18 +977,250 @@ macro_rules! projective_backend {
                 tol: T,
                 zero_eq_neg_zero: bool,
                 infinity_eq_nan: bool,
+                rotor_eq_neg_rotor: bool,
             ) -> bool
             where
                 T: TestEqAbs,
             {
-                self.0
-                    .eq(&expected.0, &tol, zero_eq_neg_zero, infinity_eq_nan)
+                self.0.eq(
+                    &expected.0,
+                    &tol,
+                    zero_eq_neg_zero,
+                    infinity_eq_nan,
+                    rotor_eq_neg_rotor,
+                )
             }
         }
     };
 }
 projective_backend!(2);
 projective_backend!(3);
+
+impl<const N: usize, T, A: Alignment> TestEq for Rotor<N, T, A>
+where
+    Length<N>: TwoOrThree,
+    T: Scalar + Neg<Output = T> + TestEq,
+{
+    fn eq(
+        &self,
+        expected: &Self,
+        zero_eq_neg_zero: bool,
+        infinity_eq_nan: bool,
+        rotor_eq_neg_rotor: bool,
+    ) -> bool {
+        specialize_23!(Rotor::<N, T, A>::test_eq_backend(
+            self,
+            expected,
+            zero_eq_neg_zero,
+            infinity_eq_nan,
+            rotor_eq_neg_rotor,
+        ))
+    }
+}
+
+impl<const N: usize, T, A: Alignment> TestEqAbs for Rotor<N, T, A>
+where
+    Length<N>: TwoOrThree,
+    T: Scalar + Neg<Output = T> + TestEqAbs,
+{
+    fn eq(
+        &self,
+        expected: &Self,
+        tol: &Self,
+        zero_eq_neg_zero: bool,
+        infinity_eq_nan: bool,
+        rotor_eq_neg_rotor: bool,
+    ) -> bool {
+        specialize_23!(Rotor::<N, T, A>::test_eq_abs_backend(
+            self,
+            expected,
+            tol,
+            zero_eq_neg_zero,
+            infinity_eq_nan,
+            rotor_eq_neg_rotor,
+        ))
+    }
+}
+
+impl<const N: usize, T, A: Alignment> TestEqAbs<T> for Rotor<N, T, A>
+where
+    Length<N>: TwoOrThree,
+    T: Scalar + Neg<Output = T> + TestEqAbs,
+{
+    fn eq(
+        &self,
+        expected: &Self,
+        tol: &T,
+        zero_eq_neg_zero: bool,
+        infinity_eq_nan: bool,
+        rotor_eq_neg_rotor: bool,
+    ) -> bool {
+        specialize_23!(Rotor::<N, T, A>::test_eq_abs_scalar_backend(
+            self,
+            expected,
+            *tol,
+            zero_eq_neg_zero,
+            infinity_eq_nan,
+            rotor_eq_neg_rotor,
+        ))
+    }
+}
+
+impl<T, A: Alignment> TestEqAbs<Vector<2, T, A>> for Rotor<2, T, A>
+where
+    T: Scalar + Neg<Output = T> + TestEqAbs,
+{
+    fn eq(
+        &self,
+        expected: &Self,
+        tol: &Vector<2, T, A>,
+        zero_eq_neg_zero: bool,
+        infinity_eq_nan: bool,
+        rotor_eq_neg_rotor: bool,
+    ) -> bool {
+        TestEqAbs::<Self>::eq(
+            self,
+            expected,
+            &Self(*tol),
+            zero_eq_neg_zero,
+            infinity_eq_nan,
+            rotor_eq_neg_rotor,
+        )
+    }
+}
+
+impl<T, A: Alignment> TestEqAbs<Vector<4, T, A>> for Rotor<3, T, A>
+where
+    T: Scalar + Neg<Output = T> + TestEqAbs,
+{
+    fn eq(
+        &self,
+        expected: &Self,
+        tol: &Vector<4, T, A>,
+        zero_eq_neg_zero: bool,
+        infinity_eq_nan: bool,
+        rotor_eq_neg_rotor: bool,
+    ) -> bool {
+        TestEqAbs::<Self>::eq(
+            self,
+            expected,
+            &Self(*tol),
+            zero_eq_neg_zero,
+            infinity_eq_nan,
+            rotor_eq_neg_rotor,
+        )
+    }
+}
+
+macro_rules! rotor_backend {
+    ($N:literal) => {
+        impl<T, A: Alignment> Rotor<$N, T, A>
+        where
+            T: Scalar + Neg<Output = T>,
+        {
+            fn test_eq_backend(
+                &self,
+                expected: &Self,
+                zero_eq_neg_zero: bool,
+                infinity_eq_nan: bool,
+                rotor_eq_neg_rotor: bool,
+            ) -> bool
+            where
+                T: TestEq,
+            {
+                let eq = TestEq::eq(
+                    self.as_raw_vector(),
+                    expected.as_raw_vector(),
+                    zero_eq_neg_zero,
+                    infinity_eq_nan,
+                    rotor_eq_neg_rotor,
+                );
+
+                if rotor_eq_neg_rotor {
+                    eq || TestEq::eq(
+                        self.as_raw_vector(),
+                        (-*expected).as_raw_vector(),
+                        zero_eq_neg_zero,
+                        infinity_eq_nan,
+                        rotor_eq_neg_rotor,
+                    )
+                } else {
+                    eq
+                }
+            }
+
+            fn test_eq_abs_backend(
+                &self,
+                expected: &Self,
+                tol: &Self,
+                zero_eq_neg_zero: bool,
+                infinity_eq_nan: bool,
+                rotor_eq_neg_rotor: bool,
+            ) -> bool
+            where
+                T: TestEqAbs,
+            {
+                let eq = Vector::<_, T, A>::eq(
+                    self.as_raw_vector(),
+                    expected.as_raw_vector(),
+                    tol.as_raw_vector(),
+                    zero_eq_neg_zero,
+                    infinity_eq_nan,
+                    rotor_eq_neg_rotor,
+                );
+
+                if rotor_eq_neg_rotor {
+                    eq || Vector::<_, T, A>::eq(
+                        self.as_raw_vector(),
+                        (-*expected).as_raw_vector(),
+                        tol.as_raw_vector(),
+                        zero_eq_neg_zero,
+                        infinity_eq_nan,
+                        rotor_eq_neg_rotor,
+                    )
+                } else {
+                    eq
+                }
+            }
+
+            fn test_eq_abs_scalar_backend(
+                &self,
+                expected: &Self,
+                tol: T,
+                zero_eq_neg_zero: bool,
+                infinity_eq_nan: bool,
+                rotor_eq_neg_rotor: bool,
+            ) -> bool
+            where
+                T: TestEqAbs,
+            {
+                let eq = Vector::<_, T, A>::eq(
+                    self.as_raw_vector(),
+                    expected.as_raw_vector(),
+                    &tol,
+                    zero_eq_neg_zero,
+                    infinity_eq_nan,
+                    rotor_eq_neg_rotor,
+                );
+
+                if rotor_eq_neg_rotor {
+                    eq || Vector::<_, T, A>::eq(
+                        self.as_raw_vector(),
+                        (-*expected).as_raw_vector(),
+                        &tol,
+                        zero_eq_neg_zero,
+                        infinity_eq_nan,
+                        rotor_eq_neg_rotor,
+                    )
+                } else {
+                    eq
+                }
+            }
+        }
+    };
+}
+rotor_backend!(2);
+rotor_backend!(3);
 
 #[cfg(feature = "wide")]
 mod wide {
@@ -599,6 +1236,7 @@ mod wide {
                     expected: &Self,
                     zero_eq_neg_zero: bool,
                     infinity_eq_nan: bool,
+                    rotor_eq_neg_rotor: bool,
                 ) -> bool {
                     (0..$LANES).all(|i| {
                         TestEq::eq(
@@ -606,6 +1244,7 @@ mod wide {
                             &expected.as_array()[i],
                             zero_eq_neg_zero,
                             infinity_eq_nan,
+                            rotor_eq_neg_rotor,
                         )
                     })
                 }
@@ -618,6 +1257,7 @@ mod wide {
                     tol: &Self,
                     zero_eq_neg_zero: bool,
                     infinity_eq_nan: bool,
+                    rotor_eq_neg_rotor: bool,
                 ) -> bool {
                     (0..$LANES).all(|i| {
                         TestEqAbs::eq(
@@ -626,6 +1266,7 @@ mod wide {
                             &tol.as_array()[i],
                             zero_eq_neg_zero,
                             infinity_eq_nan,
+                            rotor_eq_neg_rotor,
                         )
                     })
                 }
@@ -647,6 +1288,7 @@ mod wide {
                     expected: &Self,
                     _zero_eq_neg_zero: bool,
                     _infinity_eq_nan: bool,
+                    _rotor_eq_neg_rotor: bool,
                 ) -> bool {
                     self == expected
                 }
