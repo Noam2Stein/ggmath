@@ -1,6 +1,10 @@
 use wide::Select;
 
-use crate::{Alignment, Length, Rotor, Scalar, length::TwoOrThree, utils::WideTy};
+use crate::{
+    Alignment, Length, Rotor, Scalar, Vector,
+    length::TwoOrThree,
+    utils::{WideTy, specialize_23},
+};
 
 /// Functionality for [SoA] (Structure of Arrays) rotors.
 ///
@@ -45,8 +49,8 @@ where
     /// ```
     #[inline]
     #[must_use]
-    pub fn from_lanes(_lanes: &[Rotor<N, T, A>; LANES]) -> Self {
-        todo!()
+    pub fn from_lanes(lanes: &[Rotor<N, T, A>; LANES]) -> Self {
+        specialize_23!(Rotor::<N, Wide, A>::from_lanes_backend(lanes))
     }
 
     /// Creates an SoA (Structure of Arrays) rotor by calling function `f` for
@@ -77,11 +81,11 @@ where
     #[inline]
     #[must_use]
     #[track_caller]
-    pub fn from_lane_fn<F>(_f: F) -> Self
+    pub fn from_lane_fn<F>(f: F) -> Self
     where
         F: FnMut(usize) -> Rotor<N, T, A>,
     {
-        todo!()
+        Self::from_lanes(&core::array::from_fn(f))
     }
 
     /// Converts an SoA (Structure of Arrays) rotor to an array of regular,
@@ -112,7 +116,7 @@ where
     #[inline]
     #[must_use]
     pub fn to_lanes(&self) -> [Rotor<N, T, A>; LANES] {
-        todo!()
+        core::array::from_fn(|lane| self.lane(lane))
     }
 
     /// Takes an SoA (Structure of Arrays) rotor transform and returns the
@@ -147,8 +151,8 @@ where
     #[inline]
     #[must_use]
     #[track_caller]
-    pub fn lane(&self, _lane: usize) -> Rotor<N, T, A> {
-        todo!()
+    pub fn lane(&self, lane: usize) -> Rotor<N, T, A> {
+        specialize_23!(Rotor::<N, Wide, A>::lane_backend(self, lane))
     }
 
     /// Takes an SoA (Structure of Arrays) rotor and sets the lane at the given
@@ -184,8 +188,8 @@ where
     /// ```
     #[inline]
     #[track_caller]
-    pub fn set_lane(&mut self, _lane: usize, _value: Rotor<N, T, A>) {
-        todo!()
+    pub fn set_lane(&mut self, lane: usize, value: Rotor<N, T, A>) {
+        specialize_23!(Rotor::<N, Wide, A>::set_lane_backend(self, lane, value))
     }
 
     /// For each lane, returns `true` if `self` is equal to `other`.
@@ -194,8 +198,8 @@ where
     /// `(self.lane(0) == other.lane(0), self.lane(1) == other.lane(1), ...)`.
     #[inline]
     #[must_use]
-    pub fn simd_eq(&self, _other: &Self) -> Wide {
-        todo!()
+    pub fn simd_eq(&self, other: &Self) -> Wide {
+        specialize_23!(Rotor::<N, Wide, A>::simd_eq_backend(self, other))
     }
 
     /// For each lane, returns `true` if `self` is not equal to `other`.
@@ -204,8 +208,139 @@ where
     /// `(self.lane(0) != other.lane(0), self.lane(1) != other.lane(1), ...)`.
     #[inline]
     #[must_use]
-    pub fn simd_ne(&self, _other: &Self) -> Wide {
-        todo!()
+    pub fn simd_ne(&self, other: &Self) -> Wide {
+        specialize_23!(Rotor::<N, Wide, A>::simd_ne_backend(self, other))
+    }
+}
+
+#[expect(private_bounds)]
+impl<Wide, T, const LANES: usize, A: Alignment> Rotor<2, Wide, A>
+where
+    Wide: WideTy<Array = [T; LANES]>,
+    T: Scalar,
+{
+    #[inline(always)]
+    fn from_lanes_backend(lanes: &[Rotor<2, T, A>; LANES]) -> Self {
+        Self::from_raw_elements(
+            Wide::new(lanes.map(|lane| lane.xy)),
+            Wide::new(lanes.map(|lane| lane.s)),
+        )
+    }
+
+    #[track_caller]
+    #[inline(always)]
+    fn lane_backend(&self, lane: usize) -> Rotor<2, T, A> {
+        Rotor::<2, T, A>::from_raw_elements(self.xy.as_array()[lane], self.s.as_array()[lane])
+    }
+
+    #[track_caller]
+    #[inline(always)]
+    fn set_lane_backend(&mut self, lane: usize, value: Rotor<2, T, A>) {
+        self.xy.as_mut_array()[lane] = value.xy;
+        self.s.as_mut_array()[lane] = value.s;
+    }
+
+    #[track_caller]
+    #[inline(always)]
+    fn simd_eq_backend(&self, other: &Self) -> Wide {
+        self.xy.simd_eq(other.xy) & self.s.simd_eq(other.s)
+    }
+
+    #[track_caller]
+    #[inline(always)]
+    fn simd_ne_backend(&self, other: &Self) -> Wide {
+        self.xy.simd_ne(other.xy) | self.s.simd_ne(other.s)
+    }
+}
+
+#[expect(private_bounds)]
+impl<Wide, T, const LANES: usize, A: Alignment> Rotor<3, Wide, A>
+where
+    Wide: WideTy<Array = [T; LANES]>,
+    T: Scalar,
+{
+    #[inline(always)]
+    fn from_lanes_backend(lanes: &[Rotor<3, T, A>; LANES]) -> Self {
+        Self::from_raw_elements(
+            Wide::new(lanes.map(|lane| lane.xy)),
+            Wide::new(lanes.map(|lane| lane.xz)),
+            Wide::new(lanes.map(|lane| lane.yz)),
+            Wide::new(lanes.map(|lane| lane.s)),
+        )
+    }
+
+    #[track_caller]
+    #[inline(always)]
+    fn lane_backend(&self, lane: usize) -> Rotor<3, T, A> {
+        Rotor::<3, T, A>::from_raw_elements(
+            self.xy.as_array()[lane],
+            self.xz.as_array()[lane],
+            self.yz.as_array()[lane],
+            self.s.as_array()[lane],
+        )
+    }
+
+    #[track_caller]
+    #[inline(always)]
+    fn set_lane_backend(&mut self, lane: usize, value: Rotor<3, T, A>) {
+        self.xy.as_mut_array()[lane] = value.xy;
+        self.xy.as_mut_array()[lane] = value.xz;
+        self.yz.as_mut_array()[lane] = value.yz;
+        self.s.as_mut_array()[lane] = value.s;
+    }
+
+    #[track_caller]
+    #[inline(always)]
+    fn simd_eq_backend(&self, other: &Self) -> Wide {
+        self.xy.simd_eq(other.xy)
+            & self.xz.simd_eq(other.xz)
+            & self.yz.simd_eq(other.yz)
+            & self.s.simd_eq(other.s)
+    }
+
+    #[track_caller]
+    #[inline(always)]
+    fn simd_ne_backend(&self, other: &Self) -> Wide {
+        self.xy.simd_ne(other.xy)
+            | self.xz.simd_ne(other.xz)
+            | self.yz.simd_ne(other.yz)
+            | self.s.simd_ne(other.s)
+    }
+}
+
+#[expect(private_bounds)]
+impl<Wide, A: Alignment> Rotor<2, Wide, A>
+where
+    Wide: WideTy,
+{
+    #[inline(always)]
+    fn scalar_select_backend<Mask>(mask: Mask, if_true: Self, if_false: Self) -> Self
+    where
+        Mask: Copy + Select<Wide> + Select<Vector<2, Wide, A>>,
+    {
+        Self::from_raw_elements(
+            mask.select(if_true.xy, if_false.xy),
+            mask.select(if_true.s, if_false.s),
+        )
+    }
+}
+
+#[expect(private_bounds)]
+impl<Wide, A: Alignment> Rotor<3, Wide, A>
+where
+    Wide: WideTy,
+{
+    #[inline(always)]
+    fn scalar_select_backend<Mask>(mask: Mask, if_true: Self, if_false: Self) -> Self
+    where
+        Mask: Copy + Select<Wide> + Select<Vector<4, Wide, A>>,
+    {
+        Self::from_raw_elements(
+            mask.select(if_true.xy, if_false.xy),
+            mask.select(if_true.xz, if_false.xz),
+            mask.select(if_true.yz, if_false.yz),
+            mask.select(if_true.s, if_false.s),
+        )
     }
 }
 
@@ -222,10 +357,12 @@ macro_rules! impl_select {
             #[inline]
             fn select(
                 self,
-                _if_true: Rotor<N, Wide, A>,
-                _if_false: Rotor<N, Wide, A>,
+                if_true: Rotor<N, Wide, A>,
+                if_false: Rotor<N, Wide, A>,
             ) -> Rotor<N, Wide, A> {
-                todo!()
+                specialize_23!(Rotor::<N, Wide, A>::scalar_select_backend::<wide::$Mask>(
+                    self, if_true, if_false
+                ))
             }
         }
     };
