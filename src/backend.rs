@@ -1,8 +1,9 @@
 use core::ops::{Add, BitAnd, BitOr, BitXor, Div, Mul, Neg, Not, Rem, Shl, Shr, Sub};
 
 use crate::{
-    Aligned, Alignment, Length, Mask, PrimitiveFloat, PrimitiveInteger, PrimitiveSigned, Scalar,
-    SupportedLength, Unaligned, Vector,
+    Aligned, Alignment, Length, Mask, PrimitiveFloat, PrimitiveInteger, PrimitiveSigned, Rotor,
+    Scalar, SupportedLength, Unaligned, Vector,
+    length::TwoOrThree,
     utils::{Repr2, Repr3, Repr4},
 };
 
@@ -169,6 +170,27 @@ where
 /// - `Inner` has the alignment of `Matrix<N, T, A>`
 pub(crate) unsafe trait AffineBackend<const N: usize, A: Alignment> {
     type Inner: Copy;
+}
+
+pub(crate) trait RotorBackend<const N: usize, A: Alignment>
+where
+    Length<N>: TwoOrThree,
+{
+    fn rotor_vector_mul(vector: Vector<N, Self, A>, rhs: Rotor<N, Self, A>) -> Vector<N, Self, A>
+    where
+        Self: Scalar
+            + Neg<Output = Self>
+            + Add<Output = Self>
+            + Sub<Output = Self>
+            + Mul<Output = Self>;
+
+    fn rotor_mul(rotor: Rotor<N, Self, A>, rhs: Rotor<N, Self, A>) -> Rotor<N, Self, A>
+    where
+        Self: Scalar
+            + Neg<Output = Self>
+            + Add<Output = Self>
+            + Sub<Output = Self>
+            + Mul<Output = Self>;
 }
 
 /// # Safety
@@ -1137,6 +1159,76 @@ where
     T: Scalar,
 {
     type Inner = [Vector<4, T, A>; 5];
+}
+
+impl<T, A: Alignment> RotorBackend<2, A> for T
+where
+    T: DefaultBackend<2, A>,
+{
+    #[inline]
+    fn rotor_vector_mul(vector: Vector<2, Self, A>, rhs: Rotor<2, Self, A>) -> Vector<2, Self, A>
+    where
+        T: Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
+    {
+        let cos = rhs.s * rhs.s - rhs.xy * rhs.xy;
+        let sin_half = rhs.xy * rhs.s;
+        let sin = sin_half + sin_half;
+
+        Vector::<2, T, A>::new(
+            cos * vector.x - sin * vector.y,
+            cos * vector.y + sin * vector.x,
+        )
+    }
+
+    #[inline]
+    fn rotor_mul(rotor: Rotor<2, Self, A>, rhs: Rotor<2, Self, A>) -> Rotor<2, Self, A>
+    where
+        T: Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
+    {
+        Rotor::<2, Self, A>::from_raw_elements(
+            rotor.xy * rhs.s + rotor.s * rhs.xy,
+            rotor.s * rhs.s - rotor.xy * rhs.xy,
+        )
+    }
+}
+
+impl<T, A: Alignment> RotorBackend<3, A> for T
+where
+    T: DefaultBackend<4, A>,
+{
+    #[inline]
+    fn rotor_vector_mul(vector: Vector<3, Self, A>, rhs: Rotor<3, Self, A>) -> Vector<3, Self, A>
+    where
+        T: Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
+    {
+        // This is the expansion of the geometric product `R~vR`.
+
+        let f0 = rhs.s * vector.x - rhs.xy * vector.y - rhs.xz * vector.z;
+        let f1 = rhs.s * vector.y + rhs.xy * vector.x - rhs.yz * vector.z;
+        let f2 = rhs.s * vector.z + rhs.xz * vector.x + rhs.yz * vector.y;
+        let f3 = rhs.xz * vector.y - rhs.xy * vector.z - rhs.yz * vector.x;
+
+        Vector::<3, T, A>::new(
+            rhs.s * f0 - rhs.xy * f1 - rhs.xz * f2 - rhs.yz * f3,
+            rhs.s * f1 + rhs.xy * f0 + rhs.xz * f3 - rhs.yz * f2,
+            rhs.s * f2 - rhs.xy * f3 + rhs.xz * f0 + rhs.yz * f1,
+        )
+    }
+
+    #[inline]
+    fn rotor_mul(rotor: Rotor<3, Self, A>, rhs: Rotor<3, Self, A>) -> Rotor<3, Self, A>
+    where
+        T: Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
+    {
+        // This is the expansion of the geometric product `(R1)(R2)`.
+
+        Rotor::<3, T, A>::from_raw_elements(
+            rotor.xy * rhs.s + rotor.s * rhs.xy + rotor.yz * rhs.xz - rotor.xz * rhs.yz,
+            rotor.xz * rhs.s + rotor.s * rhs.xz - rotor.yz * rhs.xy + rotor.xy * rhs.yz,
+            rotor.yz * rhs.s + rotor.s * rhs.yz + rotor.xz * rhs.xy - rotor.xy * rhs.xz,
+            rotor.s * rhs.s - rotor.xy * rhs.xy - rotor.xz * rhs.xz - rotor.yz * rhs.yz,
+        )
+    }
 }
 
 // SAFETY: `Inner` follows its requirements.

@@ -6,8 +6,8 @@ use core::arch::x86_64::*;
 #[allow(unused_imports, reason = "rustc incorrectly thinks this is unused")]
 use crate::utils::PrimitiveFloatUtils;
 use crate::{
-    Aligned, Mask, Mask3A, Mask4A, Vec3A, Vec4A, Vector,
-    backend::{AffineBackend, FloatVectorBackend, MaskBackend, VectorBackend},
+    Aligned, Mask, Mask3A, Mask4A, Rotor3A, Vec3A, Vec4A, Vector,
+    backend::{AffineBackend, FloatVectorBackend, MaskBackend, RotorBackend, VectorBackend},
     utils::safe_target_feature,
 };
 
@@ -275,6 +275,18 @@ unsafe impl VectorBackend<4, Aligned> for f32 {
 // same alignment.
 unsafe impl AffineBackend<2, Aligned> for f32 {
     type Inner = [__m128; 2];
+}
+
+impl RotorBackend<3, Aligned> for f32 {
+    #[inline]
+    fn rotor_vector_mul(_vector: Vec3A<f32>, _rhs: Rotor3A<f32>) -> Vec3A<f32> {
+        todo!()
+    }
+
+    #[inline]
+    fn rotor_mul(_rotor: Rotor3A<f32>, _rhs: Rotor3A<f32>) -> Rotor3A<f32> {
+        todo!()
+    }
 }
 
 // `Self::Inner` follows its requirements.

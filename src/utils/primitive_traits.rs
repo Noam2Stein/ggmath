@@ -39,6 +39,8 @@ pub(crate) trait PrimitiveFloatUtils: Sized {
 
     fn recip(self) -> Self;
 
+    fn clamp(self, min: Self, max: Self) -> Self;
+
     fn abs(self) -> Self;
 
     fn signum(self) -> Self;
@@ -183,6 +185,11 @@ macro_rules! impl_float {
             #[inline(always)]
             fn recip(self) -> Self {
                 self.recip()
+            }
+
+            #[inline(always)]
+            fn clamp(self, min: Self, max: Self) -> Self {
+                self.clamp(min, max)
             }
 
             #[inline(always)]

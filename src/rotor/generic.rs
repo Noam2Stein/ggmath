@@ -1,9 +1,37 @@
 use core::ops::{Add, Mul, Neg};
 
 use crate::{
-    Aligned, Alignment, Length, One, Rotor, Scalar, Unaligned, Vector, Zero, length::TwoOrThree,
-    utils::transmute_generic,
+    Aligned, Alignment, Length, One, Rotor, Scalar, Unaligned, Vector, Zero,
+    length::TwoOrThree,
+    utils::{specialize_23, transmute_generic},
 };
+
+#[expect(private_bounds)]
+impl<const N: usize, T, A: Alignment> Rotor<N, T, A>
+where
+    Length<N>: TwoOrThree,
+    T: Scalar + Zero,
+{
+    /// A rotor with all elements set to zero.
+    ///
+    /// This is intentionally not exposed to the public API, as it does not
+    /// represent a valid rotation.
+    pub(crate) const ZERO: Self = match N {
+        // SAFETY: We are transmuting a type to itself
+        2 => unsafe {
+            transmute_generic::<Rotor<2, T, A>, Rotor<N, T, A>>(Rotor::<2, T, A>(
+                Vector::<2, T, A>::ZERO,
+            ))
+        },
+        // SAFETY: We are transmuting a type to itself
+        3 => unsafe {
+            transmute_generic::<Rotor<3, T, A>, Rotor<N, T, A>>(Rotor::<3, T, A>(
+                Vector::<4, T, A>::ZERO,
+            ))
+        },
+        _ => unreachable!(),
+    };
+}
 
 #[expect(private_bounds)]
 impl<const N: usize, T, A: Alignment> Rotor<N, T, A>
@@ -14,7 +42,27 @@ where
     /// A rotor that keeps all vectors unchanged.
     ///
     /// This sets `s` to 1 and all other elements to 0.
-    pub const IDENTITY: Self = todo!();
+    pub const IDENTITY: Self = Self::IDENTITY_INTERNAL_IMPL;
+
+    /// The implementation of [`Self::IDENTITY`].
+    ///
+    /// Because of type system limitations, this implementation looks crazy. Use
+    /// a separate constant so that IDEs do not show the implementation.
+    const IDENTITY_INTERNAL_IMPL: Self = match N {
+        // SAFETY: We are transmuting a type to itself
+        2 => unsafe {
+            transmute_generic::<Rotor<2, T, A>, Rotor<N, T, A>>(Rotor::<2, T, A>(
+                Vector::<2, T, A>::Y,
+            ))
+        },
+        // SAFETY: We are transmuting a type to itself
+        3 => unsafe {
+            transmute_generic::<Rotor<3, T, A>, Rotor<N, T, A>>(Rotor::<3, T, A>(
+                Vector::<4, T, A>::W,
+            ))
+        },
+        _ => unreachable!(),
+    };
 }
 
 #[expect(private_bounds)]
@@ -36,18 +84,18 @@ where
     where
         T: Neg<Output = T>,
     {
-        todo!()
+        specialize_23!(Rotor::<N, T, A>::conjugate_backend(self))
     }
 
     /// Computes the dot product of two rotors `self` and `rhs`.
     #[inline]
     #[must_use]
     #[track_caller]
-    pub fn dot(self, _rhs: Self) -> T
+    pub fn dot(self, rhs: Self) -> T
     where
         T: Add<Output = T> + Mul<Output = T>,
     {
-        todo!()
+        specialize_23!(Rotor::<N, T, A>::dot_backend(self, rhs))
     }
 
     /// Computes the squared length/magnitude of a rotor.
@@ -58,7 +106,7 @@ where
     where
         T: Add<Output = T> + Mul<Output = T>,
     {
-        todo!()
+        specialize_23!(Rotor::<N, T, A>::length_squared_backend(self))
     }
 
     /// Conversion between [`Aligned`] and [`Unaligned`] storage.
@@ -214,6 +262,33 @@ where
     pub const fn as_mut_raw_vector(&mut self) -> &mut Vector<2, T, A> {
         &mut self.0
     }
+
+    #[inline(always)]
+    #[track_caller]
+    fn conjugate_backend(self) -> Self
+    where
+        T: Neg<Output = T>,
+    {
+        Self::from_raw_elements(-self.xy, self.s)
+    }
+
+    #[inline(always)]
+    #[track_caller]
+    fn dot_backend(self, rhs: Self) -> T
+    where
+        T: Add<Output = T> + Mul<Output = T>,
+    {
+        self.0.dot(rhs.0)
+    }
+
+    #[inline(always)]
+    #[track_caller]
+    fn length_squared_backend(self) -> T
+    where
+        T: Add<Output = T> + Mul<Output = T>,
+    {
+        self.0.length_squared()
+    }
 }
 
 impl<T, A: Alignment> Rotor<3, T, A>
@@ -332,6 +407,33 @@ where
     #[must_use]
     pub const fn as_mut_raw_vector(&mut self) -> &mut Vector<4, T, A> {
         &mut self.0
+    }
+
+    #[inline(always)]
+    #[track_caller]
+    fn conjugate_backend(self) -> Self
+    where
+        T: Neg<Output = T>,
+    {
+        Self::from_raw_elements(-self.xy, -self.xz, -self.yz, self.s)
+    }
+
+    #[inline(always)]
+    #[track_caller]
+    fn dot_backend(self, rhs: Self) -> T
+    where
+        T: Add<Output = T> + Mul<Output = T>,
+    {
+        self.0.dot(rhs.0)
+    }
+
+    #[inline(always)]
+    #[track_caller]
+    fn length_squared_backend(self) -> T
+    where
+        T: Add<Output = T> + Mul<Output = T>,
+    {
+        self.0.length_squared()
     }
 }
 

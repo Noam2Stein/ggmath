@@ -1,7 +1,7 @@
 use wide::{f32x4, f32x8, f32x16, f64x2, f64x4, f64x8};
 
 use crate::{
-    Alignment, EulerRot, Length, Matrix, Projective, Rotor, Vector,
+    Affine, Alignment, EulerRot, Length, Matrix, Projective, Rotor, Vector,
     length::TwoOrThree,
     utils::{specialize_23, transmute_generic},
 };
@@ -45,8 +45,8 @@ macro_rules! items {
         /// This assumes the rotor is normalized.
         #[inline]
         #[must_use]
-        pub fn from_rotor(_rotor: Rotor<N, $Wide, A>) -> Self {
-            todo!()
+        pub fn from_rotor(rotor: Rotor<N, $Wide, A>) -> Self {
+            Self::from_matrix(&Matrix::<N, $Wide, A>::from_rotor(rotor))
         }
 
         /// Creates a projective transform from non-uniform `scale` and
@@ -57,14 +57,11 @@ macro_rules! items {
         #[must_use]
         #[track_caller]
         #[expect(private_bounds)]
-        pub fn from_scale_rotation(
-            _scale: Vector<N, $Wide, A>,
-            _rotation: Rotor<N, $Wide, A>,
-        ) -> Self
+        pub fn from_scale_rotation(scale: Vector<N, $Wide, A>, rotation: Rotor<N, $Wide, A>) -> Self
         where
             Length<N>: TwoOrThree,
         {
-            todo!()
+            Self::from_matrix(&Matrix::<N, $Wide, A>::from_scale_rotation(scale, rotation))
         }
 
         /// Creates a projective transform from `rotation` and `translation`.
@@ -75,13 +72,13 @@ macro_rules! items {
         #[track_caller]
         #[expect(private_bounds)]
         pub fn from_rotation_translation(
-            _rotation: Rotor<N, $Wide, A>,
-            _translation: Vector<N, $Wide, A>,
+            rotation: Rotor<N, $Wide, A>,
+            translation: Vector<N, $Wide, A>,
         ) -> Self
         where
             Length<N>: TwoOrThree,
         {
-            todo!()
+            Self::from_matrix_translation(&Matrix::<N, $Wide, A>::from_rotor(rotation), translation)
         }
 
         /// Creates a projective transform from non-uniform `scale`, `rotation`
@@ -93,14 +90,17 @@ macro_rules! items {
         #[track_caller]
         #[expect(private_bounds)]
         pub fn from_scale_rotation_translation(
-            _scale: Vector<N, $Wide, A>,
-            _rotation: Rotor<N, $Wide, A>,
-            _translation: Vector<N, $Wide, A>,
+            scale: Vector<N, $Wide, A>,
+            rotation: Rotor<N, $Wide, A>,
+            translation: Vector<N, $Wide, A>,
         ) -> Self
         where
             Length<N>: TwoOrThree,
         {
-            todo!()
+            Self::from_matrix_translation(
+                &Matrix::<N, $Wide, A>::from_scale_rotation(scale, rotation),
+                translation,
+            )
         }
 
         /// For each lane, returns `true` if any element is NaN.
@@ -215,7 +215,7 @@ macro_rules! items {
         where
             Length<N>: TwoOrThree,
         {
-            todo!()
+            Matrix::<N, $Wide, A>::from_projective(self).to_scale_rotation()
         }
 
         /// Converts a projective transform to rotation and translation.
@@ -229,7 +229,7 @@ macro_rules! items {
         where
             Length<N>: TwoOrThree,
         {
-            todo!()
+            Affine::<N, $Wide, A>::from_projective(self).to_rotation_translation()
         }
 
         /// Converts a projective transform to non-uniform scale, rotation and
@@ -247,7 +247,7 @@ macro_rules! items {
         where
             Length<N>: TwoOrThree,
         {
-            todo!()
+            Affine::<N, $Wide, A>::from_projective(self).to_scale_rotation_translation()
         }
 
         /// Returns `true` if the absolute difference of all elements between

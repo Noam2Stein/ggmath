@@ -1,5 +1,5 @@
 use crate::{
-    Alignment, EulerRot, Length, Matrix, PrimitiveFloat, Projective, Rotor, Vector,
+    Affine, Alignment, EulerRot, Length, Matrix, PrimitiveFloat, Projective, Rotor, Vector,
     length::TwoOrThree,
     utils::{specialize_23, transmute_generic},
 };
@@ -49,8 +49,13 @@ where
     #[inline]
     #[must_use]
     #[track_caller]
-    pub fn from_rotor(_rotor: Rotor<N, T, A>) -> Self {
-        todo!()
+    pub fn from_rotor(rotor: Rotor<N, T, A>) -> Self {
+        debug_assert!(
+            rotor.is_normalized(),
+            "rotor is not normalized: from_rotor({rotor:?})"
+        );
+
+        specialize_23!(Projective::<N, T, A>::from_rotor_backend(rotor))
     }
 
     /// Creates a projective transform from non-uniform `scale` and `rotation`.
@@ -66,11 +71,18 @@ where
     #[must_use]
     #[track_caller]
     #[expect(private_bounds)]
-    pub fn from_scale_rotation(_scale: Vector<N, T, A>, _rotation: Rotor<N, T, A>) -> Self
+    pub fn from_scale_rotation(scale: Vector<N, T, A>, rotation: Rotor<N, T, A>) -> Self
     where
         Length<N>: TwoOrThree,
     {
-        todo!()
+        debug_assert!(
+            rotation.is_normalized(),
+            "rotor is not normalized: from_rotor({rotation:?})"
+        );
+
+        specialize_23!(Projective::<N, T, A>::from_scale_rotation_backend(
+            scale, rotation
+        ))
     }
 
     /// Creates a projective transform from `rotation` and `translation`.
@@ -86,14 +98,19 @@ where
     #[must_use]
     #[track_caller]
     #[expect(private_bounds)]
-    pub fn from_rotation_translation(
-        _rotation: Rotor<N, T, A>,
-        _translation: Vector<N, T, A>,
-    ) -> Self
+    pub fn from_rotation_translation(rotation: Rotor<N, T, A>, translation: Vector<N, T, A>) -> Self
     where
         Length<N>: TwoOrThree,
     {
-        todo!()
+        debug_assert!(
+            rotation.is_normalized(),
+            "rotor is not normalized: from_rotor({rotation:?})"
+        );
+
+        specialize_23!(Projective::<N, T, A>::from_rotation_translation_backend(
+            rotation,
+            translation
+        ))
     }
 
     /// Creates a projective transform from non-uniform `scale`, `rotation` and
@@ -111,14 +128,25 @@ where
     #[track_caller]
     #[expect(private_bounds)]
     pub fn from_scale_rotation_translation(
-        _scale: Vector<N, T, A>,
-        _rotation: Rotor<N, T, A>,
-        _translation: Vector<N, T, A>,
+        scale: Vector<N, T, A>,
+        rotation: Rotor<N, T, A>,
+        translation: Vector<N, T, A>,
     ) -> Self
     where
         Length<N>: TwoOrThree,
     {
-        todo!()
+        debug_assert!(
+            rotation.is_normalized(),
+            "rotor is not normalized: from_rotor({rotation:?})"
+        );
+
+        specialize_23!(
+            Projective::<N, T, A>::from_scale_rotation_translation_backend(
+                scale,
+                rotation,
+                translation
+            )
+        )
     }
 
     /// Returns `true` if any element is NaN.
@@ -313,7 +341,7 @@ where
     where
         Length<N>: TwoOrThree,
     {
-        todo!()
+        Matrix::<N, T, A>::from_projective(self).to_scale_rotation()
     }
 
     /// Converts a projective transform to rotation and translation.
@@ -333,7 +361,7 @@ where
     where
         Length<N>: TwoOrThree,
     {
-        todo!()
+        Affine::<N, T, A>::from_projective(self).to_rotation_translation()
     }
 
     /// Converts a projective transform to non-uniform scale, rotation and
@@ -358,7 +386,7 @@ where
     where
         Length<N>: TwoOrThree,
     {
-        todo!()
+        Affine::<N, T, A>::from_projective(self).to_scale_rotation_translation()
     }
 
     /// Returns `true` if the absolute difference of all elements between `self`
@@ -478,6 +506,65 @@ where
     pub fn to_scale_angle_translation(&self) -> (Vector<2, T, A>, T, Vector<2, T, A>) {
         let (scale, angle) = self.to_scale_angle();
         (scale, angle, self.translation())
+    }
+
+    #[inline(always)]
+    fn from_rotor_backend(rotor: Rotor<2, T, A>) -> Self {
+        let cos = rotor.s * rotor.s - rotor.xy * rotor.xy;
+        let half_sin = rotor.xy * rotor.s;
+        let sin = half_sin + half_sin;
+
+        Self::from_rows(&[
+            Vector::<3, T, A>::new(cos, sin, T::ZERO),
+            Vector::<3, T, A>::new(-sin, cos, T::ZERO),
+            Vector::<3, T, A>::Z,
+        ])
+    }
+
+    #[inline(always)]
+    fn from_scale_rotation_backend(scale: Vector<2, T, A>, rotation: Rotor<2, T, A>) -> Self {
+        let cos = rotation.s * rotation.s - rotation.xy * rotation.xy;
+        let half_sin = rotation.xy * rotation.s;
+        let sin = half_sin + half_sin;
+
+        Self::from_rows(&[
+            Vector::<3, T, A>::new(cos, sin, T::ZERO) * scale.x,
+            Vector::<3, T, A>::new(-sin, cos, T::ZERO) * scale.y,
+            Vector::<3, T, A>::Z,
+        ])
+    }
+
+    #[inline(always)]
+    fn from_rotation_translation_backend(
+        rotation: Rotor<2, T, A>,
+        translation: Vector<2, T, A>,
+    ) -> Self {
+        let cos = rotation.s * rotation.s - rotation.xy * rotation.xy;
+        let half_sin = rotation.xy * rotation.s;
+        let sin = half_sin + half_sin;
+
+        Self::from_rows(&[
+            Vector::<3, T, A>::new(cos, sin, T::ZERO),
+            Vector::<3, T, A>::new(-sin, cos, T::ZERO),
+            translation.to_homogeneous(),
+        ])
+    }
+
+    #[inline(always)]
+    fn from_scale_rotation_translation_backend(
+        scale: Vector<2, T, A>,
+        rotation: Rotor<2, T, A>,
+        translation: Vector<2, T, A>,
+    ) -> Self {
+        let cos = rotation.s * rotation.s - rotation.xy * rotation.xy;
+        let half_sin = rotation.xy * rotation.s;
+        let sin = half_sin + half_sin;
+
+        Self::from_rows(&[
+            Vector::<3, T, A>::new(cos, sin, T::ZERO) * scale.x,
+            Vector::<3, T, A>::new(-sin, cos, T::ZERO) * scale.y,
+            translation.to_homogeneous(),
+        ])
     }
 
     #[inline(always)]
@@ -1286,6 +1373,36 @@ where
     #[track_caller]
     pub fn to_euler(&self, order: EulerRot) -> (T, T, T) {
         Matrix::<3, T, A>::from_projective(self).to_euler(order)
+    }
+
+    #[inline(always)]
+    fn from_rotor_backend(rotor: Rotor<3, T, A>) -> Self {
+        Self::from_matrix(&Matrix::<3, T, A>::from_rotor(rotor))
+    }
+
+    #[inline(always)]
+    fn from_scale_rotation_backend(scale: Vector<3, T, A>, rotation: Rotor<3, T, A>) -> Self {
+        Self::from_matrix(&Matrix::<3, T, A>::from_scale_rotation(scale, rotation))
+    }
+
+    #[inline(always)]
+    fn from_rotation_translation_backend(
+        rotation: Rotor<3, T, A>,
+        translation: Vector<3, T, A>,
+    ) -> Self {
+        Self::from_matrix_translation(&Matrix::<3, T, A>::from_rotor(rotation), translation)
+    }
+
+    #[inline(always)]
+    fn from_scale_rotation_translation_backend(
+        scale: Vector<3, T, A>,
+        rotation: Rotor<3, T, A>,
+        translation: Vector<3, T, A>,
+    ) -> Self {
+        Self::from_matrix_translation(
+            &Matrix::<3, T, A>::from_scale_rotation(scale, rotation),
+            translation,
+        )
     }
 
     #[inline(always)]

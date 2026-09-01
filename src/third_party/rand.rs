@@ -88,8 +88,30 @@ where
     StandardUniform: Distribution<T>,
 {
     #[inline]
-    fn sample<R: Rng + ?Sized>(&self, _rng: &mut R) -> Rotor<N, T, A> {
-        todo!()
+    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Rotor<N, T, A> {
+        specialize_23!(Rotor::<N, T, A>::sample_backend((rng,)))
+    }
+}
+
+impl<T, A: Alignment> Rotor<2, T, A>
+where
+    T: Scalar,
+    StandardUniform: Distribution<T>,
+{
+    #[inline(always)]
+    fn sample_backend<R: Rng + ?Sized>((rng,): (&mut R,)) -> Self {
+        Self(rng.random::<Vector<2, T, A>>())
+    }
+}
+
+impl<T, A: Alignment> Rotor<3, T, A>
+where
+    T: Scalar,
+    StandardUniform: Distribution<T>,
+{
+    #[inline(always)]
+    fn sample_backend<R: Rng + ?Sized>((rng,): (&mut R,)) -> Self {
+        Self(rng.random::<Vector<4, T, A>>())
     }
 }
 

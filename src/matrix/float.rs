@@ -68,11 +68,16 @@ where
     #[must_use]
     #[track_caller]
     #[expect(private_bounds)]
-    pub fn from_rotor(_rotor: Rotor<N, T, A>) -> Self
+    pub fn from_rotor(rotor: Rotor<N, T, A>) -> Self
     where
         Length<N>: TwoOrThree,
     {
-        todo!()
+        debug_assert!(
+            rotor.is_normalized(),
+            "rotor is not normalized: from_rotor({rotor:?})"
+        );
+
+        specialize_23!(Matrix::<N, T, A>::from_rotor_backend(rotor))
     }
 
     /// Creates a matrix from non-uniform `scale` and `rotation`.
@@ -88,11 +93,11 @@ where
     #[must_use]
     #[track_caller]
     #[expect(private_bounds)]
-    pub fn from_scale_rotation(_scale: Vector<N, T, A>, _rotation: Rotor<N, T, A>) -> Self
+    pub fn from_scale_rotation(scale: Vector<N, T, A>, rotation: Rotor<N, T, A>) -> Self
     where
         Length<N>: TwoOrThree,
     {
-        todo!()
+        Self::from_rotor(rotation).prepend_scale(scale)
     }
 
     /// Returns `true` if any element is NaN.
@@ -287,7 +292,7 @@ where
     where
         Length<N>: TwoOrThree,
     {
-        todo!()
+        specialize_23!(Matrix::<N, T, A>::to_scale_rotation_backend(self))
     }
 
     /// Returns `true` if the absolute difference of all elements between `self`
@@ -426,6 +431,15 @@ where
     }
 
     #[inline(always)]
+    fn from_rotor_backend(rotor: Rotor<2, T, A>) -> Self {
+        let cos = rotor.s * rotor.s - rotor.xy * rotor.xy;
+        let half_sin = rotor.xy * rotor.s;
+        let sin = half_sin + half_sin;
+
+        Self::from_row_array(&[cos, sin, -sin, cos])
+    }
+
+    #[inline(always)]
     fn is_nan_backend(&self) -> bool {
         self.0.is_nan()
     }
@@ -472,6 +486,36 @@ where
     #[inline(always)]
     fn abs_backend(&self) -> Self {
         Self(self.0.abs())
+    }
+
+    #[inline(always)]
+    #[track_caller]
+    #[expect(clippy::wrong_self_convention)]
+    fn to_scale_rotation_backend(&self) -> (Vector<2, T, A>, Rotor<2, T, A>) {
+        let determinant = self.determinant();
+
+        let scale = Vector::<2, T, A>::new(
+            self.x_axis.length() * determinant.signum(),
+            self.y_axis.length(),
+        );
+
+        let scale_recip = scale.recip();
+
+        let rotation_matrix =
+            Self::from_rows(&[self.x_axis * scale_recip.x, self.y_axis * scale_recip.y]);
+
+        debug_assert!(
+            rotation_matrix
+                .x_axis
+                .dot(rotation_matrix.y_axis)
+                .abs_diff_eq(T::ZERO, T::as_from(1e-4))
+                && determinant != T::ZERO,
+            "matrix contains shearing or determinant is zero"
+        );
+
+        let rotation = Rotor::<2, T, A>::from_matrix(&rotation_matrix);
+
+        (scale, rotation)
     }
 
     #[inline(always)]
@@ -934,6 +978,24 @@ where
     }
 
     #[inline(always)]
+    fn from_rotor_backend(rotor: Rotor<3, T, A>) -> Self {
+        let bivector = rotor.0.xyz();
+        let bivector_2 = bivector + bivector;
+        let [xy_xy_2, xy_xz_2, xy_yz_2] = (bivector * bivector_2.x).to_array();
+        let [xz_xz_2, xz_yz_2, yz_yz_2] = (bivector.yzz() * bivector_2.yyz()).to_array();
+        let [s_xy_2, s_xz_2, s_yz_2] = (bivector_2 * rotor.s).to_array();
+
+        Self::from_rows(&[
+            Vector::<3, T, A>::new(T::ONE, s_xy_2, xy_yz_2)
+                - Vector::<3, T, A>::new(xz_xz_2 + xy_xy_2, xz_yz_2, -s_xz_2),
+            Vector::<3, T, A>::new(-xz_yz_2, T::ONE, s_yz_2)
+                - Vector::<3, T, A>::new(s_xy_2, yz_yz_2 + xy_xy_2, xy_xz_2),
+            Vector::<3, T, A>::new(xy_yz_2, -xy_xz_2, T::ONE)
+                - Vector::<3, T, A>::new(s_xz_2, s_yz_2, yz_yz_2 + xz_xz_2),
+        ])
+    }
+
+    #[inline(always)]
     fn is_nan_backend(&self) -> bool {
         self.x_axis.is_nan() || self.y_axis.is_nan() || self.z_axis.is_nan()
     }
@@ -1006,6 +1068,48 @@ where
     #[inline(always)]
     fn abs_backend(&self) -> Self {
         Self::from_rows(&[self.x_axis.abs(), self.y_axis.abs(), self.z_axis.abs()])
+    }
+
+    #[inline(always)]
+    #[track_caller]
+    #[expect(clippy::wrong_self_convention)]
+    fn to_scale_rotation_backend(&self) -> (Vector<3, T, A>, Rotor<3, T, A>) {
+        let determinant = self.determinant();
+
+        let scale = Vector::<3, T, A>::new(
+            self.x_axis.length() * determinant.signum(),
+            self.y_axis.length(),
+            self.z_axis.length(),
+        );
+
+        let scale_recip = scale.recip();
+
+        let rotation_matrix = Self::from_rows(&[
+            self.x_axis * scale_recip.x,
+            self.y_axis * scale_recip.y,
+            self.z_axis * scale_recip.z,
+        ]);
+
+        debug_assert!(
+            rotation_matrix
+                .x_axis
+                .dot(rotation_matrix.y_axis)
+                .abs_diff_eq(T::ZERO, T::as_from(1e-4))
+                && rotation_matrix
+                    .x_axis
+                    .dot(rotation_matrix.z_axis)
+                    .abs_diff_eq(T::ZERO, T::as_from(1e-4))
+                && rotation_matrix
+                    .y_axis
+                    .dot(rotation_matrix.z_axis)
+                    .abs_diff_eq(T::ZERO, T::as_from(1e-4))
+                && determinant != T::ZERO,
+            "matrix contains shearing or determinant is zero"
+        );
+
+        let rotation = Rotor::<3, T, A>::from_matrix(&rotation_matrix);
+
+        (scale, rotation)
     }
 
     #[inline(always)]
