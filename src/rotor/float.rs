@@ -1159,178 +1159,711 @@ where
 
 #[cfg(test)]
 mod tests {
+    use crate::{
+        Affine, EulerRot, FloatExt, Matrix, Projective, Rot2A, Rot3A, Rotor, Vector,
+        test_utils::{
+            assert_debug_panic, assert_panic_test_eq, assert_test_eq, for_types, random_iter,
+        },
+        utils::PrimitiveFloatUtils,
+    };
+
     #[test]
     fn test_constants() {
-        todo!()
+        assert_test_eq!(
+            Rot2A::<f32>::NAN,
+            Rot2A::from_raw_elements(f32::NAN, f32::NAN)
+        );
+        assert_test_eq!(
+            Rot3A::<f32>::NAN,
+            Rot3A::from_raw_elements(f32::NAN, f32::NAN, f32::NAN, f32::NAN)
+        );
     }
 
     #[test]
     fn test_from_rotation_arc() {
-        todo!()
+        for_types!(|N: TwoOrThree, T: PrimitiveFloat, A| {
+            for [start, end] in random_iter::<[Vector<N, T, A>; 2]>() {
+                if !start.is_normalized() {
+                    assert_debug_panic!(Rotor::<N, T, A>::from_rotation_arc(
+                        start,
+                        end.normalize()
+                    ));
+                }
+                if !end.is_normalized() {
+                    assert_debug_panic!(Rotor::<N, T, A>::from_rotation_arc(
+                        start.normalize(),
+                        end
+                    ));
+                }
+            }
+        });
+        for_types!(|T: PrimitiveFloat, A| {
+            for [from, to] in random_iter::<[Vector<2, T, A>; 2]>() {
+                let start = from.normalize_or(Vector::ONE).normalize();
+                let end = to.normalize_or(Vector::ONE).normalize();
+
+                let result = Rotor::<2, T, A>::from_rotation_arc(start, end);
+
+                assert_test_eq!(start * result, end, abs <= 1e-5, 0.0 = -0.0);
+            }
+            for [from, to] in random_iter::<[Vector<3, T, A>; 2]>() {
+                let start = from.normalize_or(Vector::ONE).normalize();
+                let end = to.normalize_or(Vector::ONE).normalize();
+
+                let result = Rotor::<3, T, A>::from_rotation_arc(start, end);
+                let (result_axis, result_angle) = result.to_axis_angle();
+
+                if ((1.0 as T).to_radians()..(179.0 as T).to_radians())
+                    .contains(&start.angle_between(end))
+                {
+                    assert_test_eq!(start * result, end, abs <= 1e-5, 0.0 = -0.0);
+                    assert_test_eq!(result_angle, start.angle_between(end), abs <= 1e-4);
+                    assert_test_eq!(result_axis.dot(start), 0.0, abs <= 1e-5, 0.0 = -0.0);
+                    assert_test_eq!(result_axis.dot(end), 0.0, abs <= 1e-5, 0.0 = -0.0);
+                } else {
+                    assert_test_eq!(start * result, end, abs <= 1e-2, 0.0 = -0.0);
+                    assert_test_eq!(result_angle, start.angle_between(end), abs <= 1e-2);
+                    if result_angle != 0.0 {
+                        assert_test_eq!(result_axis.dot(start), 0.0, abs <= 1e-2);
+                        assert_test_eq!(result_axis.dot(end), 0.0, abs <= 1e-2);
+                    }
+                }
+                assert!(result_angle <= T::TAU / 2.0 + 0.1);
+            }
+        });
     }
 
     #[test]
     fn test_from_rotation_arc_colinear() {
-        todo!()
+        for_types!(|N: TwoOrThree, T: PrimitiveFloat, A| {
+            for [from, to] in random_iter::<[Vector<N, T, A>; 2]>() {
+                if !from.is_normalized() {
+                    assert_debug_panic!(Rotor::<N, T, A>::from_rotation_arc_colinear(
+                        from,
+                        to.normalize()
+                    ));
+                }
+                if !to.is_normalized() {
+                    assert_debug_panic!(Rotor::<N, T, A>::from_rotation_arc_colinear(
+                        from.normalize(),
+                        to
+                    ));
+                }
+
+                let from = from.normalize_or(Vector::ONE).normalize();
+                let to = to.normalize_or(Vector::ONE).normalize();
+
+                assert_test_eq!(
+                    Rotor::<N, T, A>::from_rotation_arc_colinear(from, to),
+                    if from.dot(to).is_sign_positive() {
+                        Rotor::<N, T, A>::from_rotation_arc(from, to)
+                    } else {
+                        Rotor::<N, T, A>::from_rotation_arc(from, -to)
+                    }
+                );
+            }
+        });
     }
 
     #[test]
     fn test_from_matrix() {
-        todo!()
+        for_types!(|T: PrimitiveFloat, A| {
+            for [xy, xz, yz] in random_iter::<[T; 3]>() {
+                if [xy, xz, yz].into_iter().any(|x| !x.is_finite() || x > 1e6) {
+                    continue;
+                };
+
+                assert_test_eq!(
+                    Rotor::<2, T, A>::from_matrix(&Matrix::<2, T, A>::from_angle(xy)),
+                    Rotor::<2, T, A>::from_angle(xy),
+                    abs <= 1e-6,
+                    0.0 = -0.0,
+                    rotor = -rotor
+                );
+
+                assert_test_eq!(
+                    Rotor::<3, T, A>::from_matrix(
+                        &(Matrix::<3, T, A>::from_rotation_xy(xy)
+                            * Matrix::<3, T, A>::from_rotation_xz(xz)
+                            * Matrix::<3, T, A>::from_rotation_yz(yz))
+                    ),
+                    Rotor::<3, T, A>::from_rotation_xy(xy)
+                        * Rotor::<3, T, A>::from_rotation_xz(xz)
+                        * Rotor::<3, T, A>::from_rotation_yz(yz),
+                    abs <= 1e-6,
+                    0.0 = -0.0,
+                    rotor = -rotor
+                );
+            }
+
+            for matrix in random_iter::<Matrix<2, T, A>>().take(10) {
+                if !matrix.determinant().abs_diff_eq(1.0, 1e-2)
+                    || !matrix.x_axis.length().abs_diff_eq(1.0, 1e-2)
+                    || !matrix.y_axis.length().abs_diff_eq(1.0, 1e-2)
+                    || !matrix.x_axis.dot(matrix.y_axis).abs_diff_eq(0.0, 1e-2)
+                {
+                    assert_debug_panic!(Rotor::<2, T, A>::from_matrix(&matrix));
+                }
+            }
+
+            for matrix in random_iter::<Matrix<3, T, A>>().take(10) {
+                if !matrix.determinant().abs_diff_eq(1.0, 1e-2)
+                    || !matrix.x_axis.length().abs_diff_eq(1.0, 1e-2)
+                    || !matrix.y_axis.length().abs_diff_eq(1.0, 1e-2)
+                    || !matrix.z_axis.length().abs_diff_eq(1.0, 1e-2)
+                    || !matrix.x_axis.dot(matrix.y_axis).abs_diff_eq(0.0, 1e-2)
+                    || !matrix.x_axis.dot(matrix.z_axis).abs_diff_eq(0.0, 1e-2)
+                    || !matrix.y_axis.dot(matrix.z_axis).abs_diff_eq(0.0, 1e-2)
+                {
+                    assert_debug_panic!(Rotor::<3, T, A>::from_matrix(&matrix));
+                }
+            }
+        });
     }
 
     #[test]
     fn test_from_affine() {
-        todo!()
+        for_types!(|N: TwoOrThree, T: PrimitiveFloat, A| {
+            for affine in random_iter::<Rotor<N, T, A>>()
+                .map(|rotor| {
+                    Affine::<N, T, A>::from_rotor(rotor.normalize_or(Rotor::IDENTITY).normalize())
+                })
+                .chain(random_iter())
+            {
+                assert_panic_test_eq!(
+                    Rotor::<N, T, A>::from_affine(&affine),
+                    Rotor::<N, T, A>::from_matrix(&affine.matrix)
+                );
+            }
+        });
     }
 
     #[test]
     fn test_from_projective() {
-        todo!()
+        for_types!(|N: TwoOrThree, T: PrimitiveFloat, A| {
+            for projective in random_iter::<Rotor<N, T, A>>()
+                .map(|rotor| {
+                    Projective::<N, T, A>::from_rotor(
+                        rotor.normalize_or(Rotor::IDENTITY).normalize(),
+                    )
+                })
+                .chain(random_iter())
+            {
+                assert_panic_test_eq!(
+                    Rotor::<N, T, A>::from_projective(&projective),
+                    Rotor::<N, T, A>::from_affine(&Affine::<N, T, A>::from_projective(&projective))
+                );
+            }
+        });
     }
 
     #[test]
     fn test_is_nan() {
-        todo!()
+        for [x, y, z, w] in random_iter::<[f32; 4]>() {
+            assert_eq!(
+                Rot2A::from_raw_elements(x, y).is_nan(),
+                x.is_nan() || y.is_nan()
+            );
+            assert_eq!(
+                Rot3A::from_raw_elements(x, y, z, w).is_nan(),
+                x.is_nan() || y.is_nan() || z.is_nan() || w.is_nan()
+            );
+        }
     }
 
     #[test]
     fn test_is_finite() {
-        todo!()
-    }
-
-    #[test]
-    fn test_inverse() {
-        todo!()
+        for [x, y, z, w] in random_iter::<[f32; 4]>() {
+            assert_eq!(
+                Rot2A::from_raw_elements(x, y).is_finite(),
+                x.is_finite() && y.is_finite()
+            );
+            assert_eq!(
+                Rot3A::from_raw_elements(x, y, z, w).is_finite(),
+                x.is_finite() && y.is_finite() && z.is_finite() && w.is_finite()
+            );
+        }
     }
 
     #[test]
     fn test_angle_between() {
-        todo!()
+        for_types!(|N: TwoOrThree, T: PrimitiveFloat, A| {
+            for [a, b] in random_iter::<[Rotor<N, T, A>; 2]>() {
+                if !a.is_normalized() {
+                    assert_debug_panic!(a.angle_between(b.normalize()));
+                }
+                if !b.is_normalized() {
+                    assert_debug_panic!(a.normalize().angle_between(b));
+                }
+            }
+        });
+        for_types!(|T: PrimitiveFloat, A| {
+            for [a, b] in random_iter::<[Rotor<2, T, A>; 2]>() {
+                let [rotor, other] = [a, b].map(|r| r.normalize_or(Rotor::IDENTITY).normalize());
+
+                assert_test_eq!(
+                    rotor.angle_between(other),
+                    (rotor * other.inverse()).s.abs().acos() * 2.0,
+                    abs <= 2e-4
+                );
+            }
+            for [a, b] in random_iter::<[Rotor<3, T, A>; 2]>() {
+                let [rotor, other] = [a, b].map(|r| r.normalize_or(Rotor::IDENTITY).normalize());
+
+                assert_test_eq!(
+                    rotor.angle_between(other),
+                    (rotor * other.inverse()).s.abs().acos() * 2.0,
+                    abs <= 2e-4
+                );
+            }
+        });
     }
 
     #[test]
     fn test_lerp() {
-        todo!()
+        for_types!(|N: TwoOrThree, T: PrimitiveFloat, A| {
+            for [rotor, other] in random_iter::<[Rotor<N, T, A>; 2]>() {
+                if !rotor.is_normalized() {
+                    assert_debug_panic!(rotor.lerp(other.normalize(), 0.2));
+                }
+                if !other.is_normalized() {
+                    assert_debug_panic!(rotor.normalize().lerp(other, 0.2));
+                }
+
+                let [rotor, other] =
+                    [rotor, other].map(|r| r.normalize_or(Rotor::IDENTITY).normalize());
+
+                assert_test_eq!(rotor.lerp(other, 0.0), rotor, abs <= 1e-6, 0.0 = -0.0);
+                assert_test_eq!(
+                    rotor.lerp(other, 0.5).angle_between(rotor),
+                    rotor.angle_between(other) / 2.0,
+                    abs <= rotor.angle_between(other) * 1e-6 + 1e-3,
+                    0.0 = -0.0
+                );
+                assert_test_eq!(
+                    rotor.lerp(other, 0.5).angle_between(other),
+                    rotor.angle_between(other) / 2.0,
+                    abs <= rotor.angle_between(other) * 1e-6 + 1e-3,
+                    0.0 = -0.0
+                );
+                assert_test_eq!(
+                    rotor.lerp(other, 1.0),
+                    other,
+                    abs <= 1e-6,
+                    0.0 = -0.0,
+                    rotor = -rotor
+                );
+            }
+        });
     }
 
     #[test]
     fn test_slerp() {
-        todo!()
+        for_types!(|N: TwoOrThree, T: PrimitiveFloat, A| {
+            for [rotor, other] in random_iter::<[Rotor<N, T, A>; 2]>() {
+                if !rotor.is_normalized() {
+                    assert_debug_panic!(rotor.slerp(other.normalize(), 0.2));
+                }
+                if !other.is_normalized() {
+                    assert_debug_panic!(rotor.normalize().slerp(other, 0.2));
+                }
+
+                let [rotor, other] =
+                    [rotor, other].map(|r| r.normalize_or(Rotor::IDENTITY).normalize());
+
+                assert_test_eq!(
+                    rotor.slerp(other, 0.0),
+                    rotor,
+                    abs <= 1e-6,
+                    0.0 = -0.0,
+                    rotor = -rotor
+                );
+                assert_test_eq!(
+                    rotor.slerp(other, 1.0),
+                    other,
+                    abs <= 1e-6,
+                    0.0 = -0.0,
+                    rotor = -rotor
+                );
+
+                for t in [0.25, 0.5, 0.75] {
+                    let result = rotor.slerp(other, t);
+
+                    if result.angle_between(rotor).is_nan() && !result.is_nan() {
+                        continue;
+                    }
+                    if result.angle_between(other).is_nan() && !result.is_nan() {
+                        continue;
+                    }
+
+                    if ((1.0 as T)..(179.0 as T)).contains(&rotor.angle_between(other)) {
+                        assert_test_eq!(
+                            result.angle_between(rotor),
+                            rotor.angle_between(other) * t,
+                            abs <= rotor.angle_between(other) * 1e-6 + 1e-3,
+                            0.0 = -0.0
+                        );
+                        assert_test_eq!(
+                            result.angle_between(other),
+                            rotor.angle_between(other) * (1.0 - t),
+                            abs <= rotor.angle_between(other) * 1e-6 + 1e-3,
+                            0.0 = -0.0
+                        );
+                    } else {
+                        assert_test_eq!(
+                            result.angle_between(rotor),
+                            rotor.angle_between(other) * t,
+                            abs <= rotor.angle_between(other) * 1e-4 + 1e-2,
+                            0.0 = -0.0
+                        );
+                        assert_test_eq!(
+                            result.angle_between(other),
+                            rotor.angle_between(other) * (1.0 - t),
+                            abs <= rotor.angle_between(other) * 1e-4 + 1e-2,
+                            0.0 = -0.0
+                        );
+                    }
+                }
+            }
+        });
     }
 
     #[test]
     fn test_rotate_towards() {
-        todo!()
+        for_types!(|N: TwoOrThree, T: PrimitiveFloat, A| {
+            for [rotor, target] in random_iter::<[Rotor<N, T, A>; 2]>() {
+                if !rotor.is_normalized() {
+                    assert_debug_panic!(rotor.rotate_towards(target.normalize(), 0.2));
+                }
+                if !target.is_normalized() {
+                    assert_debug_panic!(rotor.normalize().rotate_towards(target, 0.2));
+                }
+
+                let [rotor, target] =
+                    [rotor, target].map(|r| r.normalize_or(Rotor::IDENTITY).normalize());
+
+                assert_test_eq!(
+                    rotor.rotate_towards(target, 0.0),
+                    rotor,
+                    abs <= 1e-3,
+                    0.0 = -0.0,
+                    rotor = -rotor
+                );
+                assert_test_eq!(
+                    rotor.rotate_towards(target, rotor.angle_between(target)),
+                    target,
+                    abs <= 1e-3,
+                    0.0 = -0.0,
+                    rotor = -rotor
+                );
+                assert_test_eq!(
+                    rotor.rotate_towards(target, rotor.angle_between(target) * 1.5),
+                    target,
+                    abs <= 1e-3,
+                    0.0 = -0.0,
+                    rotor = -rotor
+                );
+
+                for t in [0.25, 0.5, 0.75] {
+                    assert_test_eq!(
+                        rotor.rotate_towards(target, rotor.angle_between(target) * t),
+                        rotor.slerp(target, t),
+                        abs <= 1e-3,
+                        0.0 = -0.0,
+                        rotor = -rotor
+                    );
+                }
+            }
+        });
     }
 
     #[test]
     fn test_length() {
-        todo!()
+        for rotor in random_iter::<Rot2A<f32>>() {
+            assert_test_eq!(rotor.length(), rotor.0.length());
+        }
+        for rotor in random_iter::<Rot3A<f32>>() {
+            assert_test_eq!(rotor.length(), rotor.0.length());
+        }
     }
 
     #[test]
     fn test_normalize() {
-        todo!()
+        for_types!(|T: PrimitiveFloat, A| {
+            for rotor in random_iter::<Rotor<2, T, A>>() {
+                assert_panic_test_eq!(rotor.normalize(), Rotor(rotor.0.normalize()));
+            }
+            for rotor in random_iter::<Rotor<3, T, A>>() {
+                assert_panic_test_eq!(rotor.normalize(), Rotor(rotor.0.normalize()));
+            }
+        });
     }
 
     #[test]
     fn test_try_normalize() {
-        todo!()
+        for_types!(|T: PrimitiveFloat, A| {
+            for rotor in random_iter::<Rotor<2, T, A>>() {
+                assert_test_eq!(rotor.try_normalize(), rotor.0.try_normalize().map(Rotor));
+            }
+            for rotor in random_iter::<Rotor<3, T, A>>() {
+                assert_test_eq!(rotor.try_normalize(), rotor.0.try_normalize().map(Rotor));
+            }
+        });
     }
 
     #[test]
     fn test_normalize_or() {
-        todo!()
+        for_types!(|T: PrimitiveFloat, A| {
+            for [rotor, fallback] in random_iter::<[Rotor<2, T, A>; 2]>() {
+                assert_test_eq!(
+                    rotor.normalize_or(fallback),
+                    Rotor(rotor.0.normalize_or(fallback.0))
+                );
+            }
+            for [rotor, fallback] in random_iter::<[Rotor<3, T, A>; 2]>() {
+                assert_test_eq!(
+                    rotor.normalize_or(fallback),
+                    Rotor(rotor.0.normalize_or(fallback.0))
+                );
+            }
+        });
     }
 
     #[test]
     fn test_normalize_and_length() {
-        todo!()
+        for_types!(|T: PrimitiveFloat, A| {
+            for rotor in random_iter::<Rotor<2, T, A>>() {
+                let expected = rotor.0.normalize_and_length();
+                assert_test_eq!(
+                    rotor.normalize_and_length(),
+                    (Rotor(expected.0), expected.1)
+                );
+            }
+            for rotor in random_iter::<Rotor<3, T, A>>() {
+                let expected = rotor.0.normalize_and_length();
+                assert_test_eq!(
+                    rotor.normalize_and_length(),
+                    (Rotor(expected.0), expected.1)
+                );
+            }
+        });
     }
 
     #[test]
     fn test_is_normalized() {
-        todo!()
-    }
-
-    #[test]
-    fn test_abs_diff_eq() {
-        todo!()
+        for_types!(|T: PrimitiveFloat, A| {
+            for rotor in random_iter::<Rotor<2, T, A>>() {
+                assert_test_eq!(rotor.is_normalized(), rotor.0.is_normalized());
+            }
+            for rotor in random_iter::<Rotor<3, T, A>>() {
+                assert_test_eq!(rotor.is_normalized(), rotor.0.is_normalized());
+            }
+        });
     }
 
     #[test]
     fn test_from_angle() {
-        todo!()
+        for_types!(|T: PrimitiveFloat, A| {
+            for (vector, angle) in random_iter::<(Vector<2, T, A>, T)>() {
+                assert_test_eq!(
+                    vector * Rotor::<2, T, A>::from_angle(angle),
+                    vector.rotate(angle)
+                );
+            }
+        });
     }
 
     #[test]
     fn test_to_angle() {
-        todo!()
+        for_types!(|T: PrimitiveFloat, A| {
+            for angle in random_iter::<T>() {
+                let rotor = Rotor::<2, T, A>::from_angle(angle);
+
+                assert_test_eq!(rotor.to_angle(), angle);
+                assert_test_eq!((-rotor).to_angle(), angle);
+            }
+        });
     }
 
     #[test]
     fn test_from_rotation_xy() {
-        todo!()
+        for_types!(|T: PrimitiveFloat, A| {
+            for (vector, angle) in random_iter::<(Vector<3, T, A>, T)>() {
+                assert_test_eq!(
+                    vector * Rotor::<3, T, A>::from_rotation_xy(angle),
+                    vector.rotate_xy(angle)
+                );
+            }
+        });
     }
 
     #[test]
     fn test_from_rotation_xz() {
-        todo!()
+        for_types!(|T: PrimitiveFloat, A| {
+            for (vector, angle) in random_iter::<(Vector<3, T, A>, T)>() {
+                assert_test_eq!(
+                    vector * Rotor::<3, T, A>::from_rotation_xz(angle),
+                    vector.rotate_xz(angle)
+                );
+            }
+        });
     }
 
     #[test]
     fn test_from_rotation_yz() {
-        todo!()
+        for_types!(|T: PrimitiveFloat, A| {
+            for (vector, angle) in random_iter::<(Vector<3, T, A>, T)>() {
+                assert_test_eq!(
+                    vector * Rotor::<3, T, A>::from_rotation_yz(angle),
+                    vector.rotate_yz(angle)
+                );
+            }
+        });
     }
 
     #[test]
     fn test_from_axis_angle() {
-        todo!()
+        for_types!(|T: PrimitiveFloat, A| {
+            for (axis, angle) in random_iter::<(Vector<3, T, A>, T)>() {
+                if !axis.is_normalized() {
+                    assert_debug_panic!(Rotor::<3, T, A>::from_axis_angle(axis, angle));
+                }
+
+                let axis = axis.normalize_or(Vector::ONE).normalize();
+                let half_angle = angle * 0.5;
+
+                let result = Rotor::<3, T, A>::from_axis_angle(axis, angle);
+
+                assert_test_eq!(
+                    result.s,
+                    half_angle.cos(),
+                    abs <= angle.abs() * 1e-4 + 1e-3,
+                    0.0 = -0.0
+                );
+                assert_test_eq!(
+                    result.yz,
+                    half_angle.sin() * axis.x,
+                    abs <= angle.abs() * 1e-4 + 1e-3,
+                    0.0 = -0.0
+                );
+                assert_test_eq!(
+                    -result.xz,
+                    half_angle.sin() * axis.y,
+                    abs <= angle.abs() * 1e-4 + 1e-3,
+                    0.0 = -0.0
+                );
+                assert_test_eq!(
+                    result.xy,
+                    half_angle.sin() * axis.z,
+                    abs <= angle.abs() * 1e-4 + 1e-3,
+                    0.0 = -0.0
+                );
+            }
+        });
     }
 
     #[test]
     fn test_from_scaled_axis() {
-        todo!()
+        for_types!(|T: PrimitiveFloat, A| {
+            for (axis, angle) in random_iter::<(Vector<3, T, A>, T)>() {
+                let axis = axis.normalize_or(Vector::ONE).normalize();
+                if !(axis * angle).length().is_finite() {
+                    continue;
+                };
+
+                assert_panic_test_eq!(
+                    Rotor::<3, T, A>::from_scaled_axis(axis * angle),
+                    Rotor::<3, T, A>::from_axis_angle(axis, angle),
+                    abs <= 1e-6 * axis.abs().max_element().max(angle.abs()),
+                    0.0 = -0.0
+                );
+            }
+        });
     }
 
     #[test]
     fn test_from_euler() {
-        todo!()
-    }
+        for_types!(|T: PrimitiveFloat, A| {
+            for order in EulerRot::values() {
+                for [a, b, c] in random_iter::<[T; 3]>() {
+                    if [a, b, c].into_iter().any(|x| !x.is_finite() || x > 1e6) {
+                        continue;
+                    };
 
-    #[test]
-    fn test_look_to_lh() {
-        todo!()
-    }
-
-    #[test]
-    fn test_look_to_rh() {
-        todo!()
-    }
-
-    #[test]
-    fn test_look_at_lh() {
-        todo!()
-    }
-
-    #[test]
-    fn test_look_at_rh() {
-        todo!()
+                    assert_test_eq!(
+                        Rotor::<3, T, A>::from_euler(order, a, b, c),
+                        Rotor::<3, T, A>::from_matrix(&Matrix::<3, T, A>::from_euler(
+                            order, a, b, c
+                        )),
+                        abs <= 1e-6,
+                        0.0 = -0.0,
+                        rotor = -rotor
+                    );
+                }
+            }
+        });
     }
 
     #[test]
     fn test_to_axis_angle() {
-        todo!()
+        for_types!(|T: PrimitiveFloat, A| {
+            for rotor in random_iter::<Rotor<3, T, A>>() {
+                if !rotor.is_normalized() {
+                    assert_debug_panic!(rotor.to_axis_angle());
+                }
+
+                let rotor = rotor.normalize_or(Rotor::IDENTITY).normalize();
+
+                let result = rotor.to_axis_angle();
+                assert_test_eq!(
+                    Rotor::<3, T, A>::from_axis_angle(result.0, result.1),
+                    rotor,
+                    abs <= 1e-6,
+                    0.0 = -0.0,
+                    rotor = -rotor
+                );
+            }
+        });
     }
 
     #[test]
     fn test_to_scaled_axis() {
-        todo!()
+        for_types!(|T: PrimitiveFloat, A| {
+            for rotor in random_iter::<Rotor<3, T, A>>() {
+                if !rotor.is_normalized() {
+                    assert_debug_panic!(rotor.to_scaled_axis());
+                }
+
+                let rotor = rotor.normalize_or(Rotor::IDENTITY).normalize();
+
+                assert_test_eq!(
+                    Rotor::<3, T, A>::from_scaled_axis(rotor.to_scaled_axis()),
+                    rotor,
+                    abs <= 1e-6,
+                    0.0 = -0.0,
+                    rotor = -rotor
+                );
+            }
+        });
     }
 
     #[test]
     fn test_to_euler() {
-        todo!()
+        for_types!(|T: PrimitiveFloat, A| {
+            for order in EulerRot::values() {
+                for rotor in random_iter::<Rotor<3, T, A>>() {
+                    if !rotor.is_normalized() {
+                        assert_debug_panic!(rotor.to_euler(order));
+                    }
+
+                    let rotor = rotor.normalize_or(Rotor::IDENTITY).normalize();
+
+                    assert_test_eq!(
+                        rotor.to_euler(order),
+                        Matrix::<3, T, A>::from_rotor(rotor).to_euler(order)
+                    );
+                }
+            }
+        });
     }
 }

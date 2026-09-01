@@ -954,7 +954,7 @@ mod tests {
     use wide::f32x4;
 
     use crate::{
-        EulerRot, Mat2, Mat3, Mat4, Matrix, Projective, Unaligned, Vec2, Vec3, Vector,
+        EulerRot, Mat2, Mat3, Mat4, Matrix, Projective, Rotor, Unaligned, Vec2, Vec3, Vector,
         test_utils::{assert_test_eq, assert_test_eq_or_panic, for_types, random_iter},
     };
 
@@ -984,12 +984,35 @@ mod tests {
 
     #[test]
     fn test_from_rotor() {
-        todo!()
+        for_types!(|N: TwoOrThree, Wide: WideFloat| {
+            for rotor in random_iter::<Rotor<N, Wide, Unaligned>>().flat_map(|r| [r, r.normalize()])
+            {
+                assert_test_eq_or_panic!(
+                    Matrix::<N, Wide, Unaligned>::from_rotor(rotor),
+                    Matrix::from_lane_fn(|lane| Matrix::<N, T, Unaligned>::from_rotor(
+                        rotor.lane(lane)
+                    ))
+                );
+            }
+        });
     }
 
     #[test]
     fn test_from_scale_rotation() {
-        todo!()
+        for_types!(|N: TwoOrThree, Wide: WideFloat| {
+            for (scale, rotation) in
+                random_iter::<(Vector<N, Wide, Unaligned>, Rotor<N, Wide, Unaligned>)>()
+                    .flat_map(|(v, r)| [(v, r), (v, r.normalize())])
+            {
+                assert_test_eq_or_panic!(
+                    Matrix::<N, Wide, Unaligned>::from_scale_rotation(scale, rotation),
+                    Matrix::from_lane_fn(|lane| Matrix::<N, T, Unaligned>::from_scale_rotation(
+                        scale.lane(lane),
+                        rotation.lane(lane)
+                    ))
+                );
+            }
+        });
     }
 
     #[test]
@@ -1096,7 +1119,22 @@ mod tests {
 
     #[test]
     fn test_to_scale_rotation() {
-        todo!()
+        for_types!(|N: TwoOrThree, Wide: WideFloat| {
+            for matrix in random_iter::<(Vector<N, Wide, Unaligned>, Rotor<N, Wide, Unaligned>)>()
+                .map(|(scale, rotation)| {
+                    Matrix::<N, Wide, Unaligned>::from_scale_rotation(scale, rotation.normalize())
+                })
+                .chain(random_iter())
+            {
+                assert_test_eq_or_panic!(
+                    matrix.to_scale_rotation(),
+                    (
+                        Vector::from_lane_fn(|lane| matrix.lane(lane).to_scale_rotation().0),
+                        Rotor::from_lane_fn(|lane| matrix.lane(lane).to_scale_rotation().1)
+                    )
+                );
+            }
+        });
     }
 
     #[test]

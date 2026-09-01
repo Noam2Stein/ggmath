@@ -1196,8 +1196,8 @@ impl_items!(f64x8, f64);
 #[cfg(test)]
 mod tests {
     use crate::{
-        Affine, EulerRot, Mat3, Mat4, Matrix, Proj2, Proj3, Projective, Unaligned, Vec2, Vec3,
-        Vector,
+        Affine, EulerRot, Mat3, Mat4, Matrix, Proj2, Proj3, Projective, Rotor, Unaligned, Vec2,
+        Vec3, Vector,
         test_utils::{assert_test_eq, assert_test_eq_or_panic, for_types, random_iter},
     };
 
@@ -1211,22 +1211,91 @@ mod tests {
 
     #[test]
     fn test_from_rotor() {
-        todo!()
+        for_types!(|N: TwoOrThree, Wide: WideFloat| {
+            for rotor in random_iter::<Rotor<N, Wide, Unaligned>>() {
+                let rotor = rotor.normalize_or(Rotor::IDENTITY);
+
+                assert_test_eq_or_panic!(
+                    Projective::<N, Wide, Unaligned>::from_rotor(rotor),
+                    Projective::from_lane_fn(|lane| Projective::<N, T, Unaligned>::from_rotor(
+                        rotor.lane(lane)
+                    ))
+                );
+            }
+        });
     }
 
     #[test]
     fn test_from_scale_rotation() {
-        todo!()
+        for_types!(|N: TwoOrThree, Wide: WideFloat| {
+            for (scale, rotation) in
+                random_iter::<(Vector<N, Wide, Unaligned>, Rotor<N, Wide, Unaligned>)>()
+            {
+                let rotation = rotation.normalize_or(Rotor::IDENTITY);
+
+                assert_test_eq_or_panic!(
+                    Projective::<N, Wide, Unaligned>::from_scale_rotation(scale, rotation),
+                    Projective::from_lane_fn(|lane| {
+                        Projective::<N, T, Unaligned>::from_scale_rotation(
+                            scale.lane(lane),
+                            rotation.lane(lane),
+                        )
+                    })
+                );
+            }
+        });
     }
 
     #[test]
     fn test_from_rotation_translation() {
-        todo!()
+        for_types!(|N: TwoOrThree, Wide: WideFloat| {
+            for (rotation, translation) in
+                random_iter::<(Rotor<N, Wide, Unaligned>, Vector<N, Wide, Unaligned>)>()
+            {
+                let rotation = rotation.normalize_or(Rotor::IDENTITY);
+
+                assert_test_eq_or_panic!(
+                    Projective::<N, Wide, Unaligned>::from_rotation_translation(
+                        rotation,
+                        translation
+                    ),
+                    Projective::from_lane_fn(|lane| {
+                        Projective::<N, T, Unaligned>::from_rotation_translation(
+                            rotation.lane(lane),
+                            translation.lane(lane),
+                        )
+                    })
+                );
+            }
+        });
     }
 
     #[test]
     fn test_from_scale_rotation_translation() {
-        todo!()
+        for_types!(|N: TwoOrThree, Wide: WideFloat| {
+            for (scale, rotation, translation) in random_iter::<(
+                Vector<N, Wide, Unaligned>,
+                Rotor<N, Wide, Unaligned>,
+                Vector<N, Wide, Unaligned>,
+            )>() {
+                let rotation = rotation.normalize_or(Rotor::IDENTITY);
+
+                assert_test_eq_or_panic!(
+                    Projective::<N, Wide, Unaligned>::from_scale_rotation_translation(
+                        scale,
+                        rotation,
+                        translation
+                    ),
+                    Projective::from_lane_fn(|lane| {
+                        Projective::<N, T, Unaligned>::from_scale_rotation_translation(
+                            scale.lane(lane),
+                            rotation.lane(lane),
+                            translation.lane(lane),
+                        )
+                    })
+                );
+            }
+        });
     }
 
     #[test]
@@ -1385,17 +1454,101 @@ mod tests {
 
     #[test]
     fn test_to_scale_rotation() {
-        todo!()
+        for_types!(|N: TwoOrThree, Wide: WideFloat| {
+            for projective in random_iter::<(
+                Vector<N, Wide, Unaligned>,
+                Rotor<N, Wide, Unaligned>,
+                Vector<N, Wide, Unaligned>,
+            )>()
+            .map(|(scale, rotation, translation)| {
+                let rotation = rotation.normalize_or(Rotor::IDENTITY).normalize();
+                Projective::<N, Wide, Unaligned>::from_scale_rotation_translation(
+                    scale,
+                    rotation,
+                    translation,
+                )
+            })
+            .chain(random_iter())
+            {
+                assert_test_eq_or_panic!(
+                    projective.to_scale_rotation(),
+                    (
+                        Vector::from_lane_fn(|lane| projective.lane(lane).to_scale_rotation().0),
+                        Rotor::from_lane_fn(|lane| projective.lane(lane).to_scale_rotation().1),
+                    )
+                );
+            }
+        });
     }
 
     #[test]
     fn test_to_rotation_translation() {
-        todo!()
+        for_types!(|N: TwoOrThree, Wide: WideFloat| {
+            for projective in
+                random_iter::<(Rotor<N, Wide, Unaligned>, Vector<N, Wide, Unaligned>)>()
+                    .map(|(rotation, translation)| {
+                        let rotation = rotation.normalize_or(Rotor::IDENTITY).normalize();
+                        Projective::<N, Wide, Unaligned>::from_rotation_translation(
+                            rotation,
+                            translation,
+                        )
+                    })
+                    .chain(random_iter())
+            {
+                assert_test_eq_or_panic!(
+                    projective.to_rotation_translation(),
+                    (
+                        Rotor::from_lane_fn(|lane| projective
+                            .lane(lane)
+                            .to_rotation_translation()
+                            .0),
+                        Vector::from_lane_fn(|lane| projective
+                            .lane(lane)
+                            .to_rotation_translation()
+                            .1),
+                    )
+                );
+            }
+        });
     }
 
     #[test]
     fn test_to_scale_rotation_translation() {
-        todo!()
+        for_types!(|N: TwoOrThree, Wide: WideFloat| {
+            for projective in random_iter::<(
+                Vector<N, Wide, Unaligned>,
+                Rotor<N, Wide, Unaligned>,
+                Vector<N, Wide, Unaligned>,
+            )>()
+            .map(|(scale, rotation, translation)| {
+                let rotation = rotation.normalize_or(Rotor::IDENTITY).normalize();
+                Projective::<N, Wide, Unaligned>::from_scale_rotation_translation(
+                    scale,
+                    rotation,
+                    translation,
+                )
+            })
+            .chain(random_iter())
+            {
+                assert_test_eq_or_panic!(
+                    projective.to_scale_rotation_translation(),
+                    (
+                        Vector::from_lane_fn(|lane| projective
+                            .lane(lane)
+                            .to_scale_rotation_translation()
+                            .0),
+                        Rotor::from_lane_fn(|lane| projective
+                            .lane(lane)
+                            .to_scale_rotation_translation()
+                            .1),
+                        Vector::from_lane_fn(|lane| projective
+                            .lane(lane)
+                            .to_scale_rotation_translation()
+                            .2),
+                    )
+                );
+            }
+        });
     }
 
     #[test]

@@ -402,43 +402,201 @@ impl_select!(u64x8);
 mod tests {
     extern crate std;
 
+    use wide::{f32x4, i32x4};
+
+    use crate::{
+        Rot2, Rot3, Rotor, Unaligned, Vec2, Vec4,
+        test_utils::{assert_panic, assert_test_eq, for_types, random_iter},
+    };
+
     #[test]
     fn test_from_lanes() {
-        todo!()
+        assert_eq!(
+            Rot3::<i32x4>::from_lanes(&[
+                Rot3::from_raw_elements(0, 1, 2, 3),
+                Rot3::from_raw_elements(10, 11, 12, 13),
+                Rot3::from_raw_elements(20, 21, 22, 23),
+                Rot3::from_raw_elements(30, 31, 32, 33),
+            ]),
+            Rot3::from_raw_elements(
+                i32x4::new([0, 10, 20, 30]),
+                i32x4::new([1, 11, 21, 31]),
+                i32x4::new([2, 12, 22, 32]),
+                i32x4::new([3, 13, 23, 33]),
+            ),
+        );
     }
 
     #[test]
     fn test_from_lane_fn() {
-        todo!()
+        assert_eq!(
+            Rot3::<i32x4>::from_lane_fn(|i| [
+                Rot3::from_raw_elements(0, 1, 2, 3),
+                Rot3::from_raw_elements(10, 11, 12, 13),
+                Rot3::from_raw_elements(20, 21, 22, 23),
+                Rot3::from_raw_elements(30, 31, 32, 33),
+            ][i]),
+            Rot3::from_raw_elements(
+                i32x4::new([0, 10, 20, 30]),
+                i32x4::new([1, 11, 21, 31]),
+                i32x4::new([2, 12, 22, 32]),
+                i32x4::new([3, 13, 23, 33]),
+            ),
+        );
     }
 
     #[test]
     fn test_to_lanes() {
-        todo!()
+        assert_eq!(
+            Rot3::from_raw_elements(
+                i32x4::new([0, 10, 20, 30]),
+                i32x4::new([1, 11, 21, 31]),
+                i32x4::new([2, 12, 22, 32]),
+                i32x4::new([3, 13, 23, 33]),
+            )
+            .to_lanes(),
+            [
+                Rot3::from_raw_elements(0, 1, 2, 3),
+                Rot3::from_raw_elements(10, 11, 12, 13),
+                Rot3::from_raw_elements(20, 21, 22, 23),
+                Rot3::from_raw_elements(30, 31, 32, 33),
+            ],
+        );
     }
 
     #[test]
     fn test_lane() {
-        todo!()
+        let rotor = Rot3::from_raw_elements(
+            i32x4::new([0, 10, 20, 30]),
+            i32x4::new([1, 11, 21, 31]),
+            i32x4::new([2, 12, 22, 32]),
+            i32x4::new([3, 13, 23, 33]),
+        );
+
+        assert_eq!(rotor.lane(0), Rot3::from_raw_elements(0, 1, 2, 3));
+        assert_eq!(rotor.lane(1), Rot3::from_raw_elements(10, 11, 12, 13));
+        assert_eq!(rotor.lane(2), Rot3::from_raw_elements(20, 21, 22, 23));
+        assert_eq!(rotor.lane(3), Rot3::from_raw_elements(30, 31, 32, 33));
+        assert_panic!(rotor.lane(4));
     }
 
     #[test]
     fn test_set_lane() {
-        todo!()
+        let mut rotor = Rot3::from_raw_elements(
+            i32x4::new([0, 10, 20, 30]),
+            i32x4::new([1, 11, 21, 31]),
+            i32x4::new([2, 12, 22, 32]),
+            i32x4::new([3, 13, 23, 33]),
+        );
+
+        rotor.set_lane(0, Rot3::from_raw_elements(-1, -2, -3, -4));
+        assert_eq!(
+            rotor,
+            Rot3::from_raw_elements(
+                i32x4::new([-1, 10, 20, 30]),
+                i32x4::new([-2, 11, 21, 31]),
+                i32x4::new([-3, 12, 22, 32]),
+                i32x4::new([-4, 13, 23, 33]),
+            )
+        );
+        rotor.set_lane(1, Rot3::from_raw_elements(-10, -11, -12, -13));
+        assert_eq!(
+            rotor,
+            Rot3::from_raw_elements(
+                i32x4::new([-1, -10, 20, 30]),
+                i32x4::new([-2, -11, 21, 31]),
+                i32x4::new([-3, -12, 22, 32]),
+                i32x4::new([-4, -13, 23, 33]),
+            )
+        );
+        rotor.set_lane(2, Rot3::from_raw_elements(-20, -21, -22, -23));
+        assert_eq!(
+            rotor,
+            Rot3::from_raw_elements(
+                i32x4::new([-1, -10, -20, 30]),
+                i32x4::new([-2, -11, -21, 31]),
+                i32x4::new([-3, -12, -22, 32]),
+                i32x4::new([-4, -13, -23, 33]),
+            )
+        );
+        rotor.set_lane(3, Rot3::from_raw_elements(-30, -31, -32, -33));
+        assert_eq!(
+            rotor,
+            Rot3::from_raw_elements(
+                i32x4::new([-1, -10, -20, -30]),
+                i32x4::new([-2, -11, -21, -31]),
+                i32x4::new([-3, -12, -22, -32]),
+                i32x4::new([-4, -13, -23, -33]),
+            )
+        );
+        assert_panic!(rotor.clone().set_lane(4, Rotor::IDENTITY));
     }
 
     #[test]
     fn test_simd_eq() {
-        todo!()
+        for ([a, b], mask) in random_iter::<([Rot2<i32x4>; 2], Vec2<i32x4>)>() {
+            let b: Rot2<i32x4> = Rotor(mask.negative_mask().select(a.0, b.0));
+
+            assert_test_eq!(
+                a.simd_eq(&b),
+                i32x4::new(std::array::from_fn(
+                    |lane| if a.lane(lane) == b.lane(lane) { !0 } else { 0 }
+                ))
+            );
+        }
+        for ([a, b], mask) in random_iter::<([Rot3<i32x4>; 2], Vec4<i32x4>)>() {
+            let b: Rot3<i32x4> = Rotor(mask.negative_mask().select(a.0, b.0));
+
+            assert_test_eq!(
+                a.simd_eq(&b),
+                i32x4::new(std::array::from_fn(
+                    |lane| if a.lane(lane) == b.lane(lane) { !0 } else { 0 }
+                ))
+            );
+        }
     }
 
     #[test]
     fn test_simd_ne() {
-        todo!()
+        for ([a, b], mask) in random_iter::<([Rot2<i32x4>; 2], Vec2<i32x4>)>() {
+            let b: Rot2<i32x4> = Rotor(mask.negative_mask().select(a.0, b.0));
+
+            assert_test_eq!(
+                a.simd_ne(&b),
+                i32x4::new(std::array::from_fn(
+                    |lane| if a.lane(lane) != b.lane(lane) { !0 } else { 0 }
+                ))
+            );
+        }
+        for ([a, b], mask) in random_iter::<([Rot3<i32x4>; 2], Vec4<i32x4>)>() {
+            let b: Rot3<i32x4> = Rotor(mask.negative_mask().select(a.0, b.0));
+
+            assert_test_eq!(
+                a.simd_ne(&b),
+                i32x4::new(std::array::from_fn(
+                    |lane| if a.lane(lane) != b.lane(lane) { !0 } else { 0 }
+                ))
+            );
+        }
     }
 
     #[test]
     fn test_scalar_select() {
-        todo!()
+        for_types!(|N: TwoOrThree| {
+            for (mask, [if_true, if_false]) in
+                random_iter::<(i32x4, [Rotor<N, f32x4, Unaligned>; 2])>()
+            {
+                let mask = mask.is_negative();
+
+                assert_test_eq!(
+                    mask.select(if_true, if_false),
+                    Rotor::from_lane_fn(|lane| if mask.as_array()[lane].is_negative() {
+                        if_true.lane(lane)
+                    } else {
+                        if_false.lane(lane)
+                    })
+                );
+            }
+        });
     }
 }
