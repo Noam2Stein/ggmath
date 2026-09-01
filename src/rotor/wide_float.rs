@@ -936,175 +936,538 @@ impl_items!(f64x8);
 
 #[cfg(test)]
 mod tests {
+    use wide::f32x4;
+
+    use crate::{
+        EulerRot, Mat2, Mat3, Rotor3, Rotor, Rotor2, Unaligned, Vec2, Vec3, Vector,
+        test_utils::{assert_test_eq, assert_test_eq_or_panic, for_types, random_iter},
+    };
+
     #[test]
     fn test_constants() {
-        todo!()
+        assert_test_eq!(
+            Rotor2::<f32x4>::NAN,
+            Rotor2::from_raw_elements(f32x4::NAN, f32x4::NAN)
+        );
+        assert_test_eq!(
+            Rotor3::<f32x4>::NAN,
+            Rotor3::from_raw_elements(f32x4::NAN, f32x4::NAN, f32x4::NAN, f32x4::NAN)
+        );
     }
 
     #[test]
     fn test_from_rotation_arc() {
-        todo!()
+        for_types!(|N: TwoOrThree, Wide: WideFloat| {
+            for [from, to] in random_iter::<[Vector<N, Wide, Unaligned>; 2]>()
+                .flat_map(|from_to| [from_to, from_to.map(|v| v.normalize())])
+            {
+                assert_test_eq_or_panic!(
+                    Rotor::<N, Wide, Unaligned>::from_rotation_arc(from, to),
+                    Rotor::from_lane_fn(|lane| Rotor::<N, T, Unaligned>::from_rotation_arc(
+                        from.lane(lane),
+                        to.lane(lane)
+                    ))
+                );
+            }
+        });
     }
 
     #[test]
     fn test_from_rotation_arc_colinear() {
-        todo!()
+        for_types!(|N: TwoOrThree, Wide: WideFloat| {
+            for [from, to] in random_iter::<[Vector<N, Wide, Unaligned>; 2]>()
+                .flat_map(|from_to| [from_to, from_to.map(|v| v.normalize())])
+            {
+                assert_test_eq_or_panic!(
+                    Rotor::<N, Wide, Unaligned>::from_rotation_arc_colinear(from, to),
+                    Rotor::from_lane_fn(|lane| {
+                        Rotor::<N, T, Unaligned>::from_rotation_arc_colinear(
+                            from.lane(lane),
+                            to.lane(lane),
+                        )
+                    })
+                );
+            }
+        });
     }
 
     #[test]
     fn test_from_matrix() {
-        todo!()
-    }
+        for_types!(|Wide: WideFloat| {
+            for xy in random_iter::<Wide>() {
+                let matrix = Mat2::<Wide>::from_angle(xy);
 
-    #[test]
-    fn test_from_affine() {
-        todo!()
+                assert_test_eq_or_panic!(
+                    Rotor2::<Wide>::from_matrix(&matrix),
+                    Rotor2::from_lane_fn(|lane| Rotor2::<T>::from_matrix(&matrix.lane(lane)))
+                );
+            }
+            for [xy, xz, yz] in random_iter::<[Wide; 3]>() {
+                let matrix = Mat3::<Wide>::from_rotation_xy(xy)
+                    * Mat3::<Wide>::from_rotation_xz(xz)
+                    * Mat3::<Wide>::from_rotation_yz(yz);
+
+                assert_test_eq_or_panic!(
+                    Rotor3::<Wide>::from_matrix(&matrix),
+                    Rotor3::from_lane_fn(|lane| Rotor3::<T>::from_matrix(&matrix.lane(lane)))
+                );
+            }
+        });
     }
 
     #[test]
     fn test_from_projective() {
-        todo!()
+        for_types!(|Wide: WideFloat| {
+            for xy in random_iter::<Wide>() {
+                let matrix = Mat2::<Wide>::from_angle(xy);
+
+                assert_test_eq_or_panic!(
+                    Rotor2::<Wide>::from_matrix(&matrix),
+                    Rotor2::from_lane_fn(|lane| Rotor2::<T>::from_matrix(&matrix.lane(lane)))
+                );
+            }
+            for [xy, xz, yz] in random_iter::<[Wide; 3]>() {
+                let matrix = Mat3::<Wide>::from_rotation_xy(xy)
+                    * Mat3::<Wide>::from_rotation_xz(xz)
+                    * Mat3::<Wide>::from_rotation_yz(yz);
+
+                assert_test_eq_or_panic!(
+                    Rotor3::<Wide>::from_matrix(&matrix),
+                    Rotor3::from_lane_fn(|lane| Rotor3::<T>::from_matrix(&matrix.lane(lane)))
+                );
+            }
+        });
     }
 
     #[test]
     fn test_is_nan() {
-        todo!()
+        for [x, y, z, w] in random_iter::<[f32x4; 4]>() {
+            assert_eq!(
+                Rotor2::from_raw_elements(x, y).is_nan(),
+                x.is_nan() | y.is_nan()
+            );
+            assert_eq!(
+                Rotor3::from_raw_elements(x, y, z, w).is_nan(),
+                x.is_nan() | y.is_nan() | z.is_nan() | w.is_nan()
+            );
+        }
     }
 
     #[test]
     fn test_is_finite() {
-        todo!()
-    }
-
-    #[test]
-    fn test_inverse() {
-        todo!()
+        for [x, y, z, w] in random_iter::<[f32x4; 4]>() {
+            assert_eq!(
+                Rotor2::from_raw_elements(x, y).is_finite(),
+                x.is_finite() & y.is_finite()
+            );
+            assert_eq!(
+                Rotor3::from_raw_elements(x, y, z, w).is_finite(),
+                x.is_finite() & y.is_finite() & z.is_finite() & w.is_finite()
+            );
+        }
     }
 
     #[test]
     fn test_angle_between() {
-        todo!()
+        for_types!(|N: TwoOrThree, Wide: WideFloat| {
+            for [a, b] in random_iter::<[Rotor<N, Wide, Unaligned>; 2]>() {
+                let [a, b] = [a, b].map(|r| r.normalize_or(Rotor::IDENTITY));
+
+                assert_test_eq_or_panic!(
+                    a.angle_between(b),
+                    Wide::new(std::array::from_fn(|lane| a
+                        .lane(lane)
+                        .angle_between(b.lane(lane))))
+                );
+            }
+        });
     }
 
     #[test]
     fn test_lerp() {
-        todo!()
+        for_types!(|N: TwoOrThree, Wide: WideFloat| {
+            for ([a, b], t) in random_iter::<([Rotor<N, Wide, Unaligned>; 2], Wide)>() {
+                let [a, b] = [a, b].map(|r| r.normalize_or(Rotor::IDENTITY));
+
+                assert_test_eq_or_panic!(
+                    a.lerp(b, t),
+                    Rotor::from_lane_fn(|lane| a.lane(lane).lerp(b.lane(lane), t.as_array()[lane]))
+                );
+            }
+        });
     }
 
     #[test]
     fn test_slerp() {
-        todo!()
+        for_types!(|N: TwoOrThree, Wide: WideFloat| {
+            for ([a, b], t) in random_iter::<([Rotor<N, Wide, Unaligned>; 2], Wide)>() {
+                let [a, b] = [a, b].map(|r| r.normalize_or(Rotor::IDENTITY));
+
+                assert_test_eq_or_panic!(
+                    a.slerp(b, t),
+                    Rotor::from_lane_fn(|lane| a
+                        .lane(lane)
+                        .slerp(b.lane(lane), t.as_array()[lane]))
+                );
+            }
+        });
     }
 
     #[test]
     fn test_rotate_towards() {
-        todo!()
+        for_types!(|N: TwoOrThree, Wide: WideFloat| {
+            for ([a, b], max_angle) in random_iter::<([Rotor<N, Wide, Unaligned>; 2], Wide)>() {
+                let [a, b] = [a, b].map(|r| r.normalize_or(Rotor::IDENTITY));
+
+                assert_test_eq_or_panic!(
+                    a.slerp(b, max_angle),
+                    Rotor::from_lane_fn(|lane| a
+                        .lane(lane)
+                        .rotate_towards(b.lane(lane), max_angle.as_array()[lane]))
+                );
+            }
+        });
     }
 
     #[test]
     fn test_length() {
-        todo!()
-    }
-
-    #[test]
-    fn test_normalize() {
-        todo!()
+        for rotor in random_iter::<Rotor2<f32x4>>() {
+            assert_test_eq!(rotor.length(), rotor.0.length());
+        }
+        for rotor in random_iter::<Rotor3<f32x4>>() {
+            assert_test_eq!(rotor.length(), rotor.0.length());
+        }
     }
 
     // `try_normalize` is exluded on purpose.
 
     #[test]
     fn test_normalize_or() {
-        todo!()
+        for_types!(|Wide: WideFloat| {
+            for [rotor, fallback] in random_iter::<[Rotor2<Wide>; 2]>() {
+                assert_test_eq!(
+                    rotor.normalize_or(fallback),
+                    Rotor(rotor.0.normalize_or(fallback.0))
+                );
+            }
+            for [rotor, fallback] in random_iter::<[Rotor3<Wide>; 2]>() {
+                assert_test_eq!(
+                    rotor.normalize_or(fallback),
+                    Rotor(rotor.0.normalize_or(fallback.0))
+                );
+            }
+        });
     }
 
     #[test]
     fn test_normalize_and_length() {
-        todo!()
+        for_types!(|Wide: WideFloat| {
+            for rotor in random_iter::<Rotor2<Wide>>() {
+                let expected = rotor.0.normalize_and_length();
+                assert_test_eq!(
+                    rotor.normalize_and_length(),
+                    (Rotor(expected.0), expected.1)
+                );
+            }
+            for rotor in random_iter::<Rotor3<Wide>>() {
+                let expected = rotor.0.normalize_and_length();
+                assert_test_eq!(
+                    rotor.normalize_and_length(),
+                    (Rotor(expected.0), expected.1)
+                );
+            }
+        });
     }
 
     #[test]
     fn test_is_normalized() {
-        todo!()
+        for_types!(|Wide: WideFloat| {
+            for rotor in random_iter::<Rotor2<Wide>>() {
+                assert_test_eq!(rotor.is_normalized(), rotor.0.is_normalized());
+            }
+            for rotor in random_iter::<Rotor3<Wide>>() {
+                assert_test_eq!(rotor.is_normalized(), rotor.0.is_normalized());
+            }
+        });
     }
 
     #[test]
     fn test_abs_diff_eq() {
-        todo!()
+        for_types!(|N: TwoOrThree, Wide: WideFloat| {
+            for ([a, b], max_abs_diff) in random_iter::<([Rotor<N, Wide, Unaligned>; 2], Wide)>() {
+                assert_test_eq!(
+                    a.abs_diff_eq(b, max_abs_diff),
+                    (0..LANES).all(|lane| a
+                        .lane(lane)
+                        .abs_diff_eq(b.lane(lane), max_abs_diff.to_array()[lane]))
+                );
+            }
+        });
     }
 
     #[test]
     fn test_from_angle() {
-        todo!()
+        for_types!(|Wide: WideFloat| {
+            for (vector, angle) in random_iter::<(Vec2<Wide>, Wide)>() {
+                assert_test_eq!(
+                    vector * Rotor2::<Wide>::from_angle(angle),
+                    vector.rotate(angle)
+                );
+            }
+        });
     }
 
     #[test]
     fn test_to_angle() {
-        todo!()
+        for_types!(|Wide: WideFloat| {
+            for angle in random_iter::<Wide>() {
+                let rotor = Rotor2::<Wide>::from_angle(angle);
+
+                assert_test_eq!(rotor.to_angle(), angle);
+                assert_test_eq!((-rotor).to_angle(), angle);
+            }
+        });
     }
 
     #[test]
     fn test_from_rotation_xy() {
-        todo!()
+        for_types!(|Wide: WideFloat| {
+            for (vector, angle) in random_iter::<(Vec3<Wide>, Wide)>() {
+                assert_test_eq!(
+                    vector * Rotor3::<Wide>::from_rotation_xy(angle),
+                    vector.rotate_xy(angle)
+                );
+            }
+        });
     }
 
     #[test]
     fn test_from_rotation_xz() {
-        todo!()
+        for_types!(|Wide: WideFloat| {
+            for (vector, angle) in random_iter::<(Vec3<Wide>, Wide)>() {
+                assert_test_eq!(
+                    vector * Rotor3::<Wide>::from_rotation_xz(angle),
+                    vector.rotate_xz(angle)
+                );
+            }
+        });
     }
 
     #[test]
     fn test_from_rotation_yz() {
-        todo!()
+        for_types!(|Wide: WideFloat| {
+            for (vector, angle) in random_iter::<(Vec3<Wide>, Wide)>() {
+                assert_test_eq!(
+                    vector * Rotor3::<Wide>::from_rotation_yz(angle),
+                    vector.rotate_yz(angle)
+                );
+            }
+        });
     }
 
     #[test]
     fn test_from_axis_angle() {
-        todo!()
+        for_types!(|Wide: WideFloat| {
+            for (axis, angle) in random_iter::<(Vec3<Wide>, Wide)>() {
+                let axis = axis.normalize_or(Vector::ONE).normalize();
+                let half_angle = angle * 0.5;
+
+                let result = Rotor3::<Wide>::from_axis_angle(axis, angle);
+
+                assert_test_eq!(
+                    result.s,
+                    half_angle.cos(),
+                    abs <= angle.abs() * 1e-4 + 1e-3,
+                    0.0 = -0.0
+                );
+                assert_test_eq!(
+                    result.yz,
+                    half_angle.sin() * axis.x,
+                    abs <= angle.abs() * 1e-4 + 1e-3,
+                    0.0 = -0.0
+                );
+                assert_test_eq!(
+                    -result.xz,
+                    half_angle.sin() * axis.y,
+                    abs <= angle.abs() * 1e-4 + 1e-3,
+                    0.0 = -0.0
+                );
+                assert_test_eq!(
+                    result.xy,
+                    half_angle.sin() * axis.z,
+                    abs <= angle.abs() * 1e-4 + 1e-3,
+                    0.0 = -0.0
+                );
+            }
+        });
     }
 
     #[test]
     fn test_from_scaled_axis() {
-        todo!()
+        for_types!(|Wide: WideFloat| {
+            for (axis, angle) in random_iter::<(Vec3<Wide>, Wide)>() {
+                let axis = axis.normalize_or(Vector::ONE).normalize();
+
+                let skip = !(axis * angle).length().is_finite();
+                let axis = skip.select(Vec3::X, axis);
+                let angle = skip.select(Wide::ZERO, angle);
+
+                assert_test_eq!(
+                    Rotor3::<Wide>::from_scaled_axis(axis * angle),
+                    Rotor3::<Wide>::from_axis_angle(axis, angle),
+                    abs <= 1e-6 * axis.abs().max_element().max(angle.abs()),
+                    0.0 = -0.0
+                );
+            }
+        });
     }
 
     #[test]
     fn test_from_euler() {
-        todo!()
+        for_types!(|Wide: WideFloat| {
+            for order in EulerRot::values() {
+                for [a, b, c] in random_iter::<[Wide; 3]>() {
+                    if [a, b, c]
+                        .into_iter()
+                        .flat_map(Wide::to_array)
+                        .any(|x| !x.is_finite() || x > 1e6)
+                    {
+                        continue;
+                    };
+
+                    assert_test_eq!(
+                        Rotor3::<Wide>::from_euler(order, a, b, c),
+                        Rotor3::<Wide>::from_matrix(&Mat3::<Wide>::from_euler(order, a, b, c)),
+                        abs <= Wide::splat(1e-6),
+                        0.0 = -0.0,
+                        rotor = -rotor
+                    );
+                }
+            }
+        });
     }
 
     #[test]
     fn test_look_to_lh() {
-        todo!()
+        for_types!(|Wide: WideFloat| {
+            for [dir, up] in random_iter::<[Vec3<Wide>; 2]>()
+                .flat_map(|dir_up| [dir_up, dir_up.map(|v| v.normalize())])
+            {
+                assert_test_eq_or_panic!(
+                    Rotor3::<Wide>::look_to_lh(dir, up),
+                    Rotor3::from_lane_fn(|lane| Rotor3::<T>::look_to_lh(dir.lane(lane), up.lane(lane)))
+                );
+            }
+        });
     }
 
     #[test]
     fn test_look_to_rh() {
-        todo!()
+        for_types!(|Wide: WideFloat| {
+            for [dir, up] in random_iter::<[Vec3<Wide>; 2]>()
+                .flat_map(|dir_up| [dir_up, dir_up.map(|v| v.normalize())])
+            {
+                assert_test_eq_or_panic!(
+                    Rotor3::<Wide>::look_to_rh(dir, up),
+                    Rotor3::from_lane_fn(|lane| Rotor3::<T>::look_to_rh(dir.lane(lane), up.lane(lane)))
+                );
+            }
+        });
     }
 
     #[test]
     fn test_look_at_lh() {
-        todo!()
+        for_types!(|Wide: WideFloat| {
+            for [eye, center, up] in random_iter::<[Vec3<Wide>; 3]>()
+                .flat_map(|eye_center_up| [eye_center_up, eye_center_up.map(|v| v.normalize())])
+            {
+                assert_test_eq_or_panic!(
+                    Rotor3::<Wide>::look_at_lh(eye, center, up),
+                    Rotor3::from_lane_fn(|lane| Rotor3::<T>::look_at_lh(
+                        eye.lane(lane),
+                        center.lane(lane),
+                        up.lane(lane)
+                    ))
+                );
+            }
+        });
     }
 
     #[test]
     fn test_look_at_rh() {
-        todo!()
+        for_types!(|Wide: WideFloat| {
+            for [eye, center, up] in random_iter::<[Vec3<Wide>; 3]>()
+                .flat_map(|eye_center_up| [eye_center_up, eye_center_up.map(|v| v.normalize())])
+            {
+                assert_test_eq_or_panic!(
+                    Rotor3::<Wide>::look_at_rh(eye, center, up),
+                    Rotor3::from_lane_fn(|lane| Rotor3::<T>::look_at_rh(
+                        eye.lane(lane),
+                        center.lane(lane),
+                        up.lane(lane)
+                    ))
+                );
+            }
+        });
     }
 
     #[test]
     fn test_to_axis_angle() {
-        todo!()
+        for_types!(|Wide: WideFloat| {
+            for rotor in random_iter::<Rotor3<Wide>>().flat_map(|r| [r, r.normalize()]) {
+                assert_test_eq_or_panic!(
+                    rotor.to_axis_angle(),
+                    (
+                        Vec3::from_lane_fn(|lane| rotor.lane(lane).to_axis_angle().0),
+                        Wide::new(std::array::from_fn(|lane| rotor
+                            .lane(lane)
+                            .to_axis_angle()
+                            .1))
+                    ),
+                    abs <= (Wide::splat(1e-5), Wide::splat(1e-5))
+                );
+            }
+        });
     }
 
     #[test]
     fn test_to_scaled_axis() {
-        todo!()
+        for_types!(|Wide: WideFloat| {
+            for rotor in random_iter::<Rotor3<Wide>>().flat_map(|r| [r, r.normalize()]) {
+                assert_test_eq_or_panic!(
+                    rotor.to_scaled_axis(),
+                    Vec3::from_lane_fn(|lane| rotor.lane(lane).to_scaled_axis()),
+                    abs <= Wide::splat(1e-5)
+                );
+            }
+        });
     }
 
     #[test]
     fn test_to_euler() {
-        todo!()
+        for_types!(|Wide: WideFloat| {
+            for order in EulerRot::values() {
+                for rotor in random_iter::<Rotor3<Wide>>().flat_map(|r| [r, r.normalize()]) {
+                    assert_test_eq_or_panic!(
+                        rotor.to_euler(order),
+                        (
+                            Wide::new(std::array::from_fn(|lane| rotor
+                                .lane(lane)
+                                .to_euler(order)
+                                .0)),
+                            Wide::new(std::array::from_fn(|lane| rotor
+                                .lane(lane)
+                                .to_euler(order)
+                                .1)),
+                            Wide::new(std::array::from_fn(|lane| rotor
+                                .lane(lane)
+                                .to_euler(order)
+                                .2))
+                        ),
+                        abs <= (Wide::splat(1e-5), Wide::splat(1e-5), Wide::splat(1e-5))
+                    );
+                }
+            }
+        });
     }
 }

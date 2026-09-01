@@ -130,7 +130,7 @@ where
 mod tests {
     use rand::{RngExt, SeedableRng, rngs::StdRng};
 
-    use crate::{Affine, Mask, Matrix, Projective, Vector, test_utils::for_types};
+    use crate::{Affine, Mask, Matrix, Projective, Rotor, Vector, test_utils::for_types};
 
     #[test]
     fn test_vector() {
@@ -210,7 +210,12 @@ mod tests {
 
     #[test]
     fn test_rotor() {
-        todo!()
+        for_types!(|A| {
+            let rng = || StdRng::from_seed([0; 32]);
+
+            assert_eq!(rng().random::<Rotor<2, f32, A>>(), Rotor(rng().random()));
+            assert_eq!(rng().random::<Rotor<3, f32, A>>(), Rotor(rng().random()));
+        });
     }
 
     #[test]

@@ -698,25 +698,12 @@ mod tests {
         });
     }
 
-    #[test]
-    fn test_from_rotor() {
-        todo!()
-    }
-
-    #[test]
-    fn test_from_scale_rotation() {
-        todo!()
-    }
-
-    #[test]
-    fn test_from_rotation_translation() {
-        todo!()
-    }
-
-    #[test]
-    fn test_from_scale_rotation_translation() {
-        todo!()
-    }
+    // The following functions are very simple, so they do not need tests:
+    //
+    // from_rotor
+    // from_scale_rotation
+    // from_rotation_translation
+    // from_scale_rotation_translation
 
     #[test]
     fn test_is_nan() {
@@ -780,20 +767,11 @@ mod tests {
         });
     }
 
-    #[test]
-    fn test_to_scale_rotation() {
-        todo!()
-    }
-
-    #[test]
-    fn test_to_rotation_translation() {
-        todo!()
-    }
-
-    #[test]
-    fn test_to_scale_rotation_translation() {
-        todo!()
-    }
+    // The following functions are very simple, so they do not need tests:
+    //
+    // to_scale_rotation
+    // to_rotation_translation
+    // to_scale_rotation_translation
 
     #[test]
     fn test_abs_diff_eq() {

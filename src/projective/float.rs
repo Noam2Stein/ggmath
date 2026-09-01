@@ -1509,22 +1509,72 @@ mod tests {
 
     #[test]
     fn test_from_rotor() {
-        todo!()
+        for_types!(|N: TwoOrThree, T: PrimitiveFloat, A| {
+            for rotor in random_iter::<Rotor<N, T, A>>() {
+                let rotor = rotor.normalize_or(Rotor::IDENTITY);
+
+                assert_panic_test_eq!(
+                    Projective::<N, T, A>::from_rotor(rotor),
+                    Projective::from_matrix(&Matrix::<N, T, A>::from_rotor(rotor))
+                );
+            }
+        });
     }
 
     #[test]
     fn test_from_scale_rotation() {
-        todo!()
+        for_types!(|N: TwoOrThree, T: PrimitiveFloat, A| {
+            for (scale, rotation) in random_iter::<(Vector<N, T, A>, Rotor<N, T, A>)>() {
+                let rotation = rotation.normalize_or(Rotor::IDENTITY);
+
+                assert_panic_test_eq!(
+                    Projective::<N, T, A>::from_scale_rotation(scale, rotation),
+                    Projective::from_matrix(&Matrix::<N, T, A>::from_scale_rotation(
+                        scale, rotation
+                    ))
+                );
+            }
+        });
     }
 
     #[test]
     fn test_from_rotation_translation() {
-        todo!()
+        for_types!(|N: TwoOrThree, T: PrimitiveFloat, A| {
+            for (rotation, translation) in random_iter::<(Rotor<N, T, A>, Vector<N, T, A>)>() {
+                let rotation = rotation.normalize_or(Rotor::IDENTITY);
+
+                assert_panic_test_eq!(
+                    Projective::<N, T, A>::from_rotation_translation(rotation, translation),
+                    Projective::from_matrix_translation(
+                        &Matrix::<N, T, A>::from_rotor(rotation),
+                        translation
+                    )
+                );
+            }
+        });
     }
 
     #[test]
     fn test_from_scale_rotation_translation() {
-        todo!()
+        for_types!(|N: TwoOrThree, T: PrimitiveFloat, A| {
+            for (scale, rotation, translation) in
+                random_iter::<(Vector<N, T, A>, Rotor<N, T, A>, Vector<N, T, A>)>()
+            {
+                let rotation = rotation.normalize_or(Rotor::IDENTITY);
+
+                assert_panic_test_eq!(
+                    Projective::<N, T, A>::from_scale_rotation_translation(
+                        scale,
+                        rotation,
+                        translation
+                    ),
+                    Projective::from_matrix_translation(
+                        &Matrix::<N, T, A>::from_scale_rotation(scale, rotation),
+                        translation
+                    )
+                );
+            }
+        });
     }
 
     #[test]
@@ -1751,17 +1801,64 @@ mod tests {
 
     #[test]
     fn test_to_scale_rotation() {
-        todo!()
+        for_types!(|N: TwoOrThree, T: PrimitiveFloat, A| {
+            for projective in random_iter::<(Vector<N, T, A>, Rotor<N, T, A>, Vector<N, T, A>)>()
+                .map(|(scale, rotation, translation)| {
+                    let rotation = rotation.normalize_or(Rotor::IDENTITY).normalize();
+                    Projective::<N, T, A>::from_scale_rotation_translation(
+                        scale,
+                        rotation,
+                        translation,
+                    )
+                })
+                .chain(random_iter())
+            {
+                assert_panic_test_eq!(
+                    projective.to_scale_rotation(),
+                    Affine::<N, T, A>::from_projective(&projective).to_scale_rotation()
+                );
+            }
+        });
     }
 
     #[test]
     fn test_to_rotation_translation() {
-        todo!()
+        for_types!(|N: TwoOrThree, T: PrimitiveFloat, A| {
+            for projective in random_iter::<(Rotor<N, T, A>, Vector<N, T, A>)>()
+                .map(|(rotation, translation)| {
+                    let rotation = rotation.normalize_or(Rotor::IDENTITY).normalize();
+                    Projective::<N, T, A>::from_rotation_translation(rotation, translation)
+                })
+                .chain(random_iter())
+            {
+                assert_panic_test_eq!(
+                    projective.to_rotation_translation(),
+                    Affine::<N, T, A>::from_projective(&projective).to_rotation_translation()
+                );
+            }
+        });
     }
 
     #[test]
     fn test_to_scale_rotation_translation() {
-        todo!()
+        for_types!(|N: TwoOrThree, T: PrimitiveFloat, A| {
+            for projective in random_iter::<(Vector<N, T, A>, Rotor<N, T, A>, Vector<N, T, A>)>()
+                .map(|(scale, rotation, translation)| {
+                    let rotation = rotation.normalize_or(Rotor::IDENTITY).normalize();
+                    Projective::<N, T, A>::from_scale_rotation_translation(
+                        scale,
+                        rotation,
+                        translation,
+                    )
+                })
+                .chain(random_iter())
+            {
+                assert_panic_test_eq!(
+                    projective.to_scale_rotation_translation(),
+                    Affine::<N, T, A>::from_projective(&projective).to_scale_rotation_translation()
+                );
+            }
+        });
     }
 
     #[test]
