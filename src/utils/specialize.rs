@@ -1,5 +1,5 @@
 use crate::{
-    Affine, Aligned, Alignment, Length, Mask, Matrix, Projective, Scalar, SupportedLength,
+    Affine, Aligned, Alignment, Length, Mask, Matrix, Projective, Rotor, Scalar, SupportedLength,
     Unaligned, Vector, length::TwoOrThree, utils::transmute_generic,
 };
 
@@ -488,6 +488,36 @@ where
 // SAFETY: `N == N2`, `A == A2` => `&'a Projective<N, T, A> == &'a Projective<N2, T, A2>`
 unsafe impl<'a, T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<&'a mut Projective<N2, T, A2>, N, N2, A, A2> for &'a mut Projective<N, T, A>
+where
+    T: Scalar,
+    Length<N>: TwoOrThree,
+    Length<N2>: TwoOrThree,
+{
+}
+
+// SAFETY: `N == N2`, `A == A2` => `Rotor<N, T, A> == Rotor<N2, T, A2>`
+unsafe impl<T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
+    Specialize<Rotor<N2, T, A2>, N, N2, A, A2> for Rotor<N, T, A>
+where
+    T: Scalar,
+    Length<N>: TwoOrThree,
+    Length<N2>: TwoOrThree,
+{
+}
+
+// SAFETY: `N == N2`, `A == A2` => `&'a Rotor<N, T, A> == &'a Rotor<N2, T, A2>`
+unsafe impl<'a, T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
+    Specialize<&'a Rotor<N2, T, A2>, N, N2, A, A2> for &'a Rotor<N, T, A>
+where
+    T: Scalar,
+    Length<N>: TwoOrThree,
+    Length<N2>: TwoOrThree,
+{
+}
+
+// SAFETY: `N == N2`, `A == A2` => `&'a mut Rotor<N, T, A> == &'a mut Rotor<N2, T, A2>`
+unsafe impl<'a, T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
+    Specialize<&'a mut Rotor<N2, T, A2>, N, N2, A, A2> for &'a mut Rotor<N, T, A>
 where
     T: Scalar,
     Length<N>: TwoOrThree,
