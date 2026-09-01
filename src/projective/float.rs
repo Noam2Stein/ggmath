@@ -1308,7 +1308,7 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{
-        Affine, EulerRot, Matrix, Proj2A, Proj3A, Projective, Vec2A, Vec3A, Vec4A, Vector,
+        Affine, EulerRot, Matrix, Proj2A, Proj3A, Projective, Rotor, Vec2A, Vec3A, Vec4A, Vector,
         test_utils::{
             assert_debug_panic, assert_panic_test_eq, assert_test_eq, for_types, random_iter,
         },
@@ -2406,14 +2406,12 @@ mod tests {
 
     #[test]
     fn test_to_euler() {
-        todo!("replace this part with rotors")
-        /*
         for_types!(|T: PrimitiveFloat, A| {
             for order in EulerRot::values() {
-                for projective in random_iter::<Quaternion<T, A>>()
-                    .map(|quat| {
-                        let quat = quat.normalize_or(Quaternion::IDENTITY).normalize();
-                        Projective::<3, T, A>::from_quat(quat)
+                for projective in random_iter::<Rotor<3, T, A>>()
+                    .map(|rotor| {
+                        let rotor = rotor.normalize_or(Rotor::IDENTITY).normalize();
+                        Projective::<3, T, A>::from_rotor(rotor)
                     })
                     .chain(random_iter::<Projective<3, T, A>>().take(20))
                 {
@@ -2424,6 +2422,5 @@ mod tests {
                 }
             }
         });
-        */
     }
 }

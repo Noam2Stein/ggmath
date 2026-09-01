@@ -1114,7 +1114,7 @@ mod tests {
     extern crate std;
 
     use crate::{
-        EulerRot, FloatExt, Matrix, Projective, Vector,
+        EulerRot, FloatExt, Matrix, Projective, Rotor, Vector,
         test_utils::{assert_debug_panic, assert_test_eq, for_types, random_iter},
     };
 
@@ -1799,22 +1799,19 @@ mod tests {
                     }
                 }
 
-                todo!("replace this part with rotors");
-                /*
-                for quat in random_iter::<Quaternion<T, A>>() {
-                    let quat = quat.normalize_or(Quaternion::IDENTITY).normalize();
-                    let matrix = Matrix::<3, T, A>::from_quat(quat);
+                for rotor in random_iter::<Rotor<3, T, A>>() {
+                    let rotor = rotor.normalize_or(Rotor::IDENTITY).normalize();
+                    let matrix = Matrix::<3, T, A>::from_rotor(rotor);
 
                     let result = matrix.to_euler(order);
                     assert_test_eq!(
-                        Quaternion::<T, A>::from_euler(order, result.0, result.1, result.2),
-                        quat,
-                        abs <= quat.to_vector().abs() * 1e-3 + 1e-2,
+                        Rotor::<3, T, A>::from_euler(order, result.0, result.1, result.2),
+                        rotor,
+                        abs <= rotor.to_raw_vector().abs() * 1e-3 + 1e-2,
                         0.0 = -0.0,
-                        quat = -quat
+                        rotor = -rotor
                     );
                 }
-                */
             }
         });
     }
