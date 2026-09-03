@@ -252,6 +252,7 @@ pub use crate::{
     primitive_traits::{PrimitiveFloat, PrimitiveInteger, PrimitiveSigned, PrimitiveUnsigned},
     projective::{Proj2, Proj2A, Proj3, Proj3A, Projective},
     quaternion::{Quat, QuatA, Quaternion},
+    rotation2::{Rot2, Rot2A, Rotation2},
     scalar::{CustomScalar, Scalar},
     vector::{Vec2, Vec2A, Vec3, Vec3A, Vec4, Vec4A, Vector},
 };
@@ -268,6 +269,7 @@ mod matrix;
 mod primitive_traits;
 mod projective;
 mod quaternion;
+mod rotation2;
 mod scalar;
 mod third_party;
 mod utils;
