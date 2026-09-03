@@ -9,6 +9,24 @@ use crate::{
     utils::{transmute_mut, transmute_ref},
 };
 
+// These submodules have empty lines between them so that rustfmt does not
+// incorrectly reorder them. The order is important since it impacts the order
+// of `impl` blocks in rustdoc's output.
+//
+// The contents of the `generic` submodule *would* be simply put in this root
+// module, but due to a rustdoc bug, that would cause functionality generic over
+// `T` to be shown after all submodule functionality.
+
+mod generic;
+
+mod float;
+
+#[cfg(feature = "wide")]
+mod wide;
+
+#[cfg(feature = "wide")]
+mod wide_float;
+
 /// TODO
 #[repr(transparent)]
 pub struct Rotation2<T, A: Alignment>(pub(crate) Vector<2, T, A>)
