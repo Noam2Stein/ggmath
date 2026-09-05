@@ -765,10 +765,10 @@ where
         Self::new(-self.y, self.x)
     }
 
-    /// Computes the wedge product of `self` and `rhs`.
+    /// Computes `self.perp().dot(rhs)`.
     ///
-    /// Also reffered to as the 2D cross product, the determinant and the
-    /// signed area.
+    /// Also reffered to as the wedge/outer product, the 2D cross product, the
+    /// determinant and the signed area.
     ///
     /// # Examples
     ///
@@ -778,13 +778,13 @@ where
     /// let x = Vec2::new(1, 0);
     /// let y = Vec2::new(0, 1);
     ///
-    /// assert_eq!(x.wedge(y), 1);
-    /// assert_eq!(y.wedge(x), -1);
+    /// assert_eq!(x.perp_dot(y), 1);
+    /// assert_eq!(y.perp_dot(x), -1);
     /// ```
     #[inline]
     #[must_use]
     #[track_caller]
-    pub fn wedge(self, rhs: Self) -> T
+    pub fn perp_dot(self, rhs: Self) -> T
     where
         T: Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
     {

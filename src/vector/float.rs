@@ -1639,7 +1639,7 @@ where
 
         let self_normalized = self / self_length;
         let angle_cos = self_normalized.dot(other) / other_length;
-        let angle = angle_cos.acos_approx() * self_normalized.wedge(other).signum();
+        let angle = angle_cos.acos_approx() * self_normalized.perp_dot(other).signum();
 
         let result_length = self_length.lerp(other_length, t);
         self_normalized.rotate(angle * t) * result_length
@@ -1661,7 +1661,7 @@ where
         }
 
         let target_angle = (self.dot(target) / self_length / target_length).acos_approx();
-        let angle_sign = self.wedge(target).signum();
+        let angle_sign = self.perp_dot(target).signum();
         let angle = if max_angle < target_angle - T::PI {
             target_angle - T::PI
         } else if max_angle > target_angle {
