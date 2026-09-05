@@ -54,10 +54,10 @@ impl<T, A: Alignment> Copy for Rotation2<T, A> where T: Scalar {}
 #[doc(hidden)]
 #[repr(C)]
 pub struct Rot2Fields<T> {
-    /// The sine of the angle rotating `+X` to `+Y`.
-    pub sin: T,
     /// The cosine of the angle.
     pub cos: T,
+    /// The sine of the angle rotating `+X` to `+Y`.
+    pub sin: T,
 }
 
 impl<T, A: Alignment> Deref for Rotation2<T, A>
@@ -93,8 +93,8 @@ where
     #[inline]
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         f.debug_struct("Rot2")
-            .field("sin", &self.sin)
             .field("cos", &self.cos)
+            .field("sin", &self.sin)
             .finish()
     }
 }
@@ -536,9 +536,9 @@ macro_rules! impl_mul {
             #[inline]
             #[track_caller]
             fn mul(self, rhs: Self) -> Self::Output {
-                Self::from_sin_cos(
-                    self.sin * rhs.cos + self.cos * rhs.sin,
+                Self::from_cos_sin(
                     self.cos * rhs.cos - self.sin * rhs.sin,
+                    self.sin * rhs.cos + self.cos * rhs.sin,
                 )
             }
         }
@@ -715,24 +715,24 @@ mod tests {
     #[test]
     fn test_deref() {
         for_types!(|T: PrimitiveNumber, A| {
-            let sin = T::as_from(5);
             let cos = T::as_from(7);
-            let rotation = Rotation2::<T, A>::from_sin_cos(sin, cos);
+            let sin = T::as_from(5);
+            let rotation = Rotation2::<T, A>::from_cos_sin(cos, sin);
 
-            assert_eq!(rotation.sin, sin);
             assert_eq!(rotation.cos, cos);
+            assert_eq!(rotation.sin, sin);
         });
     }
 
     #[test]
     fn test_deref_mut() {
         for_types!(|T: PrimitiveNumber, A| {
-            let mut sin = T::as_from(5);
             let mut cos = T::as_from(7);
-            let mut rotation = Rotation2::<T, A>::from_sin_cos(sin, cos);
+            let mut sin = T::as_from(5);
+            let mut rotation = Rotation2::<T, A>::from_cos_sin(cos, sin);
 
-            assert_eq!(&mut rotation.sin, &mut sin);
             assert_eq!(&mut rotation.cos, &mut cos);
+            assert_eq!(&mut rotation.sin, &mut sin);
         });
     }
 
@@ -743,8 +743,8 @@ mod tests {
                 assert_eq!(
                     format!("{rotation:?}"),
                     format!(
-                        "Rot2 {{ sin: {:?}, cos: {:?} }}",
-                        rotation.sin, rotation.cos
+                        "Rot2 {{ cos: {:?}, sin: {:?} }}",
+                        rotation.cos, rotation.sin
                     )
                 );
             }
@@ -754,6 +754,9 @@ mod tests {
     #[test]
     fn test_vector_mul() {
         for_types!(|T: PrimitiveFloat, A| {
+            for vector in random_iter::<Vector<2, T, A>>().filter(|v| v.length() <= 1e5) {
+                assert_test_eq!(vector * Rotation2::IDENTITY, vector, 0.0 = -0.0);
+            }
             for (vector, angle) in random_iter::<(Vector<2, T, A>, T)>() {
                 assert_test_eq!(vector * Rotation2::from_angle(angle), vector.rotate(angle));
             }

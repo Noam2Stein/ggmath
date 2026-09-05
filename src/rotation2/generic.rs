@@ -1,4 +1,4 @@
-use core::ops::{Add, Mul, Neg};
+use core::ops::{Add, Mul, Neg, Sub};
 
 use crate::{Alignment, One, Rot2, Rot2A, Rotation2, Scalar, Vector, Zero};
 
@@ -7,7 +7,7 @@ where
     T: Scalar + Zero + One,
 {
     /// TODO
-    pub const IDENTITY: Self = Self::from_sin_cos(T::ZERO, T::ONE);
+    pub const IDENTITY: Self = Self::from_cos_sin(T::ONE, T::ZERO);
 }
 
 impl<T, A: Alignment> Rotation2<T, A>
@@ -17,8 +17,8 @@ where
     /// TODO
     #[inline]
     #[must_use]
-    pub const fn from_sin_cos(sin: T, cos: T) -> Self {
-        Self(Vector::<2, T, A>::new(sin, cos))
+    pub const fn from_cos_sin(cos: T, sin: T) -> Self {
+        Self(Vector::<2, T, A>::new(cos, sin))
     }
 
     /// TODO
@@ -29,7 +29,18 @@ where
     where
         T: Neg<Output = T>,
     {
-        Self::from_sin_cos(-self.sin, self.cos)
+        Self::from_cos_sin(self.cos, -self.sin)
+    }
+
+    /// TODO
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn perp(self) -> Self
+    where
+        T: Neg<Output = T>,
+    {
+        Self(self.0.perp())
     }
 
     /// TODO
@@ -41,6 +52,17 @@ where
         T: Add<Output = T> + Mul<Output = T>,
     {
         self.0.dot(rhs.0)
+    }
+
+    /// TODO
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn wedge(self, rhs: Self) -> T
+    where
+        T: Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
+    {
+        self.0.wedge(rhs.0)
     }
 
     /// TODO
