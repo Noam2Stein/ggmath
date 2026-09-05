@@ -52,6 +52,9 @@ stabilized, which should not affect most users.
   notation instead of axis notation. Other rotation functions also have modified
   documentation.
 
+- [#77](https://github.com/Noam2Stein/ggmath/pull/77): Renamed vector method
+  `wedge` to `perp_dot`.
+
 - Updated dependency `wide`
 
 - SoA vector function `blend` has been replaced with `select`, following the
