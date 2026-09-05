@@ -27,16 +27,62 @@ mod wide;
 #[cfg(feature = "wide")]
 mod wide_float;
 
-/// TODO
+/// A 2D rotation represented by a unit complex number.
+///
+/// `A` controls SIMD alignment and is either [`Unaligned`] or [`Aligned`]. See
+/// [`Alignment`] for more details.
+///
+/// # Type aliases
+///
+/// - [`Rot2<T>`] for [`Rotation2<T, Unaligned>`].
+/// - [`Rot2A<T>`] for [`Rotation2<T, Aligned>`].
+///
+/// # Fields
+///
+/// - `cos: T` (the cosine of the angle)
+/// - `sin: T` (the sine of the angle rotating `+X` to `+Y`)
+///
+/// Note that these fields are only exposed by implementing [`Deref`] and
+/// [`DerefMut`].
+///
+/// # Memory layout
+///
+/// [`Rotation2<T, A>`] is a transparent wrapper over [`Vector<2, T, A>`],
+/// storing `cos` then `sin`.
 #[repr(transparent)]
 pub struct Rotation2<T, A: Alignment>(pub(crate) Vector<2, T, A>)
 where
     T: Scalar;
 
-/// TODO
+/// A 2D rotation represented by a unit complex number.
+///
+/// # No SIMD alignment
+///
+/// [`Rot2<T>`] does not have SIMD alignment, for that use [`Rot2A<T>`].
+///
+/// # Fields
+///
+/// - `cos: T` (the cosine of the angle)
+/// - `sin: T` (the sine of the angle rotating `+X` to `+Y`)
+///
+/// Note that these fields are only exposed by implementing [`Deref`] and
+/// [`DerefMut`].
 pub type Rot2<T> = Rotation2<T, Unaligned>;
 
-/// TODO
+/// A 2D rotation represented by a unit complex number.
+///
+/// # SIMD alignment
+///
+/// For appropriate `T` types, [`Rot2A<T>`] has SIMD alignment. For no SIMD use
+/// [`Rot2<T>`].
+///
+/// # Fields
+///
+/// - `cos: T` (the cosine of the angle)
+/// - `sin: T` (the sine of the angle rotating `+X` to `+Y`)
+///
+/// Note that these fields are only exposed by implementing [`Deref`] and
+/// [`DerefMut`].
 pub type Rot2A<T> = Rotation2<T, Aligned>;
 
 impl<T, A: Alignment> Clone for Rotation2<T, A>
@@ -131,7 +177,9 @@ impl<T, A: Alignment> Default for Rotation2<T, A>
 where
     T: Scalar + Zero + One,
 {
-    /// TODO
+    /// Returns [`IDENTITY`].
+    ///
+    /// [`IDENTITY`]: Self::IDENTITY
     #[inline]
     fn default() -> Self {
         Self::IDENTITY
@@ -170,7 +218,8 @@ macro_rules! impl_neg {
     };
 }
 impl_neg!(
-    /// TODO
+    /// Negates the elements of a complex number, offsetting the rotation by 180
+    /// degrees.
 );
 
 macro_rules! impl_add {
@@ -257,7 +306,10 @@ macro_rules! impl_add {
     };
 }
 impl_add!(
-    /// TODO
+    /// Adds the elements of two complex numbers.
+    ///
+    /// This usually does not result in a valid rotation. Only use this if you
+    /// know what you are doing!
 );
 
 macro_rules! impl_sub {
@@ -344,7 +396,10 @@ macro_rules! impl_sub {
     };
 }
 impl_sub!(
-    /// TODO
+    /// Subtracts the elements of two complex numbers.
+    ///
+    /// This usually does not result in a valid rotation. Only use this if you
+    /// know what you are doing!
 );
 
 macro_rules! impl_mul_scalar {
@@ -431,7 +486,10 @@ macro_rules! impl_mul_scalar {
     };
 }
 impl_mul_scalar!(
-    /// TODO
+    /// Multiplies the elements of a complex number by a scalar.
+    ///
+    /// This usually does not result in a valid rotation. Only use this if you
+    /// know what you are doing!
 );
 
 macro_rules! impl_vector_mul {
@@ -521,7 +579,10 @@ macro_rules! impl_vector_mul {
     };
 }
 impl_vector_mul!(
-    /// TODO
+    /// Applies a 2D rotation to a vector.
+    ///
+    /// If the complex number is not normalized, the vector gets scaled by its
+    /// length.
 );
 
 macro_rules! impl_mul {
@@ -611,7 +672,7 @@ macro_rules! impl_mul {
     };
 }
 impl_mul!(
-    /// TODO
+    /// Chains two 2D rotations into a single rotation.
 );
 
 macro_rules! impl_div_scalar {
@@ -698,7 +759,10 @@ macro_rules! impl_div_scalar {
     };
 }
 impl_div_scalar!(
-    /// TODO
+    /// Divides the elements of a complex number by a scalar.
+    ///
+    /// This usually does not result in a valid rotation. Only use this if you
+    /// know what you are doing!
 );
 
 #[cfg(test)]
