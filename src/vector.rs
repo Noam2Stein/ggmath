@@ -2337,11 +2337,11 @@ mod tests {
     }
 
     #[test]
-    fn test_wedge() {
+    fn test_perp_dot() {
         for_types!(|T: PrimitiveFloat, A| {
             for [vector, other] in random_iter::<[Vector<2, T, A>; 2]>() {
                 assert_test_eq!(
-                    vector.wedge(other),
+                    vector.perp_dot(other),
                     Matrix::from_rows(&[vector, other]).determinant()
                 );
             }
@@ -2349,7 +2349,7 @@ mod tests {
         for_types!(|T: PrimitiveSigned, A| {
             for [vector, other] in random_iter::<[Vector<2, T, A>; 2]>() {
                 assert_panic_test_eq!(
-                    vector.wedge(other),
+                    vector.perp_dot(other),
                     Matrix::from_rows(&[vector, other]).determinant()
                 );
             }

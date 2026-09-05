@@ -1230,7 +1230,7 @@ macro_rules! impl_items {
 
                 let self_normalized = self / self_length;
                 let angle_cos = self_normalized.dot(other) / other_length;
-                let angle = angle_cos.acos_approx() * self_normalized.wedge(other).signum();
+                let angle = angle_cos.acos_approx() * self_normalized.perp_dot(other).signum();
 
                 let result_length = self_length.lerp(other_length, t);
                 self_normalized.rotate(angle * t) * result_length
@@ -1246,7 +1246,7 @@ macro_rules! impl_items {
                 }
 
                 let target_angle = (self.dot(target) / self_length / target_length).acos_approx();
-                let angle_sign = self.wedge(target).signum();
+                let angle_sign = self.perp_dot(target).signum();
                 let angle = max_angle.simd_lt(target_angle - $Wide::PI).select(
                     target_angle - $Wide::PI,
                     max_angle
