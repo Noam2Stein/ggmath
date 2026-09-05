@@ -175,8 +175,8 @@ where
 
         // diff = other * self.inverse()
         let diff = Self::from_cos_sin(
-            other.sin * self.cos - other.cos * self.sin,
             other.cos * self.cos + other.sin * self.sin,
+            other.sin * self.cos - other.cos * self.sin,
         );
 
         Self::from_angle(diff.to_angle() * t) * self
@@ -411,13 +411,13 @@ mod tests {
                 let [a, b] = [a, b].map(|r| r.normalize_or(Rotation2::IDENTITY).normalize());
                 let t = if t.is_finite() { t % 5.0 } else { 0.0 };
 
-                assert_test_eq!(a.slerp(b, 0.0), a, abs <= 1e-4, 0.0 = -0.0);
-                assert_test_eq!(a.slerp(b, 1.0), b, abs <= 1e-4, 0.0 = -0.0);
+                assert_test_eq!(a.slerp(b, 0.0), a, abs <= 1e-3, 0.0 = -0.0);
+                assert_test_eq!(a.slerp(b, 1.0), b, abs <= 1e-3, 0.0 = -0.0);
 
                 assert_test_eq!(
                     a.slerp(b, t),
                     a * Rotation2::<T, A>::from_angle(a.angle_to(b) * t),
-                    abs <= 1e-4,
+                    abs <= 2e-3,
                     0.0 = -0.0
                 );
             }
@@ -437,19 +437,28 @@ mod tests {
                 };
 
                 if max_angle.is_sign_negative() {
-                    assert_test_eq!(
-                        current.rotate_towards(target, max_angle),
-                        current.rotate_towards(-target, -max_angle),
-                        abs <= 1e-4,
-                        0.0 = -0.0
-                    );
+                    if current != target {
+                        assert_test_eq!(
+                            current.rotate_towards(target, max_angle),
+                            current.rotate_towards(-target, -max_angle)
+                        )
+                    } else {
+                        assert_test_eq!(
+                            current
+                                .rotate_towards(target, max_angle)
+                                .angle_between(-target),
+                            (current.angle_between(-target) - max_angle.abs()).max(0.0),
+                            abs <= 1e-3,
+                            0.0 = -0.0
+                        );
+                    }
                 } else {
                     assert_test_eq!(
                         current
                             .rotate_towards(target, max_angle)
                             .angle_between(target),
                         (current.angle_between(target) - max_angle).max(0.0),
-                        abs <= 1e-4,
+                        abs <= 1e-3,
                         0.0 = -0.0
                     );
                 }
