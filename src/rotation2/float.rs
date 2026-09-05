@@ -25,7 +25,7 @@ where
             "vectors are not normalized: from_rotation_arc({from:?}, {to:?})"
         );
 
-        Self::from_cos_sin(from.dot(to), from.wedge(to))
+        Self::from_cos_sin(from.dot(to), from.perp_dot(to))
     }
 
     /// TODO
@@ -40,7 +40,7 @@ where
 
         let dot = from.dot(to);
 
-        Self::from_cos_sin(dot, from.wedge(to)) * dot.signum()
+        Self::from_cos_sin(dot, from.perp_dot(to)) * dot.signum()
     }
 
     /// TODO
@@ -59,7 +59,7 @@ where
                     .abs_diff_eq(T::ONE, T::as_from(1e-4))
                 && matrix
                     .x_axis
-                    .wedge(matrix.y_axis)
+                    .perp_dot(matrix.y_axis)
                     .abs_diff_eq(T::ONE, T::as_from(1e-4)),
             "not a rotation matrix: Rot2::from_matrix({matrix:?})"
         );
@@ -130,7 +130,7 @@ where
             "2D rotations are not normalized: {self:?}.angle_to({other:?})"
         );
 
-        self.dot(other).acos_approx() * self.wedge(other).signum()
+        self.dot(other).acos_approx() * self.perp_dot(other).signum()
     }
 
     /// TODO
@@ -143,7 +143,7 @@ where
             "2D rotations are not normalized: {self:?}.angle_from({other:?})"
         );
 
-        self.dot(other).acos_approx() * other.wedge(self).signum()
+        self.dot(other).acos_approx() * other.perp_dot(self).signum()
     }
 
     /// TODO

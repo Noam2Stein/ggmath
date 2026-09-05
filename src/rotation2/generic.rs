@@ -58,11 +58,11 @@ where
     #[inline]
     #[must_use]
     #[track_caller]
-    pub fn wedge(self, rhs: Self) -> T
+    pub fn perp_dot(self, rhs: Self) -> T
     where
         T: Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
     {
-        self.0.wedge(rhs.0)
+        self.0.perp_dot(rhs.0)
     }
 
     /// TODO
