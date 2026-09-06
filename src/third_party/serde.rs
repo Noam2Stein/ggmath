@@ -1,8 +1,14 @@
-use serde::{Deserialize, Serialize};
+use core::marker::PhantomData;
+
+use serde::{
+    Deserialize, Deserializer, Serialize,
+    de::{MapAccess, SeqAccess, Visitor},
+    ser::SerializeStruct,
+};
 
 use crate::{
-    Affine, Alignment, Length, Mask, Matrix, Projective, Quaternion, Scalar, SupportedLength,
-    Vector,
+    Affine, Alignment, Length, Mask, Matrix, Projective, Quaternion, Rotation2, Scalar,
+    SupportedLength, Vector,
     length::TwoOrThree,
     utils::{transmute_generic, transmute_ref},
 };
@@ -239,6 +245,123 @@ where
     }
 }
 
+impl<T, A: Alignment> Serialize for Rotation2<T, A>
+where
+    T: Scalar + Serialize,
+{
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let mut state = serializer.serialize_struct("Rot2", 2)?;
+        state.serialize_field("cos", &self.cos)?;
+        state.serialize_field("sin", &self.sin)?;
+        state.end()
+    }
+}
+
+impl<'de, T, A: Alignment> Deserialize<'de> for Rotation2<T, A>
+where
+    T: Scalar + Deserialize<'de>,
+{
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        const FIELDS: &[&str] = &["cos", "sin"];
+
+        enum Field {
+            Cos,
+            Sin,
+        }
+
+        impl<'de> Deserialize<'de> for Field {
+            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+            where
+                D: Deserializer<'de>,
+            {
+                struct FieldVisitor;
+
+                impl Visitor<'_> for FieldVisitor {
+                    type Value = Field;
+
+                    fn expecting(&self, formatter: &mut core::fmt::Formatter) -> core::fmt::Result {
+                        formatter.write_str("`cos` or `sin`")
+                    }
+
+                    fn visit_str<E>(self, value: &str) -> Result<Field, E>
+                    where
+                        E: serde::de::Error,
+                    {
+                        match value {
+                            "cos" => Ok(Field::Cos),
+                            "sin" => Ok(Field::Sin),
+                            _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
+                        }
+                    }
+                }
+
+                deserializer.deserialize_identifier(FieldVisitor)
+            }
+        }
+
+        struct Rot2Visitor<T, A: Alignment>(PhantomData<(T, A)>);
+
+        impl<'de, T, A: Alignment> Visitor<'de> for Rot2Visitor<T, A>
+        where
+            T: Scalar + Deserialize<'de>,
+        {
+            type Value = Rotation2<T, A>;
+
+            fn expecting(&self, formatter: &mut core::fmt::Formatter) -> core::fmt::Result {
+                formatter.write_str("struct Rot2")
+            }
+
+            fn visit_seq<V>(self, mut seq: V) -> Result<Self::Value, V::Error>
+            where
+                V: SeqAccess<'de>,
+            {
+                let cos = seq
+                    .next_element()?
+                    .ok_or_else(|| serde::de::Error::invalid_length(0, &self))?;
+                let sin = seq
+                    .next_element()?
+                    .ok_or_else(|| serde::de::Error::invalid_length(1, &self))?;
+                Ok(Rotation2::from_cos_sin(cos, sin))
+            }
+
+            fn visit_map<V>(self, mut map: V) -> Result<Self::Value, V::Error>
+            where
+                V: MapAccess<'de>,
+            {
+                let mut cos = None;
+                let mut sin = None;
+                while let Some(key) = map.next_key()? {
+                    match key {
+                        Field::Cos => {
+                            if cos.is_some() {
+                                return Err(serde::de::Error::duplicate_field("cos"));
+                            }
+                            cos = Some(map.next_value()?);
+                        }
+                        Field::Sin => {
+                            if sin.is_some() {
+                                return Err(serde::de::Error::duplicate_field("sin"));
+                            }
+                            sin = Some(map.next_value()?);
+                        }
+                    }
+                }
+                let cos = cos.ok_or_else(|| serde::de::Error::missing_field("cos"))?;
+                let sin = sin.ok_or_else(|| serde::de::Error::missing_field("sin"))?;
+                Ok(Rotation2::from_cos_sin(cos, sin))
+            }
+        }
+
+        deserializer.deserialize_struct("Rot2", FIELDS, Rot2Visitor(PhantomData))
+    }
+}
+
 impl<T, A: Alignment> Serialize for Quaternion<T, A>
 where
     T: Scalar + Serialize,
@@ -317,7 +440,7 @@ mod tests {
     use crate::{
         Affine, Affine2, Affine2A, Affine3, Affine3A, Aligned, Mask2, Mask2A, Mask3, Mask3A, Mask4,
         Mask4A, Mat2, Mat2A, Mat3, Mat3A, Mat4, Mat4A, Proj2, Proj2A, Proj3, Proj3A, Quat, QuatA,
-        Unaligned, Vec2, Vec2A, Vec3, Vec3A, Vec4, Vec4A,
+        Rot2, Unaligned, Vec2, Vec2A, Vec3, Vec3A, Vec4, Vec4A,
     };
 
     #[test]
@@ -566,6 +689,15 @@ mod tests {
         assert_eq!(projective.align(), from_str(&to_string(&projective)?)?);
         assert!(from_str::<Proj2A<i32>>(&to_string(&projective)?).is_err());
         assert!(from_str::<Proj2<i32>>(&to_string(&projective)?).is_err());
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_rotation2() -> Result<(), Box<dyn Error>> {
+        let rotation = Rot2::<i32>::from_cos_sin(5, 6);
+        assert_eq!(rotation, from_str(&to_string(&rotation)?)?);
+        assert_eq!(rotation.align(), from_str(&to_string(&rotation)?)?);
 
         Ok(())
     }

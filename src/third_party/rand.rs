@@ -4,8 +4,8 @@ use rand::{
 };
 
 use crate::{
-    Affine, Alignment, Length, Mask, Matrix, Projective, Quaternion, Scalar, SupportedLength,
-    Vector, length::TwoOrThree, utils::specialize_23,
+    Affine, Alignment, Length, Mask, Matrix, Projective, Quaternion, Rotation2, Scalar,
+    SupportedLength, Vector, length::TwoOrThree, utils::specialize_23,
 };
 
 impl<const N: usize, T, A: Alignment> Distribution<Vector<N, T, A>> for StandardUniform
@@ -78,6 +78,17 @@ where
     #[inline(always)]
     fn sample_backend<R: Rng + ?Sized>((rng,): (&mut R,)) -> Self {
         Self(rng.random::<Matrix<4, T, A>>())
+    }
+}
+
+impl<T, A: Alignment> Distribution<Rotation2<T, A>> for StandardUniform
+where
+    T: Scalar,
+    StandardUniform: Distribution<T>,
+{
+    #[inline]
+    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Rotation2<T, A> {
+        Rotation2::from_array(rng.random::<[T; 2]>())
     }
 }
 
