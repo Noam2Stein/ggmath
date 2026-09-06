@@ -24,7 +24,7 @@
 //! - [`Matrix<N, T, A>`]
 //! - [`Affine<N, T, A>`]
 //! - [`Projective<N, T, A>`]
-//! - [`Rotation2<N, T, A>`]
+//! - [`Rotation2<T, A>`]
 //! - [`Quaternion<T, A>`]
 //! - [`Mask<N, T, A>`]
 //!
