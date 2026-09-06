@@ -389,7 +389,7 @@ where
         let (rotation, x_axis_length) = Rotation2(self.x_axis).normalize_and_length();
 
         let scale =
-            Vector::<2, T, A>::new(x_axis_length * determinant.signum(), self.y_axis.length());
+            Vector::<2, T, A>::new(x_axis_length, self.y_axis.length() * determinant.signum());
 
         debug_assert!(
             (self.x_axis / scale.x)
@@ -1582,6 +1582,12 @@ mod tests {
     fn test_from_rotation() {
         for_types!(|T: PrimitiveFloat, A| {
             for (vector, rotation) in random_iter::<(Vector<2, T, A>, Rotation2<T, A>)>() {
+                if !rotation.is_normalized() {
+                    assert_debug_panic!(Matrix::<2, T, A>::from_rotation(rotation));
+                }
+
+                let rotation = rotation.normalize_or(Rotation2::IDENTITY).normalize();
+
                 assert_test_eq!(
                     vector * Matrix::<2, T, A>::from_rotation(rotation),
                     vector * rotation
@@ -1594,10 +1600,17 @@ mod tests {
     fn test_from_scale_rotation() {
         for_types!(|T: PrimitiveFloat, A| {
             for (scale, rotation) in random_iter::<(Vector<2, T, A>, Rotation2<T, A>)>() {
+                if !rotation.is_normalized() {
+                    assert_debug_panic!(Matrix::<2, T, A>::from_scale_rotation(scale, rotation));
+                }
+
+                let rotation = rotation.normalize_or(Rotation2::IDENTITY).normalize();
+
                 assert_test_eq!(
                     Matrix::<2, T, A>::from_scale_rotation(scale, rotation),
                     Matrix::<2, T, A>::from_scale(scale)
-                        * Matrix::<2, T, A>::from_rotation(rotation)
+                        * Matrix::<2, T, A>::from_rotation(rotation),
+                    0.0 = -0.0
                 );
             }
         });

@@ -125,7 +125,7 @@ where
     ///     i32x4::new([1, 3, 5, 7]),
     ///     i32x4::new([2, 4, 6, 8]),
     /// );
-    /// assert_eq!(rotation.lane(1), Rot2::from_cos_sin(5, 6));
+    /// assert_eq!(rotation.lane(1), Rot2::from_cos_sin(3, 4));
     /// ```
     #[inline]
     #[must_use]

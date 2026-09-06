@@ -514,10 +514,11 @@ mod tests {
 
                 for lane in 0..LANES {
                     if max_angle.is_sign_negative().to_array()[lane].is_sign_negative() {
-                        if current.to_array()[lane] != target.to_array()[lane] {
+                        if current.lane(lane) != target.lane(lane) {
                             assert_test_eq!(
                                 current.rotate_towards(target, max_angle).lane(lane),
-                                current.rotate_towards(-target, -max_angle).lane(lane)
+                                current.rotate_towards(-target, -max_angle).lane(lane),
+                                0.0 = -0.0
                             )
                         } else {
                             assert_test_eq!(

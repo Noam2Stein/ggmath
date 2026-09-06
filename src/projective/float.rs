@@ -419,8 +419,10 @@ where
 
         let (rotation, x_axis_length) = Rotation2(self.x_axis.truncate()).normalize_and_length();
 
-        let scale =
-            Vector::<2, T, A>::new(x_axis_length * determinant.signum(), self.y_axis.length());
+        let scale = Vector::<2, T, A>::new(
+            x_axis_length,
+            self.y_axis.truncate().length() * determinant.signum(),
+        );
 
         debug_assert!(
             (self.x_axis.truncate() / scale.x)
@@ -1892,7 +1894,7 @@ mod tests {
     fn test_from_rotation() {
         for_types!(|T: PrimitiveFloat, A| {
             for rotation in random_iter::<Rotation2<T, A>>() {
-                let rotation = rotation.normalize();
+                let rotation = rotation.normalize_or(Rotation2::IDENTITY);
 
                 assert_panic_test_eq!(
                     Projective::<2, T, A>::from_rotation(rotation),
@@ -1906,7 +1908,7 @@ mod tests {
     fn test_from_scale_rotation() {
         for_types!(|T: PrimitiveFloat, A| {
             for (scale, rotation) in random_iter::<(Vector<2, T, A>, Rotation2<T, A>)>() {
-                let rotation = rotation.normalize();
+                let rotation = rotation.normalize_or(Rotation2::IDENTITY);
 
                 assert_panic_test_eq!(
                     Projective::<2, T, A>::from_scale_rotation(scale, rotation),
@@ -1922,7 +1924,7 @@ mod tests {
     fn test_from_rotation_translation() {
         for_types!(|T: PrimitiveFloat, A| {
             for (rotation, translation) in random_iter::<(Rotation2<T, A>, Vector<2, T, A>)>() {
-                let rotation = rotation.normalize();
+                let rotation = rotation.normalize_or(Rotation2::IDENTITY);
 
                 assert_panic_test_eq!(
                     Projective::<2, T, A>::from_rotation_translation(rotation, translation),
@@ -1941,7 +1943,7 @@ mod tests {
             for (scale, rotation, translation) in
                 random_iter::<(Vector<2, T, A>, Rotation2<T, A>, Vector<2, T, A>)>()
             {
-                let rotation = rotation.normalize();
+                let rotation = rotation.normalize_or(Rotation2::IDENTITY);
 
                 assert_panic_test_eq!(
                     Projective::<2, T, A>::from_scale_rotation_translation(

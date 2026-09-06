@@ -194,8 +194,8 @@ macro_rules! items_2 {
             let (rotation, x_axis_length) = Rotation2(self.x_axis).normalize_and_length();
 
             let scale = Vector::<2, $Wide, A>::new(
-                x_axis_length * determinant.signum(),
-                self.y_axis.length(),
+                x_axis_length,
+                self.y_axis.length() * determinant.signum(),
             );
 
             (scale, rotation)
@@ -1112,7 +1112,7 @@ mod tests {
     fn test_from_rotation() {
         for_types!(|Wide: WideFloat| {
             for rotation in random_iter::<Rot2<Wide>>() {
-                assert_test_eq!(
+                assert_test_eq_or_panic!(
                     Mat2::<Wide>::from_rotation(rotation),
                     Mat2::from_lane_fn(|lane| Mat2::<T>::from_rotation(rotation.lane(lane)))
                 );
@@ -1124,7 +1124,7 @@ mod tests {
     fn test_from_scale_rotation() {
         for_types!(|Wide: WideFloat| {
             for (scale, rotation) in random_iter::<(Vec2<Wide>, Rot2<Wide>)>() {
-                assert_test_eq!(
+                assert_test_eq_or_panic!(
                     Mat2::<Wide>::from_scale_rotation(scale, rotation),
                     Mat2::from_lane_fn(|lane| Mat2::<T>::from_scale_rotation(
                         scale.lane(lane),
@@ -1139,7 +1139,7 @@ mod tests {
     fn test_from_angle() {
         for_types!(|Wide: WideFloat| {
             for angle in random_iter::<Wide>() {
-                assert_test_eq!(
+                assert_test_eq_or_panic!(
                     Mat2::<Wide>::from_angle(angle),
                     Mat2::from_lane_fn(|lane| Mat2::<T>::from_angle(angle.to_array()[lane])),
                     abs <= angle.abs() * 1e-4 + 1e-3,
@@ -1155,7 +1155,7 @@ mod tests {
             for (scale, angle) in random_iter::<(Vec2<Wide>, Wide)>() {
                 let scale = scale.length().is_finite().select(scale, Vec2::ONE);
 
-                assert_test_eq!(
+                assert_test_eq_or_panic!(
                     Mat2::<Wide>::from_scale_angle(scale, angle),
                     Mat2::from_lane_fn(|lane| Mat2::<T>::from_scale_angle(
                         scale.lane(lane),
@@ -1194,7 +1194,7 @@ mod tests {
                 })
                 .chain(random_iter())
             {
-                assert_test_eq!(
+                assert_test_eq_or_panic!(
                     matrix.to_scale_rotation(),
                     (
                         Vec2::from_lane_fn(|lane| matrix.lane(lane).to_scale_rotation().0),

@@ -543,7 +543,8 @@ mod tests {
 
                 assert_test_eq!(
                     vector * Rotation2::<T, A>::from_projective(&projective),
-                    projective.transform_point(vector)
+                    projective.transform_point(vector),
+                    0.0 = -0.0
                 );
             }
         });

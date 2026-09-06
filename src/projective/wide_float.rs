@@ -306,8 +306,8 @@ macro_rules! items_2 {
                 Rotation2(self.x_axis.truncate()).normalize_and_length();
 
             let scale = Vector::<2, $Wide, A>::new(
-                x_axis_length * determinant.signum(),
-                self.y_axis.length(),
+                x_axis_length,
+                self.y_axis.truncate().length() * determinant.signum(),
             );
 
             (scale, rotation)
