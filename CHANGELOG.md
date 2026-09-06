@@ -27,7 +27,9 @@ stabilized, which should not affect most users.
 - `Projective<N, T, A>` type with `Proj2<T>`, `Proj3<T>`, `Proj2A<T>` and
   `Proj3A<T>` type aliases
 
-- `Rotation2<T, A>` type with `Rot2<T>` and `Rot2A<T>` type aliases
+- [#78](https://github.com/Noam2Stein/ggmath/pull/78): `Rotation2<T, A>` type
+  with `Rot2<T>` and `Rot2A<T>` type aliases, and matrix/affine/projective
+  conversion functions
 
 - `to_homogeneous` and `from_homogeneous` for 2D vectors
 
