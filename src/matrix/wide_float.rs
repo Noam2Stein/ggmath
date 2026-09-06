@@ -1139,7 +1139,7 @@ mod tests {
     fn test_from_angle() {
         for_types!(|Wide: WideFloat| {
             for angle in random_iter::<Wide>() {
-                assert_test_eq_or_panic!(
+                assert_test_eq!(
                     Mat2::<Wide>::from_angle(angle),
                     Mat2::from_lane_fn(|lane| Mat2::<T>::from_angle(angle.to_array()[lane])),
                     abs <= angle.abs() * 1e-4 + 1e-3,
@@ -1155,7 +1155,7 @@ mod tests {
             for (scale, angle) in random_iter::<(Vec2<Wide>, Wide)>() {
                 let scale = scale.length().is_finite().select(scale, Vec2::ONE);
 
-                assert_test_eq_or_panic!(
+                assert_test_eq!(
                     Mat2::<Wide>::from_scale_angle(scale, angle),
                     Mat2::from_lane_fn(|lane| Mat2::<T>::from_scale_angle(
                         scale.lane(lane),

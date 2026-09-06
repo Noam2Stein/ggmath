@@ -45,7 +45,6 @@ macro_rules! items {
         /// This assumes `matrix` only contains rotation.
         #[inline]
         #[must_use]
-
         pub fn from_matrix(matrix: &Matrix<2, $Wide, A>) -> Self {
             Self(matrix.x_axis)
         }
