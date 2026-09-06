@@ -1,13 +1,14 @@
-use crate::{Alignment, FloatExt, Matrix, PrimitiveFloat, Rotation2, Vector};
+use crate::{Affine, Alignment, FloatExt, Matrix, PrimitiveFloat, Projective, Rotation2, Vector};
 
 impl<T, A: Alignment> Rotation2<T, A>
 where
     T: PrimitiveFloat,
 {
-    /// TODO
+    /// A 2D rotation with all elements set to NaN (Not a Number).
     pub const NAN: Self = Self::from_cos_sin(T::NAN, T::NAN);
 
-    /// TODO
+    /// Creates a 2D rotation from an `angle` (in radians) rotating `+X` to
+    /// `+Y`.
     #[inline]
     #[must_use]
     pub fn from_angle(angle: T) -> Self {
@@ -15,7 +16,15 @@ where
         Self::from_cos_sin(cos, sin)
     }
 
-    /// TODO
+    /// Returns the rotation transforming `from` to `to`.
+    ///
+    /// This assumes `from` and `to` are normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `from` or `to` are not normalized.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -28,7 +37,16 @@ where
         Self::from_cos_sin(from.dot(to), from.perp_dot(to))
     }
 
-    /// TODO
+    /// Returns the rotation transforming `from` to either `to` or `-to`,
+    /// rotating up to 90 degrees.
+    ///
+    /// This assumes `from` and `to` are normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `from` or `to` are not normalized.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -43,7 +61,16 @@ where
         Self::from_cos_sin(dot, from.perp_dot(to)) * dot.signum()
     }
 
-    /// TODO
+    /// Converts a rotation matrix to a 2D rotation represented by a complex
+    /// number.
+    ///
+    /// This assumes `matrix` only contains rotation.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `matrix` is not approximately a rotation matrix.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -67,7 +94,73 @@ where
         Self(matrix.x_axis)
     }
 
-    /// TODO
+    /// Converts an affine transform to a 2D rotation represented by a complex
+    /// number.
+    ///
+    /// This assumes `affine` only contains rotation, and translation which is
+    /// ignored.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `affine.matrix` is not approximately a rotation matrix.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn from_affine(affine: &Affine<2, T, A>) -> Self {
+        Self::from_matrix(&affine.matrix)
+    }
+
+    /// Converts a projective transform to a 2D rotation represented by a
+    /// complex number.
+    ///
+    /// This assumes `projective` only contains rotation, and translation which
+    /// is ignored.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `projective` is not approximately a rotation matrix.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn from_projective(projective: &Projective<2, T, A>) -> Self {
+        debug_assert!(
+            projective
+                .x_axis
+                .truncate()
+                .length_squared()
+                .abs_diff_eq(T::ONE, T::as_from(1e-4))
+                && projective
+                    .y_axis
+                    .truncate()
+                    .length_squared()
+                    .abs_diff_eq(T::ONE, T::as_from(1e-4))
+                && projective
+                    .x_axis
+                    .truncate()
+                    .perp_dot(projective.y_axis.truncate())
+                    .abs_diff_eq(T::ONE, T::as_from(1e-4))
+                && projective
+                    .z_axis
+                    .abs_diff_eq(Vector::<3, T, A>::Z, T::as_from(1e-4)),
+            "not a rotation: Rot2::from_projective({projective:?})"
+        );
+
+        Self(projective.x_axis.truncate())
+    }
+
+    /// Converts a 2D rotation to an angle (in radians) rotating `+X` to `+Y`.
+    ///
+    /// This assumes `self` is normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` is not normalized.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -80,21 +173,34 @@ where
         self.sin.atan2(self.cos)
     }
 
-    /// TODO
+    /// Returns `true` if any element is NaN.
     #[inline]
     #[must_use]
     pub fn is_nan(self) -> bool {
         self.0.is_nan()
     }
 
-    /// TODO
+    /// Returns `true` if all elements are neither infinite nor NaN.
     #[inline]
     #[must_use]
     pub fn is_finite(self) -> bool {
         self.0.is_finite()
     }
 
-    /// TODO
+    /// Returns the inverse of a 2D rotation.
+    ///
+    /// This assumes `self` is normalized.
+    ///
+    /// This is the same as [`conjugate`], but asserts that `self` is
+    /// normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` is not normalized.
+    ///
+    /// [`conjugate`]: Self::conjugate
     #[inline]
     #[must_use]
     #[track_caller]
@@ -107,7 +213,15 @@ where
         self.conjugate()
     }
 
-    /// TODO
+    /// Returns the absolute angle (in radians) between two rotations.
+    ///
+    /// This assumes `self` and `other` are normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` or `other` are not normalized.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -120,7 +234,20 @@ where
         self.dot(other).acos_approx()
     }
 
-    /// TODO
+    /// Returns the signed angle (in radians) transforming `self` to `other`.
+    ///
+    /// The result is in the range `-π..π`. Positive is counter-clockwise and
+    /// negative is clockwise.
+    ///
+    /// This assumes `self` and `other` are normalized.
+    ///
+    /// `self.angle_to(other)` is identical to `other.angle_from(self)`.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` or `other` are not normalized.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -133,7 +260,20 @@ where
         self.dot(other).acos_approx() * self.perp_dot(other).signum()
     }
 
-    /// TODO
+    /// Returns the signed angle (in radians) transforming `other` to `self`.
+    ///
+    /// The result is in the range `-π..π`. Positive is counter-clockwise and
+    /// negative is clockwise.
+    ///
+    /// This assumes `self` and `other` are normalized.
+    ///
+    /// `self.angle_from(other)` is identical to `other.angle_to(self)`.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panic ifs `self` or `other` are not normalized.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -146,7 +286,28 @@ where
         self.dot(other).acos_approx() * other.perp_dot(self).signum()
     }
 
-    /// TODO
+    /// Computes the linear interpolation between two rotations, then normalizes
+    /// the result.
+    ///
+    /// When `t` is `0`, the result is `self`. When `t` is `1`, the result is
+    /// `other`.
+    ///
+    /// This assumes `self` and `other` are normalized.
+    ///
+    /// This does not interpolate the angle at a constant speed. For that use
+    /// [`slerp`]. This function is more efficient as it avoids calling
+    /// trigonometric functions. This function breaks when rotations are exactly
+    /// 180 degrees apart, so only use this if you know that is not a
+    /// possibility.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` or `other` are not normalized, or if `self` and `other`
+    /// are exactly 180 degrees apart.
+    ///
+    /// [`slerp`]: Self::slerp
     #[inline]
     #[must_use]
     #[track_caller]
@@ -163,7 +324,19 @@ where
         (self * (T::ONE - t) + other * t).normalize()
     }
 
-    /// TODO
+    /// Computes the spherical linear interpolation between two rotations.
+    ///
+    /// When `t` is `0`, the result is `self`. When `t` is `1`, the result is
+    /// `other`. This interpolates the angle at a constant speed, always taking
+    /// the shorter path.
+    ///
+    /// This assumes `self` and `other` are normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` or `other` are not normalized.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -182,7 +355,21 @@ where
         Self::from_angle(diff.to_angle() * t) * self
     }
 
-    /// TODO
+    /// Rotates one rotation towards another by at most `max_angle` (in
+    /// radians).
+    ///
+    /// This assumes `self` and `other` are normalized.
+    ///
+    /// When `max_angle` is `0`, the result is `self`. When `max_angle` is equal
+    /// to or greater than `self.angle_between(target)`, the result is `target`.
+    /// When `max_angle` is negative, this rotates towards the opposite of
+    /// `target`.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` or `other` are not normalized.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -205,14 +392,21 @@ where
         Self::from_angle(diff.to_angle().clamp(-max_angle, max_angle)) * self
     }
 
-    /// TODO
+    /// Returns the length/magnitude of a complex number.
     #[inline]
     #[must_use]
     pub fn length(self) -> T {
         self.0.length()
     }
 
-    /// TODO
+    /// Returns `self` normalized to length `1`.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` is a zero vector, or if the result is non finite or
+    /// zero.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -227,21 +421,30 @@ where
         result
     }
 
-    /// TODO
+    /// Returns [`normalize`], or `None` if `self` is zero or if the result is
+    /// non finite or zero.
+    ///
+    /// [`normalize`]: Self::normalize
     #[inline]
     #[must_use]
     pub fn try_normalize(self) -> Option<Self> {
         self.0.try_normalize().map(Self)
     }
 
-    /// TODO
+    /// Returns [`normalize`], or `fallback` if `self` is zero or if the result
+    /// is non finite or zero.
+    ///
+    /// [`normalize`]: Self::normalize
     #[inline]
     #[must_use]
     pub fn normalize_or(self, fallback: Self) -> Self {
         Self(self.0.normalize_or(fallback.0))
     }
 
-    /// TODO
+    /// Simultaneously computes [`normalize`] and [`length`].
+    ///
+    /// [`normalize`]: Self::normalize
+    /// [`length`]: Self::length
     #[inline]
     #[must_use]
     pub fn normalize_and_length(self) -> (Self, T) {
@@ -249,14 +452,20 @@ where
         (Self(normalize), length)
     }
 
-    /// TODO
+    /// Returns whether the rotation has the length `1` or not.
+    ///
+    /// This uses a precision threshold of approximately `1e-4`.
     #[inline]
     #[must_use]
     pub fn is_normalized(self) -> bool {
         self.0.is_normalized()
     }
 
-    /// TODO
+    /// Returns `true` if the absolute difference of all elements between `self`
+    /// and `other` is less than or equal to `max_abs_diff`.
+    ///
+    /// This can be used to compare two rotations that should be equal, but may
+    /// have a slight difference due to operations having rounding errors.
     #[inline]
     #[must_use]
     pub fn abs_diff_eq(self, other: Self, max_abs_diff: T) -> bool {
@@ -267,7 +476,7 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{
-        Matrix, Rotation2, Vector,
+        Matrix, Projective, Rotation2, Vector,
         test_utils::{assert_debug_panic, assert_test_eq, for_types, random_iter},
     };
 
@@ -319,6 +528,22 @@ mod tests {
                 assert_test_eq!(
                     vector * Rotation2::<T, A>::from_matrix(&matrix),
                     vector * matrix
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_projective() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for (vector, angle) in
+                random_iter::<(Vector<2, T, A>, T)>().filter(|(_, angle)| angle.is_finite())
+            {
+                let projective = Projective::<2, T, A>::from_angle(angle);
+
+                assert_test_eq!(
+                    vector * Rotation2::<T, A>::from_projective(&projective),
+                    projective.transform_point(vector)
                 );
             }
         });
