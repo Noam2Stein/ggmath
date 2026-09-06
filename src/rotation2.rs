@@ -822,7 +822,10 @@ mod tests {
                 assert_test_eq!(vector * Rotation2::IDENTITY, vector, 0.0 = -0.0);
             }
             for (vector, angle) in random_iter::<(Vector<2, T, A>, T)>() {
-                assert_test_eq!(vector * Rotation2::from_angle(angle), vector.rotate(angle));
+                assert_test_eq!(
+                    vector * Rotation2::<T, A>::from_angle(angle),
+                    vector.rotate(angle)
+                );
             }
         });
     }
