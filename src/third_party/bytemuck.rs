@@ -1,8 +1,8 @@
 use bytemuck::{NoUninit, Pod, Zeroable};
 
 use crate::{
-    Affine, Alignment, Length, Mask, Matrix, Projective, Quaternion, Scalar, SupportedLength,
-    Vector, length::TwoOrThree,
+    Affine, Alignment, Length, Mask, Matrix, Projective, Quaternion, Rotation2, Scalar,
+    SupportedLength, Vector, length::TwoOrThree,
 };
 
 // SAFETY: Vectors are equivalent to structs where all fields are `Pod`. The
@@ -83,6 +83,12 @@ where
     T: Scalar + Zeroable,
 {
 }
+
+// SAFETY: `Vector<2, T, A>` implements `Pod` when `T` does.
+unsafe impl<T, A: Alignment> Pod for Rotation2<T, A> where T: Scalar + Pod {}
+
+// SAFETY: `Vector<2, T, A>` implements `Zeroable` when `T` does.
+unsafe impl<T, A: Alignment> Zeroable for Rotation2<T, A> where T: Scalar + Zeroable {}
 
 // SAFETY: `Vector<4, T, A>` implements `Pod` when `T` does.
 unsafe impl<T, A: Alignment> Pod for Quaternion<T, A> where T: Scalar + Pod {}

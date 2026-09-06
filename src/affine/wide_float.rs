@@ -1,7 +1,8 @@
 use wide::{f32x4, f32x8, f32x16, f64x2, f64x4, f64x8};
 
 use crate::{
-    Affine, Alignment, EulerRot, Length, Matrix, Projective, Quaternion, SupportedLength, Vector,
+    Affine, Alignment, EulerRot, Length, Matrix, Projective, Quaternion, Rotation2,
+    SupportedLength, Vector,
     length::TwoOrThree,
     utils::{specialize, specialize_23},
 };
@@ -97,6 +98,58 @@ macro_rules! items {
 
 macro_rules! items_2 {
     ($Wide:ident) => {
+        /// Creates an affine transform from a 2D rotation.
+        ///
+        /// This assumes `rotation` is normalized.
+        #[inline]
+        #[must_use]
+        pub fn from_rotation(rotation: Rotation2<$Wide, A>) -> Self {
+            Self::from_matrix(&Matrix::<2, $Wide, A>::from_rotation(rotation))
+        }
+
+        /// Creates an affine transform from `scale` and 2D rotation.
+        ///
+        /// This assumes `rotation` is normalized.
+        #[inline]
+        #[must_use]
+        pub fn from_scale_rotation(
+            scale: Vector<2, $Wide, A>,
+            rotation: Rotation2<$Wide, A>,
+        ) -> Self {
+            Self::from_matrix(&Matrix::<2, $Wide, A>::from_scale_rotation(scale, rotation))
+        }
+
+        /// Creates an affine transform from `rotation` and `translation`.
+        ///
+        /// This assumes `rotation` is normalized.
+        #[inline]
+        #[must_use]
+        pub fn from_rotation_translation(
+            rotation: Rotation2<$Wide, A>,
+            translation: Vector<2, $Wide, A>,
+        ) -> Self {
+            Self::from_matrix_translation(
+                &Matrix::<2, $Wide, A>::from_rotation(rotation),
+                translation,
+            )
+        }
+
+        /// Creates an affine transform from `scale`, 2D rotation and translation.
+        ///
+        /// This assumes `rotation` is normalized.
+        #[inline]
+        #[must_use]
+        pub fn from_scale_rotation_translation(
+            scale: Vector<2, $Wide, A>,
+            rotation: Rotation2<$Wide, A>,
+            translation: Vector<2, $Wide, A>,
+        ) -> Self {
+            Self::from_matrix_translation(
+                &Matrix::<2, $Wide, A>::from_scale_rotation(scale, rotation),
+                translation,
+            )
+        }
+
         /// Creates an affine transform containing a rotation from an `angle`
         /// (in radians) rotating `+X` to `+Y`.
         #[inline]
@@ -154,6 +207,31 @@ macro_rules! items_2 {
                 homogeneous.y_axis.truncate(),
                 homogeneous.z_axis.truncate(),
             ])
+        }
+
+        /// Converts an affine transform to scale and rotation.
+        ///
+        /// This assumes `self` does not contain shear.
+        #[inline]
+        #[must_use]
+        pub fn to_scale_rotation(&self) -> (Vector<2, $Wide, A>, Rotation2<$Wide, A>) {
+            self.matrix.to_scale_rotation()
+        }
+
+        /// Converts an affine transform to scale, rotation and translation.
+        ///
+        /// This assumes `self` does not contain shear.
+        #[inline]
+        #[must_use]
+        pub fn to_scale_rotation_translation(
+            &self,
+        ) -> (
+            Vector<2, $Wide, A>,
+            Rotation2<$Wide, A>,
+            Vector<2, $Wide, A>,
+        ) {
+            let (scale, rotation) = self.matrix.to_scale_rotation();
+            (scale, rotation, self.translation)
         }
 
         /// For each lane, returns the `scale` and `angle` of `self`.

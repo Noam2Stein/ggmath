@@ -1,7 +1,7 @@
 use wide::{f32x4, f32x8, f32x16, f64x2, f64x4, f64x8};
 
 use crate::{
-    Alignment, EulerRot, Length, Matrix, Projective, Quaternion, Vector,
+    Alignment, EulerRot, Length, Matrix, Projective, Quaternion, Rotation2, Vector,
     length::TwoOrThree,
     utils::{specialize_23, transmute_generic},
 };
@@ -161,6 +161,77 @@ macro_rules! items {
 
 macro_rules! items_2 {
     ($Wide:ident, $T:ident) => {
+        /// Creates a projective transform from a 2D rotation.
+        ///
+        /// This assumes `rotation` is normalized.
+        #[inline]
+        #[must_use]
+        pub fn from_rotation(rotation: Rotation2<$Wide, A>) -> Self {
+            Self::from_rows(&[
+                rotation.0.extend($Wide::ZERO),
+                Vector::<3, $Wide, A>::new(-rotation.sin, rotation.cos, $Wide::ZERO),
+                Vector::<3, $Wide, A>::Z,
+            ])
+        }
+
+        /// Creates a projective transform from `scale` and 2D rotation.
+        ///
+        /// This assumes `rotation` is normalized.
+        #[inline]
+        #[must_use]
+        pub fn from_scale_rotation(
+            scale: Vector<2, $Wide, A>,
+            rotation: Rotation2<$Wide, A>,
+        ) -> Self {
+            Self::from_rows(&[
+                (rotation.0 * scale.x).extend($Wide::ZERO),
+                Vector::<3, $Wide, A>::new(
+                    -rotation.sin * scale.y,
+                    rotation.cos * scale.y,
+                    $Wide::ZERO,
+                ),
+                Vector::<3, $Wide, A>::Z,
+            ])
+        }
+
+        /// Creates a projective transform from `rotation` and `translation`.
+        ///
+        /// This assumes `rotation` is normalized.
+        #[inline]
+        #[must_use]
+        pub fn from_rotation_translation(
+            rotation: Rotation2<$Wide, A>,
+            translation: Vector<2, $Wide, A>,
+        ) -> Self {
+            Self::from_rows(&[
+                rotation.0.extend($Wide::ZERO),
+                Vector::<3, $Wide, A>::new(-rotation.sin, rotation.cos, $Wide::ZERO),
+                translation.to_homogeneous(),
+            ])
+        }
+
+        /// Creates a projective transform from `scale`, 2D rotation and
+        /// translation.
+        ///
+        /// This assumes `rotation` is normalized.
+        #[inline]
+        #[must_use]
+        pub fn from_scale_rotation_translation(
+            scale: Vector<2, $Wide, A>,
+            rotation: Rotation2<$Wide, A>,
+            translation: Vector<2, $Wide, A>,
+        ) -> Self {
+            Self::from_rows(&[
+                (rotation.0 * scale.x).extend($Wide::ZERO),
+                Vector::<3, $Wide, A>::new(
+                    -rotation.sin * scale.y,
+                    rotation.cos * scale.y,
+                    $Wide::ZERO,
+                ),
+                translation.to_homogeneous(),
+            ])
+        }
+
         /// Creates a projective transform containing a rotation from an `angle`
         /// (in radians) rotating `+X` to `+Y`.
         #[inline]
@@ -221,6 +292,41 @@ macro_rules! items_2 {
                 Vector::<3, $Wide, A>::new(-sin * scale.y, cos * scale.y, $Wide::ZERO),
                 Vector::<3, $Wide, A>::new(translation.x, translation.y, $Wide::ONE),
             ])
+        }
+
+        /// Converts a projective transform to scale and rotation.
+        ///
+        /// This assumes `self` does not contain shear or projection.
+        #[inline]
+        #[must_use]
+        pub fn to_scale_rotation(&self) -> (Vector<2, $Wide, A>, Rotation2<$Wide, A>) {
+            let determinant = self.x_axis.truncate().perp_dot(self.y_axis.truncate());
+
+            let (rotation, x_axis_length) =
+                Rotation2(self.x_axis.truncate()).normalize_and_length();
+
+            let scale = Vector::<2, $Wide, A>::new(
+                x_axis_length,
+                self.y_axis.truncate().length() * determinant.signum(),
+            );
+
+            (scale, rotation)
+        }
+
+        /// Converts a projective transform to scale, rotation and translation.
+        ///
+        /// This assumes `self` does not contain shear.
+        #[inline]
+        #[must_use]
+        pub fn to_scale_rotation_translation(
+            &self,
+        ) -> (
+            Vector<2, $Wide, A>,
+            Rotation2<$Wide, A>,
+            Vector<2, $Wide, A>,
+        ) {
+            let (scale, rotation) = self.to_scale_rotation();
+            (scale, rotation, self.translation())
         }
 
         /// Returns the `scale` and `angle` of `self`.
@@ -1213,8 +1319,8 @@ impl_items!(f64x8, f64);
 #[cfg(test)]
 mod tests {
     use crate::{
-        Affine, EulerRot, Mat3, Mat4, Matrix, Proj2, Proj3, Projective, Quat, Unaligned, Vec2,
-        Vec3, Vector,
+        Affine, Affine2, EulerRot, Mat3, Mat4, Matrix, Proj2, Proj3, Projective, Quat, Rot2,
+        Unaligned, Vec2, Vec3, Vector,
         test_utils::{assert_test_eq, assert_test_eq_or_panic, for_types, random_iter},
     };
 
@@ -1395,6 +1501,71 @@ mod tests {
     }
 
     #[test]
+    fn test_from_rotation() {
+        for_types!(|Wide: WideFloat| {
+            for rotation in random_iter::<Rot2<Wide>>() {
+                let rotation = rotation.normalize();
+
+                assert_test_eq!(
+                    Proj2::<Wide>::from_rotation(rotation),
+                    Projective::from_affine(&Affine2::<Wide>::from_rotation(rotation))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_scale_rotation() {
+        for_types!(|Wide: WideFloat| {
+            for (scale, rotation) in random_iter::<(Vec2<Wide>, Rot2<Wide>)>() {
+                let rotation = rotation.normalize();
+
+                assert_test_eq!(
+                    Proj2::<Wide>::from_scale_rotation(scale, rotation),
+                    Projective::from_affine(&Affine2::<Wide>::from_scale_rotation(scale, rotation))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_rotation_translation() {
+        for_types!(|Wide: WideFloat| {
+            for (rotation, translation) in random_iter::<(Rot2<Wide>, Vec2<Wide>)>() {
+                let rotation = rotation.normalize();
+
+                assert_test_eq!(
+                    Proj2::<Wide>::from_rotation_translation(rotation, translation),
+                    Projective::from_affine(&Affine2::<Wide>::from_rotation_translation(
+                        rotation,
+                        translation
+                    ))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_scale_rotation_translation() {
+        for_types!(|Wide: WideFloat| {
+            for (scale, rotation, translation) in
+                random_iter::<(Vec2<Wide>, Rot2<Wide>, Vec2<Wide>)>()
+            {
+                let rotation = rotation.normalize();
+
+                assert_test_eq!(
+                    Proj2::<Wide>::from_scale_rotation_translation(scale, rotation, translation),
+                    Projective::from_affine(&Affine2::<Wide>::from_scale_rotation_translation(
+                        scale,
+                        rotation,
+                        translation
+                    ))
+                );
+            }
+        });
+    }
+
+    #[test]
     fn test_from_angle() {
         for_types!(|Wide: WideFloat| {
             for angle in random_iter::<Wide>() {
@@ -1460,6 +1631,46 @@ mod tests {
                     )),
                     abs <= (scale.length() * angle.abs() * 1e-4).max(Wide::splat(1e-3)),
                     0.0 = -0.0
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_to_scale_rotation() {
+        for_types!(|Wide: WideFloat| {
+            for projective in random_iter::<(Vec2<Wide>, Rot2<Wide>)>()
+                .map(|(scale, rotation)| {
+                    Proj2::<Wide>::from_scale_rotation(
+                        scale,
+                        rotation.normalize_or(Rot2::IDENTITY).normalize(),
+                    )
+                })
+                .chain(random_iter())
+            {
+                assert_test_eq!(
+                    projective.to_scale_rotation(),
+                    Affine2::<Wide>::from_projective(&projective).to_scale_rotation()
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_to_scale_rotation_translation() {
+        for_types!(|Wide: WideFloat| {
+            for projective in random_iter::<(Vec2<Wide>, Rot2<Wide>)>()
+                .map(|(scale, rotation)| {
+                    Proj2::<Wide>::from_scale_rotation(
+                        scale,
+                        rotation.normalize_or(Rot2::IDENTITY).normalize(),
+                    )
+                })
+                .chain(random_iter())
+            {
+                assert_test_eq!(
+                    projective.to_scale_rotation_translation(),
+                    Affine2::<Wide>::from_projective(&projective).to_scale_rotation_translation()
                 );
             }
         });
@@ -1638,7 +1849,7 @@ mod tests {
     }
 
     #[test]
-    fn test_from_scale_rotation() {
+    fn test_from_scale_quat() {
         for_types!(|Wide: WideFloat| {
             for (scale, rotation) in random_iter::<(Vec3<Wide>, Quat<Wide>)>()
                 .flat_map(|(scale, quat)| [(scale, quat), (scale, quat.normalize())])
@@ -1655,7 +1866,7 @@ mod tests {
     }
 
     #[test]
-    fn test_from_rotation_translation() {
+    fn test_from_quat_translation() {
         for_types!(|Wide: WideFloat| {
             for (rotation, translation) in
                 random_iter::<(Quat<Wide>, Vec3<Wide>)>().flat_map(|(rotation, translation)| {
@@ -1674,7 +1885,7 @@ mod tests {
     }
 
     #[test]
-    fn test_from_scale_rotation_translation() {
+    fn test_from_scale_quat_translation() {
         for_types!(|Wide: WideFloat| {
             for (scale, rotation, translation) in
                 random_iter::<(Vec3<Wide>, Quat<Wide>, Vec3<Wide>)>().flat_map(
@@ -2226,7 +2437,7 @@ mod tests {
     }
 
     #[test]
-    fn test_to_scale_rotation() {
+    fn test_to_scale_quat() {
         for_types!(|Wide: WideFloat| {
             for projective in random_iter::<(Vec3<Wide>, Quat<Wide>, Vec3<Wide>)>()
                 .map(|(scale, rotation, translation)| {
@@ -2250,7 +2461,7 @@ mod tests {
     }
 
     #[test]
-    fn test_to_scale_rotation_translation() {
+    fn test_to_scale_quat_translation() {
         for_types!(|Wide: WideFloat| {
             for projective in random_iter::<(Vec3<Wide>, Quat<Wide>, Vec3<Wide>)>()
                 .map(|(scale, rotation, translation)| {

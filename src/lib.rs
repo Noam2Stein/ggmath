@@ -4,6 +4,7 @@
 //! - Square Matrices: [`Mat2<T>`], [`Mat3<T>`], [`Mat4<T>`]
 //! - Affine Transforms: [`Affine2<T>`], [`Affine3<T>`]
 //! - Projective Transforms: [`Proj2<T>`], [`Proj3<T>`]
+//! - Complex Numbers: [`Rot2<T>`]
 //! - Quaternions: [`Quat<T>`]
 //! - Masks: [`Mask2<T>`], [`Mask3<T>`], [`Mask4<T>`]
 //!
@@ -13,6 +14,7 @@
 //! - Square Matrices: [`Mat2A<T>`], [`Mat3A<T>`], [`Mat4A<T>`]
 //! - Affine Transforms: [`Affine2A<T>`], [`Affine3A<T>`]
 //! - Projective Transforms: [`Proj2A<T>`], [`Proj3A<T>`]
+//! - Complex Numbers: [`Rot2A<T>`]
 //! - Quaternions: [`QuatA<T>`]
 //! - Masks: [`Mask2A<T>`], [`Mask3A<T>`], [`Mask4A<T>`]
 //!
@@ -22,6 +24,7 @@
 //! - [`Matrix<N, T, A>`]
 //! - [`Affine<N, T, A>`]
 //! - [`Projective<N, T, A>`]
+//! - [`Rotation2<T, A>`]
 //! - [`Quaternion<T, A>`]
 //! - [`Mask<N, T, A>`]
 //!
@@ -252,6 +255,7 @@ pub use crate::{
     primitive_traits::{PrimitiveFloat, PrimitiveInteger, PrimitiveSigned, PrimitiveUnsigned},
     projective::{Proj2, Proj2A, Proj3, Proj3A, Projective},
     quaternion::{Quat, QuatA, Quaternion},
+    rotation2::{Rot2, Rot2A, Rotation2},
     scalar::{CustomScalar, Scalar},
     vector::{Vec2, Vec2A, Vec3, Vec3A, Vec4, Vec4A, Vector},
 };
@@ -268,6 +272,7 @@ mod matrix;
 mod primitive_traits;
 mod projective;
 mod quaternion;
+mod rotation2;
 mod scalar;
 mod third_party;
 mod utils;

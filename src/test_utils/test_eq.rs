@@ -6,7 +6,7 @@ use std::{
 };
 
 use crate::{
-    Affine, Alignment, Length, Matrix, PrimitiveInteger, Projective, Quaternion, Scalar,
+    Affine, Alignment, Length, Matrix, PrimitiveInteger, Projective, Quaternion, Rotation2, Scalar,
     SupportedLength, Vector, length::TwoOrThree, utils::specialize_23,
 };
 
@@ -1118,6 +1118,73 @@ macro_rules! projective_backend {
 }
 projective_backend!(2);
 projective_backend!(3);
+
+impl<T, A: Alignment> TestEq for Rotation2<T, A>
+where
+    T: Scalar + TestEq,
+{
+    fn eq(
+        &self,
+        expected: &Self,
+        zero_eq_neg_zero: bool,
+        infinity_eq_nan: bool,
+        quat_eq_neg_quat: bool,
+    ) -> bool {
+        TestEq::eq(
+            self.as_vector(),
+            expected.as_vector(),
+            zero_eq_neg_zero,
+            infinity_eq_nan,
+            quat_eq_neg_quat,
+        )
+    }
+}
+
+impl<T, A: Alignment> TestEqAbs for Rotation2<T, A>
+where
+    T: Scalar + TestEqAbs,
+{
+    fn eq(
+        &self,
+        expected: &Self,
+        tol: &Self,
+        zero_eq_neg_zero: bool,
+        infinity_eq_nan: bool,
+        quat_eq_neg_quat: bool,
+    ) -> bool {
+        TestEqAbs::eq(
+            self.as_vector(),
+            expected.as_vector(),
+            tol.as_vector(),
+            zero_eq_neg_zero,
+            infinity_eq_nan,
+            quat_eq_neg_quat,
+        )
+    }
+}
+
+impl<T, A: Alignment> TestEqAbs<T> for Rotation2<T, A>
+where
+    T: Scalar + TestEqAbs,
+{
+    fn eq(
+        &self,
+        expected: &Self,
+        tol: &T,
+        zero_eq_neg_zero: bool,
+        infinity_eq_nan: bool,
+        quat_eq_neg_quat: bool,
+    ) -> bool {
+        TestEqAbs::<T>::eq(
+            self.as_vector(),
+            expected.as_vector(),
+            tol,
+            zero_eq_neg_zero,
+            infinity_eq_nan,
+            quat_eq_neg_quat,
+        )
+    }
+}
 
 impl<T, A: Alignment> TestEq for Quaternion<T, A>
 where

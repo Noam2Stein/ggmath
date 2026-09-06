@@ -6,6 +6,7 @@ A fast linear algebra library for games and graphics.
 - Square Matrices: [`Mat2<T>`], [`Mat3<T>`], [`Mat4<T>`]
 - Affine Transforms: [`Affine2<T>`], [`Affine3<T>`]
 - Projective Transforms: [`Proj2<T>`], [`Proj3<T>`]
+- Complex Numbers: [`Rot2<T>`]
 - Quaternions: [`Quat<T>`]
 - Masks: [`Mask2<T>`], [`Mask3<T>`], [`Mask4<T>`]
 
@@ -15,6 +16,7 @@ SIMD variants:
 - Square Matrices: [`Mat2A<T>`], [`Mat3A<T>`], [`Mat4A<T>`]
 - Affine Transforms: [`Affine2A<T>`], [`Affine3A<T>`]
 - Projective Transforms: [`Proj2A<T>`], [`Proj3A<T>`]
+- Complex Numbers: [`Rot2A<T>`]
 - Quaternions: [`QuatA<T>`]
 - Masks: [`Mask2A<T>`], [`Mask3A<T>`], [`Mask4A<T>`]
 
@@ -24,6 +26,7 @@ Underlying generic types:
 - [`Matrix<N, T, A>`]
 - [`Affine<N, T, A>`]
 - [`Projective<N, T, A>`]
+- [`Rotation2<T, A>`]
 - [`Quaternion<T, A>`]
 - [`Mask<N, T, A>`]
 
@@ -241,6 +244,7 @@ it serves the same purpose as [`glam`] but with generics.
 [`Affine3<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Affine3.html
 [`Proj2<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Proj2.html
 [`Proj3<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Proj3.html
+[`Rot2<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Rot2.html
 [`Quat<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Quat.html
 [`Mask2<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Mask2.html
 [`Mask3<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Mask3.html
@@ -256,6 +260,7 @@ it serves the same purpose as [`glam`] but with generics.
 [`Affine3A<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Affine3A.html
 [`Proj2A<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Proj2A.html
 [`Proj3A<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Proj3A.html
+[`Rot2A<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Rot2A.html
 [`QuatA<T>`]: https://docs.rs/ggmath/latest/ggmath/type.QuatA.html
 [`Mask2A<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Mask2A.html
 [`Mask3A<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Mask3A.html
@@ -265,6 +270,7 @@ it serves the same purpose as [`glam`] but with generics.
 [`Matrix<N, T, A>`]: https://docs.rs/ggmath/latest/ggmath/struct.Matrix.html
 [`Affine<N, T, A>`]: https://docs.rs/ggmath/latest/ggmath/struct.Affine.html
 [`Projective<N, T, A>`]: https://docs.rs/ggmath/latest/ggmath/struct.Projective.html
+[`Rotation2<T, A>`]: https://docs.rs/ggmath/latest/ggmath/struct.Rotation2.html
 [`Quaternion<T, A>`]: https://docs.rs/ggmath/latest/ggmath/struct.Quaternion.html
 [`Mask<N, T, A>`]: https://docs.rs/ggmath/latest/ggmath/struct.Mask.html
 

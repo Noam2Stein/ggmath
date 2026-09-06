@@ -1,6 +1,6 @@
 use crate::{
     Alignment, EulerRot, FloatExt, Length, Matrix, PrimitiveFloat, Projective, Quaternion,
-    SupportedLength, Vector,
+    Rotation2, SupportedLength, Vector,
     length::TwoOrThree,
     utils::{specialize, specialize_23},
 };
@@ -250,6 +250,58 @@ impl<T, A: Alignment> Matrix<2, T, A>
 where
     T: PrimitiveFloat,
 {
+    /// Creates a matrix from a 2D rotation.
+    ///
+    /// This assumes `rotation` is normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `rotation` is not normalized.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn from_rotation(rotation: Rotation2<T, A>) -> Self {
+        debug_assert!(
+            rotation.is_normalized(),
+            "rotation is not normalized: from_rotation({rotation:?})"
+        );
+
+        Self(Vector::<4, T, A>::new(
+            rotation.cos,
+            rotation.sin,
+            -rotation.sin,
+            rotation.cos,
+        ))
+    }
+
+    /// Creates a matrix from `scale` and 2D rotation.
+    ///
+    /// This assumes `rotation` is normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `rotation` is not normalized.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn from_scale_rotation(scale: Vector<2, T, A>, rotation: Rotation2<T, A>) -> Self {
+        debug_assert!(
+            rotation.is_normalized(),
+            "rotation is not normalized: from_rotation({rotation:?})"
+        );
+
+        Self(Vector::<4, T, A>::new(
+            rotation.cos * scale.x,
+            rotation.sin * scale.x,
+            -rotation.sin * scale.y,
+            rotation.cos * scale.y,
+        ))
+    }
+
     /// Creates a rotation matrix from an `angle` (in radians) rotating `+X` to
     /// `+Y`.
     #[inline]
@@ -317,6 +369,40 @@ where
         );
 
         Self::from_rows(&[homogeneous.x_axis.truncate(), homogeneous.y_axis.truncate()])
+    }
+
+    /// Converts a matrix to scale and rotation.
+    ///
+    /// This assumes `self` does not contain shear.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` contains shear or the determinant of `self` is zero.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_scale_rotation(&self) -> (Vector<2, T, A>, Rotation2<T, A>) {
+        let determinant = self.determinant();
+
+        let (rotation, x_axis_length) = Rotation2(self.x_axis).normalize_and_length();
+
+        let scale =
+            Vector::<2, T, A>::new(x_axis_length, self.y_axis.length() * determinant.signum());
+
+        debug_assert!(
+            (self.x_axis / scale.x)
+                .dot(self.y_axis / scale.y)
+                .abs_diff_eq(T::ZERO, T::as_from(1e-4)),
+            "matrix contains shear: {self:?}.to_scale_angle()"
+        );
+        debug_assert!(
+            determinant != T::ZERO,
+            "determinant is zero: {self:?}.to_scale_angle()"
+        );
+
+        (scale, rotation)
     }
 
     /// Returns the `scale` and `angle` of `self`.
@@ -1195,7 +1281,7 @@ mod tests {
     extern crate std;
 
     use crate::{
-        EulerRot, FloatExt, Matrix, Projective, Quaternion, Vector,
+        EulerRot, FloatExt, Matrix, Projective, Quaternion, Rotation2, Vector,
         test_utils::{assert_debug_panic, assert_test_eq, for_types, random_iter},
     };
 
@@ -1493,6 +1579,44 @@ mod tests {
     }
 
     #[test]
+    fn test_from_rotation() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for (vector, rotation) in random_iter::<(Vector<2, T, A>, Rotation2<T, A>)>() {
+                if !rotation.is_normalized() {
+                    assert_debug_panic!(Matrix::<2, T, A>::from_rotation(rotation));
+                }
+
+                let rotation = rotation.normalize_or(Rotation2::IDENTITY).normalize();
+
+                assert_test_eq!(
+                    vector * Matrix::<2, T, A>::from_rotation(rotation),
+                    vector * rotation
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_scale_rotation() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for (scale, rotation) in random_iter::<(Vector<2, T, A>, Rotation2<T, A>)>() {
+                if !rotation.is_normalized() {
+                    assert_debug_panic!(Matrix::<2, T, A>::from_scale_rotation(scale, rotation));
+                }
+
+                let rotation = rotation.normalize_or(Rotation2::IDENTITY).normalize();
+
+                assert_test_eq!(
+                    Matrix::<2, T, A>::from_scale_rotation(scale, rotation),
+                    Matrix::<2, T, A>::from_scale(scale)
+                        * Matrix::<2, T, A>::from_rotation(rotation),
+                    0.0 = -0.0
+                );
+            }
+        });
+    }
+
+    #[test]
     fn test_from_angle() {
         for_types!(|T: PrimitiveFloat, A| {
             for (vector, angle) in random_iter::<(Vector<2, T, A>, T)>() {
@@ -1563,6 +1687,39 @@ mod tests {
                 Vector::<4, T, A>::new(0.2, 0.1, 0.8, 0.0),
                 Vector::<4, T, A>::new(5.3, 3.2, 9.8, 1.0),
             ])));
+        });
+    }
+
+    #[test]
+    fn test_to_scale_rotation() {
+        for_types!(|T: PrimitiveFloat, A| {
+            assert_debug_panic!(Matrix::<2, T, A>::ZERO.to_scale_rotation());
+            assert_debug_panic!(
+                Matrix::<2, T, A>::from_rows(&[
+                    Vector::<2, T, A>::new(0.3, 0.4),
+                    Vector::<2, T, A>::new(0.4, 0.6)
+                ])
+                .to_scale_rotation()
+            );
+
+            for (scale, angle) in random_iter::<(Vector<2, T, A>, T)>() {
+                let matrix = Matrix::<2, T, A>::from_scale_angle(scale, angle);
+
+                if scale.iter().any(|x| x > 1e10)
+                    || !matrix.determinant().is_finite()
+                    || matrix.determinant().abs() < 1e-8
+                {
+                    continue;
+                }
+
+                let (result_scale, result_rotation) = matrix.to_scale_rotation();
+                assert_test_eq!(
+                    Matrix::<2, T, A>::from_scale_rotation(result_scale, result_rotation),
+                    matrix,
+                    abs <= scale.max_element() * 1e-5 + 1e-3,
+                    0.0 = -0.0
+                );
+            }
         });
     }
 
@@ -1763,7 +1920,7 @@ mod tests {
     }
 
     #[test]
-    fn test_from_scale_rotation() {
+    fn test_from_scale_quat() {
         for_types!(|T: PrimitiveFloat, A| {
             for (scale, rotation) in random_iter::<(Vector<3, T, A>, Quaternion<T, A>)>() {
                 if !rotation.is_normalized() {
@@ -1933,7 +2090,7 @@ mod tests {
     }
 
     #[test]
-    fn test_to_scale_rotation() {
+    fn test_to_scale_quat() {
         for_types!(|T: PrimitiveFloat, A| {
             assert_debug_panic!(Matrix::<3, T, A>::ZERO.to_scale_rotation());
             assert_debug_panic!(

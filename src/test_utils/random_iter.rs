@@ -5,7 +5,7 @@ extern crate std;
 use std::iter::repeat_n;
 
 use crate::{
-    Affine, Alignment, FloatExt, Length, Mask, Matrix, Projective, Quaternion, Scalar,
+    Affine, Alignment, FloatExt, Length, Mask, Matrix, Projective, Quaternion, Rotation2, Scalar,
     SupportedLength, Vector, length::TwoOrThree, utils::specialize_23,
 };
 
@@ -308,6 +308,17 @@ macro_rules! projective_backend {
 }
 projective_backend!(2);
 projective_backend!(3);
+
+impl<T, A: Alignment> Random for Rotation2<T, A>
+where
+    T: Scalar + Random,
+{
+    type Input = T::Input;
+
+    fn random(state: &mut u64, input: Self::Input) -> Self {
+        Self::from_array(Random::random(state, input))
+    }
+}
 
 impl<T, A: Alignment> Random for Quaternion<T, A>
 where

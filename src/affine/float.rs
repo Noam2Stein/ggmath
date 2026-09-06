@@ -1,5 +1,5 @@
 use crate::{
-    Affine, Alignment, EulerRot, Length, Matrix, PrimitiveFloat, Projective, Quaternion,
+    Affine, Alignment, EulerRot, Length, Matrix, PrimitiveFloat, Projective, Quaternion, Rotation2,
     SupportedLength, Vector, length::TwoOrThree, utils::specialize_23,
 };
 
@@ -171,6 +171,80 @@ impl<T, A: Alignment> Affine<2, T, A>
 where
     T: PrimitiveFloat,
 {
+    /// Creates an affine transform from a 2D rotation.
+    ///
+    /// This assumes `rotation` is normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `rotation` is not normalized.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn from_rotation(rotation: Rotation2<T, A>) -> Self {
+        Self::from_matrix(&Matrix::<2, T, A>::from_rotation(rotation))
+    }
+
+    /// Creates an affine transform from `scale` and 2D rotation.
+    ///
+    /// This assumes `rotation` is normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `rotation` is not normalized.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn from_scale_rotation(scale: Vector<2, T, A>, rotation: Rotation2<T, A>) -> Self {
+        Self::from_matrix(&Matrix::<2, T, A>::from_scale_rotation(scale, rotation))
+    }
+
+    /// Creates an affine transform from `rotation` and `translation`.
+    ///
+    /// This assumes `rotation` is normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `rotation` is not normalized.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn from_rotation_translation(
+        rotation: Rotation2<T, A>,
+        translation: Vector<2, T, A>,
+    ) -> Self {
+        Self::from_matrix_translation(&Matrix::<2, T, A>::from_rotation(rotation), translation)
+    }
+
+    /// Creates an affine transform from `scale`, 2D rotation and translation.
+    ///
+    /// This assumes `rotation` is normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `rotation` is not normalized.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn from_scale_rotation_translation(
+        scale: Vector<2, T, A>,
+        rotation: Rotation2<T, A>,
+        translation: Vector<2, T, A>,
+    ) -> Self {
+        Self::from_matrix_translation(
+            &Matrix::<2, T, A>::from_scale_rotation(scale, rotation),
+            translation,
+        )
+    }
+
     /// Creates an affine transform containing a rotation from an `angle`
     /// (in radians) rotating `+X` to `+Y`.
     #[inline]
@@ -263,6 +337,41 @@ where
             homogeneous.y_axis.truncate(),
             homogeneous.z_axis.truncate(),
         ])
+    }
+
+    /// Converts an affine transform to scale and rotation.
+    ///
+    /// This assumes `self` does not contain shear.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` contains shear or the determinant of `self` is zero.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_scale_rotation(&self) -> (Vector<2, T, A>, Rotation2<T, A>) {
+        self.matrix.to_scale_rotation()
+    }
+
+    /// Converts an affine transform to scale, rotation and translation.
+    ///
+    /// This assumes `self` does not contain shear.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` contains shear or the determinant of `self` is zero.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_scale_rotation_translation(
+        &self,
+    ) -> (Vector<2, T, A>, Rotation2<T, A>, Vector<2, T, A>) {
+        let (scale, rotation) = self.matrix.to_scale_rotation();
+        (scale, rotation, self.translation)
     }
 
     /// Returns the `scale` and `angle` of `self`.
