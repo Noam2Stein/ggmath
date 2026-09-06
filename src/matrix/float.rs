@@ -371,6 +371,40 @@ where
         Self::from_rows(&[homogeneous.x_axis.truncate(), homogeneous.y_axis.truncate()])
     }
 
+    /// Converts a matrix to scale and rotation.
+    ///
+    /// This assumes `self` does not contain shear.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` contains shear or the determinant of `self` is zero.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_scale_rotation(&self) -> (Vector<2, T, A>, Rotation2<T, A>) {
+        let determinant = self.determinant();
+
+        let (rotation, x_axis_length) = Rotation2(self.x_axis).normalize_and_length();
+
+        let scale =
+            Vector::<2, T, A>::new(x_axis_length * determinant.signum(), self.y_axis.length());
+
+        debug_assert!(
+            (self.x_axis / scale.x)
+                .dot(self.y_axis / scale.y)
+                .abs_diff_eq(T::ZERO, T::as_from(1e-4)),
+            "matrix contains shear: {self:?}.to_scale_angle()"
+        );
+        debug_assert!(
+            determinant != T::ZERO,
+            "determinant is zero: {self:?}.to_scale_angle()"
+        );
+
+        (scale, rotation)
+    }
+
     /// Returns the `scale` and `angle` of `self`.
     ///
     /// `self` must not contain shearing. Otherwise the result is unspecified.
@@ -1644,6 +1678,39 @@ mod tests {
     }
 
     #[test]
+    fn test_to_scale_rotation() {
+        for_types!(|T: PrimitiveFloat, A| {
+            assert_debug_panic!(Matrix::<2, T, A>::ZERO.to_scale_rotation());
+            assert_debug_panic!(
+                Matrix::<2, T, A>::from_rows(&[
+                    Vector::<2, T, A>::new(0.3, 0.4),
+                    Vector::<2, T, A>::new(0.4, 0.6)
+                ])
+                .to_scale_rotation()
+            );
+
+            for (scale, angle) in random_iter::<(Vector<2, T, A>, T)>() {
+                let matrix = Matrix::<2, T, A>::from_scale_angle(scale, angle);
+
+                if scale.iter().any(|x| x > 1e10)
+                    || !matrix.determinant().is_finite()
+                    || matrix.determinant().abs() < 1e-8
+                {
+                    continue;
+                }
+
+                let (result_scale, result_rotation) = matrix.to_scale_rotation();
+                assert_test_eq!(
+                    Matrix::<2, T, A>::from_scale_rotation(result_scale, result_rotation),
+                    matrix,
+                    abs <= scale.max_element() * 1e-5 + 1e-3,
+                    0.0 = -0.0
+                );
+            }
+        });
+    }
+
+    #[test]
     fn test_to_scale_angle() {
         for_types!(|T: PrimitiveFloat, A| {
             assert_debug_panic!(Matrix::<2, T, A>::ZERO.to_scale_angle());
@@ -2010,7 +2077,7 @@ mod tests {
     }
 
     #[test]
-    fn test_to_scale_rotation() {
+    fn test_to_scale_quat() {
         for_types!(|T: PrimitiveFloat, A| {
             assert_debug_panic!(Matrix::<3, T, A>::ZERO.to_scale_rotation());
             assert_debug_panic!(

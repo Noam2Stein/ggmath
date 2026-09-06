@@ -183,6 +183,24 @@ macro_rules! items_2 {
             Self::from_rows(&[homogeneous.x_axis.truncate(), homogeneous.y_axis.truncate()])
         }
 
+        /// Converts a matrix to scale and rotation.
+        ///
+        /// This assumes `self` does not contain shear.
+        #[inline]
+        #[must_use]
+        pub fn to_scale_rotation(&self) -> (Vector<2, $Wide, A>, Rotation2<$Wide, A>) {
+            let determinant = self.determinant();
+
+            let (rotation, x_axis_length) = Rotation2(self.x_axis).normalize_and_length();
+
+            let scale = Vector::<2, $Wide, A>::new(
+                x_axis_length * determinant.signum(),
+                self.y_axis.length(),
+            );
+
+            (scale, rotation)
+        }
+
         /// Returns the `scale` and `angle` of `self`.
         ///
         /// `self` must not contain shearing. Otherwise the result is
@@ -1168,6 +1186,26 @@ mod tests {
     }
 
     #[test]
+    fn test_to_scale_rotation() {
+        for_types!(|Wide: WideFloat| {
+            for matrix in random_iter::<(Vec2<Wide>, Rot2<Wide>)>()
+                .map(|(scale, rotation)| {
+                    Mat2::<Wide>::from_scale_rotation(scale, rotation.normalize())
+                })
+                .chain(random_iter())
+            {
+                assert_test_eq!(
+                    matrix.to_scale_rotation(),
+                    (
+                        Vec2::from_lane_fn(|lane| matrix.lane(lane).to_scale_rotation().0),
+                        Rot2::from_lane_fn(|lane| matrix.lane(lane).to_scale_rotation().1)
+                    )
+                );
+            }
+        });
+    }
+
+    #[test]
     fn test_to_scale_angle() {
         for_types!(|Wide: WideFloat| {
             for matrix in random_iter::<(Vec2<Wide>, Wide)>()
@@ -1409,7 +1447,7 @@ mod tests {
     }
 
     #[test]
-    fn test_to_scale_rotation() {
+    fn test_to_scale_quat() {
         for_types!(|Wide: WideFloat| {
             for matrix in random_iter::<(Vec3<Wide>, Quat<Wide>)>()
                 .map(|(scale, rotation)| {
