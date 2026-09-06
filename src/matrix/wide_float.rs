@@ -1,7 +1,8 @@
 use wide::{f32x4, f32x8, f32x16, f64x2, f64x4, f64x8};
 
 use crate::{
-    Alignment, EulerRot, Length, Matrix, Projective, Quaternion, SupportedLength, Vector,
+    Alignment, EulerRot, Length, Matrix, Projective, Quaternion, Rotation2, SupportedLength,
+    Vector,
     length::TwoOrThree,
     utils::{specialize, specialize_23},
 };
@@ -114,6 +115,37 @@ macro_rules! items {
 
 macro_rules! items_2 {
     ($Wide:ident, $T:ident) => {
+        /// Creates a matrix from a 2D rotation.
+        ///
+        /// This assumes `rotation` is normalized.
+        #[inline]
+        #[must_use]
+        pub fn from_rotation(rotation: Rotation2<$Wide, A>) -> Self {
+            Self(Vector::<4, $Wide, A>::new(
+                rotation.cos,
+                rotation.sin,
+                -rotation.sin,
+                rotation.cos,
+            ))
+        }
+
+        /// Creates a matrix from `scale` and 2D rotation.
+        ///
+        /// This assumes `rotation` is normalized.
+        #[inline]
+        #[must_use]
+        pub fn from_scale_rotation(
+            scale: Vector<2, $Wide, A>,
+            rotation: Rotation2<$Wide, A>,
+        ) -> Self {
+            Self(Vector::<4, $Wide, A>::new(
+                rotation.cos * scale.x,
+                rotation.sin * scale.x,
+                -rotation.sin * scale.y,
+                rotation.cos * scale.y,
+            ))
+        }
+
         /// Creates a rotation matrix from an `angle` (in radians) rotating `+X`
         /// to `+Y`.
         #[inline]
@@ -914,7 +946,7 @@ mod tests {
     use wide::f32x4;
 
     use crate::{
-        EulerRot, Mat2, Mat3, Mat4, Matrix, Projective, Quat, Unaligned, Vec2, Vec3, Vector,
+        EulerRot, Mat2, Mat3, Mat4, Matrix, Projective, Quat, Rot2, Unaligned, Vec2, Vec3, Vector,
         test_utils::{assert_test_eq, assert_test_eq_or_panic, for_types, random_iter},
     };
 
@@ -1053,6 +1085,33 @@ mod tests {
                     (0..LANES).all(|lane| a
                         .lane(lane)
                         .abs_diff_eq(&b.lane(lane), max_abs_diff.to_array()[lane]))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_rotation() {
+        for_types!(|Wide: WideFloat| {
+            for rotation in random_iter::<Rot2<Wide>>() {
+                assert_test_eq!(
+                    Mat2::<Wide>::from_rotation(rotation),
+                    Mat2::from_lane_fn(|lane| Mat2::<T>::from_rotation(rotation.lane(lane)))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_scale_rotation() {
+        for_types!(|Wide: WideFloat| {
+            for (scale, rotation) in random_iter::<(Vec2<Wide>, Rot2<Wide>)>() {
+                assert_test_eq!(
+                    Mat2::<Wide>::from_scale_rotation(scale, rotation),
+                    Mat2::from_lane_fn(|lane| Mat2::<T>::from_scale_rotation(
+                        scale.lane(lane),
+                        rotation.lane(lane)
+                    ))
                 );
             }
         });
@@ -1237,7 +1296,7 @@ mod tests {
     }
 
     #[test]
-    fn test_from_scale_rotation() {
+    fn test_from_scale_quat() {
         for_types!(|Wide: WideFloat| {
             for (scale, rotation) in random_iter::<(Vec3<Wide>, Quat<Wide>)>()
                 .flat_map(|(scale, quat)| [(scale, quat), (scale, quat.normalize())])
