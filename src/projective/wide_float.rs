@@ -40,7 +40,9 @@ macro_rules! items {
                 _ => unreachable!(),
             };
 
-        /// TODO
+        /// Creates a projective transform from a rotor.
+        ///
+        /// This assumes the rotor is normalized.
         #[inline]
         #[must_use]
         #[expect(private_bounds)]
@@ -51,7 +53,9 @@ macro_rules! items {
             todo!()
         }
 
-        /// TODO
+        /// Creates a projective transform from a non-uniform scale and a rotor.
+        ///
+        /// This assumes `rotor` is normalized.
         #[inline]
         #[must_use]
         #[expect(private_bounds)]
@@ -62,7 +66,9 @@ macro_rules! items {
             todo!()
         }
 
-        /// TODO
+        /// Creates a projective transform from a rotor and translation.
+        ///
+        /// This assumes `rotor` is normalized.
         #[inline]
         #[must_use]
         #[expect(private_bounds)]
@@ -76,7 +82,10 @@ macro_rules! items {
             todo!()
         }
 
-        /// TODO
+        /// Creates a projective transform from a non-uniform scale, a rotor and
+        /// translation.
+        ///
+        /// This assumes `rotor` is normalized.
         #[inline]
         #[must_use]
         #[expect(private_bounds)]
@@ -191,7 +200,10 @@ macro_rules! items {
             specialize_23!(Projective::<N, $Wide, A>::abs_backend(self))
         }
 
-        /// TODO
+        /// Converts a projective transform to a non-uniform scale and a rotor.
+        ///
+        /// This assumes `self` only contains scale, rotation, and translation
+        /// which is ignored.
         #[inline]
         #[must_use]
         #[expect(private_bounds)]
@@ -202,7 +214,10 @@ macro_rules! items {
             todo!()
         }
 
-        /// TODO
+        /// Converts a projective transform to a non-uniform scale, a rotor and
+        /// translation.
+        ///
+        /// This assumes `self` only contains scale, rotation and translation.
         #[inline]
         #[must_use]
         #[expect(private_bounds)]

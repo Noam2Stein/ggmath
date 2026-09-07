@@ -55,7 +55,15 @@ where
         specialize_23!(Matrix::<N, T, A>::from_projective_backend(projective))
     }
 
-    /// TODO
+    /// Creates a matrix from a rotor.
+    ///
+    /// This assumes the rotor is normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if the rotor is not normalized.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -67,7 +75,15 @@ where
         todo!()
     }
 
-    /// TODO
+    /// Creates a matrix from a non-uniform scale and a rotor.
+    ///
+    /// This assumes `rotor` is normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `rotor` is not normalized.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -254,7 +270,15 @@ where
         specialize!(Matrix::<N, T, A>::abs_backend(self))
     }
 
-    /// TODO
+    /// Converts a matrix to a non-uniform scale and a rotor.
+    ///
+    /// This assumes `self` only contains scale and rotation.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` contains anything but scale and rotation.
     #[inline]
     #[must_use]
     #[track_caller]

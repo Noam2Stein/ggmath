@@ -9,10 +9,23 @@ where
     Length<N>: Three,
     T: PrimitiveFloat,
 {
-    /// TODO
+    /// A rotor with all elements set to NaN (Not a Number).
     pub const NAN: Self = todo!();
 
-    /// TODO
+    /// Returns the minimal rotation transforming `from` to `to`.
+    ///
+    /// The rotation is in the plane spanned by `from` and `to`. Rotates up to
+    /// 180 degrees.
+    ///
+    /// When `from≈to` this is only accurate to about `0.001` (for `f32`).
+    ///
+    /// This assumes `from` and `to` are normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `from` or `to` are not normalized.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -20,7 +33,22 @@ where
         todo!()
     }
 
-    /// TODO
+    /// Returns the minimal rotation transforming `from` to either `to` or
+    /// `-to`. This rotates `from` so that it is colinear with `to`.
+    ///
+    /// The rotation is in the plane spanned by `from` and `to`. Rotates up to
+    /// 90 degrees.
+    ///
+    /// When `from≈to` or `from≈-to` this is only accurate to about `0.001` (for
+    /// `f32`).
+    ///
+    /// This assumes `from` and `to` are normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `from` or `to` are not normalized.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -28,7 +56,15 @@ where
         todo!()
     }
 
-    /// TODO
+    /// Converts a rotation matrix to a rotor.
+    ///
+    /// This assumes `matrix` only contains rotation.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `matrix` is not a rotation matrix.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -36,7 +72,16 @@ where
         todo!()
     }
 
-    /// TODO
+    /// Converts an affine transform with rotation to a rotor.
+    ///
+    /// This assumes `affine` only contains rotation, and translation which is
+    /// ignored.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `affine.matrix` is not a rotation matrix.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -44,7 +89,16 @@ where
         todo!()
     }
 
-    /// TODO
+    /// Converts a projective transform with rotation to a rotor.
+    ///
+    /// This assumes `projective` only contains rotation, and translation which
+    /// is ignored.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `projective` contains anything but rotation and translation.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -52,21 +106,34 @@ where
         todo!()
     }
 
-    /// TODO
+    /// Returns `true` if any element is NaN.
     #[inline]
     #[must_use]
     pub fn is_nan(self) -> bool {
         todo!()
     }
 
-    /// TODO
+    /// Returns `true` if all elements are neither infinite nor NaN.
     #[inline]
     #[must_use]
     pub fn is_finite(self) -> bool {
         todo!()
     }
 
-    /// TODO
+    /// Returns the inverse of a rotor.
+    ///
+    /// This assumes `self` is normalized.
+    ///
+    /// This performs the same operation as [`conjugate`]. Use whichever
+    /// function makes your intentions clearer.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` is not normalized.
+    ///
+    /// [`conjugate`]: Self::conjugate
     #[inline]
     #[must_use]
     #[track_caller]
@@ -74,7 +141,16 @@ where
         todo!()
     }
 
-    /// TODO
+    /// Returns the angle (in radians) for the minimal rotation for transforming
+    /// `self` into `other`.
+    ///
+    /// This assumes `self` and `other` are normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` or `other` are not normalized.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -82,7 +158,25 @@ where
         todo!()
     }
 
-    /// TODO
+    /// Computes the linear interpolation between two rotors, then normalizes
+    /// the result.
+    ///
+    /// When `t` is `0`, the result is `self`. When `t` is `1`, the result is
+    /// `other`. This always takes the shorter path between the rotations.
+    ///
+    /// This assumes `self` and `other` are normalized.
+    ///
+    /// This does not interpolate the angle at a constant speed. For that use
+    /// [`slerp`]. This function is more efficient as it avoids calling
+    /// trigonometric functions.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` or `other` are not normalized.
+    ///
+    /// [`slerp`]: Self::slerp
     #[inline]
     #[must_use]
     #[track_caller]
@@ -90,7 +184,19 @@ where
         todo!()
     }
 
-    /// TODO
+    /// Computes the spherical linear interpolation between two rotors.
+    ///
+    /// When `t` is `0`, the result is `self`. When `t` is `1`, the result is
+    /// `other`. This interpolates the angle at a constant speed, always taking
+    /// the shorter path.
+    ///
+    /// This assumes `self` and `other` are normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` or `other` are not normalized.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -98,7 +204,20 @@ where
         todo!()
     }
 
-    /// TODO
+    /// Rotates one rotor towards another by at most `max_angle` (in radians).
+    ///
+    /// This assumes `self` and `other` are normalized.
+    ///
+    /// When `max_angle` is `0`, the result is `self`. When `max_angle` is equal
+    /// to or greater than `self.angle_between(target)`, the result is `target`.
+    /// When `max_angle` is negative, this rotates towards the opposite of
+    /// `target`.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` or `other` are not normalized.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -106,14 +225,21 @@ where
         todo!()
     }
 
-    /// TODO
+    /// Returns the length/magnitude of `self`.
     #[inline]
     #[must_use]
     pub fn length(self) -> T {
         todo!()
     }
 
-    /// TODO
+    /// Returns `self` normalized to length `1`.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` is a zero rotor, or if the result is non finite or
+    /// zero.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -121,35 +247,53 @@ where
         todo!()
     }
 
-    /// TODO
+    /// Returns [`normalize`], or `None` if `self` is zero or if the result is
+    /// non finite or zero.
+    ///
+    /// [`normalize`]: Self::normalize
     #[inline]
     #[must_use]
     pub fn try_normalize(self) -> Option<Self> {
         todo!()
     }
 
-    /// TODO
+    /// Returns [`normalize`], or `fallback` if `self` is zero or if the result
+    /// is non finite or zero.
+    ///
+    /// [`normalize`]: Self::normalize
     #[inline]
     #[must_use]
     pub fn normalize_or(self, _fallback: Self) -> Self {
         todo!()
     }
 
-    /// TODO
+    /// Simultaneously computes [`normalize`] and [`length`].
+    ///
+    /// This assumes the rotor is not zero (so the output for that will be
+    /// garbage). Consider manually checking for that case.
+    ///
+    /// [`normalize`]: Self::normalize
+    /// [`length`]: Self::length
     #[inline]
     #[must_use]
     pub fn normalize_and_length(self) -> (Self, T) {
         todo!()
     }
 
-    /// TODO
+    /// Returns whether the rotor has the length 1 or not.
+    ///
+    /// This uses a precision threshold of approximately `1e-4`.
     #[inline]
     #[must_use]
     pub fn is_normalized(self) -> bool {
         todo!()
     }
 
-    /// TODO
+    /// Returns `true` if the absolute difference of all elements between `self`
+    /// and `other` is less than or equal to `max_abs_diff`.
+    ///
+    /// This can be used to compare two rotors that should be equal, but may
+    /// have a slight difference due to operations having rounding errors.
     #[inline]
     #[must_use]
     pub fn abs_diff_eq(self, _other: Self, _max_abs_diff: T) -> bool {
@@ -161,28 +305,37 @@ impl<T, A: Alignment> Rotor<3, T, A>
 where
     T: PrimitiveFloat,
 {
-    /// TODO
+    /// Creates a rotor from an `angle` (in radians) rotating `+X` to `+Y`.
     #[inline]
     #[must_use]
     pub fn from_rotation_xy(_angle: T) -> Self {
         todo!()
     }
 
-    /// TODO
+    /// Creates a rotor from an `angle` (in radians) rotating `+X` to `+Z`.
     #[inline]
     #[must_use]
     pub fn from_rotation_xz(_angle: T) -> Self {
         todo!()
     }
 
-    /// TODO
+    /// Creates a rotor from an `angle` (in radians) rotating `+Y` to `+Z`.
     #[inline]
     #[must_use]
     pub fn from_rotation_yz(_angle: T) -> Self {
         todo!()
     }
 
-    /// TODO
+    /// Creates a rotor from a rotation `axis` and `angle` (in radians), using
+    /// the right-hand rule.
+    ///
+    /// This assumes `axis` is normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `axis` is not normalized.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -190,21 +343,35 @@ where
         todo!()
     }
 
-    /// TODO
+    /// Creates a rotor that rotates `scaled_axis.length()` radians around
+    /// `scaled_axis.normalize()`, using the right-hand rule.
     #[inline]
     #[must_use]
     pub fn from_scaled_axis(_scaled_axis: Vector<3, T, A>) -> Self {
         todo!()
     }
 
-    /// TODO
+    /// Creates a rotor from an Euler rotation order/sequence and angles (in
+    /// radians).
     #[inline]
     #[must_use]
     pub fn from_euler(_order: EulerRot, _a: T, _b: T, _c: T) -> Self {
         todo!()
     }
 
-    /// TODO
+    /// Creates a 3D rotor from a facing direction and an up direction.
+    ///
+    /// For a left-handed view coordinate system with `+X=right`, `+Y=up` and
+    /// `+Z=forward`.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if:
+    ///
+    /// - `dir` or `up` are not normalized
+    /// - `dir` and `up` are parallel
     #[inline]
     #[must_use]
     #[track_caller]
@@ -212,7 +379,19 @@ where
         todo!()
     }
 
-    /// TODO
+    /// Creates a 3D rotor from a facing direction and an up direction.
+    ///
+    /// For a right-handed view coordinate system with `+X=right`, `+Y=up` and
+    /// `+Z=back`.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if:
+    ///
+    /// - `dir` or `up` are not normalized
+    /// - `dir` and `up` are parallel
     #[inline]
     #[must_use]
     #[track_caller]
@@ -220,7 +399,21 @@ where
         todo!()
     }
 
-    /// TODO
+    /// Creates a 3D rotor from a camera position, a focal point and an up
+    /// direction.
+    ///
+    /// For a left-handed view coordinate system with `+X=right`, `+Y=up` and
+    /// `+Z=forward`.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if:
+    ///
+    /// - `up` is not normalized
+    /// - `center` is equal to `eye`
+    /// - The resulting forward direction is parallel to `up`
     #[inline]
     #[must_use]
     #[track_caller]
@@ -232,7 +425,21 @@ where
         todo!()
     }
 
-    /// TODO
+    /// Creates a 3D rotor from a camera position, a focal point and an up
+    /// direction.
+    ///
+    /// For a right-handed view coordinate system with `+X=right`, `+Y=up` and
+    /// `+Z=back`.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if:
+    ///
+    /// - `up` is not normalized
+    /// - `center` is equal to `eye`
+    /// - The resulting forward direction is parallel to `up`
     #[inline]
     #[must_use]
     #[track_caller]
@@ -244,7 +451,14 @@ where
         todo!()
     }
 
-    /// TODO
+    /// Converts the rotor `self` to a normalized rotation axis and an angle (in
+    /// radians), using the right-hand rule.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` is not normalized.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -252,14 +466,28 @@ where
         todo!()
     }
 
-    /// TODO
+    // Converts the rotor `self` to a rotation axis scaled by an angle (in
+    /// radians), using the right-hand rule.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` is not normalized.
     #[inline]
     #[must_use]
     pub fn to_scaled_axis(self) -> Vector<3, T, A> {
         todo!()
     }
 
-    /// TODO
+    /// Returns the Euler angles forming `self` for the given Euler rotation
+    /// order/sequence.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` is not normalized.
     #[inline]
     #[must_use]
     #[track_caller]

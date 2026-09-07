@@ -38,7 +38,15 @@ where
         _ => unreachable!(),
     };
 
-    /// TODO
+    /// Creates a projective transform from a rotor.
+    ///
+    /// This assumes the rotor is normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if the rotor is not normalized.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -50,7 +58,15 @@ where
         todo!()
     }
 
-    /// TODO
+    /// Creates a projective transform from a non-uniform scale and a rotor.
+    ///
+    /// This assumes `rotor` is normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `rotor` is not normalized.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -62,7 +78,15 @@ where
         todo!()
     }
 
-    /// TODO
+    /// Creates a projective transform from a rotor and translation.
+    ///
+    /// This assumes `rotor` is normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `rotor` is not normalized.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -74,7 +98,16 @@ where
         todo!()
     }
 
-    /// TODO
+    /// Creates a projective transform from a non-uniform scale, a rotor and
+    /// translation.
+    ///
+    /// This assumes `rotor` is normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `rotor` is not normalized.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -263,7 +296,16 @@ where
         specialize_23!(Projective::<N, T, A>::abs_backend(self))
     }
 
-    /// TODO
+    /// Converts a projective transform to a non-uniform scale and a rotor.
+    ///
+    /// This assumes `self` only contains scale, rotation, and translation which
+    /// is ignored.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` contains anything but scale, rotation and translation.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -275,7 +317,16 @@ where
         todo!()
     }
 
-    /// TODO
+    /// Converts a projective transform to a non-uniform scale, a rotor and
+    /// translation.
+    ///
+    /// This assumes `self` only contains scale, rotation and translation.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` contains anything but scale, rotation and translation.
     #[inline]
     #[must_use]
     #[track_caller]

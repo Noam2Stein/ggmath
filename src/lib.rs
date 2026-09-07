@@ -4,7 +4,7 @@
 //! - Square Matrices: [`Mat2<T>`], [`Mat3<T>`], [`Mat4<T>`]
 //! - Affine Transforms: [`Affine2<T>`], [`Affine3<T>`]
 //! - Projective Transforms: [`Proj2<T>`], [`Proj3<T>`]
-//! - Complex Numbers: [`Rot2<T>`]
+//! - Rotations: [`Rot2<T>`], [`Rotor3<T>`]
 //! - Quaternions: [`Quat<T>`]
 //! - Masks: [`Mask2<T>`], [`Mask3<T>`], [`Mask4<T>`]
 //!
@@ -14,7 +14,7 @@
 //! - Square Matrices: [`Mat2A<T>`], [`Mat3A<T>`], [`Mat4A<T>`]
 //! - Affine Transforms: [`Affine2A<T>`], [`Affine3A<T>`]
 //! - Projective Transforms: [`Proj2A<T>`], [`Proj3A<T>`]
-//! - Complex Numbers: [`Rot2A<T>`]
+//! - Rotations: [`Rot2A<T>`], [`Rotor3A<T>`]
 //! - Quaternions: [`QuatA<T>`]
 //! - Masks: [`Mask2A<T>`], [`Mask3A<T>`], [`Mask4A<T>`]
 //!
@@ -25,6 +25,7 @@
 //! - [`Affine<N, T, A>`]
 //! - [`Projective<N, T, A>`]
 //! - [`Rotation2<T, A>`]
+//! - [`Rotor<N, T, A>`]
 //! - [`Quaternion<T, A>`]
 //! - [`Mask<N, T, A>`]
 //!
