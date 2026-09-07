@@ -26,6 +26,14 @@ pub(crate) trait TwoOrThree: SupportedLength {
     type Select<T2: Copy, T3: Copy>: Copy;
 }
 
+/// An internal trait similar to [`SupportedLength`] that only accepts 3.
+///
+/// This is used for `Rotor`, which currently only accepts `N = 3`, but could
+/// accept other dimensions in the future.
+///
+/// This is intentionally hidden from the public API.
+pub(crate) trait Three: TwoOrThree {}
+
 trait Sealed {}
 
 impl SupportedLength for Length<2> {
@@ -47,6 +55,8 @@ impl TwoOrThree for Length<2> {
 impl TwoOrThree for Length<3> {
     type Select<T2: Copy, T3: Copy> = T3;
 }
+
+impl Three for Length<3> {}
 
 impl Sealed for Length<2> {}
 impl Sealed for Length<3> {}
