@@ -2157,7 +2157,7 @@ mod tests {
                         quat,
                         abs <= quat.to_vector().abs() * 1e-3 + 1e-2,
                         0.0 = -0.0,
-                        quat = -quat
+                        rotor = -rotor
                     );
                 }
             }
