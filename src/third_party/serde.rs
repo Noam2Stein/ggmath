@@ -7,9 +7,9 @@ use serde::{
 };
 
 use crate::{
-    Affine, Alignment, Length, Mask, Matrix, Projective, Quaternion, Rotation2, Scalar,
+    Affine, Alignment, Length, Mask, Matrix, Projective, Quaternion, Rotation2, Rotor, Scalar,
     SupportedLength, Vector,
-    length::TwoOrThree,
+    length::{Three, TwoOrThree},
     utils::{transmute_generic, transmute_ref},
 };
 
@@ -386,6 +386,154 @@ where
     }
 }
 
+impl<const N: usize, T, A: Alignment> Serialize for Rotor<N, T, A>
+where
+    Length<N>: Three,
+    T: Scalar + Serialize,
+{
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let mut state = serializer.serialize_struct("Rotor3", 4)?;
+        state.serialize_field("yz", &self.0.x)?;
+        state.serialize_field("zx", &self.0.y)?;
+        state.serialize_field("xy", &self.0.z)?;
+        state.serialize_field("s", &self.0.w)?;
+        state.end()
+    }
+}
+
+impl<'de, const N: usize, T, A: Alignment> Deserialize<'de> for Rotor<N, T, A>
+where
+    Length<N>: Three,
+    T: Scalar + Deserialize<'de>,
+{
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        const FIELDS: &[&str] = &["yz", "zx", "xy", "s"];
+
+        enum Field {
+            Yz,
+            Zx,
+            Xy,
+            S,
+        }
+
+        impl<'de> Deserialize<'de> for Field {
+            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+            where
+                D: Deserializer<'de>,
+            {
+                struct FieldVisitor;
+
+                impl Visitor<'_> for FieldVisitor {
+                    type Value = Field;
+
+                    fn expecting(&self, formatter: &mut core::fmt::Formatter) -> core::fmt::Result {
+                        formatter.write_str("`yz`, `zx`, `xy` or `s`")
+                    }
+
+                    fn visit_str<E>(self, value: &str) -> Result<Field, E>
+                    where
+                        E: serde::de::Error,
+                    {
+                        match value {
+                            "yz" => Ok(Field::Yz),
+                            "zx" => Ok(Field::Zx),
+                            "xy" => Ok(Field::Xy),
+                            "s" => Ok(Field::S),
+                            _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
+                        }
+                    }
+                }
+
+                deserializer.deserialize_identifier(FieldVisitor)
+            }
+        }
+
+        struct RotorVisitor<const N: usize, T, A: Alignment>(PhantomData<(T, A)>);
+
+        impl<'de, const N: usize, T, A: Alignment> Visitor<'de> for RotorVisitor<N, T, A>
+        where
+            Length<N>: Three,
+            T: Scalar + Deserialize<'de>,
+        {
+            type Value = Rotor<N, T, A>;
+
+            fn expecting(&self, formatter: &mut core::fmt::Formatter) -> core::fmt::Result {
+                formatter.write_str("struct Rotor3")
+            }
+
+            fn visit_seq<V>(self, mut seq: V) -> Result<Self::Value, V::Error>
+            where
+                V: SeqAccess<'de>,
+            {
+                let yz = seq
+                    .next_element()?
+                    .ok_or_else(|| serde::de::Error::invalid_length(0, &self))?;
+                let zx = seq
+                    .next_element()?
+                    .ok_or_else(|| serde::de::Error::invalid_length(1, &self))?;
+                let xy = seq
+                    .next_element()?
+                    .ok_or_else(|| serde::de::Error::invalid_length(2, &self))?;
+                let s = seq
+                    .next_element()?
+                    .ok_or_else(|| serde::de::Error::invalid_length(3, &self))?;
+                Ok(Rotor(Vector::<4, T, A>::new(yz, zx, xy, s)))
+            }
+
+            fn visit_map<V>(self, mut map: V) -> Result<Self::Value, V::Error>
+            where
+                V: MapAccess<'de>,
+            {
+                let mut yz = None;
+                let mut zx = None;
+                let mut xy = None;
+                let mut s = None;
+                while let Some(key) = map.next_key()? {
+                    match key {
+                        Field::Yz => {
+                            if yz.is_some() {
+                                return Err(serde::de::Error::duplicate_field("yz"));
+                            }
+                            yz = Some(map.next_value()?);
+                        }
+                        Field::Zx => {
+                            if zx.is_some() {
+                                return Err(serde::de::Error::duplicate_field("zx"));
+                            }
+                            zx = Some(map.next_value()?);
+                        }
+                        Field::Xy => {
+                            if xy.is_some() {
+                                return Err(serde::de::Error::duplicate_field("xy"));
+                            }
+                            xy = Some(map.next_value()?);
+                        }
+                        Field::S => {
+                            if s.is_some() {
+                                return Err(serde::de::Error::duplicate_field("s"));
+                            }
+                            s = Some(map.next_value()?);
+                        }
+                    }
+                }
+                let yz = yz.ok_or_else(|| serde::de::Error::missing_field("yz"))?;
+                let zx = zx.ok_or_else(|| serde::de::Error::missing_field("zx"))?;
+                let xy = xy.ok_or_else(|| serde::de::Error::missing_field("xy"))?;
+                let s = s.ok_or_else(|| serde::de::Error::missing_field("s"))?;
+                Ok(Rotor(Vector::<4, T, A>::new(yz, zx, xy, s)))
+            }
+        }
+
+        deserializer.deserialize_struct("Rotor3", FIELDS, RotorVisitor(PhantomData))
+    }
+}
+
 impl<const N: usize, T, A: Alignment> Serialize for Mask<N, T, A>
 where
     Length<N>: SupportedLength,
@@ -440,7 +588,7 @@ mod tests {
     use crate::{
         Affine, Affine2, Affine2A, Affine3, Affine3A, Aligned, Mask2, Mask2A, Mask3, Mask3A, Mask4,
         Mask4A, Mat2, Mat2A, Mat3, Mat3A, Mat4, Mat4A, Proj2, Proj2A, Proj3, Proj3A, Quat, QuatA,
-        Rot2, Unaligned, Vec2, Vec2A, Vec3, Vec3A, Vec4, Vec4A,
+        Rot2, Rotor3, Rotor3A, Unaligned, Vec2, Vec2A, Vec3, Vec3A, Vec4, Vec4A,
     };
 
     #[test]
@@ -711,6 +859,19 @@ mod tests {
         let quat = Quat::<i32>::from_xyzw(1, 2, 3, 4);
         assert_eq!(quat, from_str(&to_string(&quat)?)?);
         assert_eq!(quat.align(), from_str(&to_string(&quat)?)?);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_rotor() -> Result<(), Box<dyn Error>> {
+        let rotor = Rotor3::<i32>::from_elements(1, 2, 3, 4);
+        assert_eq!(rotor, from_str(&to_string(&rotor)?)?);
+        assert_eq!(rotor.align(), from_str(&to_string(&rotor)?)?);
+
+        let rotor = Rotor3A::<i32>::from_elements(1, 2, 3, 4);
+        assert_eq!(rotor, from_str(&to_string(&rotor)?)?);
+        assert_eq!(rotor.unalign(), from_str(&to_string(&rotor)?)?);
 
         Ok(())
     }
