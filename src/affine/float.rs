@@ -1,6 +1,8 @@
 use crate::{
     Affine, Alignment, EulerRot, Length, Matrix, PrimitiveFloat, Projective, Quaternion, Rotation2,
-    SupportedLength, Vector, length::TwoOrThree, utils::specialize_23,
+    Rotor, SupportedLength, Vector,
+    length::{Three, TwoOrThree},
+    utils::specialize_23,
 };
 
 impl<const N: usize, T, A: Alignment> Affine<N, T, A>
@@ -52,6 +54,58 @@ where
         Length<N>: TwoOrThree,
     {
         specialize_23!(Affine::<N, T, A>::from_projective_backend(projective))
+    }
+
+    /// TODO
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    #[expect(private_bounds)]
+    pub fn from_rotor(_rotor: Rotor<N, T, A>) -> Self
+    where
+        Length<N>: Three,
+    {
+        todo!()
+    }
+
+    /// TODO
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    #[expect(private_bounds)]
+    pub fn from_scale_rotor(_scale: Vector<N, T, A>, _rotor: Rotor<N, T, A>) -> Self
+    where
+        Length<N>: Three,
+    {
+        todo!()
+    }
+
+    /// TODO
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    #[expect(private_bounds)]
+    pub fn from_rotor_translation(_rotor: Rotor<N, T, A>, _translation: Vector<N, T, A>) -> Self
+    where
+        Length<N>: Three,
+    {
+        todo!()
+    }
+
+    /// TODO
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    #[expect(private_bounds)]
+    pub fn from_scale_rotor_translation(
+        _scale: Vector<N, T, A>,
+        _rotor: Rotor<N, T, A>,
+        _translation: Vector<N, T, A>,
+    ) -> Self
+    where
+        Length<N>: Three,
+    {
+        todo!()
     }
 
     /// Returns `true` if any element is NaN.
@@ -150,6 +204,30 @@ where
     #[must_use]
     pub fn inverse_or_zero(&self) -> Self {
         self.try_inverse().unwrap_or(Self::ZERO)
+    }
+
+    /// TODO
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    #[expect(private_bounds)]
+    pub fn to_scale_rotor(&self) -> (Vector<N, T, A>, Rotor<N, T, A>)
+    where
+        Length<N>: Three,
+    {
+        todo!()
+    }
+
+    /// TODO
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    #[expect(private_bounds)]
+    pub fn to_scale_rotor_translation(&self) -> (Vector<N, T, A>, Rotor<N, T, A>, Vector<N, T, A>)
+    where
+        Length<N>: Three,
+    {
+        todo!()
     }
 
     /// Returns `true` if the absolute difference of all elements between `self`
@@ -922,6 +1000,26 @@ mod tests {
     }
 
     #[test]
+    fn test_from_rotor() {
+        todo!()
+    }
+
+    #[test]
+    fn test_from_scale_rotor() {
+        todo!()
+    }
+
+    #[test]
+    fn test_from_rotor_translation() {
+        todo!()
+    }
+
+    #[test]
+    fn test_from_scale_rotor_translation() {
+        todo!()
+    }
+
+    #[test]
     fn test_is_nan() {
         for_types!(|T: PrimitiveFloat, A| {
             let one = Vector::ONE;
@@ -1083,6 +1181,16 @@ mod tests {
                 assert_test_eq!(affine.inverse_or_zero(), inverse);
             }
         });
+    }
+
+    #[test]
+    fn test_to_scale_rotor() {
+        todo!()
+    }
+
+    #[test]
+    fn test_to_scale_rotor_translation() {
+        todo!()
     }
 
     #[test]

@@ -1,9 +1,9 @@
 use wide::{f32x4, f32x8, f32x16, f64x2, f64x4, f64x8};
 
 use crate::{
-    Affine, Alignment, EulerRot, Length, Matrix, Projective, Quaternion, Rotation2,
+    Affine, Alignment, EulerRot, Length, Matrix, Projective, Quaternion, Rotation2, Rotor,
     SupportedLength, Vector,
-    length::TwoOrThree,
+    length::{Three, TwoOrThree},
     utils::{specialize, specialize_23},
 };
 
@@ -25,6 +25,57 @@ macro_rules! items {
             Length<N>: TwoOrThree,
         {
             specialize_23!(Affine::<N, $Wide, A>::from_projective_backend(projective))
+        }
+
+        /// TODO
+        #[inline]
+        #[must_use]
+        #[expect(private_bounds)]
+        pub fn from_rotor(_rotor: Rotor<N, $Wide, A>) -> Self
+        where
+            Length<N>: Three,
+        {
+            todo!()
+        }
+
+        /// TODO
+        #[inline]
+        #[must_use]
+        #[expect(private_bounds)]
+        pub fn from_scale_rotor(_scale: Vector<N, $Wide, A>, _rotor: Rotor<N, $Wide, A>) -> Self
+        where
+            Length<N>: Three,
+        {
+            todo!()
+        }
+
+        /// TODO
+        #[inline]
+        #[must_use]
+        #[expect(private_bounds)]
+        pub fn from_rotor_translation(
+            _rotor: Rotor<N, $Wide, A>,
+            _translation: Vector<N, $Wide, A>,
+        ) -> Self
+        where
+            Length<N>: Three,
+        {
+            todo!()
+        }
+
+        /// TODO
+        #[inline]
+        #[must_use]
+        #[expect(private_bounds)]
+        pub fn from_scale_rotor_translation(
+            _scale: Vector<N, $Wide, A>,
+            _rotor: Rotor<N, $Wide, A>,
+            _translation: Vector<N, $Wide, A>,
+        ) -> Self
+        where
+            Length<N>: Three,
+        {
+            todo!()
         }
 
         /// Returns `true` if any element is NaN.
@@ -76,6 +127,30 @@ macro_rules! items {
         #[must_use]
         pub fn inverse_or_zero(&self) -> Self {
             specialize!(Affine::<N, $Wide, A>::inverse_or_zero_backend(self))
+        }
+
+        /// TODO
+        #[inline]
+        #[must_use]
+        #[expect(private_bounds)]
+        pub fn to_scale_rotor(&self) -> (Vector<N, $Wide, A>, Rotor<N, $Wide, A>)
+        where
+            Length<N>: Three,
+        {
+            todo!()
+        }
+
+        /// TODO
+        #[inline]
+        #[must_use]
+        #[expect(private_bounds)]
+        pub fn to_scale_rotor_translation(
+            &self,
+        ) -> (Vector<N, $Wide, A>, Rotor<N, $Wide, A>, Vector<N, $Wide, A>)
+        where
+            Length<N>: Three,
+        {
+            todo!()
         }
 
         /// Returns `true` if the absolute difference of all elements between
@@ -739,6 +814,26 @@ mod tests {
     }
 
     #[test]
+    fn test_from_rotor() {
+        todo!()
+    }
+
+    #[test]
+    fn test_from_scale_rotor() {
+        todo!()
+    }
+
+    #[test]
+    fn test_from_rotor_translation() {
+        todo!()
+    }
+
+    #[test]
+    fn test_from_scale_rotor_translation() {
+        todo!()
+    }
+
+    #[test]
     fn test_is_nan() {
         for_types!(|N, Wide: WideFloat| {
             for affine in random_iter::<Affine<N, Wide, Unaligned>>() {
@@ -798,6 +893,16 @@ mod tests {
                 );
             }
         });
+    }
+
+    #[test]
+    fn test_to_scale_rotor() {
+        todo!()
+    }
+
+    #[test]
+    fn test_to_scale_rotor_translation() {
+        todo!()
     }
 
     #[test]

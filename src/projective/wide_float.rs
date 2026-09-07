@@ -1,8 +1,8 @@
 use wide::{f32x4, f32x8, f32x16, f64x2, f64x4, f64x8};
 
 use crate::{
-    Alignment, EulerRot, Length, Matrix, Projective, Quaternion, Rotation2, Vector,
-    length::TwoOrThree,
+    Alignment, EulerRot, Length, Matrix, Projective, Quaternion, Rotation2, Rotor, Vector,
+    length::{Three, TwoOrThree},
     utils::{specialize_23, transmute_generic},
 };
 
@@ -39,6 +39,57 @@ macro_rules! items {
                 },
                 _ => unreachable!(),
             };
+
+        /// TODO
+        #[inline]
+        #[must_use]
+        #[expect(private_bounds)]
+        pub fn from_rotor(_rotor: Rotor<N, $Wide, A>) -> Self
+        where
+            Length<N>: Three,
+        {
+            todo!()
+        }
+
+        /// TODO
+        #[inline]
+        #[must_use]
+        #[expect(private_bounds)]
+        pub fn from_scale_rotor(_scale: Vector<N, $Wide, A>, _rotor: Rotor<N, $Wide, A>) -> Self
+        where
+            Length<N>: Three,
+        {
+            todo!()
+        }
+
+        /// TODO
+        #[inline]
+        #[must_use]
+        #[expect(private_bounds)]
+        pub fn from_rotor_translation(
+            _rotor: Rotor<N, $Wide, A>,
+            _translation: Vector<N, $Wide, A>,
+        ) -> Self
+        where
+            Length<N>: Three,
+        {
+            todo!()
+        }
+
+        /// TODO
+        #[inline]
+        #[must_use]
+        #[expect(private_bounds)]
+        pub fn from_scale_rotor_translation(
+            _scale: Vector<N, $Wide, A>,
+            _rotor: Rotor<N, $Wide, A>,
+            _translation: Vector<N, $Wide, A>,
+        ) -> Self
+        where
+            Length<N>: Three,
+        {
+            todo!()
+        }
 
         /// For each lane, returns `true` if any element is NaN.
         #[inline]
@@ -138,6 +189,30 @@ macro_rules! items {
         #[must_use]
         pub fn abs(&self) -> Self {
             specialize_23!(Projective::<N, $Wide, A>::abs_backend(self))
+        }
+
+        /// TODO
+        #[inline]
+        #[must_use]
+        #[expect(private_bounds)]
+        pub fn to_scale_rotor(&self) -> (Vector<N, $Wide, A>, Rotor<N, $Wide, A>)
+        where
+            Length<N>: Three,
+        {
+            todo!()
+        }
+
+        /// TODO
+        #[inline]
+        #[must_use]
+        #[expect(private_bounds)]
+        pub fn to_scale_rotor_translation(
+            &self,
+        ) -> (Vector<N, $Wide, A>, Rotor<N, $Wide, A>, Vector<N, $Wide, A>)
+        where
+            Length<N>: Three,
+        {
+            todo!()
         }
 
         /// Returns `true` if the absolute difference of all elements between
@@ -1333,6 +1408,26 @@ mod tests {
     }
 
     #[test]
+    fn test_from_rotor() {
+        todo!()
+    }
+
+    #[test]
+    fn test_from_scale_rotor() {
+        todo!()
+    }
+
+    #[test]
+    fn test_from_rotor_translation() {
+        todo!()
+    }
+
+    #[test]
+    fn test_from_scale_rotor_translation() {
+        todo!()
+    }
+
+    #[test]
     fn test_is_nan() {
         for_types!(|Wide: WideFloat| {
             for [x, y, z, w] in random_iter::<[Wide; 4]>() {
@@ -1484,6 +1579,16 @@ mod tests {
                 );
             }
         });
+    }
+
+    #[test]
+    fn test_to_scale_rotor() {
+        todo!()
+    }
+
+    #[test]
+    fn test_to_scale_rotor_translation() {
+        todo!()
     }
 
     #[test]
