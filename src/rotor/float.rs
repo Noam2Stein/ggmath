@@ -1,6 +1,6 @@
 use crate::{
-    Affine, Alignment, EulerRot, Length, Matrix, PrimitiveFloat, Projective, Rotor, Vector,
-    length::Three,
+    Affine, Alignment, EulerRot, FloatExt, Length, Matrix, PrimitiveFloat, Projective, Rotor,
+    Vector, length::Three, utils::specialize_3,
 };
 
 #[expect(private_bounds)]
@@ -10,7 +10,13 @@ where
     T: PrimitiveFloat,
 {
     /// A rotor with all elements set to NaN (Not a Number).
-    pub const NAN: Self = todo!();
+    pub const NAN: Self = Self::NAN_INTERNAL_IMPL;
+
+    /// The implementation of [`Self::NAN`].
+    ///
+    /// We use this helper constant so that IDEs do not show the implementation
+    /// of the constant.
+    const NAN_INTERNAL_IMPL: Self = Self(Vector::<4, T, A>::NAN);
 
     /// Returns the minimal rotation transforming `from` to `to`.
     ///
@@ -29,8 +35,13 @@ where
     #[inline]
     #[must_use]
     #[track_caller]
-    pub fn from_rotation_arc(_from: Vector<N, T, A>, _to: Vector<N, T, A>) -> Self {
-        todo!()
+    pub fn from_rotation_arc(from: Vector<N, T, A>, to: Vector<N, T, A>) -> Self {
+        debug_assert!(
+            from.is_normalized() && to.is_normalized(),
+            "vectors are not normalized: from_rotation_arc({from:?}, {to:?})"
+        );
+
+        specialize_3!(Rotor::<N, T, A>::from_rotation_arc_backend(from, to))
     }
 
     /// Returns the minimal rotation transforming `from` to either `to` or
@@ -52,8 +63,15 @@ where
     #[inline]
     #[must_use]
     #[track_caller]
-    pub fn from_rotation_arc_colinear(_from: Vector<N, T, A>, _to: Vector<N, T, A>) -> Self {
-        todo!()
+    pub fn from_rotation_arc_colinear(from: Vector<N, T, A>, to: Vector<N, T, A>) -> Self {
+        debug_assert!(
+            from.is_normalized() && to.is_normalized(),
+            "vectors are not normalized: from_rotation_arc_colinear({from:?}, {to:?})"
+        );
+
+        specialize_3!(Rotor::<N, T, A>::from_rotation_arc_colinear_backend(
+            from, to
+        ))
     }
 
     /// Converts a rotation matrix to a rotor.
@@ -68,8 +86,8 @@ where
     #[inline]
     #[must_use]
     #[track_caller]
-    pub fn from_matrix(_matrix: &Matrix<N, T, A>) -> Self {
-        todo!()
+    pub fn from_matrix(matrix: &Matrix<N, T, A>) -> Self {
+        specialize_3!(Rotor::<N, T, A>::from_matrix_backend(matrix))
     }
 
     /// Converts an affine transform with rotation to a rotor.
@@ -85,8 +103,8 @@ where
     #[inline]
     #[must_use]
     #[track_caller]
-    pub fn from_affine(_affine: &Affine<N, T, A>) -> Self {
-        todo!()
+    pub fn from_affine(affine: &Affine<N, T, A>) -> Self {
+        Self::from_matrix(&affine.matrix)
     }
 
     /// Converts a projective transform with rotation to a rotor.
@@ -102,22 +120,22 @@ where
     #[inline]
     #[must_use]
     #[track_caller]
-    pub fn from_projective(_projective: &Projective<N, T, A>) -> Self {
-        todo!()
+    pub fn from_projective(projective: &Projective<N, T, A>) -> Self {
+        specialize_3!(Rotor::<N, T, A>::from_projective_backend(projective))
     }
 
     /// Returns `true` if any element is NaN.
     #[inline]
     #[must_use]
     pub fn is_nan(self) -> bool {
-        todo!()
+        self.0.is_nan()
     }
 
     /// Returns `true` if all elements are neither infinite nor NaN.
     #[inline]
     #[must_use]
     pub fn is_finite(self) -> bool {
-        todo!()
+        self.0.is_finite()
     }
 
     /// Returns the inverse of a rotor.
@@ -138,7 +156,12 @@ where
     #[must_use]
     #[track_caller]
     pub fn inverse(self) -> Self {
-        todo!()
+        debug_assert!(
+            self.is_normalized(),
+            "rotor is not normalized: {self:?}.inverse()"
+        );
+
+        self.conjugate()
     }
 
     /// Returns the angle (in radians) for the minimal rotation for transforming
@@ -154,8 +177,14 @@ where
     #[inline]
     #[must_use]
     #[track_caller]
-    pub fn angle_between(self, _other: Self) -> T {
-        todo!()
+    pub fn angle_between(self, other: Self) -> T {
+        debug_assert!(
+            self.is_normalized() && other.is_normalized(),
+            "rotors are not normalized: {self:?}.angle_between({other:?})"
+        );
+
+        let half_angle = self.dot(other).abs().acos_approx();
+        half_angle + half_angle
     }
 
     /// Computes the linear interpolation between two rotors, then normalizes
@@ -180,8 +209,15 @@ where
     #[inline]
     #[must_use]
     #[track_caller]
-    pub fn lerp(self, _other: Self, _t: T) -> Self {
-        todo!()
+    pub fn lerp(self, other: Self, t: T) -> Self {
+        debug_assert!(
+            self.is_normalized() && other.is_normalized(),
+            "rotors are not normalized: {self:?}.lerp({other:?}, {t:?})"
+        );
+
+        let other = other * self.dot(other).signum();
+
+        (self * (T::ONE - t) + other * t).normalize()
     }
 
     /// Computes the spherical linear interpolation between two rotors.
@@ -200,8 +236,13 @@ where
     #[inline]
     #[must_use]
     #[track_caller]
-    pub fn slerp(self, _other: Self, _t: T) -> Self {
-        todo!()
+    pub fn slerp(self, other: Self, t: T) -> Self {
+        debug_assert!(
+            self.is_normalized() && other.is_normalized(),
+            "rotors are not normalized: {self:?}.slerp({other:?}, {t:?})"
+        );
+
+        specialize_3!(Rotor::<N, T, A>::slerp_backend(self, other, t))
     }
 
     /// Rotates one rotor towards another by at most `max_angle` (in radians).
@@ -221,15 +262,26 @@ where
     #[inline]
     #[must_use]
     #[track_caller]
-    pub fn rotate_towards(self, _target: Self, _max_angle: T) -> Self {
-        todo!()
+    pub fn rotate_towards(self, target: Self, max_angle: T) -> Self {
+        debug_assert!(
+            self.is_normalized() && target.is_normalized(),
+            "rotors are not normalized: {self:?}.rotate_towards({target:?}, {max_angle:?})"
+        );
+
+        let angle = self.angle_between(target);
+        if angle <= T::as_from(1e-4) {
+            target
+        } else {
+            let t = (max_angle / angle).clamp(T::NEG_ONE, T::ONE);
+            self.slerp(target, t)
+        }
     }
 
     /// Returns the length/magnitude of `self`.
     #[inline]
     #[must_use]
     pub fn length(self) -> T {
-        todo!()
+        self.0.length()
     }
 
     /// Returns `self` normalized to length `1`.
@@ -244,7 +296,14 @@ where
     #[must_use]
     #[track_caller]
     pub fn normalize(self) -> Self {
-        todo!()
+        let result = self / self.length();
+
+        debug_assert!(
+            result.is_finite() && result != Self(Vector::<4, T, A>::ZERO),
+            "rotor is zero or non-finite: {self:?}.normalize()"
+        );
+
+        result
     }
 
     /// Returns [`normalize`], or `None` if `self` is zero or if the result is
@@ -254,7 +313,7 @@ where
     #[inline]
     #[must_use]
     pub fn try_normalize(self) -> Option<Self> {
-        todo!()
+        self.0.try_normalize().map(Self)
     }
 
     /// Returns [`normalize`], or `fallback` if `self` is zero or if the result
@@ -263,8 +322,8 @@ where
     /// [`normalize`]: Self::normalize
     #[inline]
     #[must_use]
-    pub fn normalize_or(self, _fallback: Self) -> Self {
-        todo!()
+    pub fn normalize_or(self, fallback: Self) -> Self {
+        Self(self.0.normalize_or(fallback.0))
     }
 
     /// Simultaneously computes [`normalize`] and [`length`].
@@ -277,7 +336,8 @@ where
     #[inline]
     #[must_use]
     pub fn normalize_and_length(self) -> (Self, T) {
-        todo!()
+        let (normalize, length) = self.0.normalize_and_length();
+        (Self(normalize), length)
     }
 
     /// Returns whether the rotor has the length 1 or not.
@@ -286,7 +346,7 @@ where
     #[inline]
     #[must_use]
     pub fn is_normalized(self) -> bool {
-        todo!()
+        self.0.is_normalized()
     }
 
     /// Returns `true` if the absolute difference of all elements between `self`
@@ -296,8 +356,8 @@ where
     /// have a slight difference due to operations having rounding errors.
     #[inline]
     #[must_use]
-    pub fn abs_diff_eq(self, _other: Self, _max_abs_diff: T) -> bool {
-        todo!()
+    pub fn abs_diff_eq(self, other: Self, max_abs_diff: T) -> bool {
+        self.0.abs_diff_eq(other.0, max_abs_diff)
     }
 }
 
@@ -308,22 +368,28 @@ where
     /// Creates a rotor from an `angle` (in radians) rotating `+X` to `+Y`.
     #[inline]
     #[must_use]
-    pub fn from_rotation_xy(_angle: T) -> Self {
-        todo!()
+    pub fn from_rotation_xy(angle: T) -> Self {
+        let half_angle = angle * T::as_from(0.5);
+        let (xy, s) = half_angle.sin_cos();
+        Self::from_elements(T::ZERO, T::ZERO, xy, s)
     }
 
     /// Creates a rotor from an `angle` (in radians) rotating `+X` to `+Z`.
     #[inline]
     #[must_use]
-    pub fn from_rotation_xz(_angle: T) -> Self {
-        todo!()
+    pub fn from_rotation_xz(angle: T) -> Self {
+        let half_angle = angle * T::as_from(0.5);
+        let (xz, s) = half_angle.sin_cos();
+        Self::from_elements(T::ZERO, -xz, T::ZERO, s)
     }
 
     /// Creates a rotor from an `angle` (in radians) rotating `+Y` to `+Z`.
     #[inline]
     #[must_use]
-    pub fn from_rotation_yz(_angle: T) -> Self {
-        todo!()
+    pub fn from_rotation_yz(angle: T) -> Self {
+        let half_angle = angle * T::as_from(0.5);
+        let (yz, s) = half_angle.sin_cos();
+        Self::from_elements(yz, T::ZERO, T::ZERO, s)
     }
 
     /// Creates a rotor from a rotation `axis` and `angle` (in radians), using
@@ -339,24 +405,87 @@ where
     #[inline]
     #[must_use]
     #[track_caller]
-    pub fn from_axis_angle(_axis: Vector<3, T, A>, _angle: T) -> Self {
-        todo!()
+    pub fn from_axis_angle(axis: Vector<3, T, A>, angle: T) -> Self {
+        debug_assert!(
+            axis.is_normalized(),
+            "axis is not normalized: from_axis_angle({axis:?}, {angle:?})"
+        );
+
+        let half_angle = angle * T::as_from(0.5);
+        let (sin, s) = half_angle.sin_cos();
+        Self((axis * sin).extend(s))
     }
 
     /// Creates a rotor that rotates `scaled_axis.length()` radians around
     /// `scaled_axis.normalize()`, using the right-hand rule.
     #[inline]
     #[must_use]
-    pub fn from_scaled_axis(_scaled_axis: Vector<3, T, A>) -> Self {
-        todo!()
+    pub fn from_scaled_axis(scaled_axis: Vector<3, T, A>) -> Self {
+        let (axis, angle) = scaled_axis.normalize_and_length();
+        if angle == T::ZERO {
+            Self::IDENTITY
+        } else {
+            let half_angle = angle * T::as_from(0.5);
+            let (sin, s) = half_angle.sin_cos();
+            Self((axis * sin).extend(s))
+        }
     }
 
     /// Creates a rotor from an Euler rotation order/sequence and angles (in
     /// radians).
     #[inline]
     #[must_use]
-    pub fn from_euler(_order: EulerRot, _a: T, _b: T, _c: T) -> Self {
-        todo!()
+    pub fn from_euler(order: EulerRot, a: T, b: T, c: T) -> Self {
+        // Ported from https://github.com/bitshifter/glam-rs.
+
+        // Based on Ken Shoemake. 1994. Euler angle conversion. Graphics gems IV.
+        // Academic Press Professional, Inc., USA, 222–229.
+
+        let order = order.properties();
+        let (i, j, k) = order.axes_indices();
+
+        let mut angles = if order.frame_static {
+            Vector::<3, T, A>::new(a, b, c)
+        } else {
+            Vector::<3, T, A>::new(c, b, a)
+        };
+
+        if order.parity_even {
+            angles.y = -angles.y;
+        }
+
+        let ti = angles.x * T::as_from(0.5);
+        let tj = angles.y * T::as_from(0.5);
+        let th = angles.z * T::as_from(0.5);
+        let (si, ci) = ti.sin_cos();
+        let (sj, cj) = tj.sin_cos();
+        let (sh, ch) = th.sin_cos();
+        let cc = ci * ch;
+        let cs = ci * sh;
+        let sc = si * ch;
+        let ss = si * sh;
+
+        let parity = if !order.parity_even {
+            T::ONE
+        } else {
+            T::NEG_ONE
+        };
+
+        let mut result = Vector::ZERO;
+
+        if order.initial_repeated {
+            result[i] = cj * (cs + sc);
+            result[j] = sj * (cc + ss) * parity;
+            result[k] = sj * (cs - sc);
+            result[3] = cj * (cc - ss);
+        } else {
+            result[i] = cj * sc - sj * cs;
+            result[j] = (cj * ss + sj * cc) * parity;
+            result[k] = cj * cs - sj * sc;
+            result[3] = cj * cc + sj * ss;
+        }
+
+        Self(result)
     }
 
     /// Creates a 3D rotor from a facing direction and an up direction.
@@ -375,8 +504,8 @@ where
     #[inline]
     #[must_use]
     #[track_caller]
-    pub fn look_to_lh(_dir: Vector<3, T, A>, _up: Vector<3, T, A>) -> Self {
-        todo!()
+    pub fn look_to_lh(dir: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
+        Self::from_matrix(&Matrix::<3, T, A>::look_to_lh(dir, up))
     }
 
     /// Creates a 3D rotor from a facing direction and an up direction.
@@ -395,8 +524,8 @@ where
     #[inline]
     #[must_use]
     #[track_caller]
-    pub fn look_to_rh(_dir: Vector<3, T, A>, _up: Vector<3, T, A>) -> Self {
-        todo!()
+    pub fn look_to_rh(dir: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
+        Self::from_matrix(&Matrix::<3, T, A>::look_to_rh(dir, up))
     }
 
     /// Creates a 3D rotor from a camera position, a focal point and an up
@@ -417,12 +546,8 @@ where
     #[inline]
     #[must_use]
     #[track_caller]
-    pub fn look_at_lh(
-        _eye: Vector<3, T, A>,
-        _center: Vector<3, T, A>,
-        _up: Vector<3, T, A>,
-    ) -> Self {
-        todo!()
+    pub fn look_at_lh(eye: Vector<3, T, A>, center: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
+        Self::from_matrix(&Matrix::<3, T, A>::look_at_lh(eye, center, up))
     }
 
     /// Creates a 3D rotor from a camera position, a focal point and an up
@@ -443,12 +568,8 @@ where
     #[inline]
     #[must_use]
     #[track_caller]
-    pub fn look_at_rh(
-        _eye: Vector<3, T, A>,
-        _center: Vector<3, T, A>,
-        _up: Vector<3, T, A>,
-    ) -> Self {
-        todo!()
+    pub fn look_at_rh(eye: Vector<3, T, A>, center: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
+        Self::from_matrix(&Matrix::<3, T, A>::look_at_rh(eye, center, up))
     }
 
     /// Converts the rotor `self` to a normalized rotation axis and an angle (in
@@ -463,7 +584,23 @@ where
     #[must_use]
     #[track_caller]
     pub fn to_axis_angle(self) -> (Vector<3, T, A>, T) {
-        todo!()
+        debug_assert!(
+            self.is_normalized(),
+            "rotor is not normalized: {self:?}.to_axis_angle()"
+        );
+
+        let bivector = self.0.xyz();
+        let sin = bivector.length();
+
+        if sin >= T::as_from(1e-8) {
+            let axis = bivector / sin;
+            let half_angle = sin.atan2(self.s);
+            let angle = half_angle + half_angle;
+
+            (axis, angle)
+        } else {
+            (Vector::<3, T, A>::X, T::ZERO)
+        }
     }
 
     // Converts the rotor `self` to a rotation axis scaled by an angle (in
@@ -477,7 +614,23 @@ where
     #[inline]
     #[must_use]
     pub fn to_scaled_axis(self) -> Vector<3, T, A> {
-        todo!()
+        debug_assert!(
+            self.is_normalized(),
+            "rotor is not normalized: {self:?}.to_axis_angle()"
+        );
+
+        let bivector = self.0.xyz();
+        let sin = bivector.length();
+
+        if sin >= T::as_from(1e-8) {
+            let axis = bivector / sin;
+            let half_angle = sin.atan2(self.s);
+            let angle = half_angle + half_angle;
+
+            axis * angle
+        } else {
+            Vector::ZERO
+        }
     }
 
     /// Returns the Euler angles forming `self` for the given Euler rotation
@@ -491,8 +644,278 @@ where
     #[inline]
     #[must_use]
     #[track_caller]
-    pub fn to_euler(self, _order: EulerRot) -> (T, T, T) {
-        todo!()
+    pub fn to_euler(self, order: EulerRot) -> (T, T, T) {
+        debug_assert!(
+            self.is_normalized(),
+            "rotor is not normalized: {self:?}.to_euler({order:?})"
+        );
+
+        Matrix::<3, T, A>::from_rotor(self).to_euler(order)
+    }
+
+    #[inline(always)]
+    fn from_rotation_arc_backend(from: Vector<3, T, A>, to: Vector<3, T, A>) -> Self {
+        // Based on https://github.com/bitshifter/glam-rs
+
+        let almost_one = T::ONE - T::as_from(2.0) * T::EPSILON;
+
+        let dot = from.dot(to);
+        if dot < -almost_one {
+            // 180° singularity: from ≈ -to.
+            // Half a turn = 𝛕/2 = 180°.
+
+            // Construct any rotation plane parallel to `from`
+            let sign = from.z.signum();
+            let tmp = T::NEG_ONE / (sign + from.z);
+            let yz = from.x * from.y * tmp;
+            let zx = sign + from.y * from.y * tmp;
+            let xy = -from.y;
+
+            // sin(angle/2) = sin(𝛕/4) = 1
+            // cos(angle/2) = cos(𝛕/4) = 0
+            Self::from_elements(yz, zx, xy, T::ZERO)
+        } else if dot < almost_one {
+            Self(from.cross(to).extend(T::ONE + dot).normalize())
+        } else {
+            // 0° singularity: from ≈ to.
+            Self::IDENTITY
+        }
+    }
+
+    #[inline(always)]
+    fn from_rotation_arc_colinear_backend(from: Vector<3, T, A>, mut to: Vector<3, T, A>) -> Self {
+        // Ported from https://github.com/bitshifter/glam-rs
+
+        let almost_one = T::ONE - T::as_from(2.0) * T::EPSILON;
+
+        let mut dot = from.dot(to);
+        if dot.is_sign_negative() {
+            dot = -dot;
+            to = -to;
+        }
+
+        if dot < almost_one {
+            Self(from.cross(to).extend(T::ONE + dot).normalize())
+        } else {
+            // 0° singularity: from ≈ to.
+            Self::IDENTITY
+        }
+    }
+
+    #[inline(always)]
+    #[track_caller]
+    fn from_matrix_backend(matrix: &Matrix<3, T, A>) -> Self {
+        // Ported from https://github.com/bitshifter/glam-rs `Quat::from_rotation_axes`
+        // Based on https://github.com/microsoft/DirectXMath `XMQuaternionRotationMatrix`
+
+        debug_assert!(
+            matrix
+                .x_axis
+                .length_squared()
+                .abs_diff_eq(T::ONE, T::as_from(1e-4))
+                && matrix
+                    .y_axis
+                    .length_squared()
+                    .abs_diff_eq(T::ONE, T::as_from(1e-4))
+                && matrix
+                    .x_axis
+                    .dot(matrix.y_axis)
+                    .abs_diff_eq(T::ZERO, T::as_from(1e-4))
+                && matrix
+                    .x_axis
+                    .cross(matrix.y_axis)
+                    .abs_diff_eq(matrix.z_axis, T::as_from(1e-4)),
+            "not a rotation matrix: Rotor::from_matrix({matrix:?})"
+        );
+
+        let [m00, m01, m02] = matrix.x_axis.to_array();
+        let [m10, m11, m12] = matrix.y_axis.to_array();
+        let [m20, m21, m22] = matrix.z_axis.to_array();
+
+        if m22 <= T::ZERO {
+            // x^2 + y^2 >= z^2 + w^2
+            let dif10 = m11 - m00;
+            let omm22 = T::ONE - m22;
+
+            if dif10 <= T::ZERO {
+                // x^2 >= y^2
+                let four_xsq = omm22 - dif10;
+                let inv4x = T::as_from(0.5) / four_xsq.sqrt();
+
+                Self::from_elements(
+                    four_xsq * inv4x,
+                    (m01 + m10) * inv4x,
+                    (m02 + m20) * inv4x,
+                    (m12 - m21) * inv4x,
+                )
+            } else {
+                // y^2 >= x^2
+                let four_ysq = omm22 + dif10;
+                let inv4y = T::as_from(0.5) / four_ysq.sqrt();
+
+                Self::from_elements(
+                    (m01 + m10) * inv4y,
+                    four_ysq * inv4y,
+                    (m12 + m21) * inv4y,
+                    (m20 - m02) * inv4y,
+                )
+            }
+        } else {
+            // z^2 + w^2 >= x^2 + y^2
+            let sum10 = m11 + m00;
+            let opm22 = T::ONE + m22;
+
+            if sum10 <= T::ZERO {
+                // z^2 >= w^2
+                let four_zsq = opm22 - sum10;
+                let inv4z = T::as_from(0.5) / four_zsq.sqrt();
+
+                Self::from_elements(
+                    (m02 + m20) * inv4z,
+                    (m12 + m21) * inv4z,
+                    four_zsq * inv4z,
+                    (m01 - m10) * inv4z,
+                )
+            } else {
+                // w^2 >= z^2
+                let four_wsq = opm22 + sum10;
+                let inv4w = T::as_from(0.5) / four_wsq.sqrt();
+
+                Self::from_elements(
+                    (m12 - m21) * inv4w,
+                    (m20 - m02) * inv4w,
+                    (m01 - m10) * inv4w,
+                    four_wsq * inv4w,
+                )
+            }
+        }
+    }
+
+    #[inline(always)]
+    #[track_caller]
+    fn from_projective_backend(projective: &Projective<3, T, A>) -> Self {
+        // Ported from https://github.com/bitshifter/glam-rs `Quat::from_rotation_axes`
+        // Based on https://github.com/microsoft/DirectXMath `XMQuaternionRotationMatrix`
+
+        debug_assert!(
+            projective
+                .column(3)
+                .abs_diff_eq(Vector::<4, T, A>::W, T::as_from(1e-6))
+                && projective
+                    .x_axis
+                    .truncate()
+                    .length_squared()
+                    .abs_diff_eq(T::ONE, T::as_from(1e-4))
+                && projective
+                    .y_axis
+                    .truncate()
+                    .length_squared()
+                    .abs_diff_eq(T::ONE, T::as_from(1e-4))
+                && projective
+                    .x_axis
+                    .truncate()
+                    .dot(projective.y_axis.truncate())
+                    .abs_diff_eq(T::ZERO, T::as_from(1e-4))
+                && projective
+                    .x_axis
+                    .truncate()
+                    .cross(projective.y_axis.truncate())
+                    .abs_diff_eq(projective.z_axis.truncate(), T::as_from(1e-4)),
+            "not a rotation: Rotor::from_projective({projective:?})"
+        );
+
+        let [m00, m01, m02, _] = projective.x_axis.to_array();
+        let [m10, m11, m12, _] = projective.y_axis.to_array();
+        let [m20, m21, m22, _] = projective.z_axis.to_array();
+
+        if m22 <= T::ZERO {
+            // x^2 + y^2 >= z^2 + w^2
+            let dif10 = m11 - m00;
+            let omm22 = T::ONE - m22;
+
+            if dif10 <= T::ZERO {
+                // x^2 >= y^2
+                let four_xsq = omm22 - dif10;
+                let inv4x = T::as_from(0.5) / four_xsq.sqrt();
+
+                Self::from_elements(
+                    four_xsq * inv4x,
+                    (m01 + m10) * inv4x,
+                    (m02 + m20) * inv4x,
+                    (m12 - m21) * inv4x,
+                )
+            } else {
+                // y^2 >= x^2
+                let four_ysq = omm22 + dif10;
+                let inv4y = T::as_from(0.5) / four_ysq.sqrt();
+
+                Self::from_elements(
+                    (m01 + m10) * inv4y,
+                    four_ysq * inv4y,
+                    (m12 + m21) * inv4y,
+                    (m20 - m02) * inv4y,
+                )
+            }
+        } else {
+            // z^2 + w^2 >= x^2 + y^2
+            let sum10 = m11 + m00;
+            let opm22 = T::ONE + m22;
+
+            if sum10 <= T::ZERO {
+                // z^2 >= w^2
+                let four_zsq = opm22 - sum10;
+                let inv4z = T::as_from(0.5) / four_zsq.sqrt();
+
+                Self::from_elements(
+                    (m02 + m20) * inv4z,
+                    (m12 + m21) * inv4z,
+                    four_zsq * inv4z,
+                    (m01 - m10) * inv4z,
+                )
+            } else {
+                // w^2 >= z^2
+                let four_wsq = opm22 + sum10;
+                let inv4w = T::as_from(0.5) / four_wsq.sqrt();
+
+                Self::from_elements(
+                    (m12 - m21) * inv4w,
+                    (m20 - m02) * inv4w,
+                    (m01 - m10) * inv4w,
+                    four_wsq * inv4w,
+                )
+            }
+        }
+    }
+
+    #[inline(always)]
+    #[track_caller]
+    fn slerp_backend(self, mut other: Self, t: T) -> Self {
+        // Ported from https://github.com/bitshifter/glam-rs
+        // See http://number-none.com/product/Understanding%20Slerp,%20Then%20Not%20Using%20It/
+
+        // Note that a rotation can be represented by two rotors: `r` and `-r`.
+        // The slerp path between `r` and `other` will be different from the
+        // path between `-r` and `other`. One path will take the long way around
+        // and one will take the short way. In order to correct for this, the
+        // `dot` product between `self` and `other` should be positive. If the
+        // `dot` product is negative, slerp between `self` and `-other`.
+        let mut dot = self.dot(other);
+        if dot.is_sign_negative() {
+            other = -other;
+            dot = -dot;
+        }
+
+        if dot > T::ONE - T::EPSILON {
+            // If above threshold, perform linear interpolation to avoid divide by zero.
+            (self * (T::ONE - t) + other * t).normalize()
+        } else {
+            let half_angle = dot.acos_approx();
+
+            let self_factor = ((T::ONE - t) * half_angle).sin();
+            let other_factor = (t * half_angle).sin();
+
+            (self * self_factor + other * other_factor).normalize()
+        }
     }
 }
 

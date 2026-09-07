@@ -2,7 +2,7 @@ use crate::{
     Alignment, EulerRot, FloatExt, Length, Matrix, PrimitiveFloat, Projective, Quaternion,
     Rotation2, Rotor, SupportedLength, Vector,
     length::{Three, TwoOrThree},
-    utils::{specialize, specialize_23},
+    utils::{specialize, specialize_3, specialize_23},
 };
 
 impl<const N: usize, T, A: Alignment> Matrix<N, T, A>
@@ -68,11 +68,16 @@ where
     #[must_use]
     #[track_caller]
     #[expect(private_bounds)]
-    pub fn from_rotor(_rotor: Rotor<N, T, A>) -> Self
+    pub fn from_rotor(rotor: Rotor<N, T, A>) -> Self
     where
         Length<N>: Three,
     {
-        todo!()
+        debug_assert!(
+            rotor.is_normalized(),
+            "rotor is not normalized: from_rotor({rotor:?})"
+        );
+
+        specialize_3!(Matrix::<N, T, A>::from_rotor_backend(rotor))
     }
 
     /// Creates a matrix from a non-uniform scale and a rotor.
@@ -88,11 +93,11 @@ where
     #[must_use]
     #[track_caller]
     #[expect(private_bounds)]
-    pub fn from_scale_rotor(_scale: Vector<N, T, A>, _rotor: Rotor<N, T, A>) -> Self
+    pub fn from_scale_rotor(scale: Vector<N, T, A>, rotor: Rotor<N, T, A>) -> Self
     where
         Length<N>: Three,
     {
-        todo!()
+        Self::from_rotor(rotor).prepend_scale(scale)
     }
 
     /// Returns `true` if any element is NaN.
@@ -287,7 +292,7 @@ where
     where
         Length<N>: Three,
     {
-        todo!()
+        specialize_3!(Matrix::<N, T, A>::to_scale_rotor_backend(self))
     }
 
     /// Returns `true` if the absolute difference of all elements between `self`
@@ -1137,6 +1142,21 @@ where
     }
 
     #[inline(always)]
+    fn from_rotor_backend(rotor: Rotor<3, T, A>) -> Self {
+        let bivector = rotor.0.xyz();
+        let bivector_double = bivector + bivector;
+        let [xx, xy, xz] = (bivector_double * rotor.yz).to_array();
+        let [xw, yw, zw] = (bivector_double * rotor.s).to_array();
+        let [yy, yz, zz] = (bivector_double.yzz() * rotor.0.yyz()).to_array();
+
+        Self::from_rows(&[
+            Vector::<3, T, A>::new(T::ONE, xy, xz) - Vector::<3, T, A>::new(yy + zz, -zw, yw),
+            Vector::<3, T, A>::new(xy, T::ONE, yz) - Vector::<3, T, A>::new(zw, xx + zz, -xw),
+            Vector::<3, T, A>::new(xz, yz, T::ONE) - Vector::<3, T, A>::new(-yw, xw, xx + yy),
+        ])
+    }
+
+    #[inline(always)]
     fn is_nan_backend(&self) -> bool {
         self.x_axis.is_nan() || self.y_axis.is_nan() || self.z_axis.is_nan()
     }
@@ -1209,6 +1229,48 @@ where
     #[inline(always)]
     fn abs_backend(&self) -> Self {
         Self::from_rows(&[self.x_axis.abs(), self.y_axis.abs(), self.z_axis.abs()])
+    }
+
+    #[inline(always)]
+    #[track_caller]
+    #[expect(clippy::wrong_self_convention)]
+    fn to_scale_rotor_backend(&self) -> (Vector<3, T, A>, Rotor<3, T, A>) {
+        let determinant = self.determinant();
+
+        let scale = Vector::<3, T, A>::new(
+            self.x_axis.length() * determinant.signum(),
+            self.y_axis.length(),
+            self.z_axis.length(),
+        );
+
+        let scale_recip = scale.recip();
+
+        let rotation_matrix = Self::from_rows(&[
+            self.x_axis * scale_recip.x,
+            self.y_axis * scale_recip.y,
+            self.z_axis * scale_recip.z,
+        ]);
+
+        debug_assert!(
+            rotation_matrix
+                .x_axis
+                .dot(rotation_matrix.y_axis)
+                .abs_diff_eq(T::ZERO, T::as_from(1e-4))
+                && rotation_matrix
+                    .x_axis
+                    .dot(rotation_matrix.z_axis)
+                    .abs_diff_eq(T::ZERO, T::as_from(1e-4))
+                && rotation_matrix
+                    .y_axis
+                    .dot(rotation_matrix.z_axis)
+                    .abs_diff_eq(T::ZERO, T::as_from(1e-4))
+                && determinant != T::ZERO,
+            "matrix contains shearing or determinant is zero"
+        );
+
+        let rotor = Rotor::<3, T, A>::from_matrix(&rotation_matrix);
+
+        (scale, rotor)
     }
 
     #[inline(always)]

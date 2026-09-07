@@ -4,7 +4,7 @@ use crate::{
     Alignment, EulerRot, Length, Matrix, Projective, Quaternion, Rotation2, Rotor, SupportedLength,
     Vector,
     length::{Three, TwoOrThree},
-    utils::{specialize, specialize_23},
+    utils::{specialize, specialize_3, specialize_23},
 };
 
 macro_rules! items {
@@ -32,11 +32,11 @@ macro_rules! items {
         #[inline]
         #[must_use]
         #[expect(private_bounds)]
-        pub fn from_rotor(_rotor: Rotor<N, $Wide, A>) -> Self
+        pub fn from_rotor(rotor: Rotor<N, $Wide, A>) -> Self
         where
             Length<N>: Three,
         {
-            todo!()
+            specialize_3!(Matrix::<N, $Wide, A>::from_rotor_backend(rotor))
         }
 
         /// Creates a matrix from a non-uniform scale and a rotor.
@@ -45,11 +45,11 @@ macro_rules! items {
         #[inline]
         #[must_use]
         #[expect(private_bounds)]
-        pub fn from_scale_rotor(_scale: Vector<N, $Wide, A>, _rotor: Rotor<N, $Wide, A>) -> Self
+        pub fn from_scale_rotor(scale: Vector<N, $Wide, A>, rotor: Rotor<N, $Wide, A>) -> Self
         where
             Length<N>: Three,
         {
-            todo!()
+            Self::from_rotor(rotor).prepend_scale(scale)
         }
 
         /// For each lane, returns `true` if any element is NaN.
@@ -130,7 +130,7 @@ macro_rules! items {
         where
             Length<N>: Three,
         {
-            todo!()
+            specialize_3!(Matrix::<N, $Wide, A>::to_scale_rotor_backend(self))
         }
 
         /// Returns `true` if the absolute difference of all elements between
@@ -751,6 +751,21 @@ macro_rules! impl_items {
             }
 
             #[inline(always)]
+            fn from_rotor_backend(rotor: Rotor<3, $Wide, A>) -> Self {
+                let bivector = rotor.0.xyz();
+                let bivector_double = bivector + bivector;
+                let [xx, xy, xz] = (bivector_double * rotor.yz).to_array();
+                let [xw, yw, zw] = (bivector_double * rotor.s).to_array();
+                let [yy, yz, zz] = (bivector_double.yzz() * rotor.0.yyz()).to_array();
+
+                Self::from_rows(&[
+                    Vector::<3, $Wide, A>::new($Wide::ONE - (yy + zz), xy + zw, xz - yw),
+                    Vector::<3, $Wide, A>::new(xy - zw, $Wide::ONE - (xx + zz), yz + xw),
+                    Vector::<3, $Wide, A>::new(xz + yw, yz - xw, $Wide::ONE - (xx + yy)),
+                ])
+            }
+
+            #[inline(always)]
             fn is_nan_backend(&self) -> $Wide {
                 self.x_axis.is_nan() | self.y_axis.is_nan() | self.z_axis.is_nan()
             }
@@ -826,6 +841,30 @@ macro_rules! impl_items {
             #[inline(always)]
             fn abs_backend(&self) -> Self {
                 Self::from_rows(&[self.x_axis.abs(), self.y_axis.abs(), self.z_axis.abs()])
+            }
+
+            #[inline(always)]
+            #[expect(clippy::wrong_self_convention)]
+            fn to_scale_rotor_backend(&self) -> (Vector<3, $Wide, A>, Rotor<3, $Wide, A>) {
+                let determinant = self.determinant();
+
+                let scale = Vector::<3, $Wide, A>::new(
+                    self.x_axis.length() * determinant.signum(),
+                    self.y_axis.length(),
+                    self.z_axis.length(),
+                );
+
+                let scale_recip = scale.recip();
+
+                let rotation_matrix = Self::from_rows(&[
+                    self.x_axis * scale_recip.x,
+                    self.y_axis * scale_recip.y,
+                    self.z_axis * scale_recip.z,
+                ]);
+
+                let rotor = Rotor::<3, $Wide, A>::from_matrix(&rotation_matrix);
+
+                (scale, rotor)
             }
 
             #[inline(always)]

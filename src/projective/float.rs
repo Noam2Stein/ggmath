@@ -2,7 +2,7 @@ use crate::{
     Alignment, EulerRot, FloatExt, Length, Matrix, PrimitiveFloat, Projective, Quaternion,
     Rotation2, Rotor, Vector,
     length::{Three, TwoOrThree},
-    utils::{specialize_23, transmute_generic},
+    utils::{specialize_3, specialize_23, transmute_generic},
 };
 
 #[expect(private_bounds)]
@@ -51,11 +51,16 @@ where
     #[must_use]
     #[track_caller]
     #[expect(private_bounds)]
-    pub fn from_rotor(_rotor: Rotor<N, T, A>) -> Self
+    pub fn from_rotor(rotor: Rotor<N, T, A>) -> Self
     where
         Length<N>: Three,
     {
-        todo!()
+        debug_assert!(
+            rotor.is_normalized(),
+            "rotor is not normalized: from_rotor({rotor:?})"
+        );
+
+        specialize_3!(Projective::<N, T, A>::from_rotor_backend(rotor))
     }
 
     /// Creates a projective transform from a non-uniform scale and a rotor.
@@ -71,11 +76,18 @@ where
     #[must_use]
     #[track_caller]
     #[expect(private_bounds)]
-    pub fn from_scale_rotor(_scale: Vector<N, T, A>, _rotor: Rotor<N, T, A>) -> Self
+    pub fn from_scale_rotor(scale: Vector<N, T, A>, rotor: Rotor<N, T, A>) -> Self
     where
         Length<N>: Three,
     {
-        todo!()
+        debug_assert!(
+            rotor.is_normalized(),
+            "rotor is not normalized: from_rotor({rotor:?})"
+        );
+
+        specialize_3!(Projective::<N, T, A>::from_scale_rotor_backend(
+            scale, rotor
+        ))
     }
 
     /// Creates a projective transform from a rotor and translation.
@@ -91,11 +103,19 @@ where
     #[must_use]
     #[track_caller]
     #[expect(private_bounds)]
-    pub fn from_rotor_translation(_rotor: Rotor<N, T, A>, _translation: Vector<N, T, A>) -> Self
+    pub fn from_rotor_translation(rotor: Rotor<N, T, A>, translation: Vector<N, T, A>) -> Self
     where
         Length<N>: Three,
     {
-        todo!()
+        debug_assert!(
+            rotor.is_normalized(),
+            "rotor is not normalized: from_rotor({rotor:?})"
+        );
+
+        specialize_3!(Projective::<N, T, A>::from_rotor_translation_backend(
+            rotor,
+            translation
+        ))
     }
 
     /// Creates a projective transform from a non-uniform scale, a rotor and
@@ -113,14 +133,23 @@ where
     #[track_caller]
     #[expect(private_bounds)]
     pub fn from_scale_rotor_translation(
-        _scale: Vector<N, T, A>,
-        _rotor: Rotor<N, T, A>,
-        _translation: Vector<N, T, A>,
+        scale: Vector<N, T, A>,
+        rotor: Rotor<N, T, A>,
+        translation: Vector<N, T, A>,
     ) -> Self
     where
         Length<N>: Three,
     {
-        todo!()
+        debug_assert!(
+            rotor.is_normalized(),
+            "rotor is not normalized: from_rotor({rotor:?})"
+        );
+
+        specialize_3!(Projective::<N, T, A>::from_scale_rotor_translation_backend(
+            scale,
+            rotor,
+            translation
+        ))
     }
 
     /// Returns `true` if any element is NaN.
@@ -314,7 +343,7 @@ where
     where
         Length<N>: Three,
     {
-        todo!()
+        specialize_3!(Projective::<N, T, A>::to_scale_rotor_backend(self))
     }
 
     /// Converts a projective transform to a non-uniform scale, a rotor and
@@ -335,7 +364,8 @@ where
     where
         Length<N>: Three,
     {
-        todo!()
+        let (scale, rotor) = self.to_scale_rotor();
+        (scale, rotor, self.translation())
     }
 
     /// Returns `true` if the absolute difference of all elements between `self`
@@ -1600,6 +1630,92 @@ where
     }
 
     #[inline(always)]
+    fn from_rotor_backend(rotor: Rotor<3, T, A>) -> Self {
+        let bivector = rotor.0.xyz();
+        let bivector_double = bivector + bivector;
+        let [xx, xy, xz] = (bivector_double * rotor.yz).to_array();
+        let [xw, yw, zw] = (bivector_double * rotor.s).to_array();
+        let [yy, yz, zz] = (bivector_double.yzz() * rotor.0.yyz()).to_array();
+
+        Self::from_rows(&[
+            Vector::<4, T, A>::new(T::ONE, xy, xz, T::ZERO)
+                - Vector::<4, T, A>::new(yy + zz, -zw, yw, T::ZERO),
+            Vector::<4, T, A>::new(xy, T::ONE, yz, T::ZERO)
+                - Vector::<4, T, A>::new(zw, xx + zz, -xw, T::ZERO),
+            Vector::<4, T, A>::new(xz, yz, T::ONE, T::ZERO)
+                - Vector::<4, T, A>::new(-yw, xw, xx + yy, T::ZERO),
+            Vector::<4, T, A>::W,
+        ])
+    }
+
+    #[inline(always)]
+    fn from_scale_rotor_backend(scale: Vector<3, T, A>, rotor: Rotor<3, T, A>) -> Self {
+        let bivector = rotor.0.xyz();
+        let bivector_double = bivector + bivector;
+        let [xx, xy, xz] = (bivector_double * rotor.yz).to_array();
+        let [xw, yw, zw] = (bivector_double * rotor.s).to_array();
+        let [yy, yz, zz] = (bivector_double.yzz() * rotor.0.yyz()).to_array();
+
+        Self::from_rows(&[
+            (Vector::<4, T, A>::new(T::ONE, xy, xz, T::ZERO)
+                - Vector::<4, T, A>::new(yy + zz, -zw, yw, T::ZERO))
+                * scale.x,
+            (Vector::<4, T, A>::new(xy, T::ONE, yz, T::ZERO)
+                - Vector::<4, T, A>::new(zw, xx + zz, -xw, T::ZERO))
+                * scale.y,
+            (Vector::<4, T, A>::new(xz, yz, T::ONE, T::ZERO)
+                - Vector::<4, T, A>::new(-yw, xw, xx + yy, T::ZERO))
+                * scale.z,
+            Vector::<4, T, A>::W,
+        ])
+    }
+
+    #[inline(always)]
+    fn from_rotor_translation_backend(rotor: Rotor<3, T, A>, translation: Vector<3, T, A>) -> Self {
+        let bivector = rotor.0.xyz();
+        let bivector_double = bivector + bivector;
+        let [xx, xy, xz] = (bivector_double * rotor.yz).to_array();
+        let [xw, yw, zw] = (bivector_double * rotor.s).to_array();
+        let [yy, yz, zz] = (bivector_double.yzz() * rotor.0.yyz()).to_array();
+
+        Self::from_rows(&[
+            Vector::<4, T, A>::new(T::ONE, xy, xz, T::ZERO)
+                - Vector::<4, T, A>::new(yy + zz, -zw, yw, T::ZERO),
+            Vector::<4, T, A>::new(xy, T::ONE, yz, T::ZERO)
+                - Vector::<4, T, A>::new(zw, xx + zz, -xw, T::ZERO),
+            Vector::<4, T, A>::new(xz, yz, T::ONE, T::ZERO)
+                - Vector::<4, T, A>::new(-yw, xw, xx + yy, T::ZERO),
+            translation.to_homogeneous(),
+        ])
+    }
+
+    #[inline(always)]
+    fn from_scale_rotor_translation_backend(
+        scale: Vector<3, T, A>,
+        rotor: Rotor<3, T, A>,
+        translation: Vector<3, T, A>,
+    ) -> Self {
+        let bivector = rotor.0.xyz();
+        let bivector_double = bivector + bivector;
+        let [xx, xy, xz] = (bivector_double * rotor.yz).to_array();
+        let [xw, yw, zw] = (bivector_double * rotor.s).to_array();
+        let [yy, yz, zz] = (bivector_double.yzz() * rotor.0.yyz()).to_array();
+
+        Self::from_rows(&[
+            (Vector::<4, T, A>::new(T::ONE, xy, xz, T::ZERO)
+                - Vector::<4, T, A>::new(yy + zz, -zw, yw, T::ZERO))
+                * scale.x,
+            (Vector::<4, T, A>::new(xy, T::ONE, yz, T::ZERO)
+                - Vector::<4, T, A>::new(zw, xx + zz, -xw, T::ZERO))
+                * scale.y,
+            (Vector::<4, T, A>::new(xz, yz, T::ONE, T::ZERO)
+                - Vector::<4, T, A>::new(-yw, xw, xx + yy, T::ZERO))
+                * scale.z,
+            translation.to_homogeneous(),
+        ])
+    }
+
+    #[inline(always)]
     fn is_nan_backend(&self) -> bool {
         self.x_axis.is_nan() || self.y_axis.is_nan() || self.z_axis.is_nan() || self.w_axis.is_nan()
     }
@@ -1670,6 +1786,58 @@ where
     #[inline(always)]
     fn abs_backend(&self) -> Self {
         Self(self.0.abs())
+    }
+
+    #[inline(always)]
+    #[track_caller]
+    #[expect(clippy::wrong_self_convention)]
+    fn to_scale_rotor_backend(&self) -> (Vector<3, T, A>, Rotor<3, T, A>) {
+        debug_assert!(
+            self.column(3)
+                .abs_diff_eq(Vector::<4, T, A>::W, T::as_from(1e-6)),
+            "transform contains projection"
+        );
+
+        let determinant = self
+            .x_axis
+            .truncate()
+            .cross(self.y_axis.truncate())
+            .dot(self.z_axis.truncate());
+
+        let scale = Vector::<3, T, A>::new(
+            self.x_axis.truncate().length() * determinant.signum(),
+            self.y_axis.truncate().length(),
+            self.z_axis.truncate().length(),
+        );
+
+        let scale_recip = scale.recip();
+
+        let rotation_matrix = Matrix::from_rows(&[
+            self.x_axis.truncate() * scale_recip.x,
+            self.y_axis.truncate() * scale_recip.y,
+            self.z_axis.truncate() * scale_recip.z,
+        ]);
+
+        debug_assert!(
+            rotation_matrix
+                .x_axis
+                .dot(rotation_matrix.y_axis)
+                .abs_diff_eq(T::ZERO, T::as_from(1e-4))
+                && rotation_matrix
+                    .x_axis
+                    .dot(rotation_matrix.z_axis)
+                    .abs_diff_eq(T::ZERO, T::as_from(1e-4))
+                && rotation_matrix
+                    .y_axis
+                    .dot(rotation_matrix.z_axis)
+                    .abs_diff_eq(T::ZERO, T::as_from(1e-4))
+                && determinant != T::ZERO,
+            "transform contains shearing or determinant is zero"
+        );
+
+        let rotor = Rotor::<3, T, A>::from_matrix(&rotation_matrix);
+
+        (scale, rotor)
     }
 
     #[inline(always)]

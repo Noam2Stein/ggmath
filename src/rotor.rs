@@ -7,8 +7,9 @@ use core::{
 
 use crate::{
     Aligned, Alignment, Length, One, Scalar, Unaligned, Vector, Zero,
+    backend::RotorBackend,
     length::Three,
-    utils::{transmute_mut, transmute_ref},
+    utils::{specialize_3, transmute_mut, transmute_ref},
 };
 
 // These submodules have empty lines between them so that rustfmt does not
@@ -218,6 +219,26 @@ pub type Rotor3<T> = Rotor<3, T, Unaligned>;
 /// [`rotor.normalize()`]: Rotor#method.normalize
 pub type Rotor3A<T> = Rotor<3, T, Aligned>;
 
+impl<T, A: Alignment> Rotor<3, T, A>
+where
+    T: Scalar,
+{
+    #[inline(always)]
+    #[track_caller]
+    fn vector_mul_backend(vector: Vector<3, T, A>, rhs: Rotor<3, T, A>) -> Vector<3, T, A>
+    where
+        T: Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
+    {
+        let bivector = rhs.0.xyz();
+        let bivector_length = bivector.dot(bivector);
+        let self_dot_bivector = vector.dot(bivector);
+
+        (vector * (rhs.s * rhs.s - bivector_length))
+            + (bivector * (self_dot_bivector + self_dot_bivector))
+            + (bivector.cross(vector) * (rhs.s + rhs.s))
+    }
+}
+
 impl<const N: usize, T, A: Alignment> Clone for Rotor<N, T, A>
 where
     Length<N>: Three,
@@ -301,8 +322,13 @@ where
     T: Scalar + Debug,
 {
     #[inline]
-    fn fmt(&self, _f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        todo!()
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("Rotor3")
+            .field("yz", &self.0.x)
+            .field("zx", &self.0.y)
+            .field("xy", &self.0.z)
+            .field("s", &self.0.w)
+            .finish()
     }
 }
 
@@ -312,8 +338,8 @@ where
     T: Scalar + PartialEq,
 {
     #[inline]
-    fn eq(&self, _other: &Self) -> bool {
-        todo!()
+    fn eq(&self, other: &Self) -> bool {
+        self.0 == other.0
     }
 }
 
@@ -330,8 +356,8 @@ where
     T: Scalar + Hash,
 {
     #[inline]
-    fn hash<H: core::hash::Hasher>(&self, _state: &mut H) {
-        todo!()
+    fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
+        self.0.hash(state);
     }
 }
 
@@ -362,7 +388,7 @@ macro_rules! impl_neg {
             #[inline]
             #[track_caller]
             fn neg(self) -> Self::Output {
-                todo!()
+                Self(-self.0)
             }
         }
 
@@ -403,8 +429,8 @@ macro_rules! impl_add {
             $(#[$doc])*
             #[inline]
             #[track_caller]
-            fn add(self, _rhs: Self) -> Self::Output {
-                todo!()
+            fn add(self, rhs: Self) -> Self::Output {
+                Self(self.0 + rhs.0)
             }
         }
 
@@ -500,8 +526,8 @@ macro_rules! impl_sub {
             $(#[$doc])*
             #[inline]
             #[track_caller]
-            fn sub(self, _rhs: Self) -> Self::Output {
-                todo!()
+            fn sub(self, rhs: Self) -> Self::Output {
+                Self(self.0 - rhs.0)
             }
         }
 
@@ -596,8 +622,8 @@ macro_rules! impl_mul_scalar {
             $(#[$doc])*
             #[inline]
             #[track_caller]
-            fn mul(self, _rhs: T) -> Self::Output {
-                todo!()
+            fn mul(self, rhs: T) -> Self::Output {
+                Self(self.0 * rhs)
             }
         }
 
@@ -692,8 +718,8 @@ macro_rules! impl_vector_mul {
             $(#[$doc])*
             #[inline]
             #[track_caller]
-            fn mul(self, _rhs: Rotor<N, T, A>) -> Self::Output {
-                todo!()
+            fn mul(self, rhs: Rotor<N, T, A>) -> Self::Output {
+                specialize_3!(Rotor::<N, T, A>::vector_mul_backend(self, rhs))
             }
         }
 
@@ -788,8 +814,8 @@ macro_rules! impl_mul {
             $(#[$doc])*
             #[inline]
             #[track_caller]
-            fn mul(self, _rhs: Self) -> Self::Output {
-                todo!()
+            fn mul(self, rhs: Self) -> Self::Output {
+                specialize_3!(<T as RotorBackend<N, A>>::rotor_mul(self, rhs))
             }
         }
 
@@ -882,8 +908,8 @@ macro_rules! impl_div_scalar {
             $(#[$doc])*
             #[inline]
             #[track_caller]
-            fn div(self, _rhs: T) -> Self::Output {
-                todo!()
+            fn div(self, rhs: T) -> Self::Output {
+                Self(self.0 / rhs)
             }
         }
 

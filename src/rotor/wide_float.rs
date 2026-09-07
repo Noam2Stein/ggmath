@@ -1,13 +1,21 @@
 use wide::{f32x4, f32x8, f32x16, f64x2, f64x4, f64x8};
 
 use crate::{
-    Affine, Alignment, EulerRot, Length, Matrix, Projective, Rotor, Vector, length::Three,
+    Affine, Alignment, EulerRot, Length, Matrix, Projective, Rotor, Vector,
+    length::Three,
+    utils::{FloatUtils, specialize_3},
 };
 
 macro_rules! items {
     ($Wide:ident) => {
         /// A rotor with all elements set to NaN (Not a Number).
-        pub const NAN: Self = todo!();
+        pub const NAN: Self = Self::NAN_INTERNAL_IMPL;
+
+        /// The implementation of [`Self::NAN`].
+        ///
+        /// We use this helper constant so that IDEs do not show the
+        /// implementation of the constant.
+        const NAN_INTERNAL_IMPL: Self = Self(Vector::<4, $Wide, A>::NAN);
 
         /// Returns the minimal rotation transforming `from` to `to`.
         ///
@@ -19,8 +27,8 @@ macro_rules! items {
         /// This assumes `from` and `to` are normalized.
         #[inline]
         #[must_use]
-        pub fn from_rotation_arc(_from: Vector<N, $Wide, A>, _to: Vector<N, $Wide, A>) -> Self {
-            todo!()
+        pub fn from_rotation_arc(from: Vector<N, $Wide, A>, to: Vector<N, $Wide, A>) -> Self {
+            specialize_3!(Rotor::<N, $Wide, A>::from_rotation_arc_backend(from, to))
         }
 
         /// Returns the minimal rotation transforming `from` to either `to` or
@@ -36,10 +44,12 @@ macro_rules! items {
         #[inline]
         #[must_use]
         pub fn from_rotation_arc_colinear(
-            _from: Vector<N, $Wide, A>,
-            _to: Vector<N, $Wide, A>,
+            from: Vector<N, $Wide, A>,
+            to: Vector<N, $Wide, A>,
         ) -> Self {
-            todo!()
+            specialize_3!(Rotor::<N, $Wide, A>::from_rotation_arc_colinear_backend(
+                from, to
+            ))
         }
 
         /// Converts a rotation matrix to a rotor.
@@ -47,8 +57,8 @@ macro_rules! items {
         /// This assumes `matrix` only contains rotation.
         #[inline]
         #[must_use]
-        pub fn from_matrix(_matrix: &Matrix<N, $Wide, A>) -> Self {
-            todo!()
+        pub fn from_matrix(matrix: &Matrix<N, $Wide, A>) -> Self {
+            specialize_3!(Rotor::<N, $Wide, A>::from_matrix_backend(matrix))
         }
 
         /// Converts an affine transform with rotation to a rotor.
@@ -57,8 +67,8 @@ macro_rules! items {
         /// is ignored.
         #[inline]
         #[must_use]
-        pub fn from_affine(_affine: &Affine<N, $Wide, A>) -> Self {
-            todo!()
+        pub fn from_affine(affine: &Affine<N, $Wide, A>) -> Self {
+            Self::from_matrix(&affine.matrix)
         }
 
         /// Converts a projective transform with rotation to a rotor.
@@ -67,22 +77,22 @@ macro_rules! items {
         /// which is ignored.
         #[inline]
         #[must_use]
-        pub fn from_projective(_projective: &Projective<N, $Wide, A>) -> Self {
-            todo!()
+        pub fn from_projective(projective: &Projective<N, $Wide, A>) -> Self {
+            specialize_3!(Rotor::<N, $Wide, A>::from_projective_backend(projective))
         }
 
         /// Returns `true` if any element is NaN.
         #[inline]
         #[must_use]
         pub fn is_nan(self) -> $Wide {
-            todo!()
+            self.0.is_nan()
         }
 
         /// Returns `true` if all elements are neither infinite nor NaN.
         #[inline]
         #[must_use]
         pub fn is_finite(self) -> $Wide {
-            todo!()
+            self.0.is_finite()
         }
 
         /// Returns the inverse of a rotor.
@@ -96,7 +106,7 @@ macro_rules! items {
         #[inline]
         #[must_use]
         pub fn inverse(self) -> Self {
-            todo!()
+            self.conjugate()
         }
 
         /// Returns the angle (in radians) for the minimal rotation for
@@ -105,8 +115,9 @@ macro_rules! items {
         /// This assumes `self` and `other` are normalized.
         #[inline]
         #[must_use]
-        pub fn angle_between(self, _other: Self) -> $Wide {
-            todo!()
+        pub fn angle_between(self, other: Self) -> $Wide {
+            let half_angle = self.dot(other).abs().acos_approx();
+            half_angle + half_angle
         }
 
         /// Computes the linear interpolation between two rotors, then
@@ -124,8 +135,10 @@ macro_rules! items {
         /// [`slerp`]: Self::slerp
         #[inline]
         #[must_use]
-        pub fn lerp(self, _other: Self, _t: $Wide) -> Self {
-            todo!()
+        pub fn lerp(self, other: Self, t: $Wide) -> Self {
+            let other = other * self.dot(other).signum();
+
+            (self * ($Wide::ONE - t) + other * t).normalize()
         }
 
         /// Computes the spherical linear interpolation between two rotors.
@@ -137,8 +150,8 @@ macro_rules! items {
         /// This assumes `self` and `other` are normalized.
         #[inline]
         #[must_use]
-        pub fn slerp(self, _other: Self, _t: $Wide) -> Self {
-            todo!()
+        pub fn slerp(self, other: Self, t: $Wide) -> Self {
+            specialize_3!(Rotor::<N, $Wide, A>::slerp_backend(self, other, t))
         }
 
         /// Rotates one rotor towards another by at most `max_angle` (in
@@ -152,22 +165,25 @@ macro_rules! items {
         /// `target`.
         #[inline]
         #[must_use]
-        pub fn rotate_towards(self, _target: Self, _max_angle: $Wide) -> Self {
-            todo!()
+        pub fn rotate_towards(self, target: Self, max_angle: $Wide) -> Self {
+            let angle = self.angle_between(target);
+            let t = (max_angle / angle).clamp(-$Wide::ONE, $Wide::ONE);
+
+            angle.simd_le(1e-4).select(target, self.slerp(target, t))
         }
 
         /// Returns the length/magnitude of `self`.
         #[inline]
         #[must_use]
         pub fn length(self) -> $Wide {
-            todo!()
+            self.0.length()
         }
 
         /// Returns `self` normalized to length `1`.
         #[inline]
         #[must_use]
         pub fn normalize(self) -> Self {
-            todo!()
+            Self(self.0.normalize())
         }
 
         // `try_normalize` is exluded on purpose.
@@ -178,8 +194,8 @@ macro_rules! items {
         /// [`normalize`]: Self::normalize
         #[inline]
         #[must_use]
-        pub fn normalize_or(self, _fallback: Self) -> Self {
-            todo!()
+        pub fn normalize_or(self, fallback: Self) -> Self {
+            Self(self.0.normalize_or(fallback.0))
         }
 
         /// Simultaneously computes [`normalize`] and [`length`].
@@ -192,7 +208,8 @@ macro_rules! items {
         #[inline]
         #[must_use]
         pub fn normalize_and_length(self) -> (Self, $Wide) {
-            todo!()
+            let (normalize, length) = self.0.normalize_and_length();
+            (Self(normalize), length)
         }
 
         /// Returns whether the rotor has the length 1 or not.
@@ -201,7 +218,7 @@ macro_rules! items {
         #[inline]
         #[must_use]
         pub fn is_normalized(self) -> $Wide {
-            todo!()
+            self.0.is_normalized()
         }
 
         /// Returns `true` if the absolute difference of all elements between
@@ -211,8 +228,8 @@ macro_rules! items {
         /// have a slight difference due to operations having rounding errors.
         #[inline]
         #[must_use]
-        pub fn abs_diff_eq(self, _other: Self, _max_abs_diff: $Wide) -> bool {
-            todo!()
+        pub fn abs_diff_eq(self, other: Self, max_abs_diff: $Wide) -> bool {
+            self.0.abs_diff_eq(other.0, max_abs_diff)
         }
     };
 }
@@ -222,22 +239,28 @@ macro_rules! items_3 {
         /// Creates a rotor from an `angle` (in radians) rotating `+X` to `+Y`.
         #[inline]
         #[must_use]
-        pub fn from_rotation_xy(_angle: $Wide) -> Self {
-            todo!()
+        pub fn from_rotation_xy(angle: $Wide) -> Self {
+            let half_angle = angle * $Wide::HALF;
+            let (xy, s) = half_angle.sin_cos();
+            Self::from_elements($Wide::ZERO, $Wide::ZERO, xy, s)
         }
 
         /// Creates a rotor from an `angle` (in radians) rotating `+X` to `+Z`.
         #[inline]
         #[must_use]
-        pub fn from_rotation_xz(_angle: $Wide) -> Self {
-            todo!()
+        pub fn from_rotation_xz(angle: $Wide) -> Self {
+            let half_angle = angle * $Wide::HALF;
+            let (xz, s) = half_angle.sin_cos();
+            Self::from_elements($Wide::ZERO, -xz, $Wide::ZERO, s)
         }
 
         /// Creates a rotor from an `angle` (in radians) rotating `+Y` to `+Z`.
         #[inline]
         #[must_use]
-        pub fn from_rotation_yz(_angle: $Wide) -> Self {
-            todo!()
+        pub fn from_rotation_yz(angle: $Wide) -> Self {
+            let half_angle = angle * $Wide::HALF;
+            let (yz, s) = half_angle.sin_cos();
+            Self::from_elements(yz, $Wide::ZERO, $Wide::ZERO, s)
         }
 
         /// Creates a rotor from a rotation `axis` and `angle` (in radians),
@@ -246,24 +269,86 @@ macro_rules! items_3 {
         /// This assumes `axis` is normalized.
         #[inline]
         #[must_use]
-        pub fn from_axis_angle(_axis: Vector<3, $Wide, A>, _angle: $Wide) -> Self {
-            todo!()
+        pub fn from_axis_angle(axis: Vector<3, $Wide, A>, angle: $Wide) -> Self {
+            let half_angle = angle * $Wide::HALF;
+            let (sin, s) = half_angle.sin_cos();
+            Self((axis * sin).extend(s))
         }
 
         /// Creates a rotor that rotates `scaled_axis.length()` radians around
         /// `scaled_axis.normalize()`, using the right-hand rule.
         #[inline]
         #[must_use]
-        pub fn from_scaled_axis(_scaled_axis: Vector<3, $Wide, A>) -> Self {
-            todo!()
+        pub fn from_scaled_axis(scaled_axis: Vector<3, $Wide, A>) -> Self {
+            let (axis, angle) = scaled_axis.normalize_and_length();
+            let half_angle = angle * $Wide::HALF;
+            let (sin, s) = half_angle.sin_cos();
+            let [yz, zx, xy] = (axis * sin).to_array();
+
+            let angle_is_not_zero = angle.simd_ne($Wide::ZERO);
+            Self::from_elements(
+                yz & angle_is_not_zero,
+                zx & angle_is_not_zero,
+                xy & angle_is_not_zero,
+                angle_is_not_zero.select(s, $Wide::ONE),
+            )
         }
 
         /// Creates a rotor from an Euler rotation order/sequence and angles (in
         /// radians).
         #[inline]
         #[must_use]
-        pub fn from_euler(_order: EulerRot, _a: $Wide, _b: $Wide, _c: $Wide) -> Self {
-            todo!()
+        pub fn from_euler(order: EulerRot, a: $Wide, b: $Wide, c: $Wide) -> Self {
+            // Ported from https://github.com/bitshifter/glam-rs.
+
+            // Based on Ken Shoemake. 1994. Euler angle conversion. Graphics gems IV.
+            // Academic Press Professional, Inc., USA, 222–229.
+
+            let order = order.properties();
+            let (i, j, k) = order.axes_indices();
+
+            let mut angles = if order.frame_static {
+                Vector::<3, $Wide, A>::new(a, b, c)
+            } else {
+                Vector::<3, $Wide, A>::new(c, b, a)
+            };
+
+            if order.parity_even {
+                angles.y = -angles.y;
+            }
+
+            let ti = angles.x * $Wide::HALF;
+            let tj = angles.y * $Wide::HALF;
+            let th = angles.z * $Wide::HALF;
+            let (si, ci) = ti.sin_cos();
+            let (sj, cj) = tj.sin_cos();
+            let (sh, ch) = th.sin_cos();
+            let cc = ci * ch;
+            let cs = ci * sh;
+            let sc = si * ch;
+            let ss = si * sh;
+
+            let parity = if order.parity_even {
+                -$Wide::ONE
+            } else {
+                $Wide::ONE
+            };
+
+            let mut result = Vector::ZERO;
+
+            if order.initial_repeated {
+                result[i] = cj * (cs + sc);
+                result[j] = sj * (cc + ss) * parity;
+                result[k] = sj * (cs - sc);
+                result[3] = cj * (cc - ss);
+            } else {
+                result[i] = cj * sc - sj * cs;
+                result[j] = (cj * ss + sj * cc) * parity;
+                result[k] = cj * cs - sj * sc;
+                result[3] = cj * cc + sj * ss;
+            }
+
+            Self(result)
         }
 
         /// Creates a 3D rotor from a facing direction and an up direction.
@@ -272,8 +357,8 @@ macro_rules! items_3 {
         /// and `+Z=forward`.
         #[inline]
         #[must_use]
-        pub fn look_to_lh(_dir: Vector<3, $Wide, A>, _up: Vector<3, $Wide, A>) -> Self {
-            todo!()
+        pub fn look_to_lh(dir: Vector<3, $Wide, A>, up: Vector<3, $Wide, A>) -> Self {
+            Self::from_matrix(&Matrix::<3, $Wide, A>::look_to_lh(dir, up))
         }
 
         /// Creates a 3D rotor from a facing direction and an up direction.
@@ -282,8 +367,8 @@ macro_rules! items_3 {
         /// and `+Z=back`.
         #[inline]
         #[must_use]
-        pub fn look_to_rh(_dir: Vector<3, $Wide, A>, _up: Vector<3, $Wide, A>) -> Self {
-            todo!()
+        pub fn look_to_rh(dir: Vector<3, $Wide, A>, up: Vector<3, $Wide, A>) -> Self {
+            Self::from_matrix(&Matrix::<3, $Wide, A>::look_to_rh(dir, up))
         }
 
         /// Creates a 3D rotor from a camera position, a focal point and an up
@@ -294,11 +379,11 @@ macro_rules! items_3 {
         #[inline]
         #[must_use]
         pub fn look_at_lh(
-            _eye: Vector<3, $Wide, A>,
-            _center: Vector<3, $Wide, A>,
-            _up: Vector<3, $Wide, A>,
+            eye: Vector<3, $Wide, A>,
+            center: Vector<3, $Wide, A>,
+            up: Vector<3, $Wide, A>,
         ) -> Self {
-            todo!()
+            Self::from_matrix(&Matrix::<3, $Wide, A>::look_at_lh(eye, center, up))
         }
 
         /// Creates a 3D rotor from a camera position, a focal point and an up
@@ -309,11 +394,11 @@ macro_rules! items_3 {
         #[inline]
         #[must_use]
         pub fn look_at_rh(
-            _eye: Vector<3, $Wide, A>,
-            _center: Vector<3, $Wide, A>,
-            _up: Vector<3, $Wide, A>,
+            eye: Vector<3, $Wide, A>,
+            center: Vector<3, $Wide, A>,
+            up: Vector<3, $Wide, A>,
         ) -> Self {
-            todo!()
+            Self::from_matrix(&Matrix::<3, $Wide, A>::look_at_rh(eye, center, up))
         }
 
         /// Converts the rotor `self` to a normalized rotation axis and an angle
@@ -321,7 +406,21 @@ macro_rules! items_3 {
         #[inline]
         #[must_use]
         pub fn to_axis_angle(self) -> (Vector<3, $Wide, A>, $Wide) {
-            todo!()
+            let bivector = self.0.xyz();
+            let (axis, sin) = bivector.normalize_and_length();
+
+            let half_angle = sin.atan2(self.s);
+            let angle = half_angle + half_angle;
+
+            let angle_is_not_zero = sin.simd_ge(1e-8);
+            (
+                Vector::<3, $Wide, A>::new(
+                    angle_is_not_zero.select(axis.x, $Wide::ONE),
+                    axis.y & angle_is_not_zero,
+                    axis.z & angle_is_not_zero,
+                ),
+                angle & angle_is_not_zero,
+            )
         }
 
         // Converts the rotor `self` to a rotation axis scaled by an angle (in
@@ -329,15 +428,22 @@ macro_rules! items_3 {
         #[inline]
         #[must_use]
         pub fn to_scaled_axis(self) -> Vector<3, $Wide, A> {
-            todo!()
+            let bivector = self.0.xyz();
+            let (axis, sin) = bivector.normalize_and_length();
+
+            let half_angle = sin.atan2(self.s);
+            let angle = half_angle + half_angle;
+
+            let angle_is_not_zero = sin.simd_ge(1e-8);
+            (axis * angle) & angle_is_not_zero
         }
 
         /// Returns the Euler angles forming `self` for the given Euler rotation
         /// order/sequence.
         #[inline]
         #[must_use]
-        pub fn to_euler(self, _order: EulerRot) -> ($Wide, $Wide, $Wide) {
-            todo!()
+        pub fn to_euler(self, order: EulerRot) -> ($Wide, $Wide, $Wide) {
+            Matrix::<3, $Wide, A>::from_rotor(self).to_euler(order)
         }
     };
 }
@@ -405,6 +511,219 @@ macro_rules! impl_items {
         #[cfg(not(doc))]
         impl<A: Alignment> Rotor<3, $Wide, A> {
             items_3!($Wide);
+
+            #[inline(always)]
+            fn from_rotation_arc_backend(
+                from: Vector<3, $Wide, A>,
+                to: Vector<3, $Wide, A>,
+            ) -> Self {
+                // Based on https://github.com/bitshifter/glam-rs
+
+                let almost_one = $Wide::ONE - 2.0 * $Wide::EPSILON;
+
+                let dot = from.dot(to);
+                let angle_is_not_zero = dot.simd_lt(almost_one);
+                let angle_is_180 = dot.simd_lt(-almost_one);
+
+                angle_is_180.select(
+                    {
+                        // 180° singularity: from ≈ -to.
+                        // Half a turn = 𝛕/2 = 180°.
+
+                        // Construct any rotation plane parallel to `from`
+                        let sign = from.z.signum();
+                        let tmp = -$Wide::ONE / (sign + from.z);
+                        let yz = from.x * from.y * tmp;
+                        let zx = sign + from.y * from.y * tmp;
+                        let xy = -from.y;
+
+                        // sin(angle/2) = sin(𝛕/4) = 1
+                        // cos(angle/2) = cos(𝛕/4) = 0
+                        Self::from_elements(yz, zx, xy, $Wide::ZERO)
+                    },
+                    Self::from_elements(
+                        (from.y * to.z - from.z * to.y) & angle_is_not_zero,
+                        (from.z * to.x - from.x * to.z) & angle_is_not_zero,
+                        (from.x * to.y - from.y * to.x) & angle_is_not_zero,
+                        $Wide::ONE + (dot & angle_is_not_zero),
+                    )
+                    .normalize(),
+                )
+            }
+
+            #[inline(always)]
+            fn from_rotation_arc_colinear_backend(
+                from: Vector<3, $Wide, A>,
+                to: Vector<3, $Wide, A>,
+            ) -> Self {
+                // Ported from https://github.com/bitshifter/glam-rs
+
+                let almost_one = $Wide::ONE - 2.0 * $Wide::EPSILON;
+
+                let dot = from.dot(to);
+                let dot_signbit = dot & -0.0;
+                let dot = dot ^ dot_signbit;
+                let to = to ^ dot_signbit;
+
+                let angle_is_not_zero = dot.simd_lt(almost_one);
+
+                // If `not_singularity` is false, meaning there is singularity,
+                // we return `IDENTITY`
+                Self::from_elements(
+                    (from.y * to.z - from.z * to.y) & angle_is_not_zero,
+                    (from.z * to.x - from.x * to.z) & angle_is_not_zero,
+                    (from.x * to.y - from.y * to.x) & angle_is_not_zero,
+                    $Wide::ONE + (dot & angle_is_not_zero),
+                )
+                .normalize()
+            }
+
+            #[inline(always)]
+            fn from_matrix_backend(matrix: &Matrix<3, $Wide, A>) -> Self {
+                // Ported from https://github.com/bitshifter/glam-rs `Quat::from_rotation_axes`
+                // Based on https://github.com/microsoft/DirectXMath `XMQuaternionRotationMatrix`
+
+                let [m00, m01, m02] = matrix.x_axis.to_array();
+                let [m10, m11, m12] = matrix.y_axis.to_array();
+                let [m20, m21, m22] = matrix.z_axis.to_array();
+
+                // x^2 + y^2 >= z^2 + w^2
+                let dif10 = m11 - m00;
+                let omm22 = $Wide::ONE - m22;
+                // z^2 + w^2 >= x^2 + y^2
+                let sum10 = m11 + m00;
+                let opm22 = $Wide::ONE + m22;
+                // x^2 >= y^2
+                let four_xsq = omm22 - dif10;
+                let inv4x = $Wide::HALF / four_xsq.sqrt();
+                // y^2 >= x^2
+                let four_ysq = omm22 + dif10;
+                let inv4y = $Wide::HALF / four_ysq.sqrt();
+                // z^2 >= w^2
+                let four_zsq = opm22 - sum10;
+                let inv4z = $Wide::HALF / four_zsq.sqrt();
+                // w^2 >= z^2
+                let four_wsq = opm22 + sum10;
+                let inv4w = $Wide::HALF / four_wsq.sqrt();
+
+                m22.simd_le($Wide::ZERO).select(
+                    dif10.simd_le($Wide::ZERO).select(
+                        Self::from_elements(
+                            four_xsq * inv4x,
+                            (m01 + m10) * inv4x,
+                            (m02 + m20) * inv4x,
+                            (m12 - m21) * inv4x,
+                        ),
+                        Self::from_elements(
+                            (m01 + m10) * inv4y,
+                            four_ysq * inv4y,
+                            (m12 + m21) * inv4y,
+                            (m20 - m02) * inv4y,
+                        ),
+                    ),
+                    sum10.simd_le($Wide::ZERO).select(
+                        Self::from_elements(
+                            (m02 + m20) * inv4z,
+                            (m12 + m21) * inv4z,
+                            four_zsq * inv4z,
+                            (m01 - m10) * inv4z,
+                        ),
+                        Self::from_elements(
+                            (m12 - m21) * inv4w,
+                            (m20 - m02) * inv4w,
+                            (m01 - m10) * inv4w,
+                            four_wsq * inv4w,
+                        ),
+                    ),
+                )
+            }
+
+            #[inline(always)]
+            fn from_projective_backend(projective: &Projective<3, $Wide, A>) -> Self {
+                // Ported from https://github.com/bitshifter/glam-rs `Quat::from_rotation_axes`
+                // Based on https://github.com/microsoft/DirectXMath `XMQuaternionRotationMatrix`
+
+                let [m00, m01, m02, _] = projective.x_axis.to_array();
+                let [m10, m11, m12, _] = projective.y_axis.to_array();
+                let [m20, m21, m22, _] = projective.z_axis.to_array();
+
+                // x^2 + y^2 >= z^2 + w^2
+                let dif10 = m11 - m00;
+                let omm22 = $Wide::ONE - m22;
+                // z^2 + w^2 >= x^2 + y^2
+                let sum10 = m11 + m00;
+                let opm22 = $Wide::ONE + m22;
+                // x^2 >= y^2
+                let four_xsq = omm22 - dif10;
+                let inv4x = $Wide::HALF / four_xsq.sqrt();
+                // y^2 >= x^2
+                let four_ysq = omm22 + dif10;
+                let inv4y = $Wide::HALF / four_ysq.sqrt();
+                // z^2 >= w^2
+                let four_zsq = opm22 - sum10;
+                let inv4z = $Wide::HALF / four_zsq.sqrt();
+                // w^2 >= z^2
+                let four_wsq = opm22 + sum10;
+                let inv4w = $Wide::HALF / four_wsq.sqrt();
+
+                m22.simd_le($Wide::ZERO).select(
+                    dif10.simd_le($Wide::ZERO).select(
+                        Self::from_elements(
+                            four_xsq * inv4x,
+                            (m01 + m10) * inv4x,
+                            (m02 + m20) * inv4x,
+                            (m12 - m21) * inv4x,
+                        ),
+                        Self::from_elements(
+                            (m01 + m10) * inv4y,
+                            four_ysq * inv4y,
+                            (m12 + m21) * inv4y,
+                            (m20 - m02) * inv4y,
+                        ),
+                    ),
+                    sum10.simd_le($Wide::ZERO).select(
+                        Self::from_elements(
+                            (m02 + m20) * inv4z,
+                            (m12 + m21) * inv4z,
+                            four_zsq * inv4z,
+                            (m01 - m10) * inv4z,
+                        ),
+                        Self::from_elements(
+                            (m12 - m21) * inv4w,
+                            (m20 - m02) * inv4w,
+                            (m01 - m10) * inv4w,
+                            four_wsq * inv4w,
+                        ),
+                    ),
+                )
+            }
+
+            #[inline(always)]
+            fn slerp_backend(self, other: Self, t: $Wide) -> Self {
+                // Ported from https://github.com/bitshifter/glam-rs
+                // See http://number-none.com/product/Understanding%20Slerp,%20Then%20Not%20Using%20It/
+
+                // Note that a rotation can be represented by two rotors: `r` and `-r`.
+                // The slerp path between `r` and `other` will be different from the
+                // path between `-r` and `other`. One path will take the long way around
+                // and one will take the short way. In order to correct for this, the
+                // `dot` product between `self` and `other` should be positive. If the
+                // `dot` product is negative, slerp between `self` and `-other`.
+                let dot = self.dot(other);
+                let dot_signbit = dot & -0.0;
+                let dot = dot ^ dot_signbit;
+                let other = Self(other.0 ^ dot_signbit);
+
+                let half_angle = dot.acos_approx();
+                let one_minus_t = $Wide::ONE - t;
+                let angle_is_tiny = dot.simd_gt($Wide::ONE - $Wide::EPSILON);
+
+                let self_factor =
+                    angle_is_tiny.select(one_minus_t, (one_minus_t * half_angle).sin());
+                let other_factor = angle_is_tiny.select(t, (t * half_angle).sin());
+
+                (self * self_factor + other * other_factor).normalize()
+            }
         }
     };
 }

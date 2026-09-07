@@ -1,7 +1,8 @@
 use core::ops::{Add, Mul, Neg};
 
 use crate::{
-    Aligned, Alignment, Length, One, Rotor, Scalar, Unaligned, Vector, Zero, length::Three,
+    Aligned, Alignment, Length, One, Rotor, Scalar, Unaligned, Vector, Zero, backend::RotorBackend,
+    length::Three, utils::specialize_3,
 };
 
 #[expect(private_bounds)]
@@ -13,7 +14,13 @@ where
     /// A rotor that keeps all vectors unchanged.
     ///
     /// This sets `s` to 1 and all other elements to 0.
-    pub const IDENTITY: Self = todo!();
+    pub const IDENTITY: Self = Self::IDENTITY_INTERNAL_IMPL;
+
+    /// The implementation of [`Self::IDENTITY`].
+    ///
+    /// We use this helper constant so that IDEs do not show the implementation
+    /// of the constant.
+    const IDENTITY_INTERNAL_IMPL: Self = Self(Vector::<4, T, A>::W);
 }
 
 #[expect(private_bounds)]
@@ -35,18 +42,18 @@ where
     where
         T: Neg<Output = T>,
     {
-        todo!()
+        specialize_3!(<T as RotorBackend<N, A>>::rotor_conjugate(self))
     }
 
     /// Computes the dot product of two rotors.
     #[inline]
     #[must_use]
     #[track_caller]
-    pub fn dot(self, _rhs: Self) -> T
+    pub fn dot(self, rhs: Self) -> T
     where
         T: Add<Output = T> + Mul<Output = T>,
     {
-        todo!()
+        self.0.dot(rhs.0)
     }
 
     /// Computes the squared length/magnitude of a rotor.
@@ -57,7 +64,7 @@ where
     where
         T: Add<Output = T> + Mul<Output = T>,
     {
-        todo!()
+        self.0.length_squared()
     }
 
     /// Conversion between [`Aligned`] and [`Unaligned`] storage.
@@ -72,7 +79,7 @@ where
     #[inline]
     #[must_use]
     pub const fn to_alignment<A2: Alignment>(self) -> Rotor<N, T, A2> {
-        todo!()
+        Rotor(self.0.to_alignment())
     }
 
     /// Conversion to [`Aligned`] storage.

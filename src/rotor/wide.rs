@@ -1,6 +1,6 @@
 use wide::Select;
 
-use crate::{Alignment, Length, Rotor, Scalar, length::Three, utils::WideTy};
+use crate::{Alignment, Length, Rotor, Scalar, Vector, length::Three, utils::WideTy};
 
 /// Functionality for [SoA] (Structure of Arrays) rotors.
 ///
@@ -45,8 +45,8 @@ where
     /// ```
     #[inline]
     #[must_use]
-    pub fn from_lanes(_lanes: &[Rotor<N, T, A>; LANES]) -> Self {
-        todo!()
+    pub fn from_lanes(lanes: &[Rotor<N, T, A>; LANES]) -> Self {
+        Self(Vector::<4, Wide, A>::from_lane_fn(|lane| lanes[lane].0))
     }
 
     /// Creates an SoA (Structure of Arrays) rotor by calling function `f` for
@@ -77,11 +77,11 @@ where
     #[inline]
     #[must_use]
     #[track_caller]
-    pub fn from_lane_fn<F>(_f: F) -> Self
+    pub fn from_lane_fn<F>(f: F) -> Self
     where
         F: FnMut(usize) -> Rotor<N, T, A>,
     {
-        todo!()
+        Self::from_lanes(&core::array::from_fn(f))
     }
 
     /// Converts an SoA (Structure of Arrays) rotor to an array of regular,
@@ -112,7 +112,7 @@ where
     #[inline]
     #[must_use]
     pub fn to_lanes(&self) -> [Rotor<N, T, A>; LANES] {
-        todo!()
+        core::array::from_fn(|lane| self.lane(lane))
     }
 
     /// Takes an SoA (Structure of Arrays) rotor transform and returns the
@@ -142,8 +142,8 @@ where
     #[inline]
     #[must_use]
     #[track_caller]
-    pub fn lane(&self, _lane: usize) -> Rotor<N, T, A> {
-        todo!()
+    pub fn lane(&self, lane: usize) -> Rotor<N, T, A> {
+        Rotor(self.0.lane(lane))
     }
 
     /// Takes an SoA (Structure of Arrays) rotor and sets the lane at the given
@@ -179,8 +179,8 @@ where
     /// ```
     #[inline]
     #[track_caller]
-    pub fn set_lane(&mut self, _lane: usize, _value: Rotor<N, T, A>) {
-        todo!()
+    pub fn set_lane(&mut self, lane: usize, value: Rotor<N, T, A>) {
+        self.0.set_lane(lane, value.0);
     }
 
     /// For each lane, returns `true` if `self` is equal to `other`.
@@ -189,8 +189,8 @@ where
     /// `(self.lane(0) == other.lane(0), self.lane(1) == other.lane(1), ...)`.
     #[inline]
     #[must_use]
-    pub fn simd_eq(&self, _other: &Self) -> Wide {
-        todo!()
+    pub fn simd_eq(&self, other: &Self) -> Wide {
+        self.0.simd_eq(other.0)
     }
 
     /// For each lane, returns `true` if `self` is not equal to `other`.
@@ -199,8 +199,8 @@ where
     /// `(self.lane(0) != other.lane(0), self.lane(1) != other.lane(1), ...)`.
     #[inline]
     #[must_use]
-    pub fn simd_ne(&self, _other: &Self) -> Wide {
-        todo!()
+    pub fn simd_ne(&self, other: &Self) -> Wide {
+        self.0.simd_ne(other.0)
     }
 }
 
@@ -217,10 +217,10 @@ macro_rules! impl_select {
             #[inline]
             fn select(
                 self,
-                _if_true: Rotor<N, Wide, A>,
-                _if_false: Rotor<N, Wide, A>,
+                if_true: Rotor<N, Wide, A>,
+                if_false: Rotor<N, Wide, A>,
             ) -> Rotor<N, Wide, A> {
-                todo!()
+                Rotor(self.select::<Vector<4, Wide, A>>(if_true.0, if_false.0))
             }
         }
     };

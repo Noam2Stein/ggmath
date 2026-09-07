@@ -2,7 +2,8 @@ use core::ops::{Add, BitAnd, BitOr, BitXor, Div, Mul, Neg, Not, Rem, Shl, Shr, S
 
 use crate::{
     Aligned, Alignment, Length, Mask, PrimitiveFloat, PrimitiveInteger, PrimitiveSigned,
-    Quaternion, Scalar, SupportedLength, Unaligned, Vector,
+    Quaternion, Rotor, Scalar, SupportedLength, Unaligned, Vector,
+    length::Three,
     utils::{Repr2, Repr3, Repr4},
 };
 
@@ -174,6 +175,25 @@ pub(crate) unsafe trait AffineBackend<const N: usize, A: Alignment> {
 pub(crate) trait QuaternionBackend<A: Alignment> {
     #[track_caller]
     fn quat_mul(quat: Quaternion<Self, A>, rhs: Quaternion<Self, A>) -> Quaternion<Self, A>
+    where
+        Self: Scalar
+            + Neg<Output = Self>
+            + Add<Output = Self>
+            + Sub<Output = Self>
+            + Mul<Output = Self>;
+}
+
+pub(crate) trait RotorBackend<const N: usize, A: Alignment>
+where
+    Length<N>: Three,
+{
+    #[track_caller]
+    fn rotor_conjugate(rotor: Rotor<N, Self, A>) -> Rotor<N, Self, A>
+    where
+        Self: Scalar + Neg<Output = Self>;
+
+    #[track_caller]
+    fn rotor_mul(rotor: Rotor<N, Self, A>, rhs: Rotor<N, Self, A>) -> Rotor<N, Self, A>
     where
         Self: Scalar
             + Neg<Output = Self>
@@ -1167,6 +1187,35 @@ where
             y0 * w1 - z0 * x1 + w0 * y1 + x0 * z1,
             z0 * w1 + y0 * x1 - x0 * y1 + w0 * z1,
             w0 * w1 - x0 * x1 - y0 * y1 - z0 * z1,
+        )
+    }
+}
+
+impl<T, A: Alignment> RotorBackend<3, A> for T
+where
+    T: DefaultBackend<4, A>,
+{
+    #[inline]
+    fn rotor_conjugate(rotor: Rotor<3, Self, A>) -> Rotor<3, Self, A>
+    where
+        Self: Scalar + Neg<Output = Self>,
+    {
+        Rotor::from_elements(-rotor.yz, -rotor.zx, -rotor.xy, rotor.s)
+    }
+
+    #[inline]
+    fn rotor_mul(rotor: Rotor<3, Self, A>, rhs: Rotor<3, Self, A>) -> Rotor<3, Self, A>
+    where
+        Self: Neg<Output = Self> + Add<Output = Self> + Sub<Output = Self> + Mul<Output = Self>,
+    {
+        let [yz0, zx0, xy0, s0] = rotor.to_array();
+        let [yz1, zx1, xy1, s1] = rhs.to_array();
+
+        Rotor::<3, Self, A>::from_elements(
+            yz0 * s1 + s0 * yz1 + xy0 * zx1 - zx0 * xy1,
+            zx0 * s1 - xy0 * yz1 + s0 * zx1 + yz0 * xy1,
+            xy0 * s1 + zx0 * yz1 - yz0 * zx1 + s0 * xy1,
+            s0 * s1 - yz0 * yz1 - zx0 * zx1 - xy0 * xy1,
         )
     }
 }

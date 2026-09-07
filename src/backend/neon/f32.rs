@@ -3,9 +3,12 @@ use core::{arch::aarch64::*, mem::transmute};
 #[allow(unused_imports, reason = "rustc incorrectly thinks this is unused")]
 use crate::utils::PrimitiveFloatUtils;
 use crate::{
-    Aligned, Mask, Mask3A, Mask4A, QuatA, Quaternion, Vec3A, Vec4A, Vector,
-    backend::{AffineBackend, FloatVectorBackend, MaskBackend, QuaternionBackend, VectorBackend},
-    utils::{Repr4, safe_target_feature},
+    Aligned, Mask, Mask3A, Mask4A, QuatA, Quaternion, Rotor, Rotor3A, Vec3A, Vec4A, Vector,
+    backend::{
+        AffineBackend, FloatVectorBackend, MaskBackend, QuaternionBackend, RotorBackend,
+        VectorBackend,
+    },
+    utils::safe_target_feature,
 };
 
 // `Self::Inner` follows its requirements.
@@ -291,6 +294,35 @@ impl QuaternionBackend<Aligned> for f32 {
                 )
                 + Vec4A::<f32>::from_bits(
                     NPPN.to_bits() ^ (quat.0.yxwz() * rhs.0.zzzz()).to_bits(),
+                ),
+        )
+    }
+}
+
+impl RotorBackend<3, Aligned> for f32 {
+    #[inline]
+    fn rotor_conjugate(rotor: Rotor3A<f32>) -> Rotor3A<f32> {
+        const SIGNS: Vec4A<u32> = Vec4A::<f32>::new(-0.0, -0.0, -0.0, 0.0).to_bits();
+
+        Rotor3A::from_vector(Vec4A::<f32>::from_bits(rotor.0.to_bits() ^ SIGNS))
+    }
+
+    #[inline]
+    fn rotor_mul(rotor: Rotor3A<f32>, rhs: Rotor3A<f32>) -> Rotor3A<f32> {
+        const PNPN: Vec4A<f32> = Vec4A::new(0.0, -0.0, 0.0, -0.0);
+        const PPNN: Vec4A<f32> = Vec4A::new(0.0, 0.0, -0.0, -0.0);
+        const NPPN: Vec4A<f32> = Vec4A::new(-0.0, 0.0, 0.0, -0.0);
+
+        Rotor(
+            rotor.0 * rhs.0.wwww()
+                + Vec4A::<f32>::from_bits(
+                    PNPN.to_bits() ^ (rotor.0.wzyx() * rhs.0.xxxx()).to_bits(),
+                )
+                + Vec4A::<f32>::from_bits(
+                    PPNN.to_bits() ^ (rotor.0.zwxy() * rhs.0.yyyy()).to_bits(),
+                )
+                + Vec4A::<f32>::from_bits(
+                    NPPN.to_bits() ^ (rotor.0.yxwz() * rhs.0.zzzz()).to_bits(),
                 ),
         )
     }

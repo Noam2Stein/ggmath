@@ -69,11 +69,11 @@ where
     #[must_use]
     #[track_caller]
     #[expect(private_bounds)]
-    pub fn from_rotor(_rotor: Rotor<N, T, A>) -> Self
+    pub fn from_rotor(rotor: Rotor<N, T, A>) -> Self
     where
         Length<N>: Three,
     {
-        todo!()
+        Self::from_matrix(&Matrix::<N, T, A>::from_rotor(rotor))
     }
 
     /// Creates an affine transform from a non-uniform scale and a rotor.
@@ -89,11 +89,11 @@ where
     #[must_use]
     #[track_caller]
     #[expect(private_bounds)]
-    pub fn from_scale_rotor(_scale: Vector<N, T, A>, _rotor: Rotor<N, T, A>) -> Self
+    pub fn from_scale_rotor(scale: Vector<N, T, A>, rotor: Rotor<N, T, A>) -> Self
     where
         Length<N>: Three,
     {
-        todo!()
+        Self::from_matrix(&Matrix::<N, T, A>::from_scale_rotor(scale, rotor))
     }
 
     /// Creates an affine transform from a rotor and translation.
@@ -109,11 +109,11 @@ where
     #[must_use]
     #[track_caller]
     #[expect(private_bounds)]
-    pub fn from_rotor_translation(_rotor: Rotor<N, T, A>, _translation: Vector<N, T, A>) -> Self
+    pub fn from_rotor_translation(rotor: Rotor<N, T, A>, translation: Vector<N, T, A>) -> Self
     where
         Length<N>: Three,
     {
-        todo!()
+        Self::from_matrix_translation(&Matrix::<N, T, A>::from_rotor(rotor), translation)
     }
 
     /// Creates an affine transform from a non-uniform scale, a rotor and
@@ -131,14 +131,17 @@ where
     #[track_caller]
     #[expect(private_bounds)]
     pub fn from_scale_rotor_translation(
-        _scale: Vector<N, T, A>,
-        _rotor: Rotor<N, T, A>,
-        _translation: Vector<N, T, A>,
+        scale: Vector<N, T, A>,
+        rotor: Rotor<N, T, A>,
+        translation: Vector<N, T, A>,
     ) -> Self
     where
         Length<N>: Three,
     {
-        todo!()
+        Self::from_matrix_translation(
+            &Matrix::<N, T, A>::from_scale_rotor(scale, rotor),
+            translation,
+        )
     }
 
     /// Returns `true` if any element is NaN.
@@ -257,7 +260,7 @@ where
     where
         Length<N>: Three,
     {
-        todo!()
+        self.matrix.to_scale_rotor()
     }
 
     /// Converts an affine transform to a non-uniform scale, a rotor and
@@ -278,7 +281,8 @@ where
     where
         Length<N>: Three,
     {
-        todo!()
+        let (scale, rotor) = self.to_scale_rotor();
+        (scale, rotor, self.translation)
     }
 
     /// Returns `true` if the absolute difference of all elements between `self`

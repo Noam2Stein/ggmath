@@ -33,11 +33,11 @@ macro_rules! items {
         #[inline]
         #[must_use]
         #[expect(private_bounds)]
-        pub fn from_rotor(_rotor: Rotor<N, $Wide, A>) -> Self
+        pub fn from_rotor(rotor: Rotor<N, $Wide, A>) -> Self
         where
             Length<N>: Three,
         {
-            todo!()
+            Self::from_matrix(&Matrix::<N, $Wide, A>::from_rotor(rotor))
         }
 
         /// Creates an affine transform from a non-uniform scale and a rotor.
@@ -46,11 +46,11 @@ macro_rules! items {
         #[inline]
         #[must_use]
         #[expect(private_bounds)]
-        pub fn from_scale_rotor(_scale: Vector<N, $Wide, A>, _rotor: Rotor<N, $Wide, A>) -> Self
+        pub fn from_scale_rotor(scale: Vector<N, $Wide, A>, rotor: Rotor<N, $Wide, A>) -> Self
         where
             Length<N>: Three,
         {
-            todo!()
+            Self::from_matrix(&Matrix::<N, $Wide, A>::from_scale_rotor(scale, rotor))
         }
 
         /// Creates an affine transform from a rotor and translation.
@@ -60,13 +60,13 @@ macro_rules! items {
         #[must_use]
         #[expect(private_bounds)]
         pub fn from_rotor_translation(
-            _rotor: Rotor<N, $Wide, A>,
-            _translation: Vector<N, $Wide, A>,
+            rotor: Rotor<N, $Wide, A>,
+            translation: Vector<N, $Wide, A>,
         ) -> Self
         where
             Length<N>: Three,
         {
-            todo!()
+            Self::from_matrix_translation(&Matrix::<N, $Wide, A>::from_rotor(rotor), translation)
         }
 
         /// Creates an affine transform from a non-uniform scale, a rotor and
@@ -77,14 +77,17 @@ macro_rules! items {
         #[must_use]
         #[expect(private_bounds)]
         pub fn from_scale_rotor_translation(
-            _scale: Vector<N, $Wide, A>,
-            _rotor: Rotor<N, $Wide, A>,
-            _translation: Vector<N, $Wide, A>,
+            scale: Vector<N, $Wide, A>,
+            rotor: Rotor<N, $Wide, A>,
+            translation: Vector<N, $Wide, A>,
         ) -> Self
         where
             Length<N>: Three,
         {
-            todo!()
+            Self::from_matrix_translation(
+                &Matrix::<N, $Wide, A>::from_scale_rotor(scale, rotor),
+                translation,
+            )
         }
 
         /// Returns `true` if any element is NaN.
@@ -149,7 +152,7 @@ macro_rules! items {
         where
             Length<N>: Three,
         {
-            todo!()
+            self.matrix.to_scale_rotor()
         }
 
         /// Converts an affine transform to a non-uniform scale, a rotor and
@@ -165,7 +168,8 @@ macro_rules! items {
         where
             Length<N>: Three,
         {
-            todo!()
+            let (scale, rotor) = self.to_scale_rotor();
+            (scale, rotor, self.translation)
         }
 
         /// Returns `true` if the absolute difference of all elements between
