@@ -1055,26 +1055,6 @@ mod tests {
     }
 
     #[test]
-    fn test_from_rotor() {
-        todo!()
-    }
-
-    #[test]
-    fn test_from_scale_rotor() {
-        todo!()
-    }
-
-    #[test]
-    fn test_from_rotor_translation() {
-        todo!()
-    }
-
-    #[test]
-    fn test_from_scale_rotor_translation() {
-        todo!()
-    }
-
-    #[test]
     fn test_is_nan() {
         for_types!(|T: PrimitiveFloat, A| {
             let one = Vector::ONE;
@@ -1236,16 +1216,6 @@ mod tests {
                 assert_test_eq!(affine.inverse_or_zero(), inverse);
             }
         });
-    }
-
-    #[test]
-    fn test_to_scale_rotor() {
-        todo!()
-    }
-
-    #[test]
-    fn test_to_scale_rotor_translation() {
-        todo!()
     }
 
     #[test]

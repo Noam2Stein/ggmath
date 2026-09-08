@@ -1042,7 +1042,8 @@ mod tests {
     use wide::f32x4;
 
     use crate::{
-        EulerRot, Mat2, Mat3, Mat4, Matrix, Projective, Quat, Rot2, Unaligned, Vec2, Vec3, Vector,
+        EulerRot, Mat2, Mat3, Mat4, Matrix, Projective, Quat, Rot2, Rotor3, Unaligned, Vec2, Vec3,
+        Vector,
         test_utils::{assert_test_eq, assert_test_eq_or_panic, for_types, random_iter},
     };
 
@@ -1072,12 +1073,31 @@ mod tests {
 
     #[test]
     fn test_from_rotor() {
-        todo!()
+        for_types!(|Wide: WideFloat| {
+            for rotor in random_iter::<Rotor3<Wide>>().flat_map(|r| [r, r.normalize()]) {
+                assert_test_eq_or_panic!(
+                    Mat3::<Wide>::from_rotor(rotor),
+                    Mat3::from_lane_fn(|lane| Mat3::<T>::from_rotor(rotor.lane(lane)))
+                );
+            }
+        });
     }
 
     #[test]
     fn test_from_scale_rotor() {
-        todo!()
+        for_types!(|Wide: WideFloat| {
+            for (scale, rotor) in random_iter::<(Vec3<Wide>, Rotor3<Wide>)>()
+                .flat_map(|(scale, r)| [(scale, r), (scale, r.normalize())])
+            {
+                assert_test_eq_or_panic!(
+                    Mat3::<Wide>::from_scale_rotor(scale, rotor),
+                    Mat3::from_lane_fn(|lane| Mat3::<T>::from_scale_rotor(
+                        scale.lane(lane),
+                        rotor.lane(lane)
+                    ))
+                );
+            }
+        });
     }
 
     #[test]
@@ -1184,7 +1204,21 @@ mod tests {
 
     #[test]
     fn test_to_scale_rotor() {
-        todo!()
+        for_types!(|Wide: WideFloat| {
+            for matrix in random_iter::<(Vec3<Wide>, Rotor3<Wide>)>()
+                .flat_map(|(scale, r)| [(scale, r), (scale, r.normalize())])
+                .map(|(scale, rotor)| Mat3::<Wide>::from_scale_rotor(scale, rotor))
+                .chain(random_iter())
+            {
+                assert_test_eq_or_panic!(
+                    matrix.to_scale_rotor(),
+                    (
+                        Vec3::from_lane_fn(|lane| matrix.lane(lane).to_scale_rotor().0),
+                        Rotor3::from_lane_fn(|lane| matrix.lane(lane).to_scale_rotor().1)
+                    )
+                );
+            }
+        });
     }
 
     #[test]

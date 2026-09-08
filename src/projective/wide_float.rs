@@ -1584,7 +1584,7 @@ impl_items!(f64x8, f64);
 mod tests {
     use crate::{
         Affine, Affine2, EulerRot, Mat3, Mat4, Matrix, Proj2, Proj3, Projective, Quat, Rot2,
-        Unaligned, Vec2, Vec3, Vector,
+        Rotor3, Unaligned, Vec2, Vec3, Vector,
         test_utils::{assert_test_eq, assert_test_eq_or_panic, for_types, random_iter},
     };
 
@@ -1598,22 +1598,70 @@ mod tests {
 
     #[test]
     fn test_from_rotor() {
-        todo!()
+        for_types!(|Wide: WideFloat| {
+            for rotor in random_iter::<Rotor3<Wide>>().flat_map(|r| [r, r.normalize()]) {
+                assert_test_eq_or_panic!(
+                    Proj3::<Wide>::from_rotor(rotor),
+                    Proj3::from_lane_fn(|lane| Proj3::<T>::from_rotor(rotor.lane(lane)))
+                );
+            }
+        });
     }
 
     #[test]
     fn test_from_scale_rotor() {
-        todo!()
+        for_types!(|Wide: WideFloat| {
+            for (scale, rotor) in random_iter::<(Vec3<Wide>, Rotor3<Wide>)>()
+                .flat_map(|(scale, r)| [(scale, r), (scale, r.normalize())])
+            {
+                assert_test_eq_or_panic!(
+                    Proj3::<Wide>::from_scale_rotor(scale, rotor),
+                    Proj3::from_lane_fn(|lane| Proj3::<T>::from_scale_rotor(
+                        scale.lane(lane),
+                        rotor.lane(lane)
+                    ))
+                );
+            }
+        });
     }
 
     #[test]
     fn test_from_rotor_translation() {
-        todo!()
+        for_types!(|Wide: WideFloat| {
+            for (rotor, translation) in random_iter::<(Rotor3<Wide>, Vec3<Wide>)>()
+                .flat_map(|(r, translation)| [(r, translation), (r.normalize(), translation)])
+            {
+                assert_test_eq_or_panic!(
+                    Proj3::<Wide>::from_rotor_translation(rotor, translation),
+                    Proj3::from_lane_fn(|lane| Proj3::<T>::from_rotor_translation(
+                        rotor.lane(lane),
+                        translation.lane(lane)
+                    ))
+                );
+            }
+        });
     }
 
     #[test]
     fn test_from_scale_rotor_translation() {
-        todo!()
+        for_types!(|Wide: WideFloat| {
+            for (scale, rotor, translation) in
+                random_iter::<(Vec3<Wide>, Rotor3<Wide>, Vec3<Wide>)>().flat_map(
+                    |(scale, r, translation)| {
+                        [(scale, r, translation), (scale, r.normalize(), translation)]
+                    },
+                )
+            {
+                assert_test_eq_or_panic!(
+                    Proj3::<Wide>::from_scale_rotor_translation(scale, rotor, translation),
+                    Proj3::from_lane_fn(|lane| Proj3::<T>::from_scale_rotor_translation(
+                        scale.lane(lane),
+                        rotor.lane(lane),
+                        translation.lane(lane)
+                    ))
+                );
+            }
+        });
     }
 
     #[test]
@@ -1772,12 +1820,25 @@ mod tests {
 
     #[test]
     fn test_to_scale_rotor() {
-        todo!()
-    }
-
-    #[test]
-    fn test_to_scale_rotor_translation() {
-        todo!()
+        for_types!(|Wide: WideFloat| {
+            for projective in random_iter::<(Vec3<Wide>, Rotor3<Wide>, Vec3<Wide>)>()
+                .flat_map(|(scale, r, translation)| {
+                    [(scale, r, translation), (scale, r.normalize(), translation)]
+                })
+                .map(|(scale, rotor, translation)| {
+                    Proj3::<Wide>::from_scale_rotor_translation(scale, rotor, translation)
+                })
+                .chain(random_iter())
+            {
+                assert_test_eq_or_panic!(
+                    projective.to_scale_rotor(),
+                    (
+                        Vec3::from_lane_fn(|lane| projective.lane(lane).to_scale_rotor().0),
+                        Rotor3::from_lane_fn(|lane| projective.lane(lane).to_scale_rotor().1)
+                    )
+                );
+            }
+        });
     }
 
     #[test]

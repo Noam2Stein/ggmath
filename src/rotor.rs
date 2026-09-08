@@ -1035,103 +1035,181 @@ where
 mod tests {
     extern crate std;
 
+    use std::format;
+
+    use crate::{
+        Matrix, Rotor, Vector,
+        test_utils::{assert_test_eq, for_types, random_iter},
+    };
+
     #[test]
     fn test_identity() {
-        todo!()
+        for_types!(|T: PrimitiveNumber, A| {
+            assert_eq!(
+                Rotor::<3, T, A>::IDENTITY,
+                Rotor::<3, T, A>::from_elements(T::ZERO, T::ZERO, T::ZERO, T::ONE)
+            );
+        });
     }
 
     #[test]
     fn test_conjugate() {
-        todo!()
-    }
-
-    #[test]
-    fn test_dot() {
-        todo!()
-    }
-
-    #[test]
-    fn test_length_squared() {
-        todo!()
-    }
-
-    #[test]
-    fn test_to_alignment() {
-        todo!()
-    }
-
-    #[test]
-    fn test_align() {
-        todo!()
-    }
-
-    #[test]
-    fn test_unalign() {
-        todo!()
+        for_types!(|T: PrimitiveFloat, A| {
+            for rotor in random_iter::<Rotor<3, T, A>>() {
+                assert_test_eq!(
+                    rotor.conjugate(),
+                    Rotor::<3, T, A>::from_elements(-rotor.yz, -rotor.zx, -rotor.xy, rotor.s)
+                );
+            }
+        });
     }
 
     #[test]
     fn test_deref() {
-        todo!()
+        for_types!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w] = std::array::from_fn(|i| T::as_from(i + 1));
+
+            let rotor = Rotor::<3, T, A>::from_elements(x, y, z, w);
+            assert_eq!(rotor.yz, x);
+            assert_eq!(rotor.zx, y);
+            assert_eq!(rotor.xy, z);
+            assert_eq!(rotor.s, w);
+        });
     }
 
     #[test]
     fn test_deref_mut() {
-        todo!()
+        for_types!(|T: PrimitiveNumber, A| {
+            let [mut x, mut y, mut z, mut w] = std::array::from_fn(|i| T::as_from(i + 1));
+
+            let mut rotor = Rotor::<3, T, A>::from_elements(x, y, z, w);
+            assert_eq!(&mut rotor.yz, &mut x);
+            assert_eq!(&mut rotor.zx, &mut y);
+            assert_eq!(&mut rotor.xy, &mut z);
+            assert_eq!(&mut rotor.s, &mut w);
+        });
     }
 
     #[test]
     fn test_debug() {
-        todo!()
-    }
-
-    #[test]
-    fn test_eq() {
-        todo!()
-    }
-
-    #[test]
-    fn test_ne() {
-        todo!()
-    }
-
-    #[test]
-    fn test_default() {
-        todo!()
-    }
-
-    #[test]
-    fn test_neg() {
-        todo!()
-    }
-
-    #[test]
-    fn test_add() {
-        todo!()
-    }
-
-    #[test]
-    fn test_sub() {
-        todo!()
-    }
-
-    #[test]
-    fn test_mul_scalar() {
-        todo!()
+        for_types!(|T: PrimitiveNumber, A| {
+            let rotor = Rotor::<3, T, A>(Vector::from_fn(|i| T::as_from(i + 3)));
+            assert_eq!(
+                format!("{rotor:?}"),
+                format!(
+                    "Rotor3 {{ yz: {:?}, zx: {:?}, xy: {:?}, s: {:?} }}",
+                    rotor.yz, rotor.zx, rotor.xy, rotor.s
+                )
+            );
+        });
     }
 
     #[test]
     fn test_vector_mul() {
-        todo!()
+        for_types!(|T: PrimitiveFloat, A| {
+            for vector in random_iter::<Vector<3, T, A>>() {
+                if vector.is_finite() {
+                    assert_test_eq!(vector * Rotor::IDENTITY, vector, 0.0 = -0.0);
+                }
+            }
+            for (vector, rotor) in random_iter::<(Vector<3, T, A>, Rotor<3, T, A>)>() {
+                assert_test_eq!(vector * -rotor, vector * rotor, 0.0 = -0.0);
+
+                let rotor = rotor.normalize_or(Rotor::IDENTITY) * rotor.length().clamp(0.2, 5.0);
+                if !vector.is_finite() || !rotor.is_finite() {
+                    continue;
+                }
+
+                assert_test_eq!(
+                    vector * rotor,
+                    vector * rotor.normalize() * rotor.length_squared(),
+                    abs <= (vector * rotor).length() * 1e-5
+                );
+                assert_test_eq!(
+                    (vector * rotor.normalize()).length(),
+                    vector.length(),
+                    abs <= vector.length() * 1e-5
+                );
+            }
+
+            for (vector, angle) in random_iter::<(Vector<3, T, A>, T)>() {
+                let angle = angle % 6.0;
+                let (sin, s) = (angle / 2.0).sin_cos();
+
+                if !vector.is_finite() || !sin.is_finite() || !s.is_finite() {
+                    continue;
+                }
+
+                assert_test_eq!(
+                    vector * Rotor::<3, T, A>::from_elements(sin, 0.0, 0.0, s),
+                    vector.rotate_yz(angle),
+                    abs <= vector.length() * 1e-5 + 1e-5,
+                    0.0 = -0.0
+                );
+                assert_test_eq!(
+                    vector * Rotor::<3, T, A>::from_elements(0.0, sin, 0.0, s),
+                    vector.rotate_xz(-angle),
+                    abs <= vector.length() * 1e-5 + 1e-5,
+                    0.0 = -0.0
+                );
+                assert_test_eq!(
+                    vector * Rotor::<3, T, A>::from_elements(0.0, 0.0, sin, s),
+                    vector.rotate_xy(angle),
+                    abs <= vector.length() * 1e-5 + 1e-5,
+                    0.0 = -0.0
+                );
+            }
+
+            for (vector, rotor) in [
+                (
+                    Vector::<3, T, A>::new(-4.1, 3.3, 10.3),
+                    Rotor::<3, T, A>::from_elements(0.8, 0.4, 0.3, 0.1),
+                ),
+                (
+                    Vector::<3, T, A>::new(-4.1, 3.3, 10.3),
+                    Rotor::<3, T, A>::IDENTITY,
+                ),
+            ]
+            .into_iter()
+            .chain(random_iter())
+            {
+                if !vector.is_finite() {
+                    continue;
+                }
+
+                let rotor = rotor.normalize_or(Rotor::<3, T, A>::IDENTITY).normalize();
+                let matrix = Matrix::<3, T, A>::from_rotor(rotor);
+
+                assert_test_eq!(
+                    vector * rotor,
+                    vector * matrix,
+                    abs <= vector.abs().max_element() * 1e-6 + 1e-4,
+                    0.0 = -0.0
+                );
+            }
+        });
     }
 
     #[test]
     fn test_mul() {
-        todo!()
-    }
+        for_types!(|T: PrimitiveFloat, A| {
+            for (vector, [rotor_1, rotor_2]) in
+                random_iter::<(Vector<3, T, A>, [Rotor<3, T, A>; 2])>()
+            {
+                if !vector.is_finite() || vector.length() > 1e5 {
+                    continue;
+                }
 
-    #[test]
-    fn test_div_scalar() {
-        todo!()
+                let [rotor_1, rotor_2] = [rotor_1, rotor_2]
+                    .map(|r| r.normalize_or(Rotor::IDENTITY) * r.length().clamp(0.2, 5.0));
+
+                assert_test_eq!(
+                    vector * (rotor_1 * rotor_2),
+                    vector * rotor_1 * rotor_2,
+                    abs <= (vector * rotor_1 * rotor_2).length() * 1e-5 + 1e-3,
+                    0.0 = -0.0
+                );
+            }
+        });
     }
 }

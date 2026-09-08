@@ -1849,8 +1849,8 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{
-        Affine, EulerRot, Matrix, Proj2A, Proj3A, Projective, Quaternion, Rotation2, Vec2A, Vec3A,
-        Vec4A, Vector,
+        Affine, EulerRot, Matrix, Proj2A, Proj3A, Projective, Quaternion, Rotation2, Rotor, Vec2A,
+        Vec3A, Vec4A, Vector,
         test_utils::{
             assert_debug_panic, assert_panic_test_eq, assert_test_eq, for_types, random_iter,
         },
@@ -1872,22 +1872,80 @@ mod tests {
 
     #[test]
     fn test_from_rotor() {
-        todo!()
+        for_types!(|T: PrimitiveFloat, A| {
+            for rotor in
+                random_iter::<Rotor<3, T, A>>().flat_map(|r| [r, r.normalize_or(Rotor::IDENTITY)])
+            {
+                assert_panic_test_eq!(
+                    Projective::<3, T, A>::from_rotor(rotor),
+                    Projective::from_affine(&Affine::<3, T, A>::from_rotor(rotor))
+                );
+            }
+        });
     }
 
     #[test]
     fn test_from_scale_rotor() {
-        todo!()
+        for_types!(|T: PrimitiveFloat, A| {
+            for (scale, rotor) in random_iter::<(Vector<3, T, A>, Rotor<3, T, A>)>()
+                .flat_map(|(scale, r)| [(scale, r), (scale, r.normalize_or(Rotor::IDENTITY))])
+                .filter(|(scale, _)| scale.length() < 1e6)
+            {
+                assert_panic_test_eq!(
+                    Projective::<3, T, A>::from_scale_rotor(scale, rotor),
+                    Projective::from_affine(&Affine::<3, T, A>::from_scale_rotor(scale, rotor)),
+                    0.0 = -0.0
+                );
+            }
+        });
     }
 
     #[test]
     fn test_from_rotor_translation() {
-        todo!()
+        for_types!(|T: PrimitiveFloat, A| {
+            for (rotor, translation) in
+                random_iter::<(Rotor<3, T, A>, Vector<3, T, A>)>().flat_map(|(r, translation)| {
+                    [
+                        (r, translation),
+                        (r.normalize_or(Rotor::IDENTITY), translation),
+                    ]
+                })
+            {
+                assert_panic_test_eq!(
+                    Projective::<3, T, A>::from_rotor_translation(rotor, translation),
+                    Projective::from_affine(&Affine::<3, T, A>::from_rotor_translation(
+                        rotor,
+                        translation
+                    ))
+                );
+            }
+        });
     }
 
     #[test]
     fn test_from_scale_rotor_translation() {
-        todo!()
+        for_types!(|T: PrimitiveFloat, A| {
+            for (scale, rotor, translation) in
+                random_iter::<(Vector<3, T, A>, Rotor<3, T, A>, Vector<3, T, A>)>()
+                    .flat_map(|(scale, r, translation)| {
+                        [
+                            (scale, r, translation),
+                            (scale, r.normalize_or(Rotor::IDENTITY), translation),
+                        ]
+                    })
+                    .filter(|(scale, _, _)| scale.length() < 1e6)
+            {
+                assert_panic_test_eq!(
+                    Projective::<3, T, A>::from_scale_rotor_translation(scale, rotor, translation),
+                    Projective::from_affine(&Affine::<3, T, A>::from_scale_rotor_translation(
+                        scale,
+                        rotor,
+                        translation
+                    )),
+                    0.0 = -0.0
+                );
+            }
+        });
     }
 
     #[test]
@@ -2114,12 +2172,23 @@ mod tests {
 
     #[test]
     fn test_to_scale_rotor() {
-        todo!()
-    }
-
-    #[test]
-    fn test_to_scale_rotor_translation() {
-        todo!()
+        for_types!(|T: PrimitiveFloat, A| {
+            for projective in random_iter::<(Vector<3, T, A>, Rotor<3, T, A>, Vector<3, T, A>)>()
+                .map(|(scale, rotor, translation)| {
+                    Projective::<3, T, A>::from_scale_rotor_translation(
+                        scale,
+                        rotor.normalize_or(Rotor::IDENTITY).normalize(),
+                        translation,
+                    )
+                })
+                .chain(random_iter())
+            {
+                assert_panic_test_eq!(
+                    projective.to_scale_rotor(),
+                    Affine::<3, T, A>::from_projective(&projective).to_scale_rotor()
+                );
+            }
+        });
     }
 
     #[test]

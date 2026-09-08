@@ -1403,7 +1403,7 @@ mod tests {
     extern crate std;
 
     use crate::{
-        EulerRot, FloatExt, Matrix, Projective, Quaternion, Rotation2, Vector,
+        EulerRot, FloatExt, Matrix, Projective, Quaternion, Rotation2, Rotor, Vector,
         test_utils::{assert_debug_panic, assert_test_eq, for_types, random_iter},
     };
 
@@ -1468,12 +1468,52 @@ mod tests {
 
     #[test]
     fn test_from_rotor() {
-        todo!()
+        for_types!(|T: PrimitiveFloat, A| {
+            assert_test_eq!(
+                Matrix::<3, T, A>::from_rotor(Rotor::IDENTITY),
+                Matrix::IDENTITY
+            );
+
+            for rotor in random_iter::<Rotor<3, T, A>>() {
+                if !rotor.is_normalized() {
+                    assert_debug_panic!(Matrix::<3, T, A>::from_rotor(rotor));
+                }
+
+                let rotor = rotor.normalize_or(Rotor::IDENTITY).normalize();
+                assert_test_eq!(
+                    Matrix::<3, T, A>::from_rotor(rotor).determinant(),
+                    1.0,
+                    abs <= 1e-5
+                );
+
+                let (axis, angle) = rotor.to_axis_angle();
+                assert_test_eq!(
+                    Matrix::<3, T, A>::from_rotor(rotor),
+                    Matrix::<3, T, A>::from_axis_angle(axis, angle),
+                    abs <= 1e-5,
+                    0.0 = -0.0
+                );
+            }
+        });
     }
 
     #[test]
     fn test_from_scale_rotor() {
-        todo!()
+        for_types!(|T: PrimitiveFloat, A| {
+            for (scale, rotor) in random_iter::<(Vector<3, T, A>, Rotor<3, T, A>)>() {
+                if !rotor.is_normalized() {
+                    assert_debug_panic!(Matrix::<3, T, A>::from_scale_rotor(scale, rotor));
+                }
+
+                let rotor = rotor.normalize_or(Rotor::IDENTITY).normalize();
+
+                assert_test_eq!(
+                    Matrix::<3, T, A>::from_scale_rotor(scale, rotor),
+                    Matrix::<3, T, A>::from_scale(scale) * Matrix::<3, T, A>::from_rotor(rotor),
+                    0.0 = -0.0
+                );
+            }
+        });
     }
 
     #[test]
@@ -1629,7 +1669,39 @@ mod tests {
 
     #[test]
     fn test_to_scale_rotor() {
-        todo!()
+        for_types!(|T: PrimitiveFloat, A| {
+            assert_debug_panic!(Matrix::<3, T, A>::ZERO.to_scale_rotor());
+            assert_debug_panic!(
+                Matrix::<3, T, A>::from_rows(&[
+                    Vector::<3, T, A>::new(0.3, 0.4, -0.2),
+                    Vector::<3, T, A>::new(0.4, 0.6, -0.1),
+                    Vector::<3, T, A>::new(1.0, 1.0, 1.0)
+                ])
+                .to_scale_rotor()
+            );
+
+            for (scale, rotor) in random_iter::<(Vector<3, T, A>, Rotor<3, T, A>)>() {
+                let rotor = rotor.normalize_or(Rotor::IDENTITY).normalize();
+
+                let matrix = Matrix::<3, T, A>::from_scale_rotor(scale, rotor);
+
+                if scale.iter().any(|x| x > 1e10)
+                    || !matrix.is_finite()
+                    || !(1e-5..1e8).contains(&matrix.determinant().abs())
+                {
+                    continue;
+                }
+
+                let (result_scale, result_rotor) = matrix.to_scale_rotor();
+                assert_test_eq!(
+                    Matrix::<3, T, A>::from_scale_rotor(result_scale, result_rotor),
+                    matrix,
+                    abs <= matrix.abs() * 1e-4
+                        + Matrix::<3, T, A>::from_rows(&[Vector::splat(1e-3); 3]),
+                    0.0 = -0.0
+                );
+            }
+        });
     }
 
     #[test]
