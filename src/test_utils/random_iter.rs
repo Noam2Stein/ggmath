@@ -7,7 +7,7 @@ use std::iter::repeat_n;
 use crate::{
     Affine, Alignment, Dim, Element, FloatExt, Mask, Matrix, Projective, Rotation2, Rotor,
     SupportedLength, Vector,
-    length::{Three, TwoOrThree},
+    dim::{Three, TwoOrThree},
     utils::specialize_23,
 };
 

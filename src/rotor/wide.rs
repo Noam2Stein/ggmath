@@ -1,6 +1,6 @@
 use wide::Select;
 
-use crate::{Alignment, Dim, Element, Rotor, Vector, length::Three, utils::WideTy};
+use crate::{Alignment, Dim, Element, Rotor, Vector, dim::Three, utils::WideTy};
 
 /// Functionality for [SoA] (Structure of Arrays) rotors.
 ///

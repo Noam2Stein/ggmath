@@ -9,7 +9,7 @@ use serde::{
 use crate::{
     Affine, Alignment, Dim, Element, Mask, Matrix, Projective, Rotation2, Rotor, SupportedLength,
     Vector,
-    length::{Three, TwoOrThree},
+    dim::{Three, TwoOrThree},
     utils::{transmute_generic, transmute_ref},
 };
 

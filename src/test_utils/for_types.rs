@@ -52,7 +52,7 @@ macro_rules! for_types {
     (|N: TwoOrThree| $expr:expr) => {{
         fn for_n<const N: usize>()
         where
-            crate::Dim<N>: crate::length::TwoOrThree,
+            crate::Dim<N>: crate::dim::TwoOrThree,
         {
             crate::test_utils::call_with_panic_message(|| $expr, Some(N), None, None, None);
         }
@@ -229,7 +229,7 @@ macro_rules! for_types {
     (|N: TwoOrThree, T: PrimitiveNumber| $expr:expr) => {{
         fn for_nt<const N: usize, T>(t: &'static str)
         where
-            crate::Dim<N>: crate::length::TwoOrThree,
+            crate::Dim<N>: crate::dim::TwoOrThree,
             T: crate::test_utils::Number
                 + crate::test_utils::Random<Input = crate::test_utils::Category>,
         {
@@ -238,7 +238,7 @@ macro_rules! for_types {
 
         fn for_n<const N: usize>()
         where
-            crate::Dim<N>: crate::length::TwoOrThree,
+            crate::Dim<N>: crate::dim::TwoOrThree,
         {
             for_nt::<N, f32>("f32");
             for_nt::<N, f64>("f64");
@@ -287,7 +287,7 @@ macro_rules! for_types {
     (|N: TwoOrThree, T: PrimitiveFloat| $expr:expr) => {{
         fn for_n<const N: usize>()
         where
-            crate::Dim<N>: crate::length::TwoOrThree,
+            crate::Dim<N>: crate::dim::TwoOrThree,
         {
             {
                 type T = f32;
@@ -388,7 +388,7 @@ macro_rules! for_types {
     (|N: TwoOrThree, T: PrimitiveInteger| $expr:expr) => {{
         fn for_n<const N: usize>()
         where
-            crate::Dim<N>: crate::length::TwoOrThree,
+            crate::Dim<N>: crate::dim::TwoOrThree,
         {
             {
                 type T = i32;
@@ -499,7 +499,7 @@ macro_rules! for_types {
     (|N: TwoOrThree, T: PrimitiveSigned| $expr:expr) => {{
         fn for_n<const N: usize>()
         where
-            crate::Dim<N>: crate::length::TwoOrThree,
+            crate::Dim<N>: crate::dim::TwoOrThree,
         {
             {
                 type T = i32;
@@ -580,7 +580,7 @@ macro_rules! for_types {
     (|N: TwoOrThree, T: PrimitiveUnsigned| $expr:expr) => {{
         fn for_n<const N: usize>()
         where
-            crate::Dim<N>: crate::length::TwoOrThree,
+            crate::Dim<N>: crate::dim::TwoOrThree,
         {
             {
                 type T = u32;
@@ -687,7 +687,7 @@ macro_rules! for_types {
     (|N: TwoOrThree, Wide| $expr:expr) => {{
         fn for_n<const N: usize>()
         where
-            crate::Dim<N>: crate::length::TwoOrThree,
+            crate::Dim<N>: crate::dim::TwoOrThree,
         {
             {
                 type Wide = wide::f32x4;
@@ -792,7 +792,7 @@ macro_rules! for_types {
     (|N: TwoOrThree, Wide: WideFloat| $expr:expr) => {{
         fn for_n<const N: usize>()
         where
-            crate::Dim<N>: crate::length::TwoOrThree,
+            crate::Dim<N>: crate::dim::TwoOrThree,
         {
             {
                 type Wide = wide::f32x4;
@@ -869,7 +869,7 @@ macro_rules! for_types {
     (|N: TwoOrThree, Wide: WideInteger| $expr:expr) => {{
         fn for_n<const N: usize>()
         where
-            crate::Dim<N>: crate::length::TwoOrThree,
+            crate::Dim<N>: crate::dim::TwoOrThree,
         {
             {
                 type Wide = wide::i32x4;
@@ -942,7 +942,7 @@ macro_rules! for_types {
     (|N: TwoOrThree, A| $expr:expr) => {{
         fn for_na<const N: usize, A: crate::Alignment>()
         where
-            crate::Dim<N>: crate::length::TwoOrThree,
+            crate::Dim<N>: crate::dim::TwoOrThree,
         {
             crate::test_utils::call_with_panic_message(
                 || $expr,
@@ -1211,7 +1211,7 @@ macro_rules! for_types {
     (|N: TwoOrThree, T: PrimitiveNumber, A| $expr:expr) => {{
         fn for_nta<const N: usize, T, A: crate::Alignment>(t: &'static str)
         where
-            crate::Dim<N>: crate::length::TwoOrThree,
+            crate::Dim<N>: crate::dim::TwoOrThree,
             T: crate::test_utils::Number
                 + crate::test_utils::Random<Input = crate::test_utils::Category>,
             crate::Vector<N, T, A>: crate::test_utils::Random<Input = crate::test_utils::Category>,
@@ -1229,7 +1229,7 @@ macro_rules! for_types {
 
         fn for_na<const N: usize, A: crate::Alignment>()
         where
-            crate::Dim<N>: crate::length::TwoOrThree,
+            crate::Dim<N>: crate::dim::TwoOrThree,
         {
             for_nta::<N, f32, A>("f32");
             for_nta::<N, f64, A>("f64");
@@ -1239,7 +1239,7 @@ macro_rules! for_types {
 
         fn for_n<const N: usize>()
         where
-            crate::Dim<N>: crate::length::TwoOrThree,
+            crate::Dim<N>: crate::dim::TwoOrThree,
         {
             for_na::<N, crate::Unaligned>();
             for_na::<N, crate::Aligned>();
@@ -1289,7 +1289,7 @@ macro_rules! for_types {
     (|N: TwoOrThree, T: PrimitiveFloat, A| $expr:expr) => {{
         fn for_na<const N: usize, A: crate::Alignment>()
         where
-            crate::Dim<N>: crate::length::TwoOrThree,
+            crate::Dim<N>: crate::dim::TwoOrThree,
         {
             {
                 type T = f32;
@@ -1404,7 +1404,7 @@ macro_rules! for_types {
     (|N: TwoOrThree, T: PrimitiveInteger, A| $expr:expr) => {{
         fn for_na<const N: usize, A: crate::Alignment>()
         where
-            crate::Dim<N>: crate::length::TwoOrThree,
+            crate::Dim<N>: crate::dim::TwoOrThree,
         {
             {
                 type T = i32;
@@ -1430,7 +1430,7 @@ macro_rules! for_types {
 
         fn for_n<const N: usize>()
         where
-            crate::Dim<N>: crate::length::TwoOrThree,
+            crate::Dim<N>: crate::dim::TwoOrThree,
         {
             for_na::<N, crate::Unaligned>();
             for_na::<N, crate::Aligned>();
@@ -1537,7 +1537,7 @@ macro_rules! for_types {
     (|N: TwoOrThree, T: PrimitiveSigned, A| $expr:expr) => {{
         fn for_na<const N: usize, A: crate::Alignment>()
         where
-            crate::Dim<N>: crate::length::TwoOrThree,
+            crate::Dim<N>: crate::dim::TwoOrThree,
         {
             {
                 type T = i32;
@@ -1553,7 +1553,7 @@ macro_rules! for_types {
 
         fn for_n<const N: usize>()
         where
-            crate::Dim<N>: crate::length::TwoOrThree,
+            crate::Dim<N>: crate::dim::TwoOrThree,
         {
             for_na::<N, crate::Unaligned>();
             for_na::<N, crate::Aligned>();
@@ -1638,7 +1638,7 @@ macro_rules! for_types {
     (|N: TwoOrThree, T: PrimitiveUnsigned, A| $expr:expr) => {{
         fn for_na<const N: usize, A: crate::Alignment>()
         where
-            crate::Dim<N>: crate::length::TwoOrThree,
+            crate::Dim<N>: crate::dim::TwoOrThree,
         {
             {
                 type T = u32;
@@ -1654,7 +1654,7 @@ macro_rules! for_types {
 
         fn for_n<const N: usize>()
         where
-            crate::Dim<N>: crate::length::TwoOrThree,
+            crate::Dim<N>: crate::dim::TwoOrThree,
         {
             for_na::<N, crate::Unaligned>();
             for_na::<N, crate::Aligned>();

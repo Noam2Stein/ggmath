@@ -8,7 +8,7 @@ use std::{
 use crate::{
     Affine, Alignment, Dim, Element, Matrix, PrimitiveInteger, Projective, Rotation2, Rotor,
     SupportedLength, Vector,
-    length::{Three, TwoOrThree},
+    dim::{Three, TwoOrThree},
     utils::specialize_23,
 };
 

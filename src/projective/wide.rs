@@ -2,7 +2,7 @@ use wide::Select;
 
 use crate::{
     Alignment, Dim, Element, Projective, Vector,
-    length::TwoOrThree,
+    dim::TwoOrThree,
     utils::{WideTy, specialize_23},
 };
 

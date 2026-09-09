@@ -2,7 +2,7 @@ use core::ops::{Add, Mul, Neg};
 
 use crate::{
     Aligned, Alignment, Dim, Element, One, Rotor, Unaligned, Vector, Zero, backend::RotorBackend,
-    length::Three, utils::specialize_3,
+    dim::Three, utils::specialize_3,
 };
 
 #[expect(private_bounds)]

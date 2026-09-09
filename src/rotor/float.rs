@@ -1,6 +1,6 @@
 use crate::{
     Affine, Alignment, Dim, EulerRot, FloatExt, Matrix, PrimitiveFloat, Projective, Rotor, Vector,
-    length::Three, utils::specialize_3,
+    dim::Three, utils::specialize_3,
 };
 
 #[expect(private_bounds)]

@@ -3,7 +3,7 @@ use core::ops::{Add, BitAnd, BitOr, BitXor, Div, Mul, Neg, Not, Rem, Shl, Shr, S
 use crate::{
     Aligned, Alignment, Dim, Element, Mask, PrimitiveFloat, PrimitiveInteger, PrimitiveSigned,
     Rotor, SupportedLength, Unaligned, Vector,
-    length::Three,
+    dim::Three,
     utils::{Repr2, Repr3, Repr4},
 };
 

@@ -2,7 +2,7 @@ use wide::{f32x4, f32x8, f32x16, f64x2, f64x4, f64x8};
 
 use crate::{
     Alignment, Dim, EulerRot, Matrix, Projective, Rotation2, Rotor, Vector,
-    length::{Three, TwoOrThree},
+    dim::{Three, TwoOrThree},
     utils::{specialize_3, specialize_23, transmute_generic},
 };
 

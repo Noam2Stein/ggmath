@@ -1,7 +1,7 @@
 use crate::{
     Affine, Aligned, Alignment, Dim, Element, Mask, Matrix, Projective, Rotor, SupportedLength,
     Unaligned, Vector,
-    length::{Three, TwoOrThree},
+    dim::{Three, TwoOrThree},
     utils::transmute_generic,
 };
 

@@ -3,7 +3,7 @@ use bytemuck::{NoUninit, Pod, Zeroable};
 use crate::{
     Affine, Alignment, Dim, Element, Mask, Matrix, Projective, Rotation2, Rotor, SupportedLength,
     Vector,
-    length::{Three, TwoOrThree},
+    dim::{Three, TwoOrThree},
 };
 
 // SAFETY: Vectors are equivalent to structs where all fields are `Pod`. The

@@ -6,7 +6,7 @@ use core::{
 
 use crate::{
     Affine, Aligned, Alignment, Dim, Element, Matrix, One, Projective, Unaligned, Vector, Zero,
-    length::TwoOrThree,
+    dim::TwoOrThree,
     utils::{specialize_23, transmute_generic, transmute_ref},
 };
 

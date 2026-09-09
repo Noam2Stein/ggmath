@@ -1,7 +1,7 @@
 use crate::{
     Alignment, Dim, EulerRot, FloatExt, Matrix, PrimitiveFloat, Projective, Rotation2, Rotor,
     SupportedLength, Vector,
-    length::{Three, TwoOrThree},
+    dim::{Three, TwoOrThree},
     utils::{specialize, specialize_3, specialize_23},
 };
 

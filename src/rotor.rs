@@ -8,7 +8,7 @@ use core::{
 use crate::{
     Aligned, Alignment, Dim, Element, One, Unaligned, Vector, Zero,
     backend::RotorBackend,
-    length::Three,
+    dim::Three,
     utils::{specialize_3, transmute_mut, transmute_ref},
 };
 
