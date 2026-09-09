@@ -1,6 +1,6 @@
 use wide::Select;
 
-use crate::{Alignment, Length, Rotor, Scalar, Vector, length::Three, utils::WideTy};
+use crate::{Alignment, Element, Length, Rotor, Vector, length::Three, utils::WideTy};
 
 /// Functionality for [SoA] (Structure of Arrays) rotors.
 ///
@@ -16,7 +16,7 @@ impl<const N: usize, Wide, T, const LANES: usize, A: Alignment> Rotor<N, Wide, A
 where
     Length<N>: Three,
     Wide: WideTy<Array = [T; LANES]>,
-    T: Scalar,
+    T: Element,
 {
     /// Creates an SoA (Structure of Arrays) rotor from an array of regular,
     /// non-SoA rotors corresponding to each output lane.

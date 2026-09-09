@@ -1082,7 +1082,7 @@ macro_rules! items_3 {
 
 #[cfg(doc)]
 #[doc(hidden)]
-pub trait WideFloat: crate::Scalar {}
+pub trait WideFloat: crate::Element {}
 
 /// Functionality for [SoA] (Structure of Arrays) float projective transforms.
 ///

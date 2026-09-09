@@ -1,6 +1,6 @@
 use std::ops::Add;
 
-use ggmath::{CustomScalar, Vec3};
+use ggmath::{CustomElement, Vec3};
 
 #[repr(transparent)]
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -15,7 +15,7 @@ impl Add for Foo {
     }
 }
 
-impl CustomScalar for Foo {}
+impl CustomElement for Foo {}
 
 #[test]
 fn test_add() {

@@ -5,7 +5,7 @@ use core::{
 };
 
 use crate::{
-    Aligned, NegOne, One, Scalar, Unaligned, Zero,
+    Aligned, Element, NegOne, One, Unaligned, Zero,
     backend::{FloatVectorBackend, IntegerVectorBackend, SignedVectorBackend},
     utils::{FloatUtils, PrimitiveFloatUtils, PrimitiveIntegerUtils, PrimitiveSignedUtils},
 };
@@ -48,7 +48,7 @@ pub trait PrimitiveFloat:
     + Rem<Output = Self>
     + Sum
     + Product
-    + Scalar
+    + Element
     + Zero
     + One
     + NegOne
@@ -115,7 +115,7 @@ pub trait PrimitiveInteger:
     + BitXor<Output = Self>
     + Sum
     + Product
-    + Scalar
+    + Element
     + Zero
     + One
     + PrimitiveIntegerUtils

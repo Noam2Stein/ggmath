@@ -1,8 +1,8 @@
 use bytemuck::{NoUninit, Pod, Zeroable};
 
 use crate::{
-    Affine, Alignment, Length, Mask, Matrix, Projective, Rotation2, Rotor, Scalar, SupportedLength,
-    Vector,
+    Affine, Alignment, Element, Length, Mask, Matrix, Projective, Rotation2, Rotor,
+    SupportedLength, Vector,
     length::{Three, TwoOrThree},
 };
 
@@ -12,7 +12,7 @@ use crate::{
 unsafe impl<const N: usize, T, A: Alignment> Pod for Vector<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar + Pod,
+    T: Element + Pod,
 {
 }
 
@@ -22,7 +22,7 @@ where
 unsafe impl<const N: usize, T, A: Alignment> Zeroable for Vector<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar + Zeroable,
+    T: Element + Zeroable,
 {
 }
 
@@ -33,7 +33,7 @@ where
 unsafe impl<const N: usize, T, A: Alignment> Pod for Matrix<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar + Pod,
+    T: Element + Pod,
 {
 }
 
@@ -43,7 +43,7 @@ where
 unsafe impl<const N: usize, T, A: Alignment> Zeroable for Matrix<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar + Zeroable,
+    T: Element + Zeroable,
 {
 }
 
@@ -53,7 +53,7 @@ where
 unsafe impl<const N: usize, T, A: Alignment> Pod for Affine<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar + Pod,
+    T: Element + Pod,
 {
 }
 
@@ -63,7 +63,7 @@ where
 unsafe impl<const N: usize, T, A: Alignment> Zeroable for Affine<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar + Zeroable,
+    T: Element + Zeroable,
 {
 }
 
@@ -72,7 +72,7 @@ where
 unsafe impl<const N: usize, T, A: Alignment> Pod for Projective<N, T, A>
 where
     Length<N>: TwoOrThree,
-    T: Scalar + Pod,
+    T: Element + Pod,
 {
 }
 
@@ -81,21 +81,21 @@ where
 unsafe impl<const N: usize, T, A: Alignment> Zeroable for Projective<N, T, A>
 where
     Length<N>: TwoOrThree,
-    T: Scalar + Zeroable,
+    T: Element + Zeroable,
 {
 }
 
 // SAFETY: `Vector<2, T, A>` implements `Pod` when `T` does.
-unsafe impl<T, A: Alignment> Pod for Rotation2<T, A> where T: Scalar + Pod {}
+unsafe impl<T, A: Alignment> Pod for Rotation2<T, A> where T: Element + Pod {}
 
 // SAFETY: `Vector<2, T, A>` implements `Zeroable` when `T` does.
-unsafe impl<T, A: Alignment> Zeroable for Rotation2<T, A> where T: Scalar + Zeroable {}
+unsafe impl<T, A: Alignment> Zeroable for Rotation2<T, A> where T: Element + Zeroable {}
 
 // SAFETY: Vectors implement `Pod` when `T` does.
 unsafe impl<const N: usize, T, A: Alignment> Pod for Rotor<N, T, A>
 where
     Length<N>: Three,
-    T: Scalar + Pod,
+    T: Element + Pod,
 {
 }
 
@@ -103,7 +103,7 @@ where
 unsafe impl<const N: usize, T, A: Alignment> Zeroable for Rotor<N, T, A>
 where
     Length<N>: Three,
-    T: Scalar + Zeroable,
+    T: Element + Zeroable,
 {
 }
 
@@ -112,7 +112,7 @@ where
 unsafe impl<const N: usize, T, A: Alignment> NoUninit for Mask<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar + 'static,
+    T: Element + 'static,
 {
 }
 
@@ -120,6 +120,6 @@ where
 unsafe impl<const N: usize, T, A: Alignment> Zeroable for Mask<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar,
+    T: Element,
 {
 }

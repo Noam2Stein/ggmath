@@ -9,7 +9,7 @@ use core::{
 };
 
 use crate::{
-    Aligned, Alignment, Length, One, Scalar, SupportedLength, Unaligned, Vector, Zero,
+    Aligned, Alignment, Element, Length, One, SupportedLength, Unaligned, Vector, Zero,
     utils::{Repr3, Repr4, transmute_mut, transmute_ref},
 };
 
@@ -91,7 +91,7 @@ pub struct Matrix<const N: usize, T, A: Alignment>(
 )
 where
     Length<N>: SupportedLength,
-    T: Scalar;
+    T: Element;
 
 /// A 2x2 row-major matrix.
 ///
@@ -295,7 +295,7 @@ pub type Mat4A<T> = Matrix<4, T, Aligned>;
 impl<const N: usize, T, A: Alignment> Clone for Matrix<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar,
+    T: Element,
 {
     #[inline]
     fn clone(&self) -> Self {
@@ -306,14 +306,14 @@ where
 impl<const N: usize, T, A: Alignment> Copy for Matrix<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar,
+    T: Element,
 {
 }
 
 impl<const N: usize, T, A: Alignment> Index<usize> for Matrix<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar,
+    T: Element,
 {
     type Output = Vector<N, T, A>;
 
@@ -332,7 +332,7 @@ where
 impl<const N: usize, T, A: Alignment> IndexMut<usize> for Matrix<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar,
+    T: Element,
 {
     /// Returns a mutable reference to the row at the given index.
     ///
@@ -350,7 +350,7 @@ where
 #[repr(C)]
 pub struct Mat2Fields<T, A: Alignment>
 where
-    T: Scalar,
+    T: Element,
 {
     /// The first row of the matrix.
     ///
@@ -364,7 +364,7 @@ where
 
 impl<T, A: Alignment> Deref for Matrix<2, T, A>
 where
-    T: Scalar,
+    T: Element,
 {
     type Target = Mat2Fields<T, A>;
 
@@ -378,7 +378,7 @@ where
 
 impl<T, A: Alignment> DerefMut for Matrix<2, T, A>
 where
-    T: Scalar,
+    T: Element,
 {
     #[inline]
     fn deref_mut(&mut self) -> &mut Self::Target {
@@ -392,7 +392,7 @@ where
 #[repr(C)]
 pub struct Mat3Fields<T, A: Alignment>
 where
-    T: Scalar,
+    T: Element,
 {
     /// The first row of the matrix.
     ///
@@ -410,7 +410,7 @@ where
 
 impl<T, A: Alignment> Deref for Matrix<3, T, A>
 where
-    T: Scalar,
+    T: Element,
 {
     type Target = Mat3Fields<T, A>;
 
@@ -424,7 +424,7 @@ where
 
 impl<T, A: Alignment> DerefMut for Matrix<3, T, A>
 where
-    T: Scalar,
+    T: Element,
 {
     #[inline]
     fn deref_mut(&mut self) -> &mut Self::Target {
@@ -438,7 +438,7 @@ where
 #[repr(C)]
 pub struct Mat4Fields<T, A: Alignment>
 where
-    T: Scalar,
+    T: Element,
 {
     /// The first row of the matrix.
     ///
@@ -460,7 +460,7 @@ where
 
 impl<T, A: Alignment> Deref for Matrix<4, T, A>
 where
-    T: Scalar,
+    T: Element,
 {
     type Target = Mat4Fields<T, A>;
 
@@ -474,7 +474,7 @@ where
 
 impl<T, A: Alignment> DerefMut for Matrix<4, T, A>
 where
-    T: Scalar,
+    T: Element,
 {
     #[inline]
     fn deref_mut(&mut self) -> &mut Self::Target {
@@ -487,7 +487,7 @@ where
 impl<const N: usize, T, A: Alignment> Debug for Matrix<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar + Debug,
+    T: Element + Debug,
 {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(f, "{:?}", self.as_rows())
@@ -497,7 +497,7 @@ where
 impl<const N: usize, T, A: Alignment> Display for Matrix<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar + Display,
+    T: Element + Display,
 {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match N {
@@ -512,7 +512,7 @@ where
 impl<const N: usize, T, A: Alignment> PartialEq for Matrix<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar + PartialEq,
+    T: Element + PartialEq,
 {
     #[inline]
     fn eq(&self, other: &Self) -> bool {
@@ -523,14 +523,14 @@ where
 impl<const N: usize, T, A: Alignment> Eq for Matrix<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar + Eq,
+    T: Element + Eq,
 {
 }
 
 impl<const N: usize, T, A: Alignment> Hash for Matrix<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar + Hash,
+    T: Element + Hash,
 {
     fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
         self.as_rows().hash(state);
@@ -540,7 +540,7 @@ where
 impl<const N: usize, T, A: Alignment> Default for Matrix<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar + Zero + One,
+    T: Element + Zero + One,
 {
     /// Returns [`IDENTITY`].
     ///
@@ -556,7 +556,7 @@ macro_rules! impl_neg {
         impl<const N: usize, T, A: Alignment> Neg for Matrix<N, T, A>
         where
             Length<N>: SupportedLength,
-            T: Scalar + Neg<Output = T>,
+            T: Element + Neg<Output = T>,
         {
             type Output = Self;
 
@@ -571,7 +571,7 @@ macro_rules! impl_neg {
         impl<const N: usize, T, A: Alignment> Neg for &Matrix<N, T, A>
         where
             Length<N>: SupportedLength,
-            T: Scalar + Neg<Output = T>,
+            T: Element + Neg<Output = T>,
         {
             type Output = Matrix<N, T, A>;
 
@@ -600,7 +600,7 @@ macro_rules! impl_add {
         impl<const N: usize, T, A: Alignment> Add for Matrix<N, T, A>
         where
             Length<N>: SupportedLength,
-            T: Scalar + Add<Output = T>,
+            T: Element + Add<Output = T>,
         {
             type Output = Self;
 
@@ -615,7 +615,7 @@ macro_rules! impl_add {
         impl<const N: usize, T, A: Alignment> Add<&Matrix<N, T, A>> for Matrix<N, T, A>
         where
             Length<N>: SupportedLength,
-            T: Scalar + Add<Output = T>,
+            T: Element + Add<Output = T>,
         {
             type Output = Self;
 
@@ -630,7 +630,7 @@ macro_rules! impl_add {
         impl<const N: usize, T, A: Alignment> Add<Matrix<N, T, A>> for &Matrix<N, T, A>
         where
             Length<N>: SupportedLength,
-            T: Scalar + Add<Output = T>,
+            T: Element + Add<Output = T>,
         {
             type Output = Matrix<N, T, A>;
 
@@ -645,7 +645,7 @@ macro_rules! impl_add {
         impl<const N: usize, T, A: Alignment> Add for &Matrix<N, T, A>
         where
             Length<N>: SupportedLength,
-            T: Scalar + Add<Output = T>,
+            T: Element + Add<Output = T>,
         {
             type Output = Matrix<N, T, A>;
 
@@ -675,7 +675,7 @@ macro_rules! impl_add_assign {
         impl<const N: usize, T, A: Alignment> AddAssign for Matrix<N, T, A>
         where
             Length<N>: SupportedLength,
-            T: Scalar + Add<Output = T>,
+            T: Element + Add<Output = T>,
         {
             $(#[$doc])*
             #[inline]
@@ -688,7 +688,7 @@ macro_rules! impl_add_assign {
         impl<const N: usize, T, A: Alignment> AddAssign<&Matrix<N, T, A>> for Matrix<N, T, A>
         where
             Length<N>: SupportedLength,
-            T: Scalar + Add<Output = T>,
+            T: Element + Add<Output = T>,
         {
             $(#[$doc])*
             #[inline]
@@ -723,7 +723,7 @@ macro_rules! impl_sub {
         impl<const N: usize, T, A: Alignment> Sub for Matrix<N, T, A>
         where
             Length<N>: SupportedLength,
-            T: Scalar + Sub<Output = T>,
+            T: Element + Sub<Output = T>,
         {
             type Output = Self;
 
@@ -738,7 +738,7 @@ macro_rules! impl_sub {
         impl<const N: usize, T, A: Alignment> Sub<&Matrix<N, T, A>> for Matrix<N, T, A>
         where
             Length<N>: SupportedLength,
-            T: Scalar + Sub<Output = T>,
+            T: Element + Sub<Output = T>,
         {
             type Output = Self;
 
@@ -753,7 +753,7 @@ macro_rules! impl_sub {
         impl<const N: usize, T, A: Alignment> Sub<Matrix<N, T, A>> for &Matrix<N, T, A>
         where
             Length<N>: SupportedLength,
-            T: Scalar + Sub<Output = T>,
+            T: Element + Sub<Output = T>,
         {
             type Output = Matrix<N, T, A>;
 
@@ -768,7 +768,7 @@ macro_rules! impl_sub {
         impl<const N: usize, T, A: Alignment> Sub for &Matrix<N, T, A>
         where
             Length<N>: SupportedLength,
-            T: Scalar + Sub<Output = T>,
+            T: Element + Sub<Output = T>,
         {
             type Output = Matrix<N, T, A>;
 
@@ -798,7 +798,7 @@ macro_rules! impl_sub_assign {
         impl<const N: usize, T, A: Alignment> SubAssign for Matrix<N, T, A>
         where
             Length<N>: SupportedLength,
-            T: Scalar + Sub<Output = T>,
+            T: Element + Sub<Output = T>,
         {
             $(#[$doc])*
             #[inline]
@@ -811,7 +811,7 @@ macro_rules! impl_sub_assign {
         impl<const N: usize, T, A: Alignment> SubAssign<&Matrix<N, T, A>> for Matrix<N, T, A>
         where
             Length<N>: SupportedLength,
-            T: Scalar + Sub<Output = T>,
+            T: Element + Sub<Output = T>,
         {
             $(#[$doc])*
             #[inline]
@@ -846,7 +846,7 @@ macro_rules! impl_mul_scalar {
         impl<const N: usize, T, A: Alignment> Mul<T> for Matrix<N, T, A>
         where
             Length<N>: SupportedLength,
-            T: Scalar + Mul<Output = T>,
+            T: Element + Mul<Output = T>,
         {
             type Output = Self;
 
@@ -861,7 +861,7 @@ macro_rules! impl_mul_scalar {
         impl<const N: usize, T, A: Alignment> Mul<&T> for Matrix<N, T, A>
         where
             Length<N>: SupportedLength,
-            T: Scalar + Mul<Output = T>,
+            T: Element + Mul<Output = T>,
         {
             type Output = Self;
 
@@ -876,7 +876,7 @@ macro_rules! impl_mul_scalar {
         impl<const N: usize, T, A: Alignment> Mul<T> for &Matrix<N, T, A>
         where
             Length<N>: SupportedLength,
-            T: Scalar + Mul<Output = T>,
+            T: Element + Mul<Output = T>,
         {
             type Output = Matrix<N, T, A>;
 
@@ -891,7 +891,7 @@ macro_rules! impl_mul_scalar {
         impl<const N: usize, T, A: Alignment> Mul<&T> for &Matrix<N, T, A>
         where
             Length<N>: SupportedLength,
-            T: Scalar + Mul<Output = T>,
+            T: Element + Mul<Output = T>,
         {
             type Output = Matrix<N, T, A>;
 
@@ -920,7 +920,7 @@ macro_rules! impl_mul {
         impl<const N: usize, T, A: Alignment> Mul for Matrix<N, T, A>
         where
             Length<N>: SupportedLength,
-            T: Scalar + Add<Output = T> + Mul<Output = T>,
+            T: Element + Add<Output = T> + Mul<Output = T>,
         {
             type Output = Self;
 
@@ -935,7 +935,7 @@ macro_rules! impl_mul {
         impl<const N: usize, T, A: Alignment> Mul<&Matrix<N, T, A>> for Matrix<N, T, A>
         where
             Length<N>: SupportedLength,
-            T: Scalar + Add<Output = T> + Mul<Output = T>,
+            T: Element + Add<Output = T> + Mul<Output = T>,
         {
             type Output = Self;
 
@@ -950,7 +950,7 @@ macro_rules! impl_mul {
         impl<const N: usize, T, A: Alignment> Mul<Matrix<N, T, A>> for &Matrix<N, T, A>
         where
             Length<N>: SupportedLength,
-            T: Scalar + Add<Output = T> + Mul<Output = T>,
+            T: Element + Add<Output = T> + Mul<Output = T>,
         {
             type Output = Matrix<N, T, A>;
 
@@ -965,7 +965,7 @@ macro_rules! impl_mul {
         impl<const N: usize, T, A: Alignment> Mul<&Matrix<N, T, A>> for &Matrix<N, T, A>
         where
             Length<N>: SupportedLength,
-            T: Scalar + Add<Output = T> + Mul<Output = T>,
+            T: Element + Add<Output = T> + Mul<Output = T>,
         {
             type Output = Matrix<N, T, A>;
 
@@ -998,7 +998,7 @@ macro_rules! impl_vector_mul {
         impl<const N: usize, T, A: Alignment> Mul<Matrix<N, T, A>> for Vector<N, T, A>
         where
             Length<N>: SupportedLength,
-            T: Scalar + Add<Output = T> + Mul<Output = T>,
+            T: Element + Add<Output = T> + Mul<Output = T>,
         {
             type Output = Self;
 
@@ -1013,7 +1013,7 @@ macro_rules! impl_vector_mul {
         impl<const N: usize, T, A: Alignment> Mul<&Matrix<N, T, A>> for Vector<N, T, A>
         where
             Length<N>: SupportedLength,
-            T: Scalar + Add<Output = T> + Mul<Output = T>,
+            T: Element + Add<Output = T> + Mul<Output = T>,
         {
             type Output = Self;
 
@@ -1033,7 +1033,7 @@ macro_rules! impl_vector_mul {
         impl<const N: usize, T, A: Alignment> Mul<Matrix<N, T, A>> for &Vector<N, T, A>
         where
             Length<N>: SupportedLength,
-            T: Scalar + Add<Output = T> + Mul<Output = T>,
+            T: Element + Add<Output = T> + Mul<Output = T>,
         {
             type Output = Vector<N, T, A>;
 
@@ -1048,7 +1048,7 @@ macro_rules! impl_vector_mul {
         impl<const N: usize, T, A: Alignment> Mul<&Matrix<N, T, A>> for &Vector<N, T, A>
         where
             Length<N>: SupportedLength,
-            T: Scalar + Add<Output = T> + Mul<Output = T>,
+            T: Element + Add<Output = T> + Mul<Output = T>,
         {
             type Output = Vector<N, T, A>;
 
@@ -1081,7 +1081,7 @@ macro_rules! impl_mul_assign_scalar {
         impl<const N: usize, T, A: Alignment> MulAssign<T> for Matrix<N, T, A>
         where
             Length<N>: SupportedLength,
-            T: Scalar + Mul<Output = T>,
+            T: Element + Mul<Output = T>,
         {
             $(#[$doc])*
             #[inline]
@@ -1094,7 +1094,7 @@ macro_rules! impl_mul_assign_scalar {
         impl<const N: usize, T, A: Alignment> MulAssign<&T> for Matrix<N, T, A>
         where
             Length<N>: SupportedLength,
-            T: Scalar + Mul<Output = T>,
+            T: Element + Mul<Output = T>,
         {
             $(#[$doc])*
             #[inline]
@@ -1129,7 +1129,7 @@ macro_rules! impl_mul_assign {
         impl<const N: usize, T, A: Alignment> MulAssign for Matrix<N, T, A>
         where
             Length<N>: SupportedLength,
-            T: Scalar + Add<Output = T> + Mul<Output = T>,
+            T: Element + Add<Output = T> + Mul<Output = T>,
         {
             $(#[$doc])*
             #[inline]
@@ -1142,7 +1142,7 @@ macro_rules! impl_mul_assign {
         impl<const N: usize, T, A: Alignment> MulAssign<&Matrix<N, T, A>> for Matrix<N, T, A>
         where
             Length<N>: SupportedLength,
-            T: Scalar + Add<Output = T> + Mul<Output = T>,
+            T: Element + Add<Output = T> + Mul<Output = T>,
         {
             $(#[$doc])*
             #[inline]
@@ -1175,7 +1175,7 @@ macro_rules! impl_vector_mul_assign {
         impl<const N: usize, T, A: Alignment> MulAssign<Matrix<N, T, A>> for Vector<N, T, A>
         where
             Length<N>: SupportedLength,
-            T: Scalar + Add<Output = T> + Mul<Output = T>,
+            T: Element + Add<Output = T> + Mul<Output = T>,
         {
             $(#[$doc])*
             #[inline]
@@ -1188,7 +1188,7 @@ macro_rules! impl_vector_mul_assign {
         impl<const N: usize, T, A: Alignment> MulAssign<&Matrix<N, T, A>> for Vector<N, T, A>
         where
             Length<N>: SupportedLength,
-            T: Scalar + Add<Output = T> + Mul<Output = T>,
+            T: Element + Add<Output = T> + Mul<Output = T>,
         {
             $(#[$doc])*
             #[inline]
@@ -1219,7 +1219,7 @@ macro_rules! impl_div_scalar {
         impl<const N: usize, T, A: Alignment> Div<T> for Matrix<N, T, A>
         where
             Length<N>: SupportedLength,
-            T: Scalar + Div<Output = T>,
+            T: Element + Div<Output = T>,
         {
             type Output = Self;
 
@@ -1234,7 +1234,7 @@ macro_rules! impl_div_scalar {
         impl<const N: usize, T, A: Alignment> Div<&T> for Matrix<N, T, A>
         where
             Length<N>: SupportedLength,
-            T: Scalar + Div<Output = T>,
+            T: Element + Div<Output = T>,
         {
             type Output = Self;
 
@@ -1249,7 +1249,7 @@ macro_rules! impl_div_scalar {
         impl<const N: usize, T, A: Alignment> Div<T> for &Matrix<N, T, A>
         where
             Length<N>: SupportedLength,
-            T: Scalar + Div<Output = T>,
+            T: Element + Div<Output = T>,
         {
             type Output = Matrix<N, T, A>;
 
@@ -1264,7 +1264,7 @@ macro_rules! impl_div_scalar {
         impl<const N: usize, T, A: Alignment> Div<&T> for &Matrix<N, T, A>
         where
             Length<N>: SupportedLength,
-            T: Scalar + Div<Output = T>,
+            T: Element + Div<Output = T>,
         {
             type Output = Matrix<N, T, A>;
 
@@ -1293,7 +1293,7 @@ macro_rules! impl_div_assign_scalar {
         impl<const N: usize, T, A: Alignment> DivAssign<T> for Matrix<N, T, A>
         where
             Length<N>: SupportedLength,
-            T: Scalar + Div<Output = T>,
+            T: Element + Div<Output = T>,
         {
             $(#[$doc])*
             #[inline]
@@ -1306,7 +1306,7 @@ macro_rules! impl_div_assign_scalar {
         impl<const N: usize, T, A: Alignment> DivAssign<&T> for Matrix<N, T, A>
         where
             Length<N>: SupportedLength,
-            T: Scalar + Div<Output = T>,
+            T: Element + Div<Output = T>,
         {
             $(#[$doc])*
             #[inline]
@@ -1341,7 +1341,7 @@ impl_div_assign_scalar!(
 unsafe impl<const N: usize, T, A: Alignment> Send for Matrix<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar + Send,
+    T: Element + Send,
 {
 }
 
@@ -1350,28 +1350,28 @@ where
 unsafe impl<const N: usize, T, A: Alignment> Sync for Matrix<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar + Sync,
+    T: Element + Sync,
 {
 }
 
 impl<const N: usize, T, A: Alignment> Unpin for Matrix<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar + Unpin,
+    T: Element + Unpin,
 {
 }
 
 impl<const N: usize, T, A: Alignment> UnwindSafe for Matrix<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar + UnwindSafe,
+    T: Element + UnwindSafe,
 {
 }
 
 impl<const N: usize, T, A: Alignment> RefUnwindSafe for Matrix<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar + RefUnwindSafe,
+    T: Element + RefUnwindSafe,
 {
 }
 

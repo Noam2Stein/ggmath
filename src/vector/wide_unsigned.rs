@@ -35,8 +35,8 @@ macro_rules! items {
 
 #[cfg(doc)]
 #[doc(hidden)]
-pub trait WideUnsigned: crate::Scalar {
-    type Signed: crate::Scalar;
+pub trait WideUnsigned: crate::Element {
+    type Signed: crate::Element;
 }
 
 /// Functionality for [SoA] (Structure of Arrays) unsigned-integer vectors.

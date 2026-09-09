@@ -1,13 +1,13 @@
 use core::mem::transmute_copy;
 
-use crate::{Alignment, Scalar, Vector};
+use crate::{Alignment, Element, Vector};
 
 // Note: Patterns that are commented out are implemented manually to make
 // optimizations.
 
 impl<T, A: Alignment> Vector<2, T, A>
 where
-    T: Scalar,
+    T: Element,
 {
     declare_swizzle_fns! {
         xx: [x, x],
@@ -74,7 +74,7 @@ where
 
 impl<T, A: Alignment> Vector<3, T, A>
 where
-    T: Scalar,
+    T: Element,
 {
     declare_swizzle_fns! {
         xx: [x, x],
@@ -253,7 +253,7 @@ where
 
 impl<T, A: Alignment> Vector<4, T, A>
 where
-    T: Scalar,
+    T: Element,
 {
     declare_swizzle_fns! {
         xx: [x, x],

@@ -3,13 +3,13 @@
 use std::{fmt::Debug, hash::Hash};
 
 use assert_impl_trait::assert_impl;
-use ggmath::{Aligned, Alignment, Length, Scalar, SupportedLength, Unaligned, Vector};
+use ggmath::{Aligned, Alignment, Element, Length, SupportedLength, Unaligned, Vector};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 struct Aabb<const N: usize, T, A: Alignment>
 where
     Length<N>: SupportedLength,
-    T: Scalar,
+    T: Element,
 {
     center: Vector<N, T, A>,
     extents: Vector<N, T, A>,
@@ -26,7 +26,7 @@ assert_impl!(
     for<const N: usize, T, A: Alignment>
     where
         Length<N>: SupportedLength,
-        T: Scalar,
+        T: Element,
     {
         where T: Debug {
             Aabb<N, T, A>: Debug,

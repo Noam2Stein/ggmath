@@ -1,4 +1,4 @@
-use crate::{Alignment, Length, Scalar, SupportedLength, Vector, utils::specialize};
+use crate::{Alignment, Element, Length, SupportedLength, Vector, utils::specialize};
 
 impl<const N: usize, A: Alignment> Vector<N, bool, A>
 where
@@ -64,7 +64,7 @@ where
     /// ```
     #[inline]
     #[must_use]
-    pub fn select<T: Scalar>(
+    pub fn select<T: Element>(
         self,
         if_true: Vector<N, T, A>,
         if_false: Vector<N, T, A>,
@@ -87,7 +87,7 @@ impl<A: Alignment> Vector<2, bool, A> {
     }
 
     #[inline(always)]
-    fn select_backend<T: Scalar>(
+    fn select_backend<T: Element>(
         self,
         if_true: Vector<2, T, A>,
         if_false: Vector<2, T, A>,
@@ -111,7 +111,7 @@ impl<A: Alignment> Vector<3, bool, A> {
     }
 
     #[inline(always)]
-    fn select_backend<T: Scalar>(
+    fn select_backend<T: Element>(
         self,
         if_true: Vector<3, T, A>,
         if_false: Vector<3, T, A>,
@@ -136,7 +136,7 @@ impl<A: Alignment> Vector<4, bool, A> {
     }
 
     #[inline(always)]
-    fn select_backend<T: Scalar>(
+    fn select_backend<T: Element>(
         self,
         if_true: Vector<4, T, A>,
         if_false: Vector<4, T, A>,

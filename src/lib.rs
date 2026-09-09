@@ -133,7 +133,7 @@
 //! # Fixed-point numbers
 //!
 //! Currently, there is only basic support for fixed-point numbers, through the
-//! [`fixed`] feature flag which implements [`Scalar`] for [`fixed`] types. See
+//! [`fixed`] feature flag which implements [`Element`] for [`fixed`] types. See
 //! [this issue](https://github.com/Noam2Stein/ggmath/issues/46) for better
 //! fixed-point number support.
 //!
@@ -200,7 +200,7 @@
 //!
 //! - [`bytemuck`]: Implements [`bytemuck`] traits for [`ggmath`] types.
 //!
-//! - [`fixed`]: Implements [`Scalar`] for fixed-point numbers.
+//! - [`fixed`]: Implements [`Element`] for fixed-point numbers.
 //!
 //! - [`libm`]: Uses [`libm`] instead of [`std`] as the backend for
 //!   floating-point functions. This makes the crate [`no_std`].
@@ -245,6 +245,7 @@ pub use crate::{
     affine::{Affine, Affine2, Affine2A, Affine3, Affine3A},
     alignment::{Aligned, Alignment, Unaligned},
     constants::{NegOne, One, Zero},
+    element::{CustomElement, Element},
     euler_rot::EulerRot,
     float_ext::FloatExt,
     length::{Length, SupportedLength},
@@ -254,7 +255,6 @@ pub use crate::{
     projective::{Proj2, Proj2A, Proj3, Proj3A, Projective},
     rotation2::{Rot2, Rot2A, Rotation2},
     rotor::{Rotor, Rotor3, Rotor3A},
-    scalar::{CustomScalar, Scalar},
     vector::{Vec2, Vec2A, Vec3, Vec3A, Vec4, Vec4A, Vector},
 };
 
@@ -262,6 +262,7 @@ mod affine;
 mod alignment;
 mod backend;
 mod constants;
+mod element;
 mod euler_rot;
 mod float_ext;
 mod length;
@@ -271,7 +272,6 @@ mod primitive_traits;
 mod projective;
 mod rotation2;
 mod rotor;
-mod scalar;
 mod third_party;
 mod utils;
 mod vector;

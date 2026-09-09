@@ -1,14 +1,14 @@
 use core::ops::{Add, Mul, Neg, Sub};
 
 use crate::{
-    Aligned, Alignment, Length, Matrix, One, Scalar, SupportedLength, Unaligned, Vector, Zero,
+    Aligned, Alignment, Element, Length, Matrix, One, SupportedLength, Unaligned, Vector, Zero,
     utils::{specialize, transmute_generic, transmute_mut, transmute_ref},
 };
 
 impl<const N: usize, T, A: Alignment> Matrix<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar + Zero,
+    T: Element + Zero,
 {
     /// A matrix with all elements set to `0`.
     ///
@@ -22,7 +22,7 @@ where
 impl<const N: usize, T, A: Alignment> Matrix<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar + Zero + One,
+    T: Element + Zero + One,
 {
     /// A matrix with no transformation.
     ///
@@ -33,7 +33,7 @@ where
 impl<const N: usize, T, A: Alignment> Matrix<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar,
+    T: Element,
 {
     /// Creates a matrix from an array of row vectors.
     #[inline]
@@ -546,7 +546,7 @@ where
 
 impl<T, A: Alignment> Matrix<2, T, A>
 where
-    T: Scalar,
+    T: Element,
 {
     /// Creates a matrix from a row-major array of elements.
     ///
@@ -637,7 +637,7 @@ where
 
 impl<T, A: Alignment> Matrix<3, T, A>
 where
-    T: Scalar,
+    T: Element,
 {
     /// Creates a matrix from a row-major array of elements.
     ///
@@ -765,7 +765,7 @@ where
 
 impl<T, A: Alignment> Matrix<4, T, A>
 where
-    T: Scalar,
+    T: Element,
 {
     /// Creates a matrix from a row-major array of elements.
     ///

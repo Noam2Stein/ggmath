@@ -6,11 +6,11 @@ use wide::{
     u32x16, u64x2, u64x4, u64x8,
 };
 
-use crate::{Alignment, NegOne, One, Scalar, Zero, backend::DefaultBackend};
+use crate::{Alignment, Element, NegOne, One, Zero, backend::DefaultBackend};
 
 macro_rules! float_impl {
     ($T:ident, $F:ident, $N:literal) => {
-        impl Scalar for $T {}
+        impl Element for $T {}
 
         impl<const N: usize, A: Alignment> DefaultBackend<N, A> for $T {}
 
@@ -36,7 +36,7 @@ float_impl!(f64x8, f64, 8);
 
 macro_rules! int_impl {
     ($T:ident) => {
-        impl Scalar for $T {}
+        impl Element for $T {}
 
         impl<const N: usize, A: Alignment> DefaultBackend<N, A> for $T {}
 
@@ -68,7 +68,7 @@ int_impl!(i64x8);
 
 macro_rules! uint_impl {
     ($T:ident) => {
-        impl Scalar for $T {}
+        impl Element for $T {}
 
         impl<const N: usize, A: Alignment> DefaultBackend<N, A> for $T {}
 

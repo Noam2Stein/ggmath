@@ -1,8 +1,8 @@
 use core::ops::{Add, BitAnd, BitOr, BitXor, Div, Mul, Neg, Not, Rem, Shl, Shr, Sub};
 
 use crate::{
-    Aligned, Alignment, Length, Mask, PrimitiveFloat, PrimitiveInteger, PrimitiveSigned, Rotor,
-    Scalar, SupportedLength, Unaligned, Vector,
+    Aligned, Alignment, Element, Length, Mask, PrimitiveFloat, PrimitiveInteger, PrimitiveSigned,
+    Rotor, SupportedLength, Unaligned, Vector,
     length::Three,
     utils::{Repr2, Repr3, Repr4},
 };
@@ -19,15 +19,15 @@ cfg_select! {
     }
 }
 
-pub(crate) trait DefaultBackend<const N: usize, A: Alignment>: Scalar {}
+pub(crate) trait DefaultBackend<const N: usize, A: Alignment>: Element {}
 
 /// # Safety
 ///
 /// [`Self::Inner`] must be implemented correctly. All other items are safe to
 /// implement.
 #[diagnostic::on_unimplemented(
-    message = "`ggmath::Scalar` cannot be implemented directly",
-    note = "see the documentation for `ggmath::Scalar`"
+    message = "`ggmath::Element` cannot be implemented directly",
+    note = "see the documentation for `ggmath::Element`"
 )]
 pub(crate) unsafe trait VectorBackend<const N: usize, A: Alignment>
 where
@@ -56,105 +56,105 @@ where
 
     fn vector_eq(vector: &Vector<N, Self, A>, other: &Vector<N, Self, A>) -> bool
     where
-        Self: Scalar + PartialEq;
+        Self: Element + PartialEq;
 
     fn vector_ne(vector: &Vector<N, Self, A>, other: &Vector<N, Self, A>) -> bool
     where
-        Self: Scalar + PartialEq;
+        Self: Element + PartialEq;
 
     #[track_caller]
     fn vector_neg(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
-        Self: Scalar + Neg<Output = Self>;
+        Self: Element + Neg<Output = Self>;
 
     #[track_caller]
     fn vector_not(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
-        Self: Scalar + Not<Output = Self>;
+        Self: Element + Not<Output = Self>;
 
     #[track_caller]
     fn vector_add(vector: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
-        Self: Scalar + Add<Output = Self>;
+        Self: Element + Add<Output = Self>;
 
     #[track_caller]
     fn vector_sub(vector: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
-        Self: Scalar + Sub<Output = Self>;
+        Self: Element + Sub<Output = Self>;
 
     #[track_caller]
     fn vector_mul(vector: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
-        Self: Scalar + Mul<Output = Self>;
+        Self: Element + Mul<Output = Self>;
 
     #[track_caller]
     fn vector_div(vector: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
-        Self: Scalar + Div<Output = Self>;
+        Self: Element + Div<Output = Self>;
 
     #[track_caller]
     fn vector_rem(vector: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
-        Self: Scalar + Rem<Output = Self>;
+        Self: Element + Rem<Output = Self>;
 
     #[track_caller]
     fn vector_shl(vector: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
-        Self: Scalar + Shl<Output = Self>;
+        Self: Element + Shl<Output = Self>;
 
     #[track_caller]
     fn vector_shr(vector: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
-        Self: Scalar + Shr<Output = Self>;
+        Self: Element + Shr<Output = Self>;
 
     #[track_caller]
     fn vector_bitand(vector: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
-        Self: Scalar + BitAnd<Output = Self>;
+        Self: Element + BitAnd<Output = Self>;
 
     #[track_caller]
     fn vector_bitor(vector: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
-        Self: Scalar + BitOr<Output = Self>;
+        Self: Element + BitOr<Output = Self>;
 
     #[track_caller]
     fn vector_bitxor(vector: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
-        Self: Scalar + BitXor<Output = Self>;
+        Self: Element + BitXor<Output = Self>;
 
     #[track_caller]
     fn vector_element_sum(vector: Vector<N, Self, A>) -> Self
     where
-        Self: Scalar + Add<Output = Self>;
+        Self: Element + Add<Output = Self>;
 
     #[track_caller]
     fn vector_element_product(vector: Vector<N, Self, A>) -> Self
     where
-        Self: Scalar + Mul<Output = Self>;
+        Self: Element + Mul<Output = Self>;
 
     fn vector_eq_mask(vector: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Mask<N, Self, A>
     where
-        Self: Scalar + PartialEq;
+        Self: Element + PartialEq;
 
     fn vector_ne_mask(vector: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Mask<N, Self, A>
     where
-        Self: Scalar + PartialEq;
+        Self: Element + PartialEq;
 
     fn vector_lt_mask(vector: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Mask<N, Self, A>
     where
-        Self: Scalar + PartialOrd;
+        Self: Element + PartialOrd;
 
     fn vector_gt_mask(vector: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Mask<N, Self, A>
     where
-        Self: Scalar + PartialOrd;
+        Self: Element + PartialOrd;
 
     fn vector_le_mask(vector: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Mask<N, Self, A>
     where
-        Self: Scalar + PartialOrd;
+        Self: Element + PartialOrd;
 
     fn vector_ge_mask(vector: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Mask<N, Self, A>
     where
-        Self: Scalar + PartialOrd;
+        Self: Element + PartialOrd;
 }
 
 /// # Safety
@@ -179,12 +179,12 @@ where
     #[track_caller]
     fn rotor_conjugate(rotor: Rotor<N, Self, A>) -> Rotor<N, Self, A>
     where
-        Self: Scalar + Neg<Output = Self>;
+        Self: Element + Neg<Output = Self>;
 
     #[track_caller]
     fn rotor_mul(rotor: Rotor<N, Self, A>, rhs: Rotor<N, Self, A>) -> Rotor<N, Self, A>
     where
-        Self: Scalar
+        Self: Element
             + Neg<Output = Self>
             + Add<Output = Self>
             + Sub<Output = Self>
@@ -196,8 +196,8 @@ where
 /// [`Self::Inner`] must be implemented correctly. All other items are safe to
 /// implement.
 #[diagnostic::on_unimplemented(
-    message = "`ggmath::Scalar` cannot be implemented directly",
-    note = "see the documentation for `ggmath::Scalar`"
+    message = "`ggmath::Element` cannot be implemented directly",
+    note = "see the documentation for `ggmath::Element`"
 )]
 pub(crate) unsafe trait MaskBackend<const N: usize, A: Alignment>
 where
@@ -213,23 +213,23 @@ where
 
     fn mask_from_array(array: [bool; N]) -> Mask<N, Self, A>
     where
-        Self: Scalar;
+        Self: Element;
 
     fn mask_splat(value: bool) -> Mask<N, Self, A>
     where
-        Self: Scalar;
+        Self: Element;
 
     fn mask_to_array(mask: Mask<N, Self, A>) -> [bool; N]
     where
-        Self: Scalar;
+        Self: Element;
 
     fn mask_all(mask: Mask<N, Self, A>) -> bool
     where
-        Self: Scalar;
+        Self: Element;
 
     fn mask_any(mask: Mask<N, Self, A>) -> bool
     where
-        Self: Scalar;
+        Self: Element;
 
     fn mask_select(
         mask: Mask<N, Self, A>,
@@ -237,44 +237,44 @@ where
         if_false: Vector<N, Self, A>,
     ) -> Vector<N, Self, A>
     where
-        Self: Scalar;
+        Self: Element;
 
     #[track_caller]
     fn mask_get(mask: Mask<N, Self, A>, index: usize) -> bool
     where
-        Self: Scalar;
+        Self: Element;
 
     #[track_caller]
     fn mask_set(mask: &mut Mask<N, Self, A>, index: usize, value: bool)
     where
-        Self: Scalar;
+        Self: Element;
 
     fn mask_eq(mask: &Mask<N, Self, A>, other: &Mask<N, Self, A>) -> bool
     where
-        Self: Scalar;
+        Self: Element;
 
     fn mask_ne(mask: &Mask<N, Self, A>, other: &Mask<N, Self, A>) -> bool
     where
-        Self: Scalar;
+        Self: Element;
 
     fn mask_not(mask: Mask<N, Self, A>) -> Mask<N, Self, A>
     where
-        Self: Scalar;
+        Self: Element;
 
     fn mask_bitand(mask: Mask<N, Self, A>, rhs: Mask<N, Self, A>) -> Mask<N, Self, A>
     where
-        Self: Scalar;
+        Self: Element;
 
     fn mask_bitor(mask: Mask<N, Self, A>, rhs: Mask<N, Self, A>) -> Mask<N, Self, A>
     where
-        Self: Scalar;
+        Self: Element;
 
     fn mask_bitxor(mask: Mask<N, Self, A>, rhs: Mask<N, Self, A>) -> Mask<N, Self, A>
     where
-        Self: Scalar;
+        Self: Element;
 }
 
-pub(crate) trait FloatVectorBackend<const N: usize, A: Alignment>: Scalar
+pub(crate) trait FloatVectorBackend<const N: usize, A: Alignment>: Element
 where
     Length<N>: SupportedLength,
 {
@@ -347,7 +347,7 @@ where
     fn vector_sin_cos(vector: Vector<N, Self, A>) -> (Vector<N, Self, A>, Vector<N, Self, A>);
 }
 
-pub(crate) trait IntegerVectorBackend<const N: usize, A: Alignment>: Scalar
+pub(crate) trait IntegerVectorBackend<const N: usize, A: Alignment>: Element
 where
     Length<N>: SupportedLength,
 {
@@ -433,7 +433,7 @@ where
     ) -> Vector<N, Self, A>;
 }
 
-pub(crate) trait SignedVectorBackend<const N: usize, A: Alignment>: Scalar
+pub(crate) trait SignedVectorBackend<const N: usize, A: Alignment>: Element
 where
     Length<N>: SupportedLength,
 {
@@ -880,7 +880,7 @@ where
     #[inline]
     fn vector_ne(vector: &Vector<4, Self, A>, other: &Vector<4, Self, A>) -> bool
     where
-        Self: Scalar + PartialEq,
+        Self: Element + PartialEq,
     {
         !(vector == other)
     }
@@ -1132,7 +1132,7 @@ where
 // alignment is `T`'s alignment, thus our alignment is correct.
 unsafe impl<T, A: Alignment> AffineBackend<2, A> for T
 where
-    T: Scalar + DefaultBackend<4, A>,
+    T: Element + DefaultBackend<4, A>,
 {
     type Inner = [Vector<2, T, A>; 3];
 }
@@ -1143,7 +1143,7 @@ where
 // alignment.
 unsafe impl<T, A: Alignment> AffineBackend<3, A> for T
 where
-    T: Scalar,
+    T: Element,
 {
     type Inner = [Vector<3, T, A>; 4];
 }
@@ -1154,7 +1154,7 @@ where
 // alignment.
 unsafe impl<T, A: Alignment> AffineBackend<4, A> for T
 where
-    T: Scalar,
+    T: Element,
 {
     type Inner = [Vector<4, T, A>; 5];
 }
@@ -1166,7 +1166,7 @@ where
     #[inline]
     fn rotor_conjugate(rotor: Rotor<3, Self, A>) -> Rotor<3, Self, A>
     where
-        Self: Scalar + Neg<Output = Self>,
+        Self: Element + Neg<Output = Self>,
     {
         Rotor::from_elements(-rotor.yz, -rotor.zx, -rotor.xy, rotor.s)
     }
@@ -1266,7 +1266,7 @@ where
     #[inline]
     fn mask_ne(mask: &Mask<2, Self, A>, other: &Mask<2, Self, A>) -> bool
     where
-        Self: Scalar,
+        Self: Element,
     {
         !(mask == other)
     }
@@ -1386,7 +1386,7 @@ where
     #[inline]
     fn mask_ne(mask: &Mask<3, Self, A>, other: &Mask<3, Self, A>) -> bool
     where
-        Self: Scalar,
+        Self: Element,
     {
         !(mask == other)
     }
@@ -1521,7 +1521,7 @@ where
     #[inline]
     fn mask_ne(mask: &Mask<4, Self, A>, other: &Mask<4, Self, A>) -> bool
     where
-        Self: Scalar,
+        Self: Element,
     {
         !(mask == other)
     }

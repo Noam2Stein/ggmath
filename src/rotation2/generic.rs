@@ -1,10 +1,10 @@
 use core::ops::{Add, Mul, Neg, Sub};
 
-use crate::{Alignment, One, Rot2, Rot2A, Rotation2, Scalar, Vector, Zero};
+use crate::{Alignment, Element, One, Rot2, Rot2A, Rotation2, Vector, Zero};
 
 impl<T, A: Alignment> Rotation2<T, A>
 where
-    T: Scalar + Zero + One,
+    T: Element + Zero + One,
 {
     /// A 2D rotation that keeps vectors unchanged (an angle equal to zero).
     pub const IDENTITY: Self = Self::from_cos_sin(T::ONE, T::ZERO);
@@ -12,7 +12,7 @@ where
 
 impl<T, A: Alignment> Rotation2<T, A>
 where
-    T: Scalar,
+    T: Element,
 {
     /// Creates a 2D rotation from raw elements, the cosine and sine of an
     /// angle.

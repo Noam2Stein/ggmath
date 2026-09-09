@@ -5,7 +5,7 @@ use core::{
 };
 
 use crate::{
-    Affine, Aligned, Alignment, Length, Matrix, One, Projective, Scalar, Unaligned, Vector, Zero,
+    Affine, Aligned, Alignment, Element, Length, Matrix, One, Projective, Unaligned, Vector, Zero,
     length::TwoOrThree,
     utils::{specialize_23, transmute_generic, transmute_ref},
 };
@@ -14,7 +14,7 @@ use crate::{
 impl<const N: usize, T, A: Alignment> Projective<N, T, A>
 where
     Length<N>: TwoOrThree,
-    T: Scalar + Zero,
+    T: Element + Zero,
 {
     /// A projective transform with all elements set to `0`.
     ///
@@ -49,7 +49,7 @@ where
 impl<const N: usize, T, A: Alignment> Projective<N, T, A>
 where
     Length<N>: TwoOrThree,
-    T: Scalar + Zero + One,
+    T: Element + Zero + One,
 {
     /// A projective transform that keeps all vectors unchanged.
     ///
@@ -81,7 +81,7 @@ where
 impl<const N: usize, T, A: Alignment> Projective<N, T, A>
 where
     Length<N>: TwoOrThree,
-    T: Scalar,
+    T: Element,
 {
     /// Creates a projective transform from a non-uniform `scale`.
     #[inline]
@@ -257,7 +257,7 @@ where
 
 impl<T, A: Alignment> Projective<2, T, A>
 where
-    T: Scalar,
+    T: Element,
 {
     /// Creates a projective transform from an array of homogeneous row vectors.
     #[inline]
@@ -556,7 +556,7 @@ where
 
 impl<T, A: Alignment> Projective<3, T, A>
 where
-    T: Scalar,
+    T: Element,
 {
     /// Creates a projective transform from an array of homogeneous row vectors.
     #[inline]

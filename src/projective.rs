@@ -6,7 +6,7 @@ use core::{
 };
 
 use crate::{
-    Affine, Aligned, Alignment, Length, Matrix, One, Scalar, Unaligned, Vector, Zero,
+    Affine, Aligned, Alignment, Element, Length, Matrix, One, Unaligned, Vector, Zero,
     length::TwoOrThree,
     utils::{specialize_23, transmute_mut, transmute_ref},
 };
@@ -82,7 +82,7 @@ pub struct Projective<const N: usize, T, A: Alignment>(
 )
 where
     Length<N>: TwoOrThree,
-    T: Scalar;
+    T: Element;
 
 /// A 2D projective transform represented by a homogeneous 3x3 matrix.
 ///
@@ -153,7 +153,7 @@ pub type Proj3A<T> = Projective<3, T, Aligned>;
 impl<const N: usize, T, A: Alignment> Clone for Projective<N, T, A>
 where
     Length<N>: TwoOrThree,
-    T: Scalar,
+    T: Element,
 {
     #[inline]
     fn clone(&self) -> Self {
@@ -164,13 +164,13 @@ where
 impl<const N: usize, T, A: Alignment> Copy for Projective<N, T, A>
 where
     Length<N>: TwoOrThree,
-    T: Scalar,
+    T: Element,
 {
 }
 
 impl<T, A: Alignment> Index<usize> for Projective<2, T, A>
 where
-    T: Scalar,
+    T: Element,
 {
     type Output = Vector<3, T, A>;
 
@@ -188,7 +188,7 @@ where
 
 impl<T, A: Alignment> Index<usize> for Projective<3, T, A>
 where
-    T: Scalar,
+    T: Element,
 {
     type Output = Vector<4, T, A>;
 
@@ -206,7 +206,7 @@ where
 
 impl<T, A: Alignment> IndexMut<usize> for Projective<2, T, A>
 where
-    T: Scalar,
+    T: Element,
 {
     /// Returns a mutable reference to the row at the given index.
     ///
@@ -222,7 +222,7 @@ where
 
 impl<T, A: Alignment> IndexMut<usize> for Projective<3, T, A>
 where
-    T: Scalar,
+    T: Element,
 {
     /// Returns a mutable reference to the row at the given index.
     ///
@@ -240,7 +240,7 @@ where
 #[repr(C)]
 pub struct Proj2Fields<T, A: Alignment>
 where
-    T: Scalar,
+    T: Element,
 {
     /// The first row of the projective transform.
     ///
@@ -261,7 +261,7 @@ where
 
 impl<T, A: Alignment> Deref for Projective<2, T, A>
 where
-    T: Scalar,
+    T: Element,
 {
     type Target = Proj2Fields<T, A>;
 
@@ -275,7 +275,7 @@ where
 
 impl<T, A: Alignment> DerefMut for Projective<2, T, A>
 where
-    T: Scalar,
+    T: Element,
 {
     #[inline]
     fn deref_mut(&mut self) -> &mut Self::Target {
@@ -289,7 +289,7 @@ where
 #[repr(C)]
 pub struct Proj3Fields<T, A: Alignment>
 where
-    T: Scalar,
+    T: Element,
 {
     /// The first row of the projective transform.
     ///
@@ -315,7 +315,7 @@ where
 
 impl<T, A: Alignment> Deref for Projective<3, T, A>
 where
-    T: Scalar,
+    T: Element,
 {
     type Target = Proj3Fields<T, A>;
 
@@ -329,7 +329,7 @@ where
 
 impl<T, A: Alignment> DerefMut for Projective<3, T, A>
 where
-    T: Scalar,
+    T: Element,
 {
     #[inline]
     fn deref_mut(&mut self) -> &mut Self::Target {
@@ -342,7 +342,7 @@ where
 impl<const N: usize, T, A: Alignment> Debug for Projective<N, T, A>
 where
     Length<N>: TwoOrThree,
-    T: Scalar + Debug,
+    T: Element + Debug,
 {
     #[inline]
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
@@ -353,7 +353,7 @@ where
 impl<const N: usize, T, A: Alignment> Display for Projective<N, T, A>
 where
     Length<N>: TwoOrThree,
-    T: Scalar + Display,
+    T: Element + Display,
 {
     #[inline]
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
@@ -364,7 +364,7 @@ where
 impl<const N: usize, T, A: Alignment> PartialEq for Projective<N, T, A>
 where
     Length<N>: TwoOrThree,
-    T: Scalar + PartialEq,
+    T: Element + PartialEq,
 {
     #[inline]
     fn eq(&self, other: &Self) -> bool {
@@ -375,14 +375,14 @@ where
 impl<const N: usize, T, A: Alignment> Eq for Projective<N, T, A>
 where
     Length<N>: TwoOrThree,
-    T: Scalar + Eq,
+    T: Element + Eq,
 {
 }
 
 impl<const N: usize, T, A: Alignment> Hash for Projective<N, T, A>
 where
     Length<N>: TwoOrThree,
-    T: Scalar + Hash,
+    T: Element + Hash,
 {
     #[inline]
     fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
@@ -393,7 +393,7 @@ where
 impl<const N: usize, T, A: Alignment> Default for Projective<N, T, A>
 where
     Length<N>: TwoOrThree,
-    T: Scalar + Zero + One,
+    T: Element + Zero + One,
 {
     /// Returns [`IDENTITY`].
     ///
@@ -409,7 +409,7 @@ macro_rules! impl_neg {
         impl<const N: usize, T, A: Alignment> Neg for Projective<N, T, A>
         where
             Length<N>: TwoOrThree,
-            T: Scalar + Neg<Output = T>,
+            T: Element + Neg<Output = T>,
         {
             type Output = Self;
 
@@ -424,7 +424,7 @@ macro_rules! impl_neg {
         impl<const N: usize, T, A: Alignment> Neg for &Projective<N, T, A>
         where
             Length<N>: TwoOrThree,
-            T: Scalar + Neg<Output = T>,
+            T: Element + Neg<Output = T>,
         {
             type Output = Projective<N, T, A>;
 
@@ -453,7 +453,7 @@ macro_rules! impl_add {
         impl<const N: usize, T, A: Alignment> Add for Projective<N, T, A>
         where
             Length<N>: TwoOrThree,
-            T: Scalar + Add<Output = T>,
+            T: Element + Add<Output = T>,
         {
             type Output = Self;
 
@@ -468,7 +468,7 @@ macro_rules! impl_add {
         impl<const N: usize, T, A: Alignment> Add<&Projective<N, T, A>> for Projective<N, T, A>
         where
             Length<N>: TwoOrThree,
-            T: Scalar + Add<Output = T>,
+            T: Element + Add<Output = T>,
         {
             type Output = Self;
 
@@ -483,7 +483,7 @@ macro_rules! impl_add {
         impl<const N: usize, T, A: Alignment> Add<Projective<N, T, A>> for &Projective<N, T, A>
         where
             Length<N>: TwoOrThree,
-            T: Scalar + Add<Output = T>,
+            T: Element + Add<Output = T>,
         {
             type Output = Projective<N, T, A>;
 
@@ -498,7 +498,7 @@ macro_rules! impl_add {
         impl<const N: usize, T, A: Alignment> Add for &Projective<N, T, A>
         where
             Length<N>: TwoOrThree,
-            T: Scalar + Add<Output = T>,
+            T: Element + Add<Output = T>,
         {
             type Output = Projective<N, T, A>;
 
@@ -513,7 +513,7 @@ macro_rules! impl_add {
         impl<const N: usize, T, A: Alignment> AddAssign for Projective<N, T, A>
         where
             Length<N>: TwoOrThree,
-            T: Scalar + Add<Output = T>,
+            T: Element + Add<Output = T>,
         {
             $(#[$doc])*
             #[inline]
@@ -526,7 +526,7 @@ macro_rules! impl_add {
         impl<const N: usize, T, A: Alignment> AddAssign<&Projective<N, T, A>> for Projective<N, T, A>
         where
             Length<N>: TwoOrThree,
-            T: Scalar + Add<Output = T>,
+            T: Element + Add<Output = T>,
         {
             $(#[$doc])*
             #[inline]
@@ -554,7 +554,7 @@ macro_rules! impl_sub {
         impl<const N: usize, T, A: Alignment> Sub for Projective<N, T, A>
         where
             Length<N>: TwoOrThree,
-            T: Scalar + Sub<Output = T>,
+            T: Element + Sub<Output = T>,
         {
             type Output = Self;
 
@@ -569,7 +569,7 @@ macro_rules! impl_sub {
         impl<const N: usize, T, A: Alignment> Sub<&Projective<N, T, A>> for Projective<N, T, A>
         where
             Length<N>: TwoOrThree,
-            T: Scalar + Sub<Output = T>,
+            T: Element + Sub<Output = T>,
         {
             type Output = Self;
 
@@ -584,7 +584,7 @@ macro_rules! impl_sub {
         impl<const N: usize, T, A: Alignment> Sub<Projective<N, T, A>> for &Projective<N, T, A>
         where
             Length<N>: TwoOrThree,
-            T: Scalar + Sub<Output = T>,
+            T: Element + Sub<Output = T>,
         {
             type Output = Projective<N, T, A>;
 
@@ -599,7 +599,7 @@ macro_rules! impl_sub {
         impl<const N: usize, T, A: Alignment> Sub for &Projective<N, T, A>
         where
             Length<N>: TwoOrThree,
-            T: Scalar + Sub<Output = T>,
+            T: Element + Sub<Output = T>,
         {
             type Output = Projective<N, T, A>;
 
@@ -614,7 +614,7 @@ macro_rules! impl_sub {
         impl<const N: usize, T, A: Alignment> SubAssign for Projective<N, T, A>
         where
             Length<N>: TwoOrThree,
-            T: Scalar + Sub<Output = T>,
+            T: Element + Sub<Output = T>,
         {
             $(#[$doc])*
             #[inline]
@@ -627,7 +627,7 @@ macro_rules! impl_sub {
         impl<const N: usize, T, A: Alignment> SubAssign<&Projective<N, T, A>> for Projective<N, T, A>
         where
             Length<N>: TwoOrThree,
-            T: Scalar + Sub<Output = T>,
+            T: Element + Sub<Output = T>,
         {
             $(#[$doc])*
             #[inline]
@@ -654,7 +654,7 @@ macro_rules! impl_vector_mul {
     ($(#[$doc:meta])*) => {
         impl<T, A: Alignment> Mul<Projective<2, T, A>> for Vector<3, T, A>
         where
-            T: Scalar + Add<Output = T> + Mul<Output = T>,
+            T: Element + Add<Output = T> + Mul<Output = T>,
         {
             type Output = Self;
 
@@ -668,7 +668,7 @@ macro_rules! impl_vector_mul {
 
         impl<T, A: Alignment> Mul<Projective<3, T, A>> for Vector<4, T, A>
         where
-            T: Scalar + Add<Output = T> + Mul<Output = T>,
+            T: Element + Add<Output = T> + Mul<Output = T>,
         {
             type Output = Self;
 
@@ -682,7 +682,7 @@ macro_rules! impl_vector_mul {
 
         impl<T, A: Alignment> Mul<&Projective<2, T, A>> for Vector<3, T, A>
         where
-            T: Scalar + Add<Output = T> + Mul<Output = T>,
+            T: Element + Add<Output = T> + Mul<Output = T>,
         {
             type Output = Self;
 
@@ -696,7 +696,7 @@ macro_rules! impl_vector_mul {
 
         impl<T, A: Alignment> Mul<&Projective<3, T, A>> for Vector<4, T, A>
         where
-            T: Scalar + Add<Output = T> + Mul<Output = T>,
+            T: Element + Add<Output = T> + Mul<Output = T>,
         {
             type Output = Self;
 
@@ -710,7 +710,7 @@ macro_rules! impl_vector_mul {
 
         impl<T, A: Alignment> Mul<Projective<2, T, A>> for &Vector<3, T, A>
         where
-            T: Scalar + Add<Output = T> + Mul<Output = T>,
+            T: Element + Add<Output = T> + Mul<Output = T>,
         {
             type Output = Vector<3, T, A>;
 
@@ -724,7 +724,7 @@ macro_rules! impl_vector_mul {
 
         impl<T, A: Alignment> Mul<Projective<3, T, A>> for &Vector<4, T, A>
         where
-            T: Scalar + Add<Output = T> + Mul<Output = T>,
+            T: Element + Add<Output = T> + Mul<Output = T>,
         {
             type Output = Vector<4, T, A>;
 
@@ -738,7 +738,7 @@ macro_rules! impl_vector_mul {
 
         impl<T, A: Alignment> Mul<&Projective<2, T, A>> for &Vector<3, T, A>
         where
-            T: Scalar + Add<Output = T> + Mul<Output = T>,
+            T: Element + Add<Output = T> + Mul<Output = T>,
         {
             type Output = Vector<3, T, A>;
 
@@ -752,7 +752,7 @@ macro_rules! impl_vector_mul {
 
         impl<T, A: Alignment> Mul<&Projective<3, T, A>> for &Vector<4, T, A>
         where
-            T: Scalar + Add<Output = T> + Mul<Output = T>,
+            T: Element + Add<Output = T> + Mul<Output = T>,
         {
             type Output = Vector<4, T, A>;
 
@@ -788,7 +788,7 @@ macro_rules! impl_mul {
         impl<const N: usize, T, A: Alignment> Mul for Projective<N, T, A>
         where
             Length<N>: TwoOrThree,
-            T: Scalar + Add<Output = T> + Mul<Output = T>,
+            T: Element + Add<Output = T> + Mul<Output = T>,
         {
             type Output = Self;
 
@@ -803,7 +803,7 @@ macro_rules! impl_mul {
         impl<const N: usize, T, A: Alignment> Mul<&Projective<N, T, A>> for Projective<N, T, A>
         where
             Length<N>: TwoOrThree,
-            T: Scalar + Add<Output = T> + Mul<Output = T>,
+            T: Element + Add<Output = T> + Mul<Output = T>,
         {
             type Output = Self;
 
@@ -818,7 +818,7 @@ macro_rules! impl_mul {
         impl<const N: usize, T, A: Alignment> Mul<Projective<N, T, A>> for &Projective<N, T, A>
         where
             Length<N>: TwoOrThree,
-            T: Scalar + Add<Output = T> + Mul<Output = T>,
+            T: Element + Add<Output = T> + Mul<Output = T>,
         {
             type Output = Projective<N, T, A>;
 
@@ -833,7 +833,7 @@ macro_rules! impl_mul {
         impl<const N: usize, T, A: Alignment> Mul<&Projective<N, T, A>> for &Projective<N, T, A>
         where
             Length<N>: TwoOrThree,
-            T: Scalar + Add<Output = T> + Mul<Output = T>,
+            T: Element + Add<Output = T> + Mul<Output = T>,
         {
             type Output = Projective<N, T, A>;
 
@@ -848,7 +848,7 @@ macro_rules! impl_mul {
         impl<const N: usize, T, A: Alignment> MulAssign for Projective<N, T, A>
         where
             Length<N>: TwoOrThree,
-            T: Scalar + Add<Output = T> + Mul<Output = T>,
+            T: Element + Add<Output = T> + Mul<Output = T>,
         {
             $(#[$doc])*
             #[inline]
@@ -861,7 +861,7 @@ macro_rules! impl_mul {
         impl<const N: usize, T, A: Alignment> MulAssign<&Projective<N, T, A>> for Projective<N, T, A>
         where
             Length<N>: TwoOrThree,
-            T: Scalar + Add<Output = T> + Mul<Output = T>,
+            T: Element + Add<Output = T> + Mul<Output = T>,
         {
             $(#[$doc])*
             #[inline]
@@ -890,7 +890,7 @@ macro_rules! impl_mul_scalar {
         impl<const N: usize, T, A: Alignment> Mul<T> for Projective<N, T, A>
         where
             Length<N>: TwoOrThree,
-            T: Scalar + Add<Output = T> + Mul<Output = T>,
+            T: Element + Add<Output = T> + Mul<Output = T>,
         {
             type Output = Self;
 
@@ -905,7 +905,7 @@ macro_rules! impl_mul_scalar {
         impl<const N: usize, T, A: Alignment> Mul<&T> for Projective<N, T, A>
         where
             Length<N>: TwoOrThree,
-            T: Scalar + Add<Output = T> + Mul<Output = T>,
+            T: Element + Add<Output = T> + Mul<Output = T>,
         {
             type Output = Self;
 
@@ -920,7 +920,7 @@ macro_rules! impl_mul_scalar {
         impl<const N: usize, T, A: Alignment> Mul<T> for &Projective<N, T, A>
         where
             Length<N>: TwoOrThree,
-            T: Scalar + Add<Output = T> + Mul<Output = T>,
+            T: Element + Add<Output = T> + Mul<Output = T>,
         {
             type Output = Projective<N, T, A>;
 
@@ -935,7 +935,7 @@ macro_rules! impl_mul_scalar {
         impl<const N: usize, T, A: Alignment> Mul<&T> for &Projective<N, T, A>
         where
             Length<N>: TwoOrThree,
-            T: Scalar + Add<Output = T> + Mul<Output = T>,
+            T: Element + Add<Output = T> + Mul<Output = T>,
         {
             type Output = Projective<N, T, A>;
 
@@ -950,7 +950,7 @@ macro_rules! impl_mul_scalar {
         impl<const N: usize, T, A: Alignment> MulAssign<T> for Projective<N, T, A>
         where
             Length<N>: TwoOrThree,
-            T: Scalar + Add<Output = T> + Mul<Output = T>,
+            T: Element + Add<Output = T> + Mul<Output = T>,
         {
             $(#[$doc])*
             #[inline]
@@ -963,7 +963,7 @@ macro_rules! impl_mul_scalar {
         impl<const N: usize, T, A: Alignment> MulAssign<&T> for Projective<N, T, A>
         where
             Length<N>: TwoOrThree,
-            T: Scalar + Add<Output = T> + Mul<Output = T>,
+            T: Element + Add<Output = T> + Mul<Output = T>,
         {
             $(#[$doc])*
             #[inline]
@@ -989,7 +989,7 @@ macro_rules! impl_affine_mul {
         impl<const N: usize, T, A: Alignment> Mul<Projective<N, T, A>> for Affine<N, T, A>
         where
             Length<N>: TwoOrThree,
-            T: Scalar + Add<Output = T> + Mul<Output = T> + Zero + One,
+            T: Element + Add<Output = T> + Mul<Output = T> + Zero + One,
         {
             type Output = Projective<N, T, A>;
 
@@ -1004,7 +1004,7 @@ macro_rules! impl_affine_mul {
         impl<const N: usize, T, A: Alignment> Mul<&Projective<N, T, A>> for Affine<N, T, A>
         where
             Length<N>: TwoOrThree,
-            T: Scalar + Add<Output = T> + Mul<Output = T> + Zero + One,
+            T: Element + Add<Output = T> + Mul<Output = T> + Zero + One,
         {
             type Output = Projective<N, T, A>;
 
@@ -1019,7 +1019,7 @@ macro_rules! impl_affine_mul {
         impl<const N: usize, T, A: Alignment> Mul<Projective<N, T, A>> for &Affine<N, T, A>
         where
             Length<N>: TwoOrThree,
-            T: Scalar + Add<Output = T> + Mul<Output = T> + Zero + One,
+            T: Element + Add<Output = T> + Mul<Output = T> + Zero + One,
         {
             type Output = Projective<N, T, A>;
 
@@ -1034,7 +1034,7 @@ macro_rules! impl_affine_mul {
         impl<const N: usize, T, A: Alignment> Mul<&Projective<N, T, A>> for &Affine<N, T, A>
         where
             Length<N>: TwoOrThree,
-            T: Scalar + Add<Output = T> + Mul<Output = T> + Zero + One,
+            T: Element + Add<Output = T> + Mul<Output = T> + Zero + One,
         {
             type Output = Projective<N, T, A>;
 
@@ -1067,7 +1067,7 @@ macro_rules! impl_mul_affine {
         impl<const N: usize, T, A: Alignment> Mul<Affine<N, T, A>> for Projective<N, T, A>
         where
             Length<N>: TwoOrThree,
-            T: Scalar + Add<Output = T> + Mul<Output = T> + Zero + One,
+            T: Element + Add<Output = T> + Mul<Output = T> + Zero + One,
         {
             type Output = Self;
 
@@ -1082,7 +1082,7 @@ macro_rules! impl_mul_affine {
         impl<const N: usize, T, A: Alignment> Mul<&Affine<N, T, A>> for Projective<N, T, A>
         where
             Length<N>: TwoOrThree,
-            T: Scalar + Add<Output = T> + Mul<Output = T> + Zero + One,
+            T: Element + Add<Output = T> + Mul<Output = T> + Zero + One,
         {
             type Output = Self;
 
@@ -1097,7 +1097,7 @@ macro_rules! impl_mul_affine {
         impl<const N: usize, T, A: Alignment> Mul<Affine<N, T, A>> for &Projective<N, T, A>
         where
             Length<N>: TwoOrThree,
-            T: Scalar + Add<Output = T> + Mul<Output = T> + Zero + One,
+            T: Element + Add<Output = T> + Mul<Output = T> + Zero + One,
         {
             type Output = Projective<N, T, A>;
 
@@ -1112,7 +1112,7 @@ macro_rules! impl_mul_affine {
         impl<const N: usize, T, A: Alignment> Mul<&Affine<N, T, A>> for &Projective<N, T, A>
         where
             Length<N>: TwoOrThree,
-            T: Scalar + Add<Output = T> + Mul<Output = T> + Zero + One,
+            T: Element + Add<Output = T> + Mul<Output = T> + Zero + One,
         {
             type Output = Projective<N, T, A>;
 
@@ -1127,7 +1127,7 @@ macro_rules! impl_mul_affine {
         impl<const N: usize, T, A: Alignment> MulAssign<Affine<N, T, A>> for Projective<N, T, A>
         where
             Length<N>: TwoOrThree,
-            T: Scalar + Add<Output = T> + Mul<Output = T> + Zero + One,
+            T: Element + Add<Output = T> + Mul<Output = T> + Zero + One,
         {
             $(#[$doc])*
             #[inline]
@@ -1140,7 +1140,7 @@ macro_rules! impl_mul_affine {
         impl<const N: usize, T, A: Alignment> MulAssign<&Affine<N, T, A>> for Projective<N, T, A>
         where
             Length<N>: TwoOrThree,
-            T: Scalar + Add<Output = T> + Mul<Output = T> + Zero + One,
+            T: Element + Add<Output = T> + Mul<Output = T> + Zero + One,
         {
             $(#[$doc])*
             #[inline]
@@ -1171,7 +1171,7 @@ impl_mul_affine!(
 unsafe impl<const N: usize, T, A: Alignment> Send for Projective<N, T, A>
 where
     Length<N>: TwoOrThree,
-    T: Scalar + Send,
+    T: Element + Send,
 {
 }
 
@@ -1180,28 +1180,28 @@ where
 unsafe impl<const N: usize, T, A: Alignment> Sync for Projective<N, T, A>
 where
     Length<N>: TwoOrThree,
-    T: Scalar + Sync,
+    T: Element + Sync,
 {
 }
 
 impl<const N: usize, T, A: Alignment> Unpin for Projective<N, T, A>
 where
     Length<N>: TwoOrThree,
-    T: Scalar + Unpin,
+    T: Element + Unpin,
 {
 }
 
 impl<const N: usize, T, A: Alignment> UnwindSafe for Projective<N, T, A>
 where
     Length<N>: TwoOrThree,
-    T: Scalar + UnwindSafe,
+    T: Element + UnwindSafe,
 {
 }
 
 impl<const N: usize, T, A: Alignment> RefUnwindSafe for Projective<N, T, A>
 where
     Length<N>: TwoOrThree,
-    T: Scalar + RefUnwindSafe,
+    T: Element + RefUnwindSafe,
 {
 }
 
