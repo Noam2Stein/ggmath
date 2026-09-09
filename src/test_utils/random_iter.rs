@@ -6,7 +6,7 @@ use std::iter::repeat_n;
 
 use crate::{
     Affine, Alignment, Dim, Element, FloatExt, Mask, Matrix, Projective, Rotation2, Rotor,
-    SupportedLength, Vector,
+    TwoThreeOrFour, Vector,
     dim::{Three, TwoOrThree},
     utils::specialize_23,
 };
@@ -250,7 +250,7 @@ where
 
 impl<const N: usize, T, A: Alignment> Random for Vector<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + Random,
 {
     type Input = T::Input;
@@ -262,7 +262,7 @@ where
 
 impl<const N: usize, T, A: Alignment> Random for Matrix<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + Random,
 {
     type Input = T::Input;
@@ -274,7 +274,7 @@ where
 
 impl<const N: usize, T, A: Alignment> Random for Affine<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + Random,
 {
     type Input = T::Input;
@@ -336,7 +336,7 @@ where
 
 impl<const N: usize, T, A: Alignment> Random for Mask<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element,
 {
     type Input = Category;

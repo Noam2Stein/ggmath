@@ -1,13 +1,13 @@
 use crate::{
     Affine, Alignment, Dim, EulerRot, Matrix, PrimitiveFloat, Projective, Rotation2, Rotor,
-    SupportedLength, Vector,
+    TwoThreeOrFour, Vector,
     dim::{Three, TwoOrThree},
     utils::specialize_23,
 };
 
 impl<const N: usize, T, A: Alignment> Affine<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: PrimitiveFloat,
 {
     /// An affine transform with all elements set to NaN (Not a Number).

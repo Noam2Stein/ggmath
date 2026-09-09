@@ -4,7 +4,7 @@ use wide::{
 };
 
 use crate::{
-    Alignment, Dim, SupportedLength, Vector,
+    Alignment, Dim, TwoThreeOrFour, Vector,
     utils::{specialize, transmute_generic},
 };
 
@@ -99,7 +99,7 @@ pub trait WideSigned: crate::Element {
 #[cfg(doc)]
 impl<const N: usize, Wide, A: Alignment> Vector<N, Wide, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     Wide: WideSigned,
 {
     items!(Wide, <Wide as WideSigned>::Unsigned);
@@ -110,7 +110,7 @@ macro_rules! impl_items {
         #[cfg(not(doc))]
         impl<const N: usize, A: Alignment> Vector<N, $Wide, A>
         where
-            Dim<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
         {
             items!($Wide, $UnsignedWide);
         }

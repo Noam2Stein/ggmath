@@ -2,7 +2,7 @@ use core::ops::{Add, BitAnd, BitOr, BitXor, Div, Mul, Neg, Not, Rem, Shl, Shr, S
 
 use crate::{
     Aligned, Alignment, Dim, Element, Mask, PrimitiveFloat, PrimitiveInteger, PrimitiveSigned,
-    Rotor, SupportedLength, Unaligned, Vector,
+    Rotor, TwoThreeOrFour, Unaligned, Vector,
     dim::Three,
     utils::{Repr2, Repr3, Repr4},
 };
@@ -31,7 +31,7 @@ pub(crate) trait DefaultBackend<const N: usize, A: Alignment>: Element {}
 )]
 pub(crate) unsafe trait VectorBackend<const N: usize, A: Alignment>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
 {
     /// Controls the internal representation of [`Vector<N, Self, A>`].
     ///
@@ -201,7 +201,7 @@ where
 )]
 pub(crate) unsafe trait MaskBackend<const N: usize, A: Alignment>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
 {
     /// Controls the internal representation of [`Mask<N, Self, A>`].
     ///
@@ -276,7 +276,7 @@ where
 
 pub(crate) trait FloatVectorBackend<const N: usize, A: Alignment>: Element
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
 {
     fn vector_nan_mask(vector: Vector<N, Self, A>) -> Mask<N, Self, A>;
 
@@ -349,7 +349,7 @@ where
 
 pub(crate) trait IntegerVectorBackend<const N: usize, A: Alignment>: Element
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
 {
     fn vector_max(vector: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Vector<N, Self, A>;
 
@@ -435,7 +435,7 @@ where
 
 pub(crate) trait SignedVectorBackend<const N: usize, A: Alignment>: Element
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
 {
     fn vector_wrapping_abs(vector: Vector<N, Self, A>) -> Vector<N, Self, A>;
 

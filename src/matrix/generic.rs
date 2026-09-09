@@ -1,13 +1,13 @@
 use core::ops::{Add, Mul, Neg, Sub};
 
 use crate::{
-    Aligned, Alignment, Dim, Element, Matrix, One, SupportedLength, Unaligned, Vector, Zero,
+    Aligned, Alignment, Dim, Element, Matrix, One, TwoThreeOrFour, Unaligned, Vector, Zero,
     utils::{specialize, transmute_generic, transmute_mut, transmute_ref},
 };
 
 impl<const N: usize, T, A: Alignment> Matrix<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + Zero,
 {
     /// A matrix with all elements set to `0`.
@@ -21,7 +21,7 @@ where
 
 impl<const N: usize, T, A: Alignment> Matrix<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + Zero + One,
 {
     /// A matrix with no transformation.
@@ -32,7 +32,7 @@ where
 
 impl<const N: usize, T, A: Alignment> Matrix<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element,
 {
     /// Creates a matrix from an array of row vectors.

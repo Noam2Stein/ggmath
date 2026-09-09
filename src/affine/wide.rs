@@ -1,7 +1,7 @@
 use wide::Select;
 
 use crate::{
-    Affine, Alignment, Dim, Element, Matrix, SupportedLength, Vector,
+    Affine, Alignment, Dim, Element, Matrix, TwoThreeOrFour, Vector,
     utils::{WideTy, specialize},
 };
 
@@ -17,7 +17,7 @@ use crate::{
 #[expect(private_bounds)]
 impl<const N: usize, Wide, T, const LANES: usize, A: Alignment> Affine<N, Wide, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     Wide: WideTy<Array = [T; LANES]>,
     T: Element,
 {
@@ -299,7 +299,7 @@ macro_rules! impl_select {
     ($Mask:ident) => {
         impl<const N: usize, Wide, A: Alignment> Select<Affine<N, Wide, A>> for wide::$Mask
         where
-            Dim<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
             wide::$Mask: Select<Wide>,
             Wide: WideTy,
         {

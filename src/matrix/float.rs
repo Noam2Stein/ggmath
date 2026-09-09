@@ -1,13 +1,13 @@
 use crate::{
     Alignment, Dim, EulerRot, FloatExt, Matrix, PrimitiveFloat, Projective, Rotation2, Rotor,
-    SupportedLength, Vector,
+    TwoThreeOrFour, Vector,
     dim::{Three, TwoOrThree},
     utils::{specialize, specialize_3, specialize_23},
 };
 
 impl<const N: usize, T, A: Alignment> Matrix<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: PrimitiveFloat,
 {
     /// A matrix with all elements set to NaN (Not a Number).

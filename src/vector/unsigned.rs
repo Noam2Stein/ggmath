@@ -1,10 +1,10 @@
-use crate::{Alignment, Dim, PrimitiveUnsigned, SupportedLength, Vector, utils::transmute_generic};
+use crate::{Alignment, Dim, PrimitiveUnsigned, TwoThreeOrFour, Vector, utils::transmute_generic};
 
 type Signed<T> = <T as PrimitiveUnsigned>::Signed;
 
 impl<const N: usize, T, A: Alignment> Vector<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: PrimitiveUnsigned,
 {
     /// Returns the bit patterns of `self` reinterpreted as signed integers of

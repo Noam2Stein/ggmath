@@ -1,7 +1,7 @@
 use wide::{f32x4, f32x8, f32x16, f64x2, f64x4, f64x8};
 
 use crate::{
-    Alignment, Dim, EulerRot, Matrix, Projective, Rotation2, Rotor, SupportedLength, Vector,
+    Alignment, Dim, EulerRot, Matrix, Projective, Rotation2, Rotor, TwoThreeOrFour, Vector,
     dim::{Three, TwoOrThree},
     utils::{specialize, specialize_3, specialize_23},
 };
@@ -543,7 +543,7 @@ pub trait WideFloat: crate::Element {}
 #[cfg(doc)]
 impl<const N: usize, Wide, A: Alignment> Matrix<N, Wide, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     Wide: WideFloat,
 {
     items!(Wide, f32);
@@ -588,7 +588,7 @@ macro_rules! impl_items {
         #[cfg(not(doc))]
         impl<const N: usize, A: Alignment> Matrix<N, $Wide, A>
         where
-            Dim<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
         {
             items!($Wide, $T);
         }

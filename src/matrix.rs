@@ -9,7 +9,7 @@ use core::{
 };
 
 use crate::{
-    Aligned, Alignment, Dim, Element, One, SupportedLength, Unaligned, Vector, Zero,
+    Aligned, Alignment, Dim, Element, One, TwoThreeOrFour, Unaligned, Vector, Zero,
     utils::{Repr3, Repr4, transmute_mut, transmute_ref},
 };
 
@@ -83,14 +83,14 @@ mod wide_float;
 #[repr(transparent)]
 pub struct Matrix<const N: usize, T, A: Alignment>(
     #[expect(clippy::type_complexity)]
-    <Dim<N> as SupportedLength>::Select<
+    <Dim<N> as TwoThreeOrFour>::Select<
         Vector<4, T, A>,
         Repr3<Vector<3, T, A>>,
         Repr4<Vector<4, T, A>>,
     >,
 )
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element;
 
 /// A 2x2 row-major matrix.
@@ -294,7 +294,7 @@ pub type Mat4A<T> = Matrix<4, T, Aligned>;
 
 impl<const N: usize, T, A: Alignment> Clone for Matrix<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element,
 {
     #[inline]
@@ -305,14 +305,14 @@ where
 
 impl<const N: usize, T, A: Alignment> Copy for Matrix<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element,
 {
 }
 
 impl<const N: usize, T, A: Alignment> Index<usize> for Matrix<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element,
 {
     type Output = Vector<N, T, A>;
@@ -331,7 +331,7 @@ where
 
 impl<const N: usize, T, A: Alignment> IndexMut<usize> for Matrix<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element,
 {
     /// Returns a mutable reference to the row at the given index.
@@ -486,7 +486,7 @@ where
 
 impl<const N: usize, T, A: Alignment> Debug for Matrix<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + Debug,
 {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
@@ -496,7 +496,7 @@ where
 
 impl<const N: usize, T, A: Alignment> Display for Matrix<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + Display,
 {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
@@ -511,7 +511,7 @@ where
 
 impl<const N: usize, T, A: Alignment> PartialEq for Matrix<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + PartialEq,
 {
     #[inline]
@@ -522,14 +522,14 @@ where
 
 impl<const N: usize, T, A: Alignment> Eq for Matrix<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + Eq,
 {
 }
 
 impl<const N: usize, T, A: Alignment> Hash for Matrix<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + Hash,
 {
     fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
@@ -539,7 +539,7 @@ where
 
 impl<const N: usize, T, A: Alignment> Default for Matrix<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + Zero + One,
 {
     /// Returns [`IDENTITY`].
@@ -555,7 +555,7 @@ macro_rules! impl_neg {
     ($(#[$doc:meta])*) => {
         impl<const N: usize, T, A: Alignment> Neg for Matrix<N, T, A>
         where
-            Dim<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
             T: Element + Neg<Output = T>,
         {
             type Output = Self;
@@ -570,7 +570,7 @@ macro_rules! impl_neg {
 
         impl<const N: usize, T, A: Alignment> Neg for &Matrix<N, T, A>
         where
-            Dim<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
             T: Element + Neg<Output = T>,
         {
             type Output = Matrix<N, T, A>;
@@ -599,7 +599,7 @@ macro_rules! impl_add {
     ($(#[$doc:meta])*) => {
         impl<const N: usize, T, A: Alignment> Add for Matrix<N, T, A>
         where
-            Dim<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
             T: Element + Add<Output = T>,
         {
             type Output = Self;
@@ -614,7 +614,7 @@ macro_rules! impl_add {
 
         impl<const N: usize, T, A: Alignment> Add<&Matrix<N, T, A>> for Matrix<N, T, A>
         where
-            Dim<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
             T: Element + Add<Output = T>,
         {
             type Output = Self;
@@ -629,7 +629,7 @@ macro_rules! impl_add {
 
         impl<const N: usize, T, A: Alignment> Add<Matrix<N, T, A>> for &Matrix<N, T, A>
         where
-            Dim<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
             T: Element + Add<Output = T>,
         {
             type Output = Matrix<N, T, A>;
@@ -644,7 +644,7 @@ macro_rules! impl_add {
 
         impl<const N: usize, T, A: Alignment> Add for &Matrix<N, T, A>
         where
-            Dim<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
             T: Element + Add<Output = T>,
         {
             type Output = Matrix<N, T, A>;
@@ -674,7 +674,7 @@ macro_rules! impl_add_assign {
     ($(#[$doc:meta])*) => {
         impl<const N: usize, T, A: Alignment> AddAssign for Matrix<N, T, A>
         where
-            Dim<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
             T: Element + Add<Output = T>,
         {
             $(#[$doc])*
@@ -687,7 +687,7 @@ macro_rules! impl_add_assign {
 
         impl<const N: usize, T, A: Alignment> AddAssign<&Matrix<N, T, A>> for Matrix<N, T, A>
         where
-            Dim<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
             T: Element + Add<Output = T>,
         {
             $(#[$doc])*
@@ -722,7 +722,7 @@ macro_rules! impl_sub {
     ($(#[$doc:meta])*) => {
         impl<const N: usize, T, A: Alignment> Sub for Matrix<N, T, A>
         where
-            Dim<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
             T: Element + Sub<Output = T>,
         {
             type Output = Self;
@@ -737,7 +737,7 @@ macro_rules! impl_sub {
 
         impl<const N: usize, T, A: Alignment> Sub<&Matrix<N, T, A>> for Matrix<N, T, A>
         where
-            Dim<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
             T: Element + Sub<Output = T>,
         {
             type Output = Self;
@@ -752,7 +752,7 @@ macro_rules! impl_sub {
 
         impl<const N: usize, T, A: Alignment> Sub<Matrix<N, T, A>> for &Matrix<N, T, A>
         where
-            Dim<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
             T: Element + Sub<Output = T>,
         {
             type Output = Matrix<N, T, A>;
@@ -767,7 +767,7 @@ macro_rules! impl_sub {
 
         impl<const N: usize, T, A: Alignment> Sub for &Matrix<N, T, A>
         where
-            Dim<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
             T: Element + Sub<Output = T>,
         {
             type Output = Matrix<N, T, A>;
@@ -797,7 +797,7 @@ macro_rules! impl_sub_assign {
     ($(#[$doc:meta])*) => {
         impl<const N: usize, T, A: Alignment> SubAssign for Matrix<N, T, A>
         where
-            Dim<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
             T: Element + Sub<Output = T>,
         {
             $(#[$doc])*
@@ -810,7 +810,7 @@ macro_rules! impl_sub_assign {
 
         impl<const N: usize, T, A: Alignment> SubAssign<&Matrix<N, T, A>> for Matrix<N, T, A>
         where
-            Dim<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
             T: Element + Sub<Output = T>,
         {
             $(#[$doc])*
@@ -845,7 +845,7 @@ macro_rules! impl_mul_scalar {
     ($(#[$doc:meta])*) => {
         impl<const N: usize, T, A: Alignment> Mul<T> for Matrix<N, T, A>
         where
-            Dim<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
             T: Element + Mul<Output = T>,
         {
             type Output = Self;
@@ -860,7 +860,7 @@ macro_rules! impl_mul_scalar {
 
         impl<const N: usize, T, A: Alignment> Mul<&T> for Matrix<N, T, A>
         where
-            Dim<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
             T: Element + Mul<Output = T>,
         {
             type Output = Self;
@@ -875,7 +875,7 @@ macro_rules! impl_mul_scalar {
 
         impl<const N: usize, T, A: Alignment> Mul<T> for &Matrix<N, T, A>
         where
-            Dim<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
             T: Element + Mul<Output = T>,
         {
             type Output = Matrix<N, T, A>;
@@ -890,7 +890,7 @@ macro_rules! impl_mul_scalar {
 
         impl<const N: usize, T, A: Alignment> Mul<&T> for &Matrix<N, T, A>
         where
-            Dim<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
             T: Element + Mul<Output = T>,
         {
             type Output = Matrix<N, T, A>;
@@ -919,7 +919,7 @@ macro_rules! impl_mul {
     ($(#[$doc:meta])*) => {
         impl<const N: usize, T, A: Alignment> Mul for Matrix<N, T, A>
         where
-            Dim<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
             T: Element + Add<Output = T> + Mul<Output = T>,
         {
             type Output = Self;
@@ -934,7 +934,7 @@ macro_rules! impl_mul {
 
         impl<const N: usize, T, A: Alignment> Mul<&Matrix<N, T, A>> for Matrix<N, T, A>
         where
-            Dim<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
             T: Element + Add<Output = T> + Mul<Output = T>,
         {
             type Output = Self;
@@ -949,7 +949,7 @@ macro_rules! impl_mul {
 
         impl<const N: usize, T, A: Alignment> Mul<Matrix<N, T, A>> for &Matrix<N, T, A>
         where
-            Dim<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
             T: Element + Add<Output = T> + Mul<Output = T>,
         {
             type Output = Matrix<N, T, A>;
@@ -964,7 +964,7 @@ macro_rules! impl_mul {
 
         impl<const N: usize, T, A: Alignment> Mul<&Matrix<N, T, A>> for &Matrix<N, T, A>
         where
-            Dim<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
             T: Element + Add<Output = T> + Mul<Output = T>,
         {
             type Output = Matrix<N, T, A>;
@@ -997,7 +997,7 @@ macro_rules! impl_vector_mul {
     ($(#[$doc:meta])*) => {
         impl<const N: usize, T, A: Alignment> Mul<Matrix<N, T, A>> for Vector<N, T, A>
         where
-            Dim<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
             T: Element + Add<Output = T> + Mul<Output = T>,
         {
             type Output = Self;
@@ -1012,7 +1012,7 @@ macro_rules! impl_vector_mul {
 
         impl<const N: usize, T, A: Alignment> Mul<&Matrix<N, T, A>> for Vector<N, T, A>
         where
-            Dim<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
             T: Element + Add<Output = T> + Mul<Output = T>,
         {
             type Output = Self;
@@ -1032,7 +1032,7 @@ macro_rules! impl_vector_mul {
 
         impl<const N: usize, T, A: Alignment> Mul<Matrix<N, T, A>> for &Vector<N, T, A>
         where
-            Dim<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
             T: Element + Add<Output = T> + Mul<Output = T>,
         {
             type Output = Vector<N, T, A>;
@@ -1047,7 +1047,7 @@ macro_rules! impl_vector_mul {
 
         impl<const N: usize, T, A: Alignment> Mul<&Matrix<N, T, A>> for &Vector<N, T, A>
         where
-            Dim<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
             T: Element + Add<Output = T> + Mul<Output = T>,
         {
             type Output = Vector<N, T, A>;
@@ -1080,7 +1080,7 @@ macro_rules! impl_mul_assign_scalar {
     ($(#[$doc:meta])*) => {
         impl<const N: usize, T, A: Alignment> MulAssign<T> for Matrix<N, T, A>
         where
-            Dim<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
             T: Element + Mul<Output = T>,
         {
             $(#[$doc])*
@@ -1093,7 +1093,7 @@ macro_rules! impl_mul_assign_scalar {
 
         impl<const N: usize, T, A: Alignment> MulAssign<&T> for Matrix<N, T, A>
         where
-            Dim<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
             T: Element + Mul<Output = T>,
         {
             $(#[$doc])*
@@ -1128,7 +1128,7 @@ macro_rules! impl_mul_assign {
     ($(#[$doc:meta])*) => {
         impl<const N: usize, T, A: Alignment> MulAssign for Matrix<N, T, A>
         where
-            Dim<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
             T: Element + Add<Output = T> + Mul<Output = T>,
         {
             $(#[$doc])*
@@ -1141,7 +1141,7 @@ macro_rules! impl_mul_assign {
 
         impl<const N: usize, T, A: Alignment> MulAssign<&Matrix<N, T, A>> for Matrix<N, T, A>
         where
-            Dim<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
             T: Element + Add<Output = T> + Mul<Output = T>,
         {
             $(#[$doc])*
@@ -1174,7 +1174,7 @@ macro_rules! impl_vector_mul_assign {
     ($(#[$doc:meta])*) => {
         impl<const N: usize, T, A: Alignment> MulAssign<Matrix<N, T, A>> for Vector<N, T, A>
         where
-            Dim<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
             T: Element + Add<Output = T> + Mul<Output = T>,
         {
             $(#[$doc])*
@@ -1187,7 +1187,7 @@ macro_rules! impl_vector_mul_assign {
 
         impl<const N: usize, T, A: Alignment> MulAssign<&Matrix<N, T, A>> for Vector<N, T, A>
         where
-            Dim<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
             T: Element + Add<Output = T> + Mul<Output = T>,
         {
             $(#[$doc])*
@@ -1218,7 +1218,7 @@ macro_rules! impl_div_scalar {
     ($(#[$doc:meta])*) => {
         impl<const N: usize, T, A: Alignment> Div<T> for Matrix<N, T, A>
         where
-            Dim<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
             T: Element + Div<Output = T>,
         {
             type Output = Self;
@@ -1233,7 +1233,7 @@ macro_rules! impl_div_scalar {
 
         impl<const N: usize, T, A: Alignment> Div<&T> for Matrix<N, T, A>
         where
-            Dim<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
             T: Element + Div<Output = T>,
         {
             type Output = Self;
@@ -1248,7 +1248,7 @@ macro_rules! impl_div_scalar {
 
         impl<const N: usize, T, A: Alignment> Div<T> for &Matrix<N, T, A>
         where
-            Dim<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
             T: Element + Div<Output = T>,
         {
             type Output = Matrix<N, T, A>;
@@ -1263,7 +1263,7 @@ macro_rules! impl_div_scalar {
 
         impl<const N: usize, T, A: Alignment> Div<&T> for &Matrix<N, T, A>
         where
-            Dim<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
             T: Element + Div<Output = T>,
         {
             type Output = Matrix<N, T, A>;
@@ -1292,7 +1292,7 @@ macro_rules! impl_div_assign_scalar {
     ($(#[$doc:meta])*) => {
         impl<const N: usize, T, A: Alignment> DivAssign<T> for Matrix<N, T, A>
         where
-            Dim<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
             T: Element + Div<Output = T>,
         {
             $(#[$doc])*
@@ -1305,7 +1305,7 @@ macro_rules! impl_div_assign_scalar {
 
         impl<const N: usize, T, A: Alignment> DivAssign<&T> for Matrix<N, T, A>
         where
-            Dim<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
             T: Element + Div<Output = T>,
         {
             $(#[$doc])*
@@ -1340,7 +1340,7 @@ impl_div_assign_scalar!(
 // Because `T` is `Send` and padding is `Send`, the matrix is too.
 unsafe impl<const N: usize, T, A: Alignment> Send for Matrix<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + Send,
 {
 }
@@ -1349,28 +1349,28 @@ where
 // Because `T` is `Sync` and padding is `Sync`, the matrix is too.
 unsafe impl<const N: usize, T, A: Alignment> Sync for Matrix<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + Sync,
 {
 }
 
 impl<const N: usize, T, A: Alignment> Unpin for Matrix<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + Unpin,
 {
 }
 
 impl<const N: usize, T, A: Alignment> UnwindSafe for Matrix<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + UnwindSafe,
 {
 }
 
 impl<const N: usize, T, A: Alignment> RefUnwindSafe for Matrix<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + RefUnwindSafe,
 {
 }

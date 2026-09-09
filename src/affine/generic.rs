@@ -4,15 +4,14 @@ use core::{
 };
 
 use crate::{
-    Affine, Aligned, Alignment, Dim, Element, Matrix, One, SupportedLength, Unaligned, Vector,
-    Zero,
+    Affine, Aligned, Alignment, Dim, Element, Matrix, One, TwoThreeOrFour, Unaligned, Vector, Zero,
     affine::AffineFields,
     utils::{transmute_generic, transmute_mut, transmute_ref},
 };
 
 impl<const N: usize, T, A: Alignment> Affine<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + Zero,
 {
     /// An affine transform with all elements set to `0`.
@@ -26,7 +25,7 @@ where
 
 impl<const N: usize, T, A: Alignment> Affine<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + Zero + One,
 {
     /// An affine transform with no transformation.
@@ -35,7 +34,7 @@ where
 
 impl<const N: usize, T, A: Alignment> Affine<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element,
 {
     /// Creates an affine transform by calling function `f` for each row index.
@@ -110,7 +109,7 @@ where
             #[repr(C)]
             struct Inner<const N: usize, T, A: Alignment>(Matrix<N, T, A>, Vector<N, T, A>)
             where
-                Dim<N>: SupportedLength,
+                Dim<N>: TwoThreeOrFour,
                 T: Element;
 
             // SAFETY: We checked that there is no padding that needs to be
@@ -128,7 +127,7 @@ where
                 MaybeUninit<Vector<N, T, A>>,
             )
             where
-                Dim<N>: SupportedLength,
+                Dim<N>: TwoThreeOrFour,
                 T: Element;
 
             // SAFETY: We checked that `Affine` "contains" exactly eight

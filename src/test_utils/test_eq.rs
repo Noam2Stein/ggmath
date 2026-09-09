@@ -7,7 +7,7 @@ use std::{
 
 use crate::{
     Affine, Alignment, Dim, Element, Matrix, PrimitiveInteger, Projective, Rotation2, Rotor,
-    SupportedLength, Vector,
+    TwoThreeOrFour, Vector,
     dim::{Three, TwoOrThree},
     utils::specialize_23,
 };
@@ -631,7 +631,7 @@ where
 
 impl<const N: usize, T, A: Alignment> TestEq for Vector<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + TestEq,
 {
     fn eq(
@@ -654,7 +654,7 @@ where
 
 impl<const N: usize, T, A: Alignment> TestEqAbs for Vector<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + TestEqAbs,
 {
     fn eq(
@@ -679,7 +679,7 @@ where
 
 impl<const N: usize, T, A: Alignment> TestEqAbs<T> for Vector<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + TestEqAbs,
 {
     fn eq(
@@ -704,7 +704,7 @@ where
 
 impl<const N: usize, T, A: Alignment> TestEq for Matrix<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + TestEq,
 {
     fn eq(
@@ -727,7 +727,7 @@ where
 
 impl<const N: usize, T, A: Alignment> TestEqAbs for Matrix<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + TestEqAbs,
 {
     fn eq(
@@ -752,7 +752,7 @@ where
 
 impl<const N: usize, T, A: Alignment> TestEqAbs<T> for Matrix<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + TestEqAbs,
 {
     fn eq(
@@ -777,7 +777,7 @@ where
 
 impl<const N: usize, T, A: Alignment> TestEq for Affine<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + TestEq,
 {
     fn eq(
@@ -803,7 +803,7 @@ where
 
 impl<const N: usize, T, A: Alignment> TestEqAbs for Affine<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + TestEqAbs,
 {
     fn eq(
@@ -832,7 +832,7 @@ where
 
 impl<const N: usize, T, A: Alignment> TestEqAbs<T> for Affine<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + TestEqAbs,
 {
     fn eq(

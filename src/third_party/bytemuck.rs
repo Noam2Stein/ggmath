@@ -1,7 +1,7 @@
 use bytemuck::{NoUninit, Pod, Zeroable};
 
 use crate::{
-    Affine, Alignment, Dim, Element, Mask, Matrix, Projective, Rotation2, Rotor, SupportedLength,
+    Affine, Alignment, Dim, Element, Mask, Matrix, Projective, Rotation2, Rotor, TwoThreeOrFour,
     Vector,
     dim::{Three, TwoOrThree},
 };
@@ -11,7 +11,7 @@ use crate::{
 // to have initialized bytes, and accepts any bit-pattern.
 unsafe impl<const N: usize, T, A: Alignment> Pod for Vector<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + Pod,
 {
 }
@@ -21,7 +21,7 @@ where
 // guaranteed to accept any bit-pattern.
 unsafe impl<const N: usize, T, A: Alignment> Zeroable for Vector<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + Zeroable,
 {
 }
@@ -32,7 +32,7 @@ where
 // bit-pattern.
 unsafe impl<const N: usize, T, A: Alignment> Pod for Matrix<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + Pod,
 {
 }
@@ -42,7 +42,7 @@ where
 // `Zeroable`, and the padding is guaranteed to accept any bit-pattern.
 unsafe impl<const N: usize, T, A: Alignment> Zeroable for Matrix<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + Zeroable,
 {
 }
@@ -52,7 +52,7 @@ where
 // padding bytes are initialized and accept all bit-patterns.
 unsafe impl<const N: usize, T, A: Alignment> Pod for Affine<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + Pod,
 {
 }
@@ -62,7 +62,7 @@ where
 // `Zeroable`, and padding bytes are initialized and accept all bit-patterns.
 unsafe impl<const N: usize, T, A: Alignment> Zeroable for Affine<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + Zeroable,
 {
 }
@@ -111,7 +111,7 @@ where
 // zero bit-pattern, meaning they are inhabited.
 unsafe impl<const N: usize, T, A: Alignment> NoUninit for Mask<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + 'static,
 {
 }
@@ -119,7 +119,7 @@ where
 // SAFETY: Masks are guaranteed to accept the zero bit-pattern.
 unsafe impl<const N: usize, T, A: Alignment> Zeroable for Mask<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element,
 {
 }

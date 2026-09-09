@@ -1,5 +1,5 @@
 use crate::{
-    Affine, Aligned, Alignment, Dim, Element, Mask, Matrix, Projective, Rotor, SupportedLength,
+    Affine, Aligned, Alignment, Dim, Element, Mask, Matrix, Projective, Rotor, TwoThreeOrFour,
     Unaligned, Vector,
     dim::{Three, TwoOrThree},
     utils::transmute_generic,
@@ -280,7 +280,7 @@ pub const fn specialize_helper<const N: usize, A: Alignment, F2, F3, F4, F2U, F3
     f4u: F4U,
 ) -> F
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     F2: Specialize<F, 2, N, Aligned, A> + Copy,
     F3: Specialize<F, 3, N, Aligned, A> + Copy,
     F4: Specialize<F, 4, N, Aligned, A> + Copy,
@@ -438,8 +438,8 @@ unsafe impl<T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<Vector<N2, T, A2>, N, N2, A, A2> for Vector<N, T, A>
 where
     T: Element,
-    Dim<N>: SupportedLength,
-    Dim<N2>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
+    Dim<N2>: TwoThreeOrFour,
 {
 }
 
@@ -449,8 +449,8 @@ unsafe impl<'a, T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<&'a Vector<N2, T, A2>, N, N2, A, A2> for &'a Vector<N, T, A>
 where
     T: Element,
-    Dim<N>: SupportedLength,
-    Dim<N2>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
+    Dim<N2>: TwoThreeOrFour,
 {
 }
 
@@ -460,8 +460,8 @@ unsafe impl<'a, T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<&'a mut Vector<N2, T, A2>, N, N2, A, A2> for &'a mut Vector<N, T, A>
 where
     T: Element,
-    Dim<N>: SupportedLength,
-    Dim<N2>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
+    Dim<N2>: TwoThreeOrFour,
 {
 }
 
@@ -470,8 +470,8 @@ unsafe impl<T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<Matrix<N2, T, A2>, N, N2, A, A2> for Matrix<N, T, A>
 where
     T: Element,
-    Dim<N>: SupportedLength,
-    Dim<N2>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
+    Dim<N2>: TwoThreeOrFour,
 {
 }
 
@@ -481,8 +481,8 @@ unsafe impl<'a, T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<&'a Matrix<N2, T, A2>, N, N2, A, A2> for &'a Matrix<N, T, A>
 where
     T: Element,
-    Dim<N>: SupportedLength,
-    Dim<N2>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
+    Dim<N2>: TwoThreeOrFour,
 {
 }
 
@@ -492,8 +492,8 @@ unsafe impl<'a, T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<&'a mut Matrix<N2, T, A2>, N, N2, A, A2> for &'a mut Matrix<N, T, A>
 where
     T: Element,
-    Dim<N>: SupportedLength,
-    Dim<N2>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
+    Dim<N2>: TwoThreeOrFour,
 {
 }
 
@@ -502,8 +502,8 @@ unsafe impl<T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<Affine<N2, T, A2>, N, N2, A, A2> for Affine<N, T, A>
 where
     T: Element,
-    Dim<N>: SupportedLength,
-    Dim<N2>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
+    Dim<N2>: TwoThreeOrFour,
 {
 }
 
@@ -513,8 +513,8 @@ unsafe impl<'a, T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<&'a Affine<N2, T, A2>, N, N2, A, A2> for &'a Affine<N, T, A>
 where
     T: Element,
-    Dim<N>: SupportedLength,
-    Dim<N2>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
+    Dim<N2>: TwoThreeOrFour,
 {
 }
 
@@ -524,8 +524,8 @@ unsafe impl<'a, T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<&'a mut Affine<N2, T, A2>, N, N2, A, A2> for &'a mut Affine<N, T, A>
 where
     T: Element,
-    Dim<N>: SupportedLength,
-    Dim<N2>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
+    Dim<N2>: TwoThreeOrFour,
 {
 }
 
@@ -594,8 +594,8 @@ unsafe impl<T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<Mask<N2, T, A2>, N, N2, A, A2> for Mask<N, T, A>
 where
     T: Element,
-    Dim<N>: SupportedLength,
-    Dim<N2>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
+    Dim<N2>: TwoThreeOrFour,
 {
 }
 
@@ -604,8 +604,8 @@ unsafe impl<'a, T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<&'a Mask<N2, T, A2>, N, N2, A, A2> for &'a Mask<N, T, A>
 where
     T: Element,
-    Dim<N>: SupportedLength,
-    Dim<N2>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
+    Dim<N2>: TwoThreeOrFour,
 {
 }
 
@@ -615,8 +615,8 @@ unsafe impl<'a, T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<&'a mut Mask<N2, T, A2>, N, N2, A, A2> for &'a mut Mask<N, T, A>
 where
     T: Element,
-    Dim<N>: SupportedLength,
-    Dim<N2>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
+    Dim<N2>: TwoThreeOrFour,
 {
 }
 
@@ -625,8 +625,8 @@ unsafe impl<T, T2, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<[T2; N2], N, N2, A, A2> for [T; N]
 where
     T: Specialize<T2, N, N2, A, A2>,
-    Dim<N>: SupportedLength,
-    Dim<N2>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
+    Dim<N2>: TwoThreeOrFour,
 {
 }
 
@@ -643,8 +643,8 @@ unsafe impl<
 > Specialize<&'a [T2; N], N1, N2, A, A2> for &'a [T; N]
 where
     T: Specialize<T2, N1, N2, A, A2>,
-    Dim<N1>: SupportedLength,
-    Dim<N2>: SupportedLength,
+    Dim<N1>: TwoThreeOrFour,
+    Dim<N2>: TwoThreeOrFour,
 {
 }
 
@@ -652,8 +652,8 @@ where
 unsafe impl<const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<(), N, N2, A, A2> for ()
 where
-    Dim<N>: SupportedLength,
-    Dim<N2>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
+    Dim<N2>: TwoThreeOrFour,
 {
 }
 
@@ -661,8 +661,8 @@ where
 unsafe impl<T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<(T,), N, N2, A, A2> for (T,)
 where
-    Dim<N>: SupportedLength,
-    Dim<N2>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
+    Dim<N2>: TwoThreeOrFour,
 {
 }
 
@@ -672,8 +672,8 @@ unsafe impl<Ta, Ta2, Tb, Tb2, const N: usize, const N2: usize, A: Alignment, A2:
 where
     Ta: Specialize<Ta2, N, N2, A, A2>,
     Tb: Specialize<Tb2, N, N2, A, A2>,
-    Dim<N>: SupportedLength,
-    Dim<N2>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
+    Dim<N2>: TwoThreeOrFour,
 {
 }
 
@@ -682,8 +682,8 @@ unsafe impl<T, T2, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<Option<T2>, N, N2, A, A2> for Option<T>
 where
     T: Specialize<T2, N, N2, A, A2>,
-    Dim<N>: SupportedLength,
-    Dim<N2>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
+    Dim<N2>: TwoThreeOrFour,
 {
 }
 

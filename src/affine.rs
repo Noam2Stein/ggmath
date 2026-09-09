@@ -6,7 +6,7 @@ use core::{
 };
 
 use crate::{
-    Aligned, Alignment, Dim, Element, Matrix, One, SupportedLength, Unaligned, Vector, Zero,
+    Aligned, Alignment, Dim, Element, Matrix, One, TwoThreeOrFour, Unaligned, Vector, Zero,
     backend::AffineBackend,
     utils::{transmute_mut, transmute_ref},
 };
@@ -71,12 +71,12 @@ mod wide_float;
 pub struct Affine<const N: usize, T, A: Alignment>(
     #[expect(clippy::type_complexity)]
     pub(crate)  <A as Alignment>::Select<
-        <Dim<N> as SupportedLength>::Select<
+        <Dim<N> as TwoThreeOrFour>::Select<
             <T as AffineBackend<2, Aligned>>::Inner,
             <T as AffineBackend<3, Aligned>>::Inner,
             <T as AffineBackend<4, Aligned>>::Inner,
         >,
-        <Dim<N> as SupportedLength>::Select<
+        <Dim<N> as TwoThreeOrFour>::Select<
             <T as AffineBackend<2, Unaligned>>::Inner,
             <T as AffineBackend<3, Unaligned>>::Inner,
             <T as AffineBackend<4, Unaligned>>::Inner,
@@ -84,7 +84,7 @@ pub struct Affine<const N: usize, T, A: Alignment>(
     >,
 )
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element;
 
 /// A 2D affine transform which can represent translation, rotation, scaling and
@@ -163,7 +163,7 @@ pub type Affine3A<T> = Affine<3, T, Aligned>;
 
 impl<const N: usize, T, A: Alignment> Clone for Affine<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element,
 {
     #[inline]
@@ -174,14 +174,14 @@ where
 
 impl<const N: usize, T, A: Alignment> Copy for Affine<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element,
 {
 }
 
 impl<const N: usize, T, A: Alignment> Index<usize> for Affine<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element,
 {
     type Output = Vector<N, T, A>;
@@ -215,7 +215,7 @@ where
 
 impl<const N: usize, T, A: Alignment> IndexMut<usize> for Affine<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element,
 {
     /// Returns a mutable reference to the row at the given index.
@@ -249,7 +249,7 @@ where
 #[repr(C)]
 pub struct AffineFields<const N: usize, T, A: Alignment>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element,
 {
     /// The part representing rotation, scaling and shear.
@@ -260,7 +260,7 @@ where
 
 impl<const N: usize, T, A: Alignment> Deref for Affine<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element,
 {
     type Target = AffineFields<N, T, A>;
@@ -275,7 +275,7 @@ where
 
 impl<const N: usize, T, A: Alignment> DerefMut for Affine<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element,
 {
     #[inline]
@@ -288,7 +288,7 @@ where
 
 impl<const N: usize, T, A: Alignment> Debug for Affine<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + Debug,
 {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
@@ -315,7 +315,7 @@ where
 
 impl<const N: usize, T, A: Alignment> Display for Affine<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + Display,
 {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
@@ -342,7 +342,7 @@ where
 
 impl<const N: usize, T, A: Alignment> PartialEq for Affine<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + PartialEq,
 {
     #[inline]
@@ -353,14 +353,14 @@ where
 
 impl<const N: usize, T, A: Alignment> Eq for Affine<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + Eq,
 {
 }
 
 impl<const N: usize, T, A: Alignment> Hash for Affine<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + Hash,
 {
     fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
@@ -371,7 +371,7 @@ where
 
 impl<const N: usize, T, A: Alignment> Default for Affine<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + Zero + One,
 {
     /// Returns [`IDENTITY`].
@@ -387,7 +387,7 @@ macro_rules! impl_mul {
     ($(#[$doc:meta])*) => {
         impl<const N: usize, T, A: Alignment> Mul for Affine<N, T, A>
         where
-            Dim<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
             T: Element + Add<Output = T> + Mul<Output = T>,
         {
             type Output = Self;
@@ -402,7 +402,7 @@ macro_rules! impl_mul {
 
         impl<const N: usize, T, A: Alignment> Mul<&Affine<N, T, A>> for Affine<N, T, A>
         where
-            Dim<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
             T: Element + Add<Output = T> + Mul<Output = T>,
         {
             type Output = Self;
@@ -417,7 +417,7 @@ macro_rules! impl_mul {
 
         impl<const N: usize, T, A: Alignment> Mul<Affine<N, T, A>> for &Affine<N, T, A>
         where
-            Dim<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
             T: Element + Add<Output = T> + Mul<Output = T>,
         {
             type Output = Affine<N, T, A>;
@@ -432,7 +432,7 @@ macro_rules! impl_mul {
 
         impl<const N: usize, T, A: Alignment> Mul<&Affine<N, T, A>> for &Affine<N, T, A>
         where
-            Dim<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
             T: Element + Add<Output = T> + Mul<Output = T>,
         {
             type Output = Affine<N, T, A>;
@@ -467,7 +467,7 @@ macro_rules! impl_mul_assign {
     ($(#[$doc:meta])*) => {
         impl<const N: usize, T, A: Alignment> MulAssign for Affine<N, T, A>
         where
-            Dim<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
             T: Element + Add<Output = T> + Mul<Output = T>,
         {
             $(#[$doc])*
@@ -480,7 +480,7 @@ macro_rules! impl_mul_assign {
 
         impl<const N: usize, T, A: Alignment> MulAssign<&Affine<N, T, A>> for Affine<N, T, A>
         where
-            Dim<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
             T: Element + Add<Output = T> + Mul<Output = T>,
         {
             $(#[$doc])*
@@ -509,7 +509,7 @@ impl_mul_assign!(
 // SAFETY: The matrix and vector are `Send`, and so is the padding.
 unsafe impl<const N: usize, T, A: Alignment> Send for Affine<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + Send,
 {
 }
@@ -517,28 +517,28 @@ where
 // SAFETY: The matrix and vector are `Sync`, and so is the padding.
 unsafe impl<const N: usize, T, A: Alignment> Sync for Affine<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + Sync,
 {
 }
 
 impl<const N: usize, T, A: Alignment> Unpin for Affine<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + Unpin,
 {
 }
 
 impl<const N: usize, T, A: Alignment> UnwindSafe for Affine<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + UnwindSafe,
 {
 }
 
 impl<const N: usize, T, A: Alignment> RefUnwindSafe for Affine<N, T, A>
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + RefUnwindSafe,
 {
 }

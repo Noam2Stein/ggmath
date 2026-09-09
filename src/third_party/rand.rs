@@ -4,7 +4,7 @@ use rand::{
 };
 
 use crate::{
-    Affine, Alignment, Dim, Element, Mask, Matrix, Projective, Rotation2, Rotor, SupportedLength,
+    Affine, Alignment, Dim, Element, Mask, Matrix, Projective, Rotation2, Rotor, TwoThreeOrFour,
     Vector,
     dim::{Three, TwoOrThree},
     utils::specialize_23,
@@ -12,7 +12,7 @@ use crate::{
 
 impl<const N: usize, T, A: Alignment> Distribution<Vector<N, T, A>> for StandardUniform
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element,
     StandardUniform: Distribution<T>,
 {
@@ -24,7 +24,7 @@ where
 
 impl<const N: usize, T, A: Alignment> Distribution<Matrix<N, T, A>> for StandardUniform
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element,
     StandardUniform: Distribution<T>,
 {
@@ -36,7 +36,7 @@ where
 
 impl<const N: usize, T, A: Alignment> Distribution<Affine<N, T, A>> for StandardUniform
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element,
     StandardUniform: Distribution<T>,
 {
@@ -108,7 +108,7 @@ where
 
 impl<const N: usize, T, A: Alignment> Distribution<Mask<N, T, A>> for StandardUniform
 where
-    Dim<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element,
 {
     #[inline]
