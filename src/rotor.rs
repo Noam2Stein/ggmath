@@ -43,11 +43,6 @@ mod wide_float;
 /// a matrix, so consider converting your rotor to a matrix before rotating a
 /// lot of vectors.
 ///
-/// > If you are curious about the underlying math, rotors come from Geometric
-/// > Algebra. I recommend
-/// > [this resource](https://www.youtube.com/playlist?list=PLVuwZXwFua-0Ks3rRS4tIkswgUmDLqqRy)
-/// > for learning more.
-///
 /// This rotor is intended to be normalized, but may denormalize due to floating
 /// point "error creep" which can occur when successive operations are applied.
 /// Use [`rotor.normalize()`] to maintain precision.
@@ -119,11 +114,6 @@ where
 /// a matrix, so consider converting your rotor to a matrix before rotating a
 /// lot of vectors.
 ///
-/// > If you are curious about the underlying math, rotors come from Geometric
-/// > Algebra. I recommend
-/// > [this resource](https://www.youtube.com/playlist?list=PLVuwZXwFua-0Ks3rRS4tIkswgUmDLqqRy)
-/// > for learning more.
-///
 /// This rotor is intended to be normalized, but may denormalize due to floating
 /// point "error creep" which can occur when successive operations are applied.
 /// Use [`rotor.normalize()`] to maintain precision.
@@ -174,11 +164,6 @@ pub type Rotor3<T> = Rotor<3, T, Unaligned>;
 /// manipulating rotations. Applying a rotor on a vector is slower than applying
 /// a matrix, so consider converting your rotor to a matrix before rotating a
 /// lot of vectors.
-///
-/// > If you are curious about the underlying math, rotors come from Geometric
-/// > Algebra. I recommend
-/// > [this resource](https://www.youtube.com/playlist?list=PLVuwZXwFua-0Ks3rRS4tIkswgUmDLqqRy)
-/// > for learning more.
 ///
 /// This rotor is intended to be normalized, but may denormalize due to floating
 /// point "error creep" which can occur when successive operations are applied.
