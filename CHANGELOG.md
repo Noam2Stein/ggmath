@@ -7,25 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-This version changes the set of types provided by the library. This is a big
-breaking change, so expect existing code to fail compilation. These changes aim
-to simplify the API, see
-[this issue](https://github.com/Noam2Stein/ggmath/issues/52).
+This version makes a lot of breaking changes, including changing and removing
+types. After this version, there should be a lot less breaking changes.
 
-If you use `Mat4` for 3D projections, or `Mat3` for 2D projections, you should
-switch to the new `Proj3` and `Proj2` types. From now on, normal matrices are
+If you use `Mat4` for 3D projections, or `Mat3` for 2D projections, you'll need
+to switch to the new `Proj3` and `Proj2` types. From now on, normal matrices are
 only used for linear transformations in `N` dimensions, and not projective
-transformations in `N-1` dimensions.
+transformations in `N-1` dimensions. This makes the API quite easier to work
+with.
 
-Quaternions have been replaced by a new `Rotor` type. The new type is
-mathematically identical and uses the exact same storage. Rotors are an object
-from Geometric Algebra that work the same as quaternions in 3D, but tend to be
-easier to understand and extend better to dimensions other than 3D.
+Quaternions have been removed and replaced by new rotor types. A rotor is a
+mathematical object used to represent rotations, which is identical to
+quaternion in 3D. This change aims to make rotations easier to understand for
+users not familiar with quaternion math, and makes it possible to add 2D and
+even 4D rotors in the future.
 
-From now on, there should be way less breaking changes. Future breaking changes
-will most likely consist of minor function renames, optimizations that are
-slightly breaking, and simplifying the API when new Rust features are
-stabilized, which should not affect most users.
+Multiple generics related items have been renamed. `Scalar` to `Element`,
+`CustomScalar` to `CustomElement`, `Length` to `Dim`, and `SupportedLength` to
+`TwoThreeOrFour`.
 
 ### Added
 
