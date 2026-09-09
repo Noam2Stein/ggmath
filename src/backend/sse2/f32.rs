@@ -6,11 +6,8 @@ use core::arch::x86_64::*;
 #[allow(unused_imports, reason = "rustc incorrectly thinks this is unused")]
 use crate::utils::PrimitiveFloatUtils;
 use crate::{
-    Aligned, Mask, Mask3A, Mask4A, QuatA, Quaternion, Rotor, Rotor3A, Vec3A, Vec4A, Vector,
-    backend::{
-        AffineBackend, FloatVectorBackend, MaskBackend, QuaternionBackend, RotorBackend,
-        VectorBackend,
-    },
+    Aligned, Mask, Mask3A, Mask4A, Rotor, Rotor3A, Vec3A, Vec4A, Vector,
+    backend::{AffineBackend, FloatVectorBackend, MaskBackend, RotorBackend, VectorBackend},
     utils::safe_target_feature,
 };
 
@@ -278,28 +275,6 @@ unsafe impl VectorBackend<4, Aligned> for f32 {
 // same alignment.
 unsafe impl AffineBackend<2, Aligned> for f32 {
     type Inner = [__m128; 2];
-}
-
-impl QuaternionBackend<Aligned> for f32 {
-    #[inline]
-    fn quat_mul(quat: QuatA<f32>, rhs: QuatA<f32>) -> QuatA<f32> {
-        const PNPN: Vec4A<f32> = Vec4A::new(0.0, -0.0, 0.0, -0.0);
-        const PPNN: Vec4A<f32> = Vec4A::new(0.0, 0.0, -0.0, -0.0);
-        const NPPN: Vec4A<f32> = Vec4A::new(-0.0, 0.0, 0.0, -0.0);
-
-        Quaternion(
-            quat.0 * rhs.0.wwww()
-                + Vec4A::<f32>::from_bits(
-                    PNPN.to_bits() ^ (quat.0.wzyx() * rhs.0.xxxx()).to_bits(),
-                )
-                + Vec4A::<f32>::from_bits(
-                    PPNN.to_bits() ^ (quat.0.zwxy() * rhs.0.yyyy()).to_bits(),
-                )
-                + Vec4A::<f32>::from_bits(
-                    NPPN.to_bits() ^ (quat.0.yxwz() * rhs.0.zzzz()).to_bits(),
-                ),
-        )
-    }
 }
 
 impl RotorBackend<3, Aligned> for f32 {

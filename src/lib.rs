@@ -5,7 +5,6 @@
 //! - Affine Transforms: [`Affine2<T>`], [`Affine3<T>`]
 //! - Projective Transforms: [`Proj2<T>`], [`Proj3<T>`]
 //! - Rotations: [`Rot2<T>`], [`Rotor3<T>`]
-//! - Quaternions: [`Quat<T>`]
 //! - Masks: [`Mask2<T>`], [`Mask3<T>`], [`Mask4<T>`]
 //!
 //! SIMD variants:
@@ -15,7 +14,6 @@
 //! - Affine Transforms: [`Affine2A<T>`], [`Affine3A<T>`]
 //! - Projective Transforms: [`Proj2A<T>`], [`Proj3A<T>`]
 //! - Rotations: [`Rot2A<T>`], [`Rotor3A<T>`]
-//! - Quaternions: [`QuatA<T>`]
 //! - Masks: [`Mask2A<T>`], [`Mask3A<T>`], [`Mask4A<T>`]
 //!
 //! Underlying generic types:
@@ -26,7 +24,6 @@
 //! - [`Projective<N, T, A>`]
 //! - [`Rotation2<T, A>`]
 //! - [`Rotor<N, T, A>`]
-//! - [`Quaternion<T, A>`]
 //! - [`Mask<N, T, A>`]
 //!
 //! # SIMD
@@ -255,7 +252,6 @@ pub use crate::{
     matrix::{Mat2, Mat2A, Mat3, Mat3A, Mat4, Mat4A, Matrix},
     primitive_traits::{PrimitiveFloat, PrimitiveInteger, PrimitiveSigned, PrimitiveUnsigned},
     projective::{Proj2, Proj2A, Proj3, Proj3A, Projective},
-    quaternion::{Quat, QuatA, Quaternion},
     rotation2::{Rot2, Rot2A, Rotation2},
     rotor::{Rotor, Rotor3, Rotor3A},
     scalar::{CustomScalar, Scalar},
@@ -273,7 +269,6 @@ mod mask;
 mod matrix;
 mod primitive_traits;
 mod projective;
-mod quaternion;
 mod rotation2;
 mod rotor;
 mod scalar;
