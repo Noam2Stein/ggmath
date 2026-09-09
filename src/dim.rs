@@ -21,7 +21,7 @@ pub trait TwoThreeOrFour: Sealed {
 /// An internal trait similar to [`TwoThreeOrFour`] that only accepts 2 and 3.
 ///
 /// This is intentionally hidden from the public API.
-pub(crate) trait TwoOrThree: TwoThreeOrFour {
+pub trait TwoOrThree: TwoThreeOrFour {
     #[doc(hidden)]
     type Select<T2: Copy, T3: Copy>: Copy;
 }

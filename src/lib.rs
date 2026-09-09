@@ -245,7 +245,7 @@ pub use crate::{
     affine::{Affine, Affine2, Affine2A, Affine3, Affine3A},
     alignment::{Aligned, Alignment, Unaligned},
     constants::{NegOne, One, Zero},
-    dim::{Dim, TwoThreeOrFour},
+    dim::{Dim, TwoOrThree, TwoThreeOrFour},
     element::{CustomElement, Element},
     euler_rot::EulerRot,
     float_ext::FloatExt,
