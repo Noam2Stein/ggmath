@@ -1,7 +1,7 @@
 use core::cmp::Ordering;
 
 use crate::{
-    Alignment, FloatExt, Length, Mask, PrimitiveFloat, Quaternion, SupportedLength, Vector,
+    Alignment, FloatExt, Length, Mask, PrimitiveFloat, Rotor, SupportedLength, Vector,
     backend::FloatVectorBackend,
     utils::{specialize, transmute_generic},
 };
@@ -1818,7 +1818,7 @@ where
             // Vectors are almost parallel in opposing directions.
 
             let axis = self.any_orthogonal_vector().normalize();
-            let rotation = Quaternion::<T, A>::from_axis_angle(axis, t * T::PI);
+            let rotation = Rotor::<3, T, A>::from_axis_angle(axis, t * T::PI);
 
             let result_length = self_length.lerp(other_length, t);
             self * rotation * (result_length / self_length)
@@ -1858,7 +1858,7 @@ where
             .try_normalize()
             .unwrap_or_else(|| self.any_orthonormal_vector());
 
-        self * Quaternion::<T, A>::from_axis_angle(axis, angle)
+        self * Rotor::<3, T, A>::from_axis_angle(axis, angle)
     }
 
     #[track_caller]
