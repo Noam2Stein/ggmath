@@ -133,7 +133,7 @@ all functionality that exists for standard types also exists for SoA types.
 ## Fixed-point numbers
 
 Currently, there is only basic support for fixed-point numbers, through the
-[`fixed`] feature flag which implements [`Scalar`] for [`fixed`] types. See
+[`fixed`] feature flag which implements [`Element`] for [`fixed`] types. See
 [this issue](https://github.com/Noam2Stein/ggmath/issues/46) for better
 fixed-point number support.
 
@@ -200,7 +200,7 @@ ggmath = { version = "0.17.1", features = ["libm"] }
 
 - [`bytemuck`]: Implements [`bytemuck`] traits for [`ggmath`] types.
 
-- [`fixed`]: Implements [`Scalar`] for fixed-point numbers.
+- [`fixed`]: Implements [`Element`] for fixed-point numbers.
 
 - [`libm`]: Uses [`libm`] instead of [`std`] as the backend for
   floating-point functions. This makes the crate [`no_std`].
@@ -312,7 +312,7 @@ it serves the same purpose as [`glam`] but with generics.
 [`wide`]: https://crates.io/crates/wide
 
 [`fixed`]: https://crates.io/crates/fixed
-[`Scalar`]: https://docs.rs/ggmath/latest/ggmath/trait.Scalar.html
+[`Element`]: https://docs.rs/ggmath/latest/ggmath/trait.Element.html
 
 [`ggmath`]: https://crates.io/crates/ggmath
 
