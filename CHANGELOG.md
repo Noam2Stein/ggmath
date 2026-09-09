@@ -100,6 +100,8 @@ stabilized, which should not affect most users.
 
 - Removed all previously deprecated items.
 
+- [#80](https://github.com/Noam2Stein/ggmath/pull/80): Removed quaternions
+
 - Removed the optional dependency `num-primitive`. If you want access to both
   `ggmath` primitive functionality and the `num-primitive` API, the better
   pattern is to define your own `Primitive*` traits.
