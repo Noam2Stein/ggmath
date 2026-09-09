@@ -8,7 +8,7 @@ use crate::{
         AffineBackend, FloatVectorBackend, MaskBackend, QuaternionBackend, RotorBackend,
         VectorBackend,
     },
-    utils::safe_target_feature,
+    utils::{Repr4, safe_target_feature},
 };
 
 // `Self::Inner` follows its requirements.
