@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.18.0] - 2026-09-09
+
 This version makes a lot of breaking changes, including changing and removing
 types. After this version, there should be a lot less breaking changes.
 
@@ -801,7 +803,8 @@ functionality can start being added.
 
 This version completely rewrote the crate.
 
-[unreleased]: https://github.com/Noam2Stein/ggmath/compare/v0.17.1...HEAD
+[unreleased]: https://github.com/Noam2Stein/ggmath/compare/v0.18.0...HEAD
+[0.18.0]: https://github.com/Noam2Stein/ggmath/compare/v0.17.1...v0.18.0
 [0.17.1]: https://github.com/Noam2Stein/ggmath/compare/v0.17.0...v0.17.1
 [0.17.0]: https://github.com/Noam2Stein/ggmath/compare/v0.16.7...v0.17.0
 [0.16.7]: https://github.com/Noam2Stein/ggmath/compare/v0.16.6...v0.16.7

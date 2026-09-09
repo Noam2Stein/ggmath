@@ -186,14 +186,14 @@
 //!
 //! ```toml
 //! [dependencies]
-//! ggmath = "0.17.1"
+//! ggmath = "0.18.0"
 //! ```
 //!
 //! For [`no_std`] support, enable the [`libm`] feature:
 //!
 //! ```toml
 //! [dependencies]
-//! ggmath = { version = "0.17.1", features = ["libm"] }
+//! ggmath = { version = "0.18.0", features = ["libm"] }
 //! ```
 //!
 //! # Feature flags
