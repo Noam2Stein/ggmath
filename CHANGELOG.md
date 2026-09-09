@@ -53,6 +53,9 @@ stabilized, which should not affect most users.
 - The affine transform field `submatrix` has been renamed to `matrix`. Many
   related functions have also been renamed with `submatrix` to `matrix`
 
+- [#81](https://github.com/Noam2Stein/ggmath/pull/81): Renamed the `Scalar`
+  trait to `Element` and `CustomScalar` to `CustomElement`
+
 - Most functions for converting between transform types. The function you
   want has most likely been renamed into one of these new functions:
   - `to/from_matrix`
