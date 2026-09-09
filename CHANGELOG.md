@@ -17,6 +17,11 @@ switch to the new `Proj3` and `Proj2` types. From now on, normal matrices are
 only used for linear transformations in `N` dimensions, and not projective
 transformations in `N-1` dimensions.
 
+Quaternions have been replaced by a new `Rotor` type. The new type is
+mathematically identical and uses the exact same storage. Rotors are an object
+from Geometric Algebra that work the same as quaternions in 3D, but tend to be
+easier to understand and extend better to dimensions other than 3D.
+
 From now on, there should be way less breaking changes. Future breaking changes
 will most likely consist of minor function renames, optimizations that are
 slightly breaking, and simplifying the API when new Rust features are
@@ -29,6 +34,10 @@ stabilized, which should not affect most users.
 
 - [#78](https://github.com/Noam2Stein/ggmath/pull/78): `Rotation2<T, A>` type
   with `Rot2<T>` and `Rot2A<T>` type aliases, and matrix/affine/projective
+  conversion functions
+
+- [#79](https://github.com/Noam2Stein/ggmath/pull/79): `Rotor<N, T, A>` type
+  with `Rotor3<T>` and `Rotor3A<T>` type aliases, and matrix/affine/projective
   conversion functions
 
 - `to_homogeneous` and `from_homogeneous` for 2D vectors
