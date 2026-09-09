@@ -1,6 +1,8 @@
 use crate::{
-    Affine, Aligned, Alignment, Length, Mask, Matrix, Projective, Quaternion, Scalar,
-    SupportedLength, Unaligned, Vector, length::TwoOrThree, utils::transmute_generic,
+    Affine, Aligned, Alignment, Length, Mask, Matrix, Projective, Quaternion, Rotor, Scalar,
+    SupportedLength, Unaligned, Vector,
+    length::{Three, TwoOrThree},
+    utils::transmute_generic,
 };
 
 /// Bypasses a type system limitation to perform specialization.
@@ -191,6 +193,42 @@ macro_rules! specialize_23 {
 
 pub(crate) use specialize_23;
 
+/// A variant of [`specialize`] that only includes length 3, without 2 and 4.
+///
+/// This is used for rotors, which currently only support 3D.
+macro_rules! specialize_3 {
+    (<$T:ty as $Backend:ident<$N:tt, $A:tt>>::$f:ident($($arg:expr),*$(,)?)) => {
+        (const {
+            $crate::utils::specialize_3_helper::<
+                $N,
+                $A,
+                $crate::utils::specialize!(@fn($($arg),*)),
+                $crate::utils::specialize!(@fn($($arg),*)),
+                $crate::utils::specialize!(@fn($($arg),*)),
+            >(
+                <$T as $Backend<3, $crate::Aligned>>::$f,
+                <$T as $Backend<3, $crate::Unaligned>>::$f,
+            )
+        })($($arg),*)
+    };
+    ($Struct:ident::<$N:tt, $T:ident, $A:tt>::$f:ident$(::<$G0:ty>)?($($arg:expr),*$(,)?)) => {
+        (const {
+            $crate::utils::specialize_3_helper::<
+                $N,
+                $A,
+                $crate::utils::specialize!(@fn($($arg),*)),
+                $crate::utils::specialize!(@fn($($arg),*)),
+                $crate::utils::specialize!(@fn($($arg),*)),
+            >(
+                <$Struct::<3, $T, $crate::Aligned>>::$f$(::<$G0>)?,
+                <$Struct::<3, $T, $crate::Unaligned>>::$f$(::<$G0>)?,
+            )
+        })($($arg),*)
+    };
+}
+
+pub(crate) use specialize_3;
+
 /// Performs the unsafe transmution for [`specialize`].
 ///
 /// The macro call:
@@ -333,6 +371,32 @@ where
         (3, false) => unsafe { transmute_generic::<F3U, F>(f3u) },
 
         _ => unreachable!(),
+    }
+}
+
+/// A variant of [`specialize_helper`] that only allows length 3,
+/// without 2 and 4.
+///
+/// This is used for rotors, which currently only support 3D.
+#[expect(private_bounds)]
+pub const fn specialize_3_helper<const N: usize, A: Alignment, F3A, F3U, F>(f3a: F3A, f3u: F3U) -> F
+where
+    Length<N>: Three,
+    F3A: Specialize<F, 3, N, Aligned, A> + Copy,
+    F3U: Specialize<F, 3, N, Unaligned, A> + Copy,
+{
+    if A::IS_ALIGNED {
+        // SAFETY: `F3A` is guaranteed to be the same type as `F` as long as `N`
+        // is `3` and `A` is `Aligned`. `N` must be `3` because of the trait
+        // bound, and `A` is guaranteed to be `Aligned` because `A::IS_ALIGNED`
+        // is true.
+        unsafe { transmute_generic::<F3A, F>(f3a) }
+    } else {
+        // SAFETY: `F3U` is guaranteed to be the same type as `F` as long as `N`
+        // is `3` and `A` is `Unaligned`. `N` must be `3` because of the trait
+        // bound, and `A` is guaranteed to be `Unaligned` because
+        // `A::IS_ALIGNED` is false.
+        unsafe { transmute_generic::<F3U, F>(f3u) }
     }
 }
 
@@ -502,6 +566,36 @@ where
     T: Scalar,
     Length<N>: SupportedLength,
     Length<N2>: SupportedLength,
+{
+}
+
+// SAFETY: `N == N2`, `A == A2` => `Rotor<N, T, A> == Rotor<N2, T, A2>`
+unsafe impl<T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
+    Specialize<Rotor<N2, T, A2>, N, N2, A, A2> for Rotor<N, T, A>
+where
+    T: Scalar,
+    Length<N>: Three,
+    Length<N2>: Three,
+{
+}
+
+// SAFETY: `N == N2`, `A == A2` => `&'a Rotor<N, T, A> == &'a Rotor<N2, T, A2>`
+unsafe impl<'a, T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
+    Specialize<&'a Rotor<N2, T, A2>, N, N2, A, A2> for &'a Rotor<N, T, A>
+where
+    T: Scalar,
+    Length<N>: Three,
+    Length<N2>: Three,
+{
+}
+
+// SAFETY: `N == N2`, `A == A2` => `&'a mut Rotor<N, T, A> == &'a mut Rotor<N2, T, A2>`
+unsafe impl<'a, T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
+    Specialize<&'a mut Rotor<N2, T, A2>, N, N2, A, A2> for &'a mut Rotor<N, T, A>
+where
+    T: Scalar,
+    Length<N>: Three,
+    Length<N2>: Three,
 {
 }
 

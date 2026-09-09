@@ -1,8 +1,9 @@
 use bytemuck::{NoUninit, Pod, Zeroable};
 
 use crate::{
-    Affine, Alignment, Length, Mask, Matrix, Projective, Quaternion, Rotation2, Scalar,
-    SupportedLength, Vector, length::TwoOrThree,
+    Affine, Alignment, Length, Mask, Matrix, Projective, Quaternion, Rotation2, Rotor, Scalar,
+    SupportedLength, Vector,
+    length::{Three, TwoOrThree},
 };
 
 // SAFETY: Vectors are equivalent to structs where all fields are `Pod`. The
@@ -95,6 +96,22 @@ unsafe impl<T, A: Alignment> Pod for Quaternion<T, A> where T: Scalar + Pod {}
 
 // SAFETY: `Vector<4, T, A>` implements `Zeroable` when `T` does.
 unsafe impl<T, A: Alignment> Zeroable for Quaternion<T, A> where T: Scalar + Zeroable {}
+
+// SAFETY: Vectors implement `Pod` when `T` does.
+unsafe impl<const N: usize, T, A: Alignment> Pod for Rotor<N, T, A>
+where
+    Length<N>: Three,
+    T: Scalar + Pod,
+{
+}
+
+// SAFETY: Vectors implement `Zeroable` when `T` does.
+unsafe impl<const N: usize, T, A: Alignment> Zeroable for Rotor<N, T, A>
+where
+    Length<N>: Three,
+    T: Scalar + Zeroable,
+{
+}
 
 // SAFETY: Masks are guaranteed to have no uninitialized bytes, and accept the
 // zero bit-pattern, meaning they are inhabited.

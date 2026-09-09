@@ -4,8 +4,10 @@ use rand::{
 };
 
 use crate::{
-    Affine, Alignment, Length, Mask, Matrix, Projective, Quaternion, Rotation2, Scalar,
-    SupportedLength, Vector, length::TwoOrThree, utils::specialize_23,
+    Affine, Alignment, Length, Mask, Matrix, Projective, Quaternion, Rotation2, Rotor, Scalar,
+    SupportedLength, Vector,
+    length::{Three, TwoOrThree},
+    utils::specialize_23,
 };
 
 impl<const N: usize, T, A: Alignment> Distribution<Vector<N, T, A>> for StandardUniform
@@ -100,6 +102,18 @@ where
     #[inline]
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Quaternion<T, A> {
         Quaternion::from_array(rng.random::<[T; 4]>())
+    }
+}
+
+impl<const N: usize, T, A: Alignment> Distribution<Rotor<N, T, A>> for StandardUniform
+where
+    Length<N>: Three,
+    T: Scalar,
+    StandardUniform: Distribution<T>,
+{
+    #[inline]
+    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Rotor<N, T, A> {
+        Rotor(rng.random::<Vector<4, T, A>>())
     }
 }
 

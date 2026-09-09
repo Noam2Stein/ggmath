@@ -1,6 +1,8 @@
 use crate::{
     Affine, Alignment, EulerRot, Length, Matrix, PrimitiveFloat, Projective, Quaternion, Rotation2,
-    SupportedLength, Vector, length::TwoOrThree, utils::specialize_23,
+    Rotor, SupportedLength, Vector,
+    length::{Three, TwoOrThree},
+    utils::specialize_23,
 };
 
 impl<const N: usize, T, A: Alignment> Affine<N, T, A>
@@ -52,6 +54,94 @@ where
         Length<N>: TwoOrThree,
     {
         specialize_23!(Affine::<N, T, A>::from_projective_backend(projective))
+    }
+
+    /// Creates an affine transform from a rotor.
+    ///
+    /// This assumes the rotor is normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if the rotor is not normalized.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    #[expect(private_bounds)]
+    pub fn from_rotor(rotor: Rotor<N, T, A>) -> Self
+    where
+        Length<N>: Three,
+    {
+        Self::from_matrix(&Matrix::<N, T, A>::from_rotor(rotor))
+    }
+
+    /// Creates an affine transform from a non-uniform scale and a rotor.
+    ///
+    /// This assumes `rotor` is normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `rotor` is not normalized.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    #[expect(private_bounds)]
+    pub fn from_scale_rotor(scale: Vector<N, T, A>, rotor: Rotor<N, T, A>) -> Self
+    where
+        Length<N>: Three,
+    {
+        Self::from_matrix(&Matrix::<N, T, A>::from_scale_rotor(scale, rotor))
+    }
+
+    /// Creates an affine transform from a rotor and translation.
+    ///
+    /// This assumes `rotor` is normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `rotor` is not normalized.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    #[expect(private_bounds)]
+    pub fn from_rotor_translation(rotor: Rotor<N, T, A>, translation: Vector<N, T, A>) -> Self
+    where
+        Length<N>: Three,
+    {
+        Self::from_matrix_translation(&Matrix::<N, T, A>::from_rotor(rotor), translation)
+    }
+
+    /// Creates an affine transform from a non-uniform scale, a rotor and
+    /// translation.
+    ///
+    /// This assumes `rotor` is normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `rotor` is not normalized.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    #[expect(private_bounds)]
+    pub fn from_scale_rotor_translation(
+        scale: Vector<N, T, A>,
+        rotor: Rotor<N, T, A>,
+        translation: Vector<N, T, A>,
+    ) -> Self
+    where
+        Length<N>: Three,
+    {
+        Self::from_matrix_translation(
+            &Matrix::<N, T, A>::from_scale_rotor(scale, rotor),
+            translation,
+        )
     }
 
     /// Returns `true` if any element is NaN.
@@ -150,6 +240,49 @@ where
     #[must_use]
     pub fn inverse_or_zero(&self) -> Self {
         self.try_inverse().unwrap_or(Self::ZERO)
+    }
+
+    /// Converts an affine transform to a non-uniform scale and a rotor.
+    ///
+    /// This assumes `self` only contains scale, rotation, and translation which
+    /// is ignored.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` contains anything but scale, rotation and translation.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    #[expect(private_bounds)]
+    pub fn to_scale_rotor(&self) -> (Vector<N, T, A>, Rotor<N, T, A>)
+    where
+        Length<N>: Three,
+    {
+        self.matrix.to_scale_rotor()
+    }
+
+    /// Converts an affine transform to a non-uniform scale, a rotor and
+    /// translation.
+    ///
+    /// This assumes `self` only contains scale, rotation and translation.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` contains anything but scale, rotation and translation.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    #[expect(private_bounds)]
+    pub fn to_scale_rotor_translation(&self) -> (Vector<N, T, A>, Rotor<N, T, A>, Vector<N, T, A>)
+    where
+        Length<N>: Three,
+    {
+        let (scale, rotor) = self.to_scale_rotor();
+        (scale, rotor, self.translation)
     }
 
     /// Returns `true` if the absolute difference of all elements between `self`

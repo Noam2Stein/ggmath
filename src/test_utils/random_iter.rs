@@ -5,8 +5,10 @@ extern crate std;
 use std::iter::repeat_n;
 
 use crate::{
-    Affine, Alignment, FloatExt, Length, Mask, Matrix, Projective, Quaternion, Rotation2, Scalar,
-    SupportedLength, Vector, length::TwoOrThree, utils::specialize_23,
+    Affine, Alignment, FloatExt, Length, Mask, Matrix, Projective, Quaternion, Rotation2, Rotor,
+    Scalar, SupportedLength, Vector,
+    length::{Three, TwoOrThree},
+    utils::specialize_23,
 };
 
 /// Returns an iterator over random values.
@@ -328,6 +330,18 @@ where
 
     fn random(state: &mut u64, input: Self::Input) -> Self {
         Self::from_array(Random::random(state, input))
+    }
+}
+
+impl<const N: usize, T, A: Alignment> Random for Rotor<N, T, A>
+where
+    Length<N>: Three,
+    T: Scalar + Random,
+{
+    type Input = T::Input;
+
+    fn random(state: &mut u64, input: Self::Input) -> Self {
+        Self(Random::random(state, input))
     }
 }
 

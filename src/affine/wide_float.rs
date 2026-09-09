@@ -1,9 +1,9 @@
 use wide::{f32x4, f32x8, f32x16, f64x2, f64x4, f64x8};
 
 use crate::{
-    Affine, Alignment, EulerRot, Length, Matrix, Projective, Quaternion, Rotation2,
+    Affine, Alignment, EulerRot, Length, Matrix, Projective, Quaternion, Rotation2, Rotor,
     SupportedLength, Vector,
-    length::TwoOrThree,
+    length::{Three, TwoOrThree},
     utils::{specialize, specialize_23},
 };
 
@@ -25,6 +25,69 @@ macro_rules! items {
             Length<N>: TwoOrThree,
         {
             specialize_23!(Affine::<N, $Wide, A>::from_projective_backend(projective))
+        }
+
+        /// Creates an affine transform from a rotor.
+        ///
+        /// This assumes the rotor is normalized.
+        #[inline]
+        #[must_use]
+        #[expect(private_bounds)]
+        pub fn from_rotor(rotor: Rotor<N, $Wide, A>) -> Self
+        where
+            Length<N>: Three,
+        {
+            Self::from_matrix(&Matrix::<N, $Wide, A>::from_rotor(rotor))
+        }
+
+        /// Creates an affine transform from a non-uniform scale and a rotor.
+        ///
+        /// This assumes `rotor` is normalized.
+        #[inline]
+        #[must_use]
+        #[expect(private_bounds)]
+        pub fn from_scale_rotor(scale: Vector<N, $Wide, A>, rotor: Rotor<N, $Wide, A>) -> Self
+        where
+            Length<N>: Three,
+        {
+            Self::from_matrix(&Matrix::<N, $Wide, A>::from_scale_rotor(scale, rotor))
+        }
+
+        /// Creates an affine transform from a rotor and translation.
+        ///
+        /// This assumes `rotor` is normalized.
+        #[inline]
+        #[must_use]
+        #[expect(private_bounds)]
+        pub fn from_rotor_translation(
+            rotor: Rotor<N, $Wide, A>,
+            translation: Vector<N, $Wide, A>,
+        ) -> Self
+        where
+            Length<N>: Three,
+        {
+            Self::from_matrix_translation(&Matrix::<N, $Wide, A>::from_rotor(rotor), translation)
+        }
+
+        /// Creates an affine transform from a non-uniform scale, a rotor and
+        /// translation.
+        ///
+        /// This assumes `rotor` is normalized.
+        #[inline]
+        #[must_use]
+        #[expect(private_bounds)]
+        pub fn from_scale_rotor_translation(
+            scale: Vector<N, $Wide, A>,
+            rotor: Rotor<N, $Wide, A>,
+            translation: Vector<N, $Wide, A>,
+        ) -> Self
+        where
+            Length<N>: Three,
+        {
+            Self::from_matrix_translation(
+                &Matrix::<N, $Wide, A>::from_scale_rotor(scale, rotor),
+                translation,
+            )
         }
 
         /// Returns `true` if any element is NaN.
@@ -76,6 +139,37 @@ macro_rules! items {
         #[must_use]
         pub fn inverse_or_zero(&self) -> Self {
             specialize!(Affine::<N, $Wide, A>::inverse_or_zero_backend(self))
+        }
+
+        /// Converts an affine transform to a non-uniform scale and a rotor.
+        ///
+        /// This assumes `self` only contains scale, rotation, and translation
+        /// which is ignored.
+        #[inline]
+        #[must_use]
+        #[expect(private_bounds)]
+        pub fn to_scale_rotor(&self) -> (Vector<N, $Wide, A>, Rotor<N, $Wide, A>)
+        where
+            Length<N>: Three,
+        {
+            self.matrix.to_scale_rotor()
+        }
+
+        /// Converts an affine transform to a non-uniform scale, a rotor and
+        /// translation.
+        ///
+        /// This assumes `self` only contains scale, rotation and translation.
+        #[inline]
+        #[must_use]
+        #[expect(private_bounds)]
+        pub fn to_scale_rotor_translation(
+            &self,
+        ) -> (Vector<N, $Wide, A>, Rotor<N, $Wide, A>, Vector<N, $Wide, A>)
+        where
+            Length<N>: Three,
+        {
+            let (scale, rotor) = self.to_scale_rotor();
+            (scale, rotor, self.translation)
         }
 
         /// Returns `true` if the absolute difference of all elements between

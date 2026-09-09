@@ -1047,7 +1047,7 @@ mod tests {
                         )),
                         abs <= 1e-6,
                         0.0 = -0.0,
-                        quat = -quat
+                        rotor = -rotor
                     );
                 }
             }
@@ -1073,7 +1073,7 @@ mod tests {
                         * Quaternion::<T, A>::from_rotation_yz(yz),
                     abs <= 1e-6,
                     0.0 = -0.0,
-                    quat = -quat
+                    rotor = -rotor
                 );
             }
 
@@ -1195,7 +1195,7 @@ mod tests {
                     quat,
                     abs <= 1e-6,
                     0.0 = -0.0,
-                    quat = -quat
+                    rotor = -rotor
                 );
             }
         });
@@ -1216,7 +1216,7 @@ mod tests {
                     quat,
                     abs <= 1e-6,
                     0.0 = -0.0,
-                    quat = -quat
+                    rotor = -rotor
                 );
             }
         });
@@ -1330,7 +1330,7 @@ mod tests {
                     other,
                     abs <= 1e-6,
                     0.0 = -0.0,
-                    quat = -quat
+                    rotor = -rotor
                 );
             }
         });
@@ -1355,14 +1355,14 @@ mod tests {
                     quat,
                     abs <= 1e-6,
                     0.0 = -0.0,
-                    quat = -quat
+                    rotor = -rotor
                 );
                 assert_test_eq!(
                     quat.slerp(other, 1.0),
                     other,
                     abs <= 1e-6,
                     0.0 = -0.0,
-                    quat = -quat
+                    rotor = -rotor
                 );
 
                 for t in [0.25, 0.5, 0.75] {
@@ -1426,21 +1426,21 @@ mod tests {
                     quat,
                     abs <= 1e-3,
                     0.0 = -0.0,
-                    quat = -quat
+                    rotor = -rotor
                 );
                 assert_test_eq!(
                     quat.rotate_towards(target, quat.angle_between(target)),
                     target,
                     abs <= 1e-3,
                     0.0 = -0.0,
-                    quat = -quat
+                    rotor = -rotor
                 );
                 assert_test_eq!(
                     quat.rotate_towards(target, quat.angle_between(target) * 1.5),
                     target,
                     abs <= 1e-3,
                     0.0 = -0.0,
-                    quat = -quat
+                    rotor = -rotor
                 );
 
                 for t in [0.25, 0.5, 0.75] {
@@ -1449,7 +1449,7 @@ mod tests {
                         quat.slerp(target, t),
                         abs <= 1e-3,
                         0.0 = -0.0,
-                        quat = -quat
+                        rotor = -rotor
                     );
                 }
             }
