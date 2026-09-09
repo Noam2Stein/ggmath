@@ -5,7 +5,7 @@ extern crate std;
 use std::iter::repeat_n;
 
 use crate::{
-    Affine, Alignment, Element, FloatExt, Length, Mask, Matrix, Projective, Rotation2, Rotor,
+    Affine, Alignment, Dim, Element, FloatExt, Mask, Matrix, Projective, Rotation2, Rotor,
     SupportedLength, Vector,
     length::{Three, TwoOrThree},
     utils::specialize_23,
@@ -250,7 +250,7 @@ where
 
 impl<const N: usize, T, A: Alignment> Random for Vector<N, T, A>
 where
-    Length<N>: SupportedLength,
+    Dim<N>: SupportedLength,
     T: Element + Random,
 {
     type Input = T::Input;
@@ -262,7 +262,7 @@ where
 
 impl<const N: usize, T, A: Alignment> Random for Matrix<N, T, A>
 where
-    Length<N>: SupportedLength,
+    Dim<N>: SupportedLength,
     T: Element + Random,
 {
     type Input = T::Input;
@@ -274,7 +274,7 @@ where
 
 impl<const N: usize, T, A: Alignment> Random for Affine<N, T, A>
 where
-    Length<N>: SupportedLength,
+    Dim<N>: SupportedLength,
     T: Element + Random,
 {
     type Input = T::Input;
@@ -286,7 +286,7 @@ where
 
 impl<const N: usize, T, A: Alignment> Random for Projective<N, T, A>
 where
-    Length<N>: TwoOrThree,
+    Dim<N>: TwoOrThree,
     T: Element + Random,
 {
     type Input = T::Input;
@@ -324,7 +324,7 @@ where
 
 impl<const N: usize, T, A: Alignment> Random for Rotor<N, T, A>
 where
-    Length<N>: Three,
+    Dim<N>: Three,
     T: Element + Random,
 {
     type Input = T::Input;
@@ -336,7 +336,7 @@ where
 
 impl<const N: usize, T, A: Alignment> Random for Mask<N, T, A>
 where
-    Length<N>: SupportedLength,
+    Dim<N>: SupportedLength,
     T: Element,
 {
     type Input = Category;

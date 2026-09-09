@@ -1,12 +1,12 @@
 use crate::{
-    Affine, Alignment, EulerRot, FloatExt, Length, Matrix, PrimitiveFloat, Projective, Rotor,
-    Vector, length::Three, utils::specialize_3,
+    Affine, Alignment, Dim, EulerRot, FloatExt, Matrix, PrimitiveFloat, Projective, Rotor, Vector,
+    length::Three, utils::specialize_3,
 };
 
 #[expect(private_bounds)]
 impl<const N: usize, T, A: Alignment> Rotor<N, T, A>
 where
-    Length<N>: Three,
+    Dim<N>: Three,
     T: PrimitiveFloat,
 {
     /// A rotor with all elements set to NaN (Not a Number).

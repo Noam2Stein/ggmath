@@ -1,7 +1,7 @@
 use wide::{f32x4, f32x8, f32x16, f64x2, f64x4, f64x8};
 
 use crate::{
-    Affine, Alignment, EulerRot, Length, Matrix, Projective, Rotor, Vector,
+    Affine, Alignment, Dim, EulerRot, Matrix, Projective, Rotor, Vector,
     length::Three,
     utils::{FloatUtils, specialize_3},
 };
@@ -474,7 +474,7 @@ pub trait WideFloat: crate::Element {}
 #[expect(private_bounds)]
 impl<const N: usize, Wide, A: Alignment> Rotor<N, Wide, A>
 where
-    Length<N>: Three,
+    Dim<N>: Three,
     Wide: WideFloat,
 {
     items!(Wide);
@@ -503,7 +503,7 @@ macro_rules! impl_items {
         #[expect(private_bounds)]
         impl<const N: usize, A: Alignment> Rotor<N, $Wide, A>
         where
-            Length<N>: Three,
+            Dim<N>: Three,
         {
             items!($Wide);
         }

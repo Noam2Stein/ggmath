@@ -1,7 +1,7 @@
 use wide::Select;
 
 use crate::{
-    Alignment, Element, Length, Projective, Vector,
+    Alignment, Dim, Element, Projective, Vector,
     length::TwoOrThree,
     utils::{WideTy, specialize_23},
 };
@@ -18,7 +18,7 @@ use crate::{
 #[expect(private_bounds)]
 impl<const N: usize, Wide, T, const LANES: usize, A: Alignment> Projective<N, Wide, A>
 where
-    Length<N>: TwoOrThree,
+    Dim<N>: TwoOrThree,
     Wide: WideTy<Array = [T; LANES]>,
     T: Element,
 {
@@ -390,7 +390,7 @@ macro_rules! impl_select {
     ($Mask:ident) => {
         impl<const N: usize, Wide, A: Alignment> Select<Projective<N, Wide, A>> for wide::$Mask
         where
-            Length<N>: TwoOrThree,
+            Dim<N>: TwoOrThree,
             wide::$Mask: Select<Wide>,
             Wide: WideTy,
         {

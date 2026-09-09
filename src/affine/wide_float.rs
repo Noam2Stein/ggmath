@@ -1,7 +1,7 @@
 use wide::{f32x4, f32x8, f32x16, f64x2, f64x4, f64x8};
 
 use crate::{
-    Affine, Alignment, EulerRot, Length, Matrix, Projective, Rotation2, Rotor, SupportedLength,
+    Affine, Alignment, Dim, EulerRot, Matrix, Projective, Rotation2, Rotor, SupportedLength,
     Vector,
     length::{Three, TwoOrThree},
     utils::{specialize, specialize_23},
@@ -22,7 +22,7 @@ macro_rules! items {
         #[expect(private_bounds)]
         pub fn from_projective(projective: &Projective<N, $Wide, A>) -> Self
         where
-            Length<N>: TwoOrThree,
+            Dim<N>: TwoOrThree,
         {
             specialize_23!(Affine::<N, $Wide, A>::from_projective_backend(projective))
         }
@@ -35,7 +35,7 @@ macro_rules! items {
         #[expect(private_bounds)]
         pub fn from_rotor(rotor: Rotor<N, $Wide, A>) -> Self
         where
-            Length<N>: Three,
+            Dim<N>: Three,
         {
             Self::from_matrix(&Matrix::<N, $Wide, A>::from_rotor(rotor))
         }
@@ -48,7 +48,7 @@ macro_rules! items {
         #[expect(private_bounds)]
         pub fn from_scale_rotor(scale: Vector<N, $Wide, A>, rotor: Rotor<N, $Wide, A>) -> Self
         where
-            Length<N>: Three,
+            Dim<N>: Three,
         {
             Self::from_matrix(&Matrix::<N, $Wide, A>::from_scale_rotor(scale, rotor))
         }
@@ -64,7 +64,7 @@ macro_rules! items {
             translation: Vector<N, $Wide, A>,
         ) -> Self
         where
-            Length<N>: Three,
+            Dim<N>: Three,
         {
             Self::from_matrix_translation(&Matrix::<N, $Wide, A>::from_rotor(rotor), translation)
         }
@@ -82,7 +82,7 @@ macro_rules! items {
             translation: Vector<N, $Wide, A>,
         ) -> Self
         where
-            Length<N>: Three,
+            Dim<N>: Three,
         {
             Self::from_matrix_translation(
                 &Matrix::<N, $Wide, A>::from_scale_rotor(scale, rotor),
@@ -150,7 +150,7 @@ macro_rules! items {
         #[expect(private_bounds)]
         pub fn to_scale_rotor(&self) -> (Vector<N, $Wide, A>, Rotor<N, $Wide, A>)
         where
-            Length<N>: Three,
+            Dim<N>: Three,
         {
             self.matrix.to_scale_rotor()
         }
@@ -166,7 +166,7 @@ macro_rules! items {
             &self,
         ) -> (Vector<N, $Wide, A>, Rotor<N, $Wide, A>, Vector<N, $Wide, A>)
         where
-            Length<N>: Three,
+            Dim<N>: Three,
         {
             let (scale, rotor) = self.to_scale_rotor();
             (scale, rotor, self.translation)
@@ -527,7 +527,7 @@ pub trait WideFloat: crate::Element {}
 #[cfg(doc)]
 impl<const N: usize, Wide, A: Alignment> Affine<N, Wide, A>
 where
-    Length<N>: SupportedLength,
+    Dim<N>: SupportedLength,
     Wide: WideFloat,
 {
     items!(Wide);
@@ -572,7 +572,7 @@ macro_rules! impl_items {
         #[cfg(not(doc))]
         impl<const N: usize, A: Alignment> Affine<N, $Wide, A>
         where
-            Length<N>: SupportedLength,
+            Dim<N>: SupportedLength,
         {
             items!($Wide);
         }

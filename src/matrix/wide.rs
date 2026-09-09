@@ -1,7 +1,7 @@
 use wide::Select;
 
 use crate::{
-    Alignment, Element, Length, Matrix, SupportedLength, Vector,
+    Alignment, Dim, Element, Matrix, SupportedLength, Vector,
     utils::{WideTy, specialize},
 };
 
@@ -17,7 +17,7 @@ use crate::{
 #[expect(private_bounds)]
 impl<const N: usize, Wide, T, const LANES: usize, A: Alignment> Matrix<N, Wide, A>
 where
-    Length<N>: SupportedLength,
+    Dim<N>: SupportedLength,
     Wide: WideTy<Array = [T; LANES]>,
     T: Element,
 {
@@ -411,7 +411,7 @@ macro_rules! impl_select {
     ($Mask:ident) => {
         impl<const N: usize, Wide, A: Alignment> Select<Matrix<N, Wide, A>> for wide::$Mask
         where
-            Length<N>: SupportedLength,
+            Dim<N>: SupportedLength,
             wide::$Mask: Select<Wide>,
             Wide: WideTy,
         {

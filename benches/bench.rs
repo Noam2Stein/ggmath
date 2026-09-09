@@ -1,6 +1,6 @@
 //! A module containing the [`bench!`] helper macro.
 
-use ggmath::{Affine, Alignment, Element, Length, Mask, Matrix, SupportedLength, Vector};
+use ggmath::{Affine, Alignment, Dim, Element, Mask, Matrix, SupportedLength, Vector};
 use rand::{RngExt, SeedableRng, rngs::StdRng};
 use wide::{f32x4, f32x8, f64x4};
 
@@ -260,7 +260,7 @@ where
 
 impl<const N: usize, T, A: Alignment> BenchIo for Vector<N, T, A>
 where
-    Length<N>: SupportedLength,
+    Dim<N>: SupportedLength,
     T: Element + BenchIo,
 {
     const LANES: usize = T::LANES;
@@ -272,7 +272,7 @@ where
 
 impl<const N: usize, T, A: Alignment> BenchIo for Matrix<N, T, A>
 where
-    Length<N>: SupportedLength,
+    Dim<N>: SupportedLength,
     T: Element + BenchIo,
 {
     const LANES: usize = T::LANES;
@@ -284,7 +284,7 @@ where
 
 impl<const N: usize, T, A: Alignment> BenchIo for Mask<N, T, A>
 where
-    Length<N>: SupportedLength,
+    Dim<N>: SupportedLength,
     T: Element,
 {
     const LANES: usize = 1;
@@ -296,7 +296,7 @@ where
 
 impl<const N: usize, T, A: Alignment> BenchIo for Affine<N, T, A>
 where
-    Length<N>: SupportedLength,
+    Dim<N>: SupportedLength,
     T: Element + BenchIo,
 {
     const LANES: usize = T::LANES;

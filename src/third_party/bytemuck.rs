@@ -1,8 +1,8 @@
 use bytemuck::{NoUninit, Pod, Zeroable};
 
 use crate::{
-    Affine, Alignment, Element, Length, Mask, Matrix, Projective, Rotation2, Rotor,
-    SupportedLength, Vector,
+    Affine, Alignment, Dim, Element, Mask, Matrix, Projective, Rotation2, Rotor, SupportedLength,
+    Vector,
     length::{Three, TwoOrThree},
 };
 
@@ -11,7 +11,7 @@ use crate::{
 // to have initialized bytes, and accepts any bit-pattern.
 unsafe impl<const N: usize, T, A: Alignment> Pod for Vector<N, T, A>
 where
-    Length<N>: SupportedLength,
+    Dim<N>: SupportedLength,
     T: Element + Pod,
 {
 }
@@ -21,7 +21,7 @@ where
 // guaranteed to accept any bit-pattern.
 unsafe impl<const N: usize, T, A: Alignment> Zeroable for Vector<N, T, A>
 where
-    Length<N>: SupportedLength,
+    Dim<N>: SupportedLength,
     T: Element + Zeroable,
 {
 }
@@ -32,7 +32,7 @@ where
 // bit-pattern.
 unsafe impl<const N: usize, T, A: Alignment> Pod for Matrix<N, T, A>
 where
-    Length<N>: SupportedLength,
+    Dim<N>: SupportedLength,
     T: Element + Pod,
 {
 }
@@ -42,7 +42,7 @@ where
 // `Zeroable`, and the padding is guaranteed to accept any bit-pattern.
 unsafe impl<const N: usize, T, A: Alignment> Zeroable for Matrix<N, T, A>
 where
-    Length<N>: SupportedLength,
+    Dim<N>: SupportedLength,
     T: Element + Zeroable,
 {
 }
@@ -52,7 +52,7 @@ where
 // padding bytes are initialized and accept all bit-patterns.
 unsafe impl<const N: usize, T, A: Alignment> Pod for Affine<N, T, A>
 where
-    Length<N>: SupportedLength,
+    Dim<N>: SupportedLength,
     T: Element + Pod,
 {
 }
@@ -62,7 +62,7 @@ where
 // `Zeroable`, and padding bytes are initialized and accept all bit-patterns.
 unsafe impl<const N: usize, T, A: Alignment> Zeroable for Affine<N, T, A>
 where
-    Length<N>: SupportedLength,
+    Dim<N>: SupportedLength,
     T: Element + Zeroable,
 {
 }
@@ -71,7 +71,7 @@ where
 // this trait.
 unsafe impl<const N: usize, T, A: Alignment> Pod for Projective<N, T, A>
 where
-    Length<N>: TwoOrThree,
+    Dim<N>: TwoOrThree,
     T: Element + Pod,
 {
 }
@@ -80,7 +80,7 @@ where
 // this trait.
 unsafe impl<const N: usize, T, A: Alignment> Zeroable for Projective<N, T, A>
 where
-    Length<N>: TwoOrThree,
+    Dim<N>: TwoOrThree,
     T: Element + Zeroable,
 {
 }
@@ -94,7 +94,7 @@ unsafe impl<T, A: Alignment> Zeroable for Rotation2<T, A> where T: Element + Zer
 // SAFETY: Vectors implement `Pod` when `T` does.
 unsafe impl<const N: usize, T, A: Alignment> Pod for Rotor<N, T, A>
 where
-    Length<N>: Three,
+    Dim<N>: Three,
     T: Element + Pod,
 {
 }
@@ -102,7 +102,7 @@ where
 // SAFETY: Vectors implement `Zeroable` when `T` does.
 unsafe impl<const N: usize, T, A: Alignment> Zeroable for Rotor<N, T, A>
 where
-    Length<N>: Three,
+    Dim<N>: Three,
     T: Element + Zeroable,
 {
 }
@@ -111,7 +111,7 @@ where
 // zero bit-pattern, meaning they are inhabited.
 unsafe impl<const N: usize, T, A: Alignment> NoUninit for Mask<N, T, A>
 where
-    Length<N>: SupportedLength,
+    Dim<N>: SupportedLength,
     T: Element + 'static,
 {
 }
@@ -119,7 +119,7 @@ where
 // SAFETY: Masks are guaranteed to accept the zero bit-pattern.
 unsafe impl<const N: usize, T, A: Alignment> Zeroable for Mask<N, T, A>
 where
-    Length<N>: SupportedLength,
+    Dim<N>: SupportedLength,
     T: Element,
 {
 }

@@ -18,7 +18,7 @@ use fixed::{
     FixedU128,
 };
 use ggmath::{
-    Affine, Alignment, Element, Length, Mask, Matrix, NegOne, One, SupportedLength, Vector, Zero,
+    Affine, Alignment, Dim, Element, Mask, Matrix, NegOne, One, SupportedLength, Vector, Zero,
 };
 #[cfg(feature = "mint")]
 use mint::IntoMint;
@@ -34,7 +34,7 @@ use wide::{
 assert_impl!(
     for<const N: usize, T, A: Alignment>
     where
-        Length<N>: SupportedLength,
+        Dim<N>: SupportedLength,
         T: Element,
     {
         f32: Element + Zero + One + NegOne,
@@ -480,7 +480,7 @@ assert_impl!(
 assert_impl!(
     for<const N: usize, A: Alignment>
     where
-        Length<N>: SupportedLength,
+        Dim<N>: SupportedLength,
     {
         for<T: Element + Pod> {
             Vector<N, T, A>: Pod,
@@ -561,7 +561,7 @@ assert_impl!(
 assert_impl!(
     for<const N: usize, Frac, A: Alignment>
     where
-        Length<N>: SupportedLength,
+        Dim<N>: SupportedLength,
     {
         FixedI8<Frac>: Element + Zero,
         FixedI16<Frac>: Element + Zero,
@@ -628,7 +628,7 @@ assert_impl!(
 assert_impl!(
     for<const N: usize, T, A: Alignment>
     where
-        Length<N>: SupportedLength,
+        Dim<N>: SupportedLength,
         T: Element,
     {
         Mask<N, T, A>: Serialize,
@@ -653,7 +653,7 @@ assert_impl!(
 assert_impl!(
     for<const N: usize, Frac, A: Alignment>
     where
-        Length<N>: SupportedLength,
+        Dim<N>: SupportedLength,
     {
         f32x4: Element + Zero + One + NegOne,
         f32x8: Element + Zero + One + NegOne,

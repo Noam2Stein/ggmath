@@ -1,14 +1,14 @@
 /// A marker type to restrict `const N: usize` to `2`, `3` and `4`.
 ///
-/// `Length<N>` and [`SupportedLength`] are markers used by types like
+/// `Dim<N>` and [`SupportedLength`] are markers used by types like
 /// [`Vector<N, T, A>`] to restrict `N` to `2`, `3` and `4`.
 ///
 /// [`Vector<N, T, A>`]: crate::Vector
-pub struct Length<const N: usize>;
+pub struct Dim<const N: usize>;
 
 /// A marker trait to restrict `const N: usize` to `2`, `3` and `4`.
 ///
-/// [`Length<N>`] and `SupportedLength` are markers used by types like
+/// [`Dim<N>`] and `SupportedLength` are markers used by types like
 /// [`Vector<N, T, A>`] to restrict `N` to `2`, `3` and `4`.
 ///
 /// [`Vector<N, T, A>`]: crate::Vector
@@ -36,28 +36,28 @@ pub(crate) trait Three: TwoOrThree {}
 
 trait Sealed {}
 
-impl SupportedLength for Length<2> {
+impl SupportedLength for Dim<2> {
     type Select<T2: Copy, T3: Copy, T4: Copy> = T2;
 }
 
-impl SupportedLength for Length<3> {
+impl SupportedLength for Dim<3> {
     type Select<T2: Copy, T3: Copy, T4: Copy> = T3;
 }
 
-impl SupportedLength for Length<4> {
+impl SupportedLength for Dim<4> {
     type Select<T2: Copy, T3: Copy, T4: Copy> = T4;
 }
 
-impl TwoOrThree for Length<2> {
+impl TwoOrThree for Dim<2> {
     type Select<T2: Copy, T3: Copy> = T2;
 }
 
-impl TwoOrThree for Length<3> {
+impl TwoOrThree for Dim<3> {
     type Select<T2: Copy, T3: Copy> = T3;
 }
 
-impl Three for Length<3> {}
+impl Three for Dim<3> {}
 
-impl Sealed for Length<2> {}
-impl Sealed for Length<3> {}
-impl Sealed for Length<4> {}
+impl Sealed for Dim<2> {}
+impl Sealed for Dim<3> {}
+impl Sealed for Dim<4> {}

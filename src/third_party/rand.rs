@@ -4,15 +4,15 @@ use rand::{
 };
 
 use crate::{
-    Affine, Alignment, Element, Length, Mask, Matrix, Projective, Rotation2, Rotor,
-    SupportedLength, Vector,
+    Affine, Alignment, Dim, Element, Mask, Matrix, Projective, Rotation2, Rotor, SupportedLength,
+    Vector,
     length::{Three, TwoOrThree},
     utils::specialize_23,
 };
 
 impl<const N: usize, T, A: Alignment> Distribution<Vector<N, T, A>> for StandardUniform
 where
-    Length<N>: SupportedLength,
+    Dim<N>: SupportedLength,
     T: Element,
     StandardUniform: Distribution<T>,
 {
@@ -24,7 +24,7 @@ where
 
 impl<const N: usize, T, A: Alignment> Distribution<Matrix<N, T, A>> for StandardUniform
 where
-    Length<N>: SupportedLength,
+    Dim<N>: SupportedLength,
     T: Element,
     StandardUniform: Distribution<T>,
 {
@@ -36,7 +36,7 @@ where
 
 impl<const N: usize, T, A: Alignment> Distribution<Affine<N, T, A>> for StandardUniform
 where
-    Length<N>: SupportedLength,
+    Dim<N>: SupportedLength,
     T: Element,
     StandardUniform: Distribution<T>,
 {
@@ -51,7 +51,7 @@ where
 
 impl<const N: usize, T, A: Alignment> Distribution<Projective<N, T, A>> for StandardUniform
 where
-    Length<N>: TwoOrThree,
+    Dim<N>: TwoOrThree,
     T: Element,
     StandardUniform: Distribution<T>,
 {
@@ -96,7 +96,7 @@ where
 
 impl<const N: usize, T, A: Alignment> Distribution<Rotor<N, T, A>> for StandardUniform
 where
-    Length<N>: Three,
+    Dim<N>: Three,
     T: Element,
     StandardUniform: Distribution<T>,
 {
@@ -108,7 +108,7 @@ where
 
 impl<const N: usize, T, A: Alignment> Distribution<Mask<N, T, A>> for StandardUniform
 where
-    Length<N>: SupportedLength,
+    Dim<N>: SupportedLength,
     T: Element,
 {
     #[inline]

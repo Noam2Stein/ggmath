@@ -5,7 +5,7 @@ use core::{
 };
 
 use crate::{
-    Affine, Aligned, Alignment, Element, Length, Matrix, One, Projective, Unaligned, Vector, Zero,
+    Affine, Aligned, Alignment, Dim, Element, Matrix, One, Projective, Unaligned, Vector, Zero,
     length::TwoOrThree,
     utils::{specialize_23, transmute_generic, transmute_ref},
 };
@@ -13,7 +13,7 @@ use crate::{
 #[expect(private_bounds)]
 impl<const N: usize, T, A: Alignment> Projective<N, T, A>
 where
-    Length<N>: TwoOrThree,
+    Dim<N>: TwoOrThree,
     T: Element + Zero,
 {
     /// A projective transform with all elements set to `0`.
@@ -48,7 +48,7 @@ where
 #[expect(private_bounds)]
 impl<const N: usize, T, A: Alignment> Projective<N, T, A>
 where
-    Length<N>: TwoOrThree,
+    Dim<N>: TwoOrThree,
     T: Element + Zero + One,
 {
     /// A projective transform that keeps all vectors unchanged.
@@ -80,7 +80,7 @@ where
 #[expect(private_bounds)]
 impl<const N: usize, T, A: Alignment> Projective<N, T, A>
 where
-    Length<N>: TwoOrThree,
+    Dim<N>: TwoOrThree,
     T: Element,
 {
     /// Creates a projective transform from a non-uniform `scale`.
