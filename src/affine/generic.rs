@@ -4,7 +4,7 @@ use core::{
 };
 
 use crate::{
-    Affine, Aligned, Alignment, Length, Matrix, One, Scalar, SupportedLength, Unaligned, Vector,
+    Affine, Aligned, Alignment, Element, Length, Matrix, One, SupportedLength, Unaligned, Vector,
     Zero,
     affine::AffineFields,
     utils::{transmute_generic, transmute_mut, transmute_ref},
@@ -13,7 +13,7 @@ use crate::{
 impl<const N: usize, T, A: Alignment> Affine<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar + Zero,
+    T: Element + Zero,
 {
     /// An affine transform with all elements set to `0`.
     ///
@@ -27,7 +27,7 @@ where
 impl<const N: usize, T, A: Alignment> Affine<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar + Zero + One,
+    T: Element + Zero + One,
 {
     /// An affine transform with no transformation.
     pub const IDENTITY: Self = Self::from_matrix_translation(&Matrix::IDENTITY, Vector::ZERO);
@@ -36,7 +36,7 @@ where
 impl<const N: usize, T, A: Alignment> Affine<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar,
+    T: Element,
 {
     /// Creates an affine transform by calling function `f` for each row index.
     ///
@@ -111,7 +111,7 @@ where
             struct Inner<const N: usize, T, A: Alignment>(Matrix<N, T, A>, Vector<N, T, A>)
             where
                 Length<N>: SupportedLength,
-                T: Scalar;
+                T: Element;
 
             // SAFETY: We checked that there is no padding that needs to be
             // initialized. These types are guaranteed to simply consist of
@@ -129,7 +129,7 @@ where
             )
             where
                 Length<N>: SupportedLength,
-                T: Scalar;
+                T: Element;
 
             // SAFETY: We checked that `Affine` "contains" exactly eight
             // elements of `T` (including padding). We zeroed the padding, which
@@ -249,7 +249,7 @@ where
 
 impl<T, A: Alignment> Affine<2, T, A>
 where
-    T: Scalar,
+    T: Element,
 {
     /// Creates a 2D affine transform from three row vectors.
     #[inline]
@@ -344,7 +344,7 @@ where
 
 impl<T, A: Alignment> Affine<3, T, A>
 where
-    T: Scalar,
+    T: Element,
 {
     /// Creates a 3D affine transform from four row vectors.
     #[inline]
@@ -441,7 +441,7 @@ where
 
 impl<T, A: Alignment> Affine<4, T, A>
 where
-    T: Scalar,
+    T: Element,
 {
     /// Creates a 4D affine transform from five row vectors.
     #[inline]

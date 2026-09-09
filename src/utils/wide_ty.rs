@@ -6,10 +6,10 @@ use wide::{
     u32x16, u64x2, u64x4, u64x8,
 };
 
-use crate::Scalar;
+use crate::Element;
 
 pub(crate) trait WideTy:
-    Scalar + Not<Output = Self> + BitAnd<Output = Self> + BitOr<Output = Self> + BitXor<Output = Self>
+    Element + Not<Output = Self> + BitAnd<Output = Self> + BitOr<Output = Self> + BitXor<Output = Self>
 {
     type Array;
 

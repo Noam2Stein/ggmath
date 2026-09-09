@@ -4,8 +4,8 @@ use rand::{
 };
 
 use crate::{
-    Affine, Alignment, Length, Mask, Matrix, Projective, Rotation2, Rotor, Scalar, SupportedLength,
-    Vector,
+    Affine, Alignment, Element, Length, Mask, Matrix, Projective, Rotation2, Rotor,
+    SupportedLength, Vector,
     length::{Three, TwoOrThree},
     utils::specialize_23,
 };
@@ -13,7 +13,7 @@ use crate::{
 impl<const N: usize, T, A: Alignment> Distribution<Vector<N, T, A>> for StandardUniform
 where
     Length<N>: SupportedLength,
-    T: Scalar,
+    T: Element,
     StandardUniform: Distribution<T>,
 {
     #[inline]
@@ -25,7 +25,7 @@ where
 impl<const N: usize, T, A: Alignment> Distribution<Matrix<N, T, A>> for StandardUniform
 where
     Length<N>: SupportedLength,
-    T: Scalar,
+    T: Element,
     StandardUniform: Distribution<T>,
 {
     #[inline]
@@ -37,7 +37,7 @@ where
 impl<const N: usize, T, A: Alignment> Distribution<Affine<N, T, A>> for StandardUniform
 where
     Length<N>: SupportedLength,
-    T: Scalar,
+    T: Element,
     StandardUniform: Distribution<T>,
 {
     #[inline]
@@ -52,7 +52,7 @@ where
 impl<const N: usize, T, A: Alignment> Distribution<Projective<N, T, A>> for StandardUniform
 where
     Length<N>: TwoOrThree,
-    T: Scalar,
+    T: Element,
     StandardUniform: Distribution<T>,
 {
     #[inline]
@@ -63,7 +63,7 @@ where
 
 impl<T, A: Alignment> Projective<2, T, A>
 where
-    T: Scalar,
+    T: Element,
     StandardUniform: Distribution<T>,
 {
     #[inline(always)]
@@ -74,7 +74,7 @@ where
 
 impl<T, A: Alignment> Projective<3, T, A>
 where
-    T: Scalar,
+    T: Element,
     StandardUniform: Distribution<T>,
 {
     #[inline(always)]
@@ -85,7 +85,7 @@ where
 
 impl<T, A: Alignment> Distribution<Rotation2<T, A>> for StandardUniform
 where
-    T: Scalar,
+    T: Element,
     StandardUniform: Distribution<T>,
 {
     #[inline]
@@ -97,7 +97,7 @@ where
 impl<const N: usize, T, A: Alignment> Distribution<Rotor<N, T, A>> for StandardUniform
 where
     Length<N>: Three,
-    T: Scalar,
+    T: Element,
     StandardUniform: Distribution<T>,
 {
     #[inline]
@@ -109,7 +109,7 @@ where
 impl<const N: usize, T, A: Alignment> Distribution<Mask<N, T, A>> for StandardUniform
 where
     Length<N>: SupportedLength,
-    T: Scalar,
+    T: Element,
 {
     #[inline]
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Mask<N, T, A> {

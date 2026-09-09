@@ -1,7 +1,7 @@
 use core::ops::{Add, Mul, Neg, Sub};
 
 use crate::{
-    Aligned, Alignment, Length, Mask, NegOne, One, Scalar, SupportedLength, Unaligned, Vector,
+    Aligned, Alignment, Element, Length, Mask, NegOne, One, SupportedLength, Unaligned, Vector,
     Zero,
     backend::VectorBackend,
     utils::{Repr2, Repr3, Repr4, specialize, transmute_generic, transmute_mut, transmute_ref},
@@ -10,7 +10,7 @@ use crate::{
 impl<const N: usize, T, A: Alignment> Vector<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar + Zero,
+    T: Element + Zero,
 {
     /// A vector with all elements set to `0`.
     pub const ZERO: Self = Self::splat(T::ZERO);
@@ -19,7 +19,7 @@ where
 impl<const N: usize, T, A: Alignment> Vector<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar + One,
+    T: Element + One,
 {
     /// A vector with all elements set to `1`.
     pub const ONE: Self = Self::splat(T::ONE);
@@ -28,7 +28,7 @@ where
 impl<const N: usize, T, A: Alignment> Vector<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar + NegOne,
+    T: Element + NegOne,
 {
     /// A vector with all elements set to `-1`.
     pub const NEG_ONE: Self = Self::splat(T::NEG_ONE);
@@ -37,7 +37,7 @@ where
 impl<const N: usize, T, A: Alignment> Vector<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar,
+    T: Element,
 {
     /// Creates a vector from an array.
     #[inline]
@@ -327,7 +327,7 @@ where
     #[track_caller]
     pub fn map<U, F>(self, f: F) -> Vector<N, U, A>
     where
-        U: Scalar,
+        U: Element,
         F: Fn(T) -> U,
     {
         Vector::from_fn(|i| f(self[i]))
@@ -683,7 +683,7 @@ where
 
 impl<T, A: Alignment> Vector<2, T, A>
 where
-    T: Scalar + Zero + One,
+    T: Element + Zero + One,
 {
     /// `(1, 0)`.
     pub const X: Self = Self::new(T::ONE, T::ZERO);
@@ -694,7 +694,7 @@ where
 
 impl<T, A: Alignment> Vector<2, T, A>
 where
-    T: Scalar + Zero + NegOne,
+    T: Element + Zero + NegOne,
 {
     /// `(-1, 0)`.
     pub const NEG_X: Self = Self::new(T::NEG_ONE, T::ZERO);
@@ -705,7 +705,7 @@ where
 
 impl<T, A: Alignment> Vector<2, T, A>
 where
-    T: Scalar,
+    T: Element,
 {
     /// Creates a 2-dimensional vector.
     #[inline]
@@ -799,7 +799,7 @@ where
 
 impl<T, A: Alignment> Vector<3, T, A>
 where
-    T: Scalar + Zero + One,
+    T: Element + Zero + One,
 {
     /// `(1, 0, 0)`.
     pub const X: Self = Self::new(T::ONE, T::ZERO, T::ZERO);
@@ -813,7 +813,7 @@ where
 
 impl<T, A: Alignment> Vector<3, T, A>
 where
-    T: Scalar + Zero + NegOne,
+    T: Element + Zero + NegOne,
 {
     /// `(-1, 0, 0)`.
     pub const NEG_X: Self = Self::new(T::NEG_ONE, T::ZERO, T::ZERO);
@@ -827,7 +827,7 @@ where
 
 impl<T, A: Alignment> Vector<3, T, A>
 where
-    T: Scalar,
+    T: Element,
 {
     /// Creates a 3-dimensional vector.
     #[inline]
@@ -909,7 +909,7 @@ where
 
 impl<T, A: Alignment> Vector<4, T, A>
 where
-    T: Scalar + Zero + One,
+    T: Element + Zero + One,
 {
     /// `(1, 0, 0, 0)`.
     pub const X: Self = Self::new(T::ONE, T::ZERO, T::ZERO, T::ZERO);
@@ -926,7 +926,7 @@ where
 
 impl<T, A: Alignment> Vector<4, T, A>
 where
-    T: Scalar + Zero + NegOne,
+    T: Element + Zero + NegOne,
 {
     /// `(-1, 0, 0, 0)`.
     pub const NEG_X: Self = Self::new(T::NEG_ONE, T::ZERO, T::ZERO, T::ZERO);
@@ -943,7 +943,7 @@ where
 
 impl<T, A: Alignment> Vector<4, T, A>
 where
-    T: Scalar,
+    T: Element,
 {
     /// Creates a 4-dimensional vector.
     #[inline]

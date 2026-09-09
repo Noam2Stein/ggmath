@@ -18,7 +18,7 @@ use fixed::{
     FixedU128,
 };
 use ggmath::{
-    Affine, Alignment, Length, Mask, Matrix, NegOne, One, Scalar, SupportedLength, Vector, Zero,
+    Affine, Alignment, Element, Length, Mask, Matrix, NegOne, One, SupportedLength, Vector, Zero,
 };
 #[cfg(feature = "mint")]
 use mint::IntoMint;
@@ -35,22 +35,22 @@ assert_impl!(
     for<const N: usize, T, A: Alignment>
     where
         Length<N>: SupportedLength,
-        T: Scalar,
+        T: Element,
     {
-        f32: Scalar + Zero + One + NegOne,
-        f64: Scalar + Zero + One + NegOne,
-        i8: Scalar + Zero + One + NegOne,
-        i16: Scalar + Zero + One + NegOne,
-        i32: Scalar + Zero + One + NegOne,
-        i64: Scalar + Zero + One + NegOne,
-        i128: Scalar + Zero + One + NegOne,
-        isize: Scalar + Zero + One + NegOne,
-        u8: Scalar + Zero + One,
-        u16: Scalar + Zero + One,
-        u32: Scalar + Zero + One,
-        u64: Scalar + Zero + One,
-        u128: Scalar + Zero + One,
-        usize: Scalar + Zero + One,
+        f32: Element + Zero + One + NegOne,
+        f64: Element + Zero + One + NegOne,
+        i8: Element + Zero + One + NegOne,
+        i16: Element + Zero + One + NegOne,
+        i32: Element + Zero + One + NegOne,
+        i64: Element + Zero + One + NegOne,
+        i128: Element + Zero + One + NegOne,
+        isize: Element + Zero + One + NegOne,
+        u8: Element + Zero + One,
+        u16: Element + Zero + One,
+        u32: Element + Zero + One,
+        u64: Element + Zero + One,
+        u128: Element + Zero + One,
+        usize: Element + Zero + One,
 
         Mask<N, T, A>: Debug,
         where T: Debug {
@@ -482,10 +482,10 @@ assert_impl!(
     where
         Length<N>: SupportedLength,
     {
-        for<T: Scalar + Pod> {
+        for<T: Element + Pod> {
             Vector<N, T, A>: Pod,
         }
-        for<T: Scalar + Zeroable> {
+        for<T: Element + Zeroable> {
             Vector<N, T, A>: Zeroable,
         }
         Vector<N, f32, A>: AnyBitPattern + NoUninit + Pod + Zeroable,
@@ -504,10 +504,10 @@ assert_impl!(
         Vector<N, usize, A>: AnyBitPattern + NoUninit + Pod + Zeroable,
         Vector<N, bool, A>: Zeroable,
 
-        for<T: Scalar + Pod> {
+        for<T: Element + Pod> {
             Matrix<N, T, A>: Pod,
         }
-        for<T: Scalar + Zeroable> {
+        for<T: Element + Zeroable> {
             Matrix<N, T, A>: Zeroable,
         }
         Matrix<N, f32, A>: AnyBitPattern + NoUninit + Pod + Zeroable,
@@ -526,10 +526,10 @@ assert_impl!(
         Matrix<N, usize, A>: AnyBitPattern + NoUninit + Pod + Zeroable,
         Matrix<N, bool, A>: Zeroable,
 
-        for<T: Scalar + Pod> {
+        for<T: Element + Pod> {
             Affine<N, T, A>: Pod,
         }
-        for<T: Scalar + Zeroable> {
+        for<T: Element + Zeroable> {
             Affine<N, T, A>: Zeroable,
         }
         Affine<N, f32, A>: AnyBitPattern + NoUninit + Pod + Zeroable,
@@ -548,10 +548,10 @@ assert_impl!(
         Affine<N, usize, A>: AnyBitPattern + NoUninit + Pod + Zeroable,
         Affine<N, bool, A>: Zeroable,
 
-        for<T: Scalar + 'static> {
+        for<T: Element + 'static> {
             Mask<N, T, A>: NoUninit,
         }
-        for<T: Scalar> {
+        for<T: Element> {
             Mask<N, T, A>: Zeroable,
         }
     }
@@ -563,16 +563,16 @@ assert_impl!(
     where
         Length<N>: SupportedLength,
     {
-        FixedI8<Frac>: Scalar + Zero,
-        FixedI16<Frac>: Scalar + Zero,
-        FixedI32<Frac>: Scalar + Zero,
-        FixedI64<Frac>: Scalar + Zero,
-        FixedI128<Frac>: Scalar + Zero,
-        FixedU8<Frac>: Scalar + Zero,
-        FixedU16<Frac>: Scalar + Zero,
-        FixedU32<Frac>: Scalar + Zero,
-        FixedU64<Frac>: Scalar + Zero,
-        FixedU128<Frac>: Scalar + Zero,
+        FixedI8<Frac>: Element + Zero,
+        FixedI16<Frac>: Element + Zero,
+        FixedI32<Frac>: Element + Zero,
+        FixedI64<Frac>: Element + Zero,
+        FixedI128<Frac>: Element + Zero,
+        FixedU8<Frac>: Element + Zero,
+        FixedU16<Frac>: Element + Zero,
+        FixedU32<Frac>: Element + Zero,
+        FixedU64<Frac>: Element + Zero,
+        FixedU128<Frac>: Element + Zero,
     }
 );
 
@@ -580,7 +580,7 @@ assert_impl!(
 assert_impl!(
     for<T, A: Alignment>
     where
-        T: Scalar,
+        T: Element,
     {
         Vector<2, T, A>: IntoMint<MintType = mint::Vector2<T>>,
         Vector<2, T, A>: From<mint::Point2<T>>,
@@ -629,7 +629,7 @@ assert_impl!(
     for<const N: usize, T, A: Alignment>
     where
         Length<N>: SupportedLength,
-        T: Scalar,
+        T: Element,
     {
         Mask<N, T, A>: Serialize,
         where T: Serialize {
@@ -655,35 +655,35 @@ assert_impl!(
     where
         Length<N>: SupportedLength,
     {
-        f32x4: Scalar + Zero + One + NegOne,
-        f32x8: Scalar + Zero + One + NegOne,
-        f32x16: Scalar + Zero + One + NegOne,
-        f64x2: Scalar + Zero + One + NegOne,
-        f64x4: Scalar + Zero + One + NegOne,
-        f64x8: Scalar + Zero + One + NegOne,
-        i8x16: Scalar + Zero + One + NegOne,
-        i8x32: Scalar + Zero + One + NegOne,
-        i8x64: Scalar + Zero + One + NegOne,
-        i16x8: Scalar + Zero + One + NegOne,
-        i16x16: Scalar + Zero + One + NegOne,
-        i16x32: Scalar + Zero + One + NegOne,
-        i32x4: Scalar + Zero + One + NegOne,
-        i32x8: Scalar + Zero + One + NegOne,
-        i32x16: Scalar + Zero + One + NegOne,
-        i64x2: Scalar + Zero + One + NegOne,
-        i64x4: Scalar + Zero + One + NegOne,
-        i64x8: Scalar + Zero + One + NegOne,
-        u8x16: Scalar + Zero + One,
-        u8x32: Scalar + Zero + One,
-        u8x64: Scalar + Zero + One,
-        u16x8: Scalar + Zero + One,
-        u16x16: Scalar + Zero + One,
-        u16x32: Scalar + Zero + One,
-        u32x4: Scalar + Zero + One,
-        u32x8: Scalar + Zero + One,
-        u32x16: Scalar + Zero + One,
-        u64x2: Scalar + Zero + One,
-        u64x4: Scalar + Zero + One,
-        u64x8: Scalar + Zero + One,
+        f32x4: Element + Zero + One + NegOne,
+        f32x8: Element + Zero + One + NegOne,
+        f32x16: Element + Zero + One + NegOne,
+        f64x2: Element + Zero + One + NegOne,
+        f64x4: Element + Zero + One + NegOne,
+        f64x8: Element + Zero + One + NegOne,
+        i8x16: Element + Zero + One + NegOne,
+        i8x32: Element + Zero + One + NegOne,
+        i8x64: Element + Zero + One + NegOne,
+        i16x8: Element + Zero + One + NegOne,
+        i16x16: Element + Zero + One + NegOne,
+        i16x32: Element + Zero + One + NegOne,
+        i32x4: Element + Zero + One + NegOne,
+        i32x8: Element + Zero + One + NegOne,
+        i32x16: Element + Zero + One + NegOne,
+        i64x2: Element + Zero + One + NegOne,
+        i64x4: Element + Zero + One + NegOne,
+        i64x8: Element + Zero + One + NegOne,
+        u8x16: Element + Zero + One,
+        u8x32: Element + Zero + One,
+        u8x64: Element + Zero + One,
+        u16x8: Element + Zero + One,
+        u16x16: Element + Zero + One,
+        u16x32: Element + Zero + One,
+        u32x4: Element + Zero + One,
+        u32x8: Element + Zero + One,
+        u32x16: Element + Zero + One,
+        u64x2: Element + Zero + One,
+        u64x4: Element + Zero + One,
+        u64x8: Element + Zero + One,
     }
 );

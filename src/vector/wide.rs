@@ -1,7 +1,7 @@
 use wide::Select;
 
 use crate::{
-    Alignment, Length, Scalar, SupportedLength, Vector,
+    Alignment, Element, Length, SupportedLength, Vector,
     utils::{WideTy, specialize},
 };
 
@@ -19,7 +19,7 @@ impl<const N: usize, Wide, T, const LANES: usize, A: Alignment> Vector<N, Wide, 
 where
     Length<N>: SupportedLength,
     Wide: WideTy<Array = [T; LANES]>,
-    T: Scalar,
+    T: Element,
 {
     /// Creates an SoA (Structure of Arrays) vector from an array of
     /// lanes or scalar vectors.
@@ -206,7 +206,7 @@ where
         if_false: Vector<N, Output, A>,
     ) -> Vector<N, Output, A>
     where
-        Output: Scalar,
+        Output: Element,
         Wide: Select<Output>,
     {
         specialize!(Vector::<N, Wide, A>::select_backend(
@@ -306,7 +306,7 @@ where
 impl<Wide, T, const LANES: usize, A: Alignment> Vector<2, Wide, A>
 where
     Wide: WideTy<Array = [T; LANES]>,
-    T: Scalar,
+    T: Element,
 {
     #[inline(always)]
     fn from_lanes_backend(lanes: &[Vector<2, T, A>; LANES]) -> Self {
@@ -346,7 +346,7 @@ where
         if_false: Vector<2, Output, A>,
     ) -> Vector<2, Output, A>
     where
-        Output: Scalar,
+        Output: Element,
         Wide: Select<Output>,
     {
         Vector::<2, Output, A>::new(
@@ -400,7 +400,7 @@ where
 impl<Wide, T, const LANES: usize, A: Alignment> Vector<3, Wide, A>
 where
     Wide: WideTy<Array = [T; LANES]>,
-    T: Scalar,
+    T: Element,
 {
     #[inline(always)]
     fn from_lanes_backend(lanes: &[Vector<3, T, A>; LANES]) -> Self {
@@ -446,7 +446,7 @@ where
         if_false: Vector<3, Output, A>,
     ) -> Vector<3, Output, A>
     where
-        Output: Scalar,
+        Output: Element,
         Wide: Select<Output>,
     {
         Vector::<3, Output, A>::new(
@@ -525,7 +525,7 @@ where
 impl<Wide, T, const LANES: usize, A: Alignment> Vector<4, Wide, A>
 where
     Wide: WideTy<Array = [T; LANES]>,
-    T: Scalar,
+    T: Element,
 {
     #[inline(always)]
     fn from_lanes_backend(lanes: &[Vector<4, T, A>; LANES]) -> Self {
@@ -574,7 +574,7 @@ where
         if_false: Vector<4, Output, A>,
     ) -> Vector<4, Output, A>
     where
-        Output: Scalar,
+        Output: Element,
         Wide: Select<Output>,
     {
         Vector::<4, Output, A>::new(

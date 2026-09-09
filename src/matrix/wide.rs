@@ -1,7 +1,7 @@
 use wide::Select;
 
 use crate::{
-    Alignment, Length, Matrix, Scalar, SupportedLength, Vector,
+    Alignment, Element, Length, Matrix, SupportedLength, Vector,
     utils::{WideTy, specialize},
 };
 
@@ -19,7 +19,7 @@ impl<const N: usize, Wide, T, const LANES: usize, A: Alignment> Matrix<N, Wide, 
 where
     Length<N>: SupportedLength,
     Wide: WideTy<Array = [T; LANES]>,
-    T: Scalar,
+    T: Element,
 {
     /// Creates an SoA (Structure of Arrays) matrix from an array of lanes or
     /// scalar matrices.
@@ -208,7 +208,7 @@ where
 impl<Wide, T, const LANES: usize, A: Alignment> Matrix<2, Wide, A>
 where
     Wide: WideTy<Array = [T; LANES]>,
-    T: Scalar,
+    T: Element,
 {
     #[inline(always)]
     fn from_lanes_backend(lanes: &[Matrix<2, T, A>; LANES]) -> Self {
@@ -250,7 +250,7 @@ where
 impl<Wide, T, const LANES: usize, A: Alignment> Matrix<3, Wide, A>
 where
     Wide: WideTy<Array = [T; LANES]>,
-    T: Scalar,
+    T: Element,
 {
     #[inline(always)]
     fn from_lanes_backend(lanes: &[Matrix<3, T, A>; LANES]) -> Self {
@@ -300,7 +300,7 @@ where
 impl<Wide, T, const LANES: usize, A: Alignment> Matrix<4, Wide, A>
 where
     Wide: WideTy<Array = [T; LANES]>,
-    T: Scalar,
+    T: Element,
 {
     #[inline(always)]
     fn from_lanes_backend(lanes: &[Matrix<4, T, A>; LANES]) -> Self {

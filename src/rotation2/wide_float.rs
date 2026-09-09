@@ -282,7 +282,7 @@ macro_rules! items {
 
 #[cfg(doc)]
 #[doc(hidden)]
-pub trait WideFloat: crate::Scalar {}
+pub trait WideFloat: crate::Element {}
 
 /// Functionality for [SoA] (Structure of Arrays) float 2D rotations.
 ///

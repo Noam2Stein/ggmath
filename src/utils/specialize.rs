@@ -1,5 +1,5 @@
 use crate::{
-    Affine, Aligned, Alignment, Length, Mask, Matrix, Projective, Rotor, Scalar, SupportedLength,
+    Affine, Aligned, Alignment, Element, Length, Mask, Matrix, Projective, Rotor, SupportedLength,
     Unaligned, Vector,
     length::{Three, TwoOrThree},
     utils::transmute_generic,
@@ -7,22 +7,22 @@ use crate::{
 
 /// Bypasses a type system limitation to perform specialization.
 ///
-/// Types that implement [`Scalar`] can override the implementation of math
-/// functions. Implementations are overriden via the [`ScalarBackend<N, A>`]
+/// Types that implement [`Element`] can override the implementation of math
+/// functions. Implementations are overriden via the [`VectorBackend<N, A>`]
 /// trait, which has to be implemented for all lengths and both alignments.
 ///
 /// Implementations can be generic over `N` and `A`, but there can also be
 /// seperate implementations for each concrete case. To make this possible,
-/// [`Scalar`] is defined as:
+/// [`Element`] is defined roughly as:
 ///
 /// ```ignore
-/// trait Scalar:
-///     ScalarBackend<2, Aligned>
-///     + ScalarBackend<3, Aligned>
-///     + ScalarBackend<4, Aligned>
-///     + ScalarBackend<2, Unaligned>
-///     + ScalarBackend<3, Unaligned>
-///     + ScalarBackend<4, Unaligned>
+/// trait Element:
+///     VectorBackend<2, Aligned>
+///     + VectorBackend<3, Aligned>
+///     + VectorBackend<4, Aligned>
+///     + VectorBackend<2, Unaligned>
+///     + VectorBackend<3, Unaligned>
+///     + VectorBackend<4, Unaligned>
 /// {
 /// }
 /// ```
@@ -30,13 +30,13 @@ use crate::{
 /// Math functions that want to call their implementation want to write:
 ///
 /// ```ignore
-/// <T as ScalarBackend<N, A>>::function_implementation(arguments)
+/// <T as Backend<N, A>>::function_implementation(arguments)
 /// ```
 ///
 /// This results in a compiler error. The compiler understands that `T`
-/// implements [`ScalarBackend`] for lengths `2`, `3`, `4`, and alignments
+/// implements [`VectorBackend`] for lengths `2`, `3`, `4`, and alignments
 /// [`Aligned`], [`Unaligned`], but is not smart enough to understand that those
-/// are all possible cases, and that `T` implements [`ScalarBackend<N, A>`].
+/// are all possible cases, and that `T` implements [`VectorBackend<N, A>`].
 ///
 /// To bypass this, math functions have to match over `N` and `A`, and for each
 /// of the 6 possible cases perform unsafe transmutations to convert inputs and
@@ -46,7 +46,7 @@ use crate::{
 /// functions to write:
 ///
 /// ```ignore
-/// specialize!(<T as ScalarBackend<N, A>>::function_implementation(arguments))
+/// specialize!(<T as Backend<N, A>>::function_implementation(arguments))
 /// ```
 ///
 /// Once the type system is smart enough, `specialize` could be removed. This
@@ -56,8 +56,8 @@ use crate::{
 /// Note: If certain function signatures fail to compile with this macro, the
 /// [`Specialize`] trait may not be implemented for those signature's types.
 ///
-/// [`ScalarBackend<N, A>`]: crate::ScalarBackend
-/// [`ScalarBackend`]: crate::ScalarBackend
+/// [`VectorBackend<N, A>`]: crate::backend::VectorBackend
+/// [`VectorBackend`]: crate::backend::VectorBackend
 macro_rules! specialize {
     (<$T:ty as $Backend:ident<$N:tt, $A:tt>>::$f:ident($($arg:expr),*$(,)?)) => {
         (const {
@@ -234,7 +234,7 @@ pub(crate) use specialize_3;
 /// The macro call:
 ///
 /// ```ignore
-/// specialize!(<T as ScalarBackend<N, A>>::function_implementation(arguments))
+/// specialize!(<T as VectorBackend<N, A>>::function_implementation(arguments))
 /// ```
 ///
 /// Expands to:
@@ -252,12 +252,12 @@ pub(crate) use specialize_3;
 ///         fn(_) -> _,
 ///         fn(_) -> _,
 ///     >(
-///         <T as ScalarBackend<2, Aligned>>::function_implementation,
-///         <T as ScalarBackend<3, Aligned>>::function_implementation,
-///         <T as ScalarBackend<4, Aligned>>::function_implementation,
-///         <T as ScalarBackend<2, Unaligned>>::function_implementation,
-///         <T as ScalarBackend<3, Unaligned>>::function_implementation,
-///         <T as ScalarBackend<4, Unaligned>>::function_implementation,
+///         <T as Backend<2, Aligned>>::function_implementation,
+///         <T as Backend<3, Aligned>>::function_implementation,
+///         <T as Backend<4, Aligned>>::function_implementation,
+///         <T as Backend<2, Unaligned>>::function_implementation,
+///         <T as Backend<3, Unaligned>>::function_implementation,
+///         <T as Backend<4, Unaligned>>::function_implementation,
 ///     )
 /// })(arguments)
 /// ```
@@ -416,7 +416,7 @@ unsafe trait Specialize<T2, const N: usize, const N2: usize, A: Alignment, A2: A
 unsafe impl<T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<T, N, N2, A, A2> for T
 where
-    T: Scalar,
+    T: Element,
 {
 }
 
@@ -437,7 +437,7 @@ unsafe impl<const N: usize, const N2: usize, A: Alignment, A2: Alignment>
 unsafe impl<T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<Vector<N2, T, A2>, N, N2, A, A2> for Vector<N, T, A>
 where
-    T: Scalar,
+    T: Element,
     Length<N>: SupportedLength,
     Length<N2>: SupportedLength,
 {
@@ -448,7 +448,7 @@ where
 unsafe impl<'a, T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<&'a Vector<N2, T, A2>, N, N2, A, A2> for &'a Vector<N, T, A>
 where
-    T: Scalar,
+    T: Element,
     Length<N>: SupportedLength,
     Length<N2>: SupportedLength,
 {
@@ -459,7 +459,7 @@ where
 unsafe impl<'a, T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<&'a mut Vector<N2, T, A2>, N, N2, A, A2> for &'a mut Vector<N, T, A>
 where
-    T: Scalar,
+    T: Element,
     Length<N>: SupportedLength,
     Length<N2>: SupportedLength,
 {
@@ -469,7 +469,7 @@ where
 unsafe impl<T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<Matrix<N2, T, A2>, N, N2, A, A2> for Matrix<N, T, A>
 where
-    T: Scalar,
+    T: Element,
     Length<N>: SupportedLength,
     Length<N2>: SupportedLength,
 {
@@ -480,7 +480,7 @@ where
 unsafe impl<'a, T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<&'a Matrix<N2, T, A2>, N, N2, A, A2> for &'a Matrix<N, T, A>
 where
-    T: Scalar,
+    T: Element,
     Length<N>: SupportedLength,
     Length<N2>: SupportedLength,
 {
@@ -491,7 +491,7 @@ where
 unsafe impl<'a, T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<&'a mut Matrix<N2, T, A2>, N, N2, A, A2> for &'a mut Matrix<N, T, A>
 where
-    T: Scalar,
+    T: Element,
     Length<N>: SupportedLength,
     Length<N2>: SupportedLength,
 {
@@ -501,7 +501,7 @@ where
 unsafe impl<T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<Affine<N2, T, A2>, N, N2, A, A2> for Affine<N, T, A>
 where
-    T: Scalar,
+    T: Element,
     Length<N>: SupportedLength,
     Length<N2>: SupportedLength,
 {
@@ -512,7 +512,7 @@ where
 unsafe impl<'a, T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<&'a Affine<N2, T, A2>, N, N2, A, A2> for &'a Affine<N, T, A>
 where
-    T: Scalar,
+    T: Element,
     Length<N>: SupportedLength,
     Length<N2>: SupportedLength,
 {
@@ -523,7 +523,7 @@ where
 unsafe impl<'a, T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<&'a mut Affine<N2, T, A2>, N, N2, A, A2> for &'a mut Affine<N, T, A>
 where
-    T: Scalar,
+    T: Element,
     Length<N>: SupportedLength,
     Length<N2>: SupportedLength,
 {
@@ -533,7 +533,7 @@ where
 unsafe impl<T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<Projective<N2, T, A2>, N, N2, A, A2> for Projective<N, T, A>
 where
-    T: Scalar,
+    T: Element,
     Length<N>: TwoOrThree,
     Length<N2>: TwoOrThree,
 {
@@ -543,7 +543,7 @@ where
 unsafe impl<'a, T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<&'a Projective<N2, T, A2>, N, N2, A, A2> for &'a Projective<N, T, A>
 where
-    T: Scalar,
+    T: Element,
     Length<N>: TwoOrThree,
     Length<N2>: TwoOrThree,
 {
@@ -553,7 +553,7 @@ where
 unsafe impl<'a, T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<&'a mut Projective<N2, T, A2>, N, N2, A, A2> for &'a mut Projective<N, T, A>
 where
-    T: Scalar,
+    T: Element,
     Length<N>: TwoOrThree,
     Length<N2>: TwoOrThree,
 {
@@ -563,7 +563,7 @@ where
 unsafe impl<T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<Rotor<N2, T, A2>, N, N2, A, A2> for Rotor<N, T, A>
 where
-    T: Scalar,
+    T: Element,
     Length<N>: Three,
     Length<N2>: Three,
 {
@@ -573,7 +573,7 @@ where
 unsafe impl<'a, T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<&'a Rotor<N2, T, A2>, N, N2, A, A2> for &'a Rotor<N, T, A>
 where
-    T: Scalar,
+    T: Element,
     Length<N>: Three,
     Length<N2>: Three,
 {
@@ -583,7 +583,7 @@ where
 unsafe impl<'a, T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<&'a mut Rotor<N2, T, A2>, N, N2, A, A2> for &'a mut Rotor<N, T, A>
 where
-    T: Scalar,
+    T: Element,
     Length<N>: Three,
     Length<N2>: Three,
 {
@@ -593,7 +593,7 @@ where
 unsafe impl<T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<Mask<N2, T, A2>, N, N2, A, A2> for Mask<N, T, A>
 where
-    T: Scalar,
+    T: Element,
     Length<N>: SupportedLength,
     Length<N2>: SupportedLength,
 {
@@ -603,7 +603,7 @@ where
 unsafe impl<'a, T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<&'a Mask<N2, T, A2>, N, N2, A, A2> for &'a Mask<N, T, A>
 where
-    T: Scalar,
+    T: Element,
     Length<N>: SupportedLength,
     Length<N2>: SupportedLength,
 {
@@ -614,7 +614,7 @@ where
 unsafe impl<'a, T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<&'a mut Mask<N2, T, A2>, N, N2, A, A2> for &'a mut Mask<N, T, A>
 where
-    T: Scalar,
+    T: Element,
     Length<N>: SupportedLength,
     Length<N2>: SupportedLength,
 {

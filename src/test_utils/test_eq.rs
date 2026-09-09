@@ -6,7 +6,7 @@ use std::{
 };
 
 use crate::{
-    Affine, Alignment, Length, Matrix, PrimitiveInteger, Projective, Rotation2, Rotor, Scalar,
+    Affine, Alignment, Element, Length, Matrix, PrimitiveInteger, Projective, Rotation2, Rotor,
     SupportedLength, Vector,
     length::{Three, TwoOrThree},
     utils::specialize_23,
@@ -632,7 +632,7 @@ where
 impl<const N: usize, T, A: Alignment> TestEq for Vector<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar + TestEq,
+    T: Element + TestEq,
 {
     fn eq(
         &self,
@@ -655,7 +655,7 @@ where
 impl<const N: usize, T, A: Alignment> TestEqAbs for Vector<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar + TestEqAbs,
+    T: Element + TestEqAbs,
 {
     fn eq(
         &self,
@@ -680,7 +680,7 @@ where
 impl<const N: usize, T, A: Alignment> TestEqAbs<T> for Vector<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar + TestEqAbs,
+    T: Element + TestEqAbs,
 {
     fn eq(
         &self,
@@ -705,7 +705,7 @@ where
 impl<const N: usize, T, A: Alignment> TestEq for Matrix<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar + TestEq,
+    T: Element + TestEq,
 {
     fn eq(
         &self,
@@ -728,7 +728,7 @@ where
 impl<const N: usize, T, A: Alignment> TestEqAbs for Matrix<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar + TestEqAbs,
+    T: Element + TestEqAbs,
 {
     fn eq(
         &self,
@@ -753,7 +753,7 @@ where
 impl<const N: usize, T, A: Alignment> TestEqAbs<T> for Matrix<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar + TestEqAbs,
+    T: Element + TestEqAbs,
 {
     fn eq(
         &self,
@@ -778,7 +778,7 @@ where
 impl<const N: usize, T, A: Alignment> TestEq for Affine<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar + TestEq,
+    T: Element + TestEq,
 {
     fn eq(
         &self,
@@ -804,7 +804,7 @@ where
 impl<const N: usize, T, A: Alignment> TestEqAbs for Affine<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar + TestEqAbs,
+    T: Element + TestEqAbs,
 {
     fn eq(
         &self,
@@ -833,7 +833,7 @@ where
 impl<const N: usize, T, A: Alignment> TestEqAbs<T> for Affine<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar + TestEqAbs,
+    T: Element + TestEqAbs,
 {
     fn eq(
         &self,
@@ -862,7 +862,7 @@ where
 impl<const N: usize, T, A: Alignment> TestEq for Projective<N, T, A>
 where
     Length<N>: TwoOrThree,
-    T: Scalar + TestEq,
+    T: Element + TestEq,
 {
     fn eq(
         &self,
@@ -884,7 +884,7 @@ where
 impl<const N: usize, T, A: Alignment> TestEqAbs for Projective<N, T, A>
 where
     Length<N>: TwoOrThree,
-    T: Scalar + TestEqAbs,
+    T: Element + TestEqAbs,
 {
     fn eq(
         &self,
@@ -908,7 +908,7 @@ where
 impl<const N: usize, T, A: Alignment> TestEqAbs<T> for Projective<N, T, A>
 where
     Length<N>: TwoOrThree,
-    T: Scalar + TestEqAbs,
+    T: Element + TestEqAbs,
 {
     fn eq(
         &self,
@@ -933,7 +933,7 @@ macro_rules! projective_backend {
     ($N:literal) => {
         impl<T, A: Alignment> Projective<$N, T, A>
         where
-            T: Scalar,
+            T: Element,
         {
             fn test_eq_backend(
                 &self,
@@ -1000,7 +1000,7 @@ projective_backend!(3);
 
 impl<T, A: Alignment> TestEq for Rotation2<T, A>
 where
-    T: Scalar + TestEq,
+    T: Element + TestEq,
 {
     fn eq(
         &self,
@@ -1021,7 +1021,7 @@ where
 
 impl<T, A: Alignment> TestEqAbs for Rotation2<T, A>
 where
-    T: Scalar + TestEqAbs,
+    T: Element + TestEqAbs,
 {
     fn eq(
         &self,
@@ -1044,7 +1044,7 @@ where
 
 impl<T, A: Alignment> TestEqAbs<T> for Rotation2<T, A>
 where
-    T: Scalar + TestEqAbs,
+    T: Element + TestEqAbs,
 {
     fn eq(
         &self,
@@ -1068,7 +1068,7 @@ where
 impl<const N: usize, T, A: Alignment> TestEq for Rotor<N, T, A>
 where
     Length<N>: Three,
-    T: Scalar + Neg<Output = T> + TestEq,
+    T: Element + Neg<Output = T> + TestEq,
 {
     fn eq(
         &self,
@@ -1102,7 +1102,7 @@ where
 impl<const N: usize, T, A: Alignment> TestEqAbs for Rotor<N, T, A>
 where
     Length<N>: Three,
-    T: Scalar + Neg<Output = T> + TestEqAbs,
+    T: Element + Neg<Output = T> + TestEqAbs,
 {
     fn eq(
         &self,
@@ -1139,7 +1139,7 @@ where
 impl<const N: usize, T, A: Alignment> TestEqAbs<T> for Rotor<N, T, A>
 where
     Length<N>: Three,
-    T: Scalar + Neg<Output = T> + TestEqAbs,
+    T: Element + Neg<Output = T> + TestEqAbs,
 {
     fn eq(
         &self,
@@ -1175,7 +1175,7 @@ where
 
 impl<T, A: Alignment> TestEqAbs<Vector<4, T, A>> for Rotor<3, T, A>
 where
-    T: Scalar + Neg<Output = T> + TestEqAbs,
+    T: Element + Neg<Output = T> + TestEqAbs,
 {
     fn eq(
         &self,

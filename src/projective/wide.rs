@@ -1,7 +1,7 @@
 use wide::Select;
 
 use crate::{
-    Alignment, Length, Projective, Scalar, Vector,
+    Alignment, Element, Length, Projective, Vector,
     length::TwoOrThree,
     utils::{WideTy, specialize_23},
 };
@@ -20,7 +20,7 @@ impl<const N: usize, Wide, T, const LANES: usize, A: Alignment> Projective<N, Wi
 where
     Length<N>: TwoOrThree,
     Wide: WideTy<Array = [T; LANES]>,
-    T: Scalar,
+    T: Element,
 {
     /// Creates an SoA (Structure of Arrays) projective transform from an array
     /// of regular, non-SoA projective transforms corresponding to each output
@@ -246,7 +246,7 @@ where
 impl<Wide, T, const LANES: usize, A: Alignment> Projective<2, Wide, A>
 where
     Wide: WideTy<Array = [T; LANES]>,
-    T: Scalar,
+    T: Element,
 {
     #[inline(always)]
     fn from_lanes_backend(lanes: &[Projective<2, T, A>; LANES]) -> Self {
@@ -296,7 +296,7 @@ where
 impl<Wide, T, const LANES: usize, A: Alignment> Projective<3, Wide, A>
 where
     Wide: WideTy<Array = [T; LANES]>,
-    T: Scalar,
+    T: Element,
 {
     #[inline(always)]
     fn from_lanes_backend(lanes: &[Projective<3, T, A>; LANES]) -> Self {

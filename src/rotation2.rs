@@ -5,7 +5,7 @@ use core::{
 };
 
 use crate::{
-    Aligned, Alignment, One, Scalar, Unaligned, Vector, Zero,
+    Aligned, Alignment, Element, One, Unaligned, Vector, Zero,
     utils::{transmute_mut, transmute_ref},
 };
 
@@ -52,7 +52,7 @@ mod wide_float;
 #[repr(transparent)]
 pub struct Rotation2<T, A: Alignment>(pub(crate) Vector<2, T, A>)
 where
-    T: Scalar;
+    T: Element;
 
 /// A 2D rotation represented by a unit complex number.
 ///
@@ -87,7 +87,7 @@ pub type Rot2A<T> = Rotation2<T, Aligned>;
 
 impl<T, A: Alignment> Clone for Rotation2<T, A>
 where
-    T: Scalar,
+    T: Element,
 {
     #[inline]
     fn clone(&self) -> Self {
@@ -95,7 +95,7 @@ where
     }
 }
 
-impl<T, A: Alignment> Copy for Rotation2<T, A> where T: Scalar {}
+impl<T, A: Alignment> Copy for Rotation2<T, A> where T: Element {}
 
 #[doc(hidden)]
 #[repr(C)]
@@ -108,7 +108,7 @@ pub struct Rot2Fields<T> {
 
 impl<T, A: Alignment> Deref for Rotation2<T, A>
 where
-    T: Scalar,
+    T: Element,
 {
     type Target = Rot2Fields<T>;
 
@@ -122,7 +122,7 @@ where
 
 impl<T, A: Alignment> DerefMut for Rotation2<T, A>
 where
-    T: Scalar,
+    T: Element,
 {
     #[inline]
     fn deref_mut(&mut self) -> &mut Self::Target {
@@ -134,7 +134,7 @@ where
 
 impl<T, A: Alignment> Debug for Rotation2<T, A>
 where
-    T: Scalar + Debug,
+    T: Element + Debug,
 {
     #[inline]
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
@@ -147,7 +147,7 @@ where
 
 impl<T, A: Alignment> PartialEq for Rotation2<T, A>
 where
-    T: Scalar + PartialEq,
+    T: Element + PartialEq,
 {
     #[inline]
     fn eq(&self, other: &Self) -> bool {
@@ -161,11 +161,11 @@ where
     }
 }
 
-impl<T, A: Alignment> Eq for Rotation2<T, A> where T: Scalar + Eq {}
+impl<T, A: Alignment> Eq for Rotation2<T, A> where T: Element + Eq {}
 
 impl<T, A: Alignment> Hash for Rotation2<T, A>
 where
-    T: Scalar + Hash,
+    T: Element + Hash,
 {
     #[inline]
     fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
@@ -175,7 +175,7 @@ where
 
 impl<T, A: Alignment> Default for Rotation2<T, A>
 where
-    T: Scalar + Zero + One,
+    T: Element + Zero + One,
 {
     /// Returns [`IDENTITY`].
     ///
@@ -190,7 +190,7 @@ macro_rules! impl_neg {
     ($(#[$doc:meta])*) => {
         impl<T, A: Alignment> Neg for Rotation2<T, A>
         where
-            T: Scalar + Neg<Output = T>,
+            T: Element + Neg<Output = T>,
         {
             type Output = Self;
 
@@ -204,7 +204,7 @@ macro_rules! impl_neg {
 
         impl<T, A: Alignment> Neg for &Rotation2<T, A>
         where
-            T: Scalar + Neg<Output = T>,
+            T: Element + Neg<Output = T>,
         {
             type Output = Rotation2<T, A>;
 
@@ -226,7 +226,7 @@ macro_rules! impl_add {
     ($(#[$doc:meta])*) => {
         impl<T, A: Alignment> Add for Rotation2<T, A>
         where
-            T: Scalar + Add<Output = T>,
+            T: Element + Add<Output = T>,
         {
             type Output = Self;
 
@@ -240,7 +240,7 @@ macro_rules! impl_add {
 
         impl<T, A: Alignment> Add<&Rotation2<T, A>> for Rotation2<T, A>
         where
-            T: Scalar + Add<Output = T>,
+            T: Element + Add<Output = T>,
         {
             type Output = Self;
 
@@ -254,7 +254,7 @@ macro_rules! impl_add {
 
         impl<T, A: Alignment> Add<Rotation2<T, A>> for &Rotation2<T, A>
         where
-            T: Scalar + Add<Output = T>,
+            T: Element + Add<Output = T>,
         {
             type Output = Rotation2<T, A>;
 
@@ -268,7 +268,7 @@ macro_rules! impl_add {
 
         impl<T, A: Alignment> Add<&Rotation2<T, A>> for &Rotation2<T, A>
         where
-            T: Scalar + Add<Output = T>,
+            T: Element + Add<Output = T>,
         {
             type Output = Rotation2<T, A>;
 
@@ -282,7 +282,7 @@ macro_rules! impl_add {
 
         impl<T, A: Alignment> AddAssign for Rotation2<T, A>
         where
-            T: Scalar + Add<Output = T>,
+            T: Element + Add<Output = T>,
         {
             $(#[$doc])*
             #[inline]
@@ -294,7 +294,7 @@ macro_rules! impl_add {
 
         impl<T, A: Alignment> AddAssign<&Rotation2<T, A>> for Rotation2<T, A>
         where
-            T: Scalar + Add<Output = T>,
+            T: Element + Add<Output = T>,
         {
             $(#[$doc])*
             #[inline]
@@ -316,7 +316,7 @@ macro_rules! impl_sub {
     ($(#[$doc:meta])*) => {
         impl<T, A: Alignment> Sub for Rotation2<T, A>
         where
-            T: Scalar + Sub<Output = T>,
+            T: Element + Sub<Output = T>,
         {
             type Output = Self;
 
@@ -330,7 +330,7 @@ macro_rules! impl_sub {
 
         impl<T, A: Alignment> Sub<&Rotation2<T, A>> for Rotation2<T, A>
         where
-            T: Scalar + Sub<Output = T>,
+            T: Element + Sub<Output = T>,
         {
             type Output = Self;
 
@@ -344,7 +344,7 @@ macro_rules! impl_sub {
 
         impl<T, A: Alignment> Sub<Rotation2<T, A>> for &Rotation2<T, A>
         where
-            T: Scalar + Sub<Output = T>,
+            T: Element + Sub<Output = T>,
         {
             type Output = Rotation2<T, A>;
 
@@ -358,7 +358,7 @@ macro_rules! impl_sub {
 
         impl<T, A: Alignment> Sub<&Rotation2<T, A>> for &Rotation2<T, A>
         where
-            T: Scalar + Sub<Output = T>,
+            T: Element + Sub<Output = T>,
         {
             type Output = Rotation2<T, A>;
 
@@ -372,7 +372,7 @@ macro_rules! impl_sub {
 
         impl<T, A: Alignment> SubAssign for Rotation2<T, A>
         where
-            T: Scalar + Sub<Output = T>,
+            T: Element + Sub<Output = T>,
         {
             $(#[$doc])*
             #[inline]
@@ -384,7 +384,7 @@ macro_rules! impl_sub {
 
         impl<T, A: Alignment> SubAssign<&Rotation2<T, A>> for Rotation2<T, A>
         where
-            T: Scalar + Sub<Output = T>,
+            T: Element + Sub<Output = T>,
         {
             $(#[$doc])*
             #[inline]
@@ -406,7 +406,7 @@ macro_rules! impl_mul_scalar {
     ($(#[$doc:meta])*) => {
         impl<T, A: Alignment> Mul<T> for Rotation2<T, A>
         where
-            T: Scalar + Mul<Output = T>,
+            T: Element + Mul<Output = T>,
         {
             type Output = Self;
 
@@ -420,7 +420,7 @@ macro_rules! impl_mul_scalar {
 
         impl<T, A: Alignment> Mul<&T> for Rotation2<T, A>
         where
-            T: Scalar + Mul<Output = T>,
+            T: Element + Mul<Output = T>,
         {
             type Output = Self;
 
@@ -434,7 +434,7 @@ macro_rules! impl_mul_scalar {
 
         impl<T, A: Alignment> Mul<T> for &Rotation2<T, A>
         where
-            T: Scalar + Mul<Output = T>,
+            T: Element + Mul<Output = T>,
         {
             type Output = Rotation2<T, A>;
 
@@ -448,7 +448,7 @@ macro_rules! impl_mul_scalar {
 
         impl<T, A: Alignment> Mul<&T> for &Rotation2<T, A>
         where
-            T: Scalar + Mul<Output = T>,
+            T: Element + Mul<Output = T>,
         {
             type Output = Rotation2<T, A>;
 
@@ -462,7 +462,7 @@ macro_rules! impl_mul_scalar {
 
         impl<T, A: Alignment> MulAssign<T> for Rotation2<T, A>
         where
-            T: Scalar + Mul<Output = T>,
+            T: Element + Mul<Output = T>,
         {
             $(#[$doc])*
             #[inline]
@@ -474,7 +474,7 @@ macro_rules! impl_mul_scalar {
 
         impl<T, A: Alignment> MulAssign<&T> for Rotation2<T, A>
         where
-            T: Scalar + Mul<Output = T>,
+            T: Element + Mul<Output = T>,
         {
             $(#[$doc])*
             #[inline]
@@ -496,7 +496,7 @@ macro_rules! impl_vector_mul {
     ($(#[$doc:meta])*) => {
         impl<T, A: Alignment> Mul<Rotation2<T, A>> for Vector<2, T, A>
         where
-            T: Scalar + Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
+            T: Element + Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
         {
             type Output = Self;
 
@@ -513,7 +513,7 @@ macro_rules! impl_vector_mul {
 
         impl<T, A: Alignment> Mul<&Rotation2<T, A>> for Vector<2, T, A>
         where
-            T: Scalar + Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
+            T: Element + Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
         {
             type Output = Self;
 
@@ -527,7 +527,7 @@ macro_rules! impl_vector_mul {
 
         impl<T, A: Alignment> Mul<Rotation2<T, A>> for &Vector<2, T, A>
         where
-            T: Scalar + Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
+            T: Element + Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
         {
             type Output = Vector<2, T, A>;
 
@@ -541,7 +541,7 @@ macro_rules! impl_vector_mul {
 
         impl<T, A: Alignment> Mul<&Rotation2<T, A>> for &Vector<2, T, A>
         where
-            T: Scalar + Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
+            T: Element + Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
         {
             type Output = Vector<2, T, A>;
 
@@ -555,7 +555,7 @@ macro_rules! impl_vector_mul {
 
         impl<T, A: Alignment> MulAssign<Rotation2<T, A>> for Vector<2, T, A>
         where
-            T: Scalar + Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
+            T: Element + Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
         {
             $(#[$doc])*
             #[inline]
@@ -567,7 +567,7 @@ macro_rules! impl_vector_mul {
 
         impl<T, A: Alignment> MulAssign<&Rotation2<T, A>> for Vector<2, T, A>
         where
-            T: Scalar + Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
+            T: Element + Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
         {
             $(#[$doc])*
             #[inline]
@@ -589,7 +589,7 @@ macro_rules! impl_mul {
     ($(#[$doc:meta])*) => {
         impl<T, A: Alignment> Mul for Rotation2<T, A>
         where
-            T: Scalar + Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
+            T: Element + Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
         {
             type Output = Self;
 
@@ -606,7 +606,7 @@ macro_rules! impl_mul {
 
         impl<T, A: Alignment> Mul<&Rotation2<T, A>> for Rotation2<T, A>
         where
-            T: Scalar + Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
+            T: Element + Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
         {
             type Output = Self;
 
@@ -620,7 +620,7 @@ macro_rules! impl_mul {
 
         impl<T, A: Alignment> Mul<Rotation2<T, A>> for &Rotation2<T, A>
         where
-            T: Scalar + Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
+            T: Element + Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
         {
             type Output = Rotation2<T, A>;
 
@@ -634,7 +634,7 @@ macro_rules! impl_mul {
 
         impl<T, A: Alignment> Mul<&Rotation2<T, A>> for &Rotation2<T, A>
         where
-            T: Scalar + Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
+            T: Element + Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
         {
             type Output = Rotation2<T, A>;
 
@@ -648,7 +648,7 @@ macro_rules! impl_mul {
 
         impl<T, A: Alignment> MulAssign for Rotation2<T, A>
         where
-            T: Scalar + Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
+            T: Element + Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
         {
             $(#[$doc])*
             #[inline]
@@ -660,7 +660,7 @@ macro_rules! impl_mul {
 
         impl<T, A: Alignment> MulAssign<&Rotation2<T, A>> for Rotation2<T, A>
         where
-            T: Scalar + Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
+            T: Element + Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
         {
             $(#[$doc])*
             #[inline]
@@ -679,7 +679,7 @@ macro_rules! impl_div_scalar {
     ($(#[$doc:meta])*) => {
         impl<T, A: Alignment> Div<T> for Rotation2<T, A>
         where
-            T: Scalar + Div<Output = T>,
+            T: Element + Div<Output = T>,
         {
             type Output = Self;
 
@@ -693,7 +693,7 @@ macro_rules! impl_div_scalar {
 
         impl<T, A: Alignment> Div<&T> for Rotation2<T, A>
         where
-            T: Scalar + Div<Output = T>,
+            T: Element + Div<Output = T>,
         {
             type Output = Self;
 
@@ -707,7 +707,7 @@ macro_rules! impl_div_scalar {
 
         impl<T, A: Alignment> Div<T> for &Rotation2<T, A>
         where
-            T: Scalar + Div<Output = T>,
+            T: Element + Div<Output = T>,
         {
             type Output = Rotation2<T, A>;
 
@@ -721,7 +721,7 @@ macro_rules! impl_div_scalar {
 
         impl<T, A: Alignment> Div<&T> for &Rotation2<T, A>
         where
-            T: Scalar + Div<Output = T>,
+            T: Element + Div<Output = T>,
         {
             type Output = Rotation2<T, A>;
 
@@ -735,7 +735,7 @@ macro_rules! impl_div_scalar {
 
         impl<T, A: Alignment> DivAssign<T> for Rotation2<T, A>
         where
-            T: Scalar + Div<Output = T>,
+            T: Element + Div<Output = T>,
         {
             $(#[$doc])*
             #[inline]
@@ -747,7 +747,7 @@ macro_rules! impl_div_scalar {
 
         impl<T, A: Alignment> DivAssign<&T> for Rotation2<T, A>
         where
-            T: Scalar + Div<Output = T>,
+            T: Element + Div<Output = T>,
         {
             $(#[$doc])*
             #[inline]

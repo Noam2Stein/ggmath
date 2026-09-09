@@ -1,15 +1,15 @@
 use core::ops::{Add, Mul, Neg};
 
 use crate::{
-    Aligned, Alignment, Length, One, Rotor, Scalar, Unaligned, Vector, Zero, backend::RotorBackend,
-    length::Three, utils::specialize_3,
+    Aligned, Alignment, Element, Length, One, Rotor, Unaligned, Vector, Zero,
+    backend::RotorBackend, length::Three, utils::specialize_3,
 };
 
 #[expect(private_bounds)]
 impl<const N: usize, T, A: Alignment> Rotor<N, T, A>
 where
     Length<N>: Three,
-    T: Scalar + Zero + One,
+    T: Element + Zero + One,
 {
     /// A rotor that keeps all vectors unchanged.
     ///
@@ -27,7 +27,7 @@ where
 impl<const N: usize, T, A: Alignment> Rotor<N, T, A>
 where
     Length<N>: Three,
-    T: Scalar,
+    T: Element,
 {
     /// Returns the conjugate of a rotor.
     ///
@@ -103,7 +103,7 @@ where
 
 impl<T, A: Alignment> Rotor<3, T, A>
 where
-    T: Scalar,
+    T: Element,
 {
     // Note about `from_elements`: Because rotor fields are not obvious, it
     // would be nice to have `Rotor3 { yz: ..., zx: ..., xy: ..., s: ... }`

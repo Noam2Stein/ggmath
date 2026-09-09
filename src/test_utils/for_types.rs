@@ -1688,10 +1688,10 @@ macro_rules! for_types {
 }
 pub(crate) use for_types;
 
-use crate::{One, Scalar, Zero};
+use crate::{Element, One, Zero};
 
 #[doc(hidden)]
-pub trait Number: Scalar + Zero + One + num_primitive::PrimitiveNumber {}
+pub trait Number: Element + Zero + One + num_primitive::PrimitiveNumber {}
 
 impl Number for f32 {}
 impl Number for f64 {}

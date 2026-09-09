@@ -993,8 +993,8 @@ macro_rules! items_3 {
 
 #[cfg(doc)]
 #[doc(hidden)]
-pub trait WideFloat: crate::Scalar {
-    type Bits: crate::Scalar;
+pub trait WideFloat: crate::Element {
+    type Bits: crate::Element;
 }
 
 /// Functionality for [SoA] (Structure of Arrays) float vectors.

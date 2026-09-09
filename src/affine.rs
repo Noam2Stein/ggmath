@@ -6,7 +6,7 @@ use core::{
 };
 
 use crate::{
-    Aligned, Alignment, Length, Matrix, One, Scalar, SupportedLength, Unaligned, Vector, Zero,
+    Aligned, Alignment, Element, Length, Matrix, One, SupportedLength, Unaligned, Vector, Zero,
     backend::AffineBackend,
     utils::{transmute_mut, transmute_ref},
 };
@@ -85,7 +85,7 @@ pub struct Affine<const N: usize, T, A: Alignment>(
 )
 where
     Length<N>: SupportedLength,
-    T: Scalar;
+    T: Element;
 
 /// A 2D affine transform which can represent translation, rotation, scaling and
 /// shear.
@@ -164,7 +164,7 @@ pub type Affine3A<T> = Affine<3, T, Aligned>;
 impl<const N: usize, T, A: Alignment> Clone for Affine<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar,
+    T: Element,
 {
     #[inline]
     fn clone(&self) -> Self {
@@ -175,14 +175,14 @@ where
 impl<const N: usize, T, A: Alignment> Copy for Affine<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar,
+    T: Element,
 {
 }
 
 impl<const N: usize, T, A: Alignment> Index<usize> for Affine<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar,
+    T: Element,
 {
     type Output = Vector<N, T, A>;
 
@@ -216,7 +216,7 @@ where
 impl<const N: usize, T, A: Alignment> IndexMut<usize> for Affine<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar,
+    T: Element,
 {
     /// Returns a mutable reference to the row at the given index.
     ///
@@ -250,7 +250,7 @@ where
 pub struct AffineFields<const N: usize, T, A: Alignment>
 where
     Length<N>: SupportedLength,
-    T: Scalar,
+    T: Element,
 {
     /// The part representing rotation, scaling and shear.
     pub matrix: Matrix<N, T, A>,
@@ -261,7 +261,7 @@ where
 impl<const N: usize, T, A: Alignment> Deref for Affine<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar,
+    T: Element,
 {
     type Target = AffineFields<N, T, A>;
 
@@ -276,7 +276,7 @@ where
 impl<const N: usize, T, A: Alignment> DerefMut for Affine<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar,
+    T: Element,
 {
     #[inline]
     fn deref_mut(&mut self) -> &mut Self::Target {
@@ -289,7 +289,7 @@ where
 impl<const N: usize, T, A: Alignment> Debug for Affine<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar + Debug,
+    T: Element + Debug,
 {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match N {
@@ -316,7 +316,7 @@ where
 impl<const N: usize, T, A: Alignment> Display for Affine<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar + Display,
+    T: Element + Display,
 {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match N {
@@ -343,7 +343,7 @@ where
 impl<const N: usize, T, A: Alignment> PartialEq for Affine<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar + PartialEq,
+    T: Element + PartialEq,
 {
     #[inline]
     fn eq(&self, other: &Self) -> bool {
@@ -354,14 +354,14 @@ where
 impl<const N: usize, T, A: Alignment> Eq for Affine<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar + Eq,
+    T: Element + Eq,
 {
 }
 
 impl<const N: usize, T, A: Alignment> Hash for Affine<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar + Hash,
+    T: Element + Hash,
 {
     fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
         self.matrix.hash(state);
@@ -372,7 +372,7 @@ where
 impl<const N: usize, T, A: Alignment> Default for Affine<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar + Zero + One,
+    T: Element + Zero + One,
 {
     /// Returns [`IDENTITY`].
     ///
@@ -388,7 +388,7 @@ macro_rules! impl_mul {
         impl<const N: usize, T, A: Alignment> Mul for Affine<N, T, A>
         where
             Length<N>: SupportedLength,
-            T: Scalar + Add<Output = T> + Mul<Output = T>,
+            T: Element + Add<Output = T> + Mul<Output = T>,
         {
             type Output = Self;
 
@@ -403,7 +403,7 @@ macro_rules! impl_mul {
         impl<const N: usize, T, A: Alignment> Mul<&Affine<N, T, A>> for Affine<N, T, A>
         where
             Length<N>: SupportedLength,
-            T: Scalar + Add<Output = T> + Mul<Output = T>,
+            T: Element + Add<Output = T> + Mul<Output = T>,
         {
             type Output = Self;
 
@@ -418,7 +418,7 @@ macro_rules! impl_mul {
         impl<const N: usize, T, A: Alignment> Mul<Affine<N, T, A>> for &Affine<N, T, A>
         where
             Length<N>: SupportedLength,
-            T: Scalar + Add<Output = T> + Mul<Output = T>,
+            T: Element + Add<Output = T> + Mul<Output = T>,
         {
             type Output = Affine<N, T, A>;
 
@@ -433,7 +433,7 @@ macro_rules! impl_mul {
         impl<const N: usize, T, A: Alignment> Mul<&Affine<N, T, A>> for &Affine<N, T, A>
         where
             Length<N>: SupportedLength,
-            T: Scalar + Add<Output = T> + Mul<Output = T>,
+            T: Element + Add<Output = T> + Mul<Output = T>,
         {
             type Output = Affine<N, T, A>;
 
@@ -468,7 +468,7 @@ macro_rules! impl_mul_assign {
         impl<const N: usize, T, A: Alignment> MulAssign for Affine<N, T, A>
         where
             Length<N>: SupportedLength,
-            T: Scalar + Add<Output = T> + Mul<Output = T>,
+            T: Element + Add<Output = T> + Mul<Output = T>,
         {
             $(#[$doc])*
             #[inline]
@@ -481,7 +481,7 @@ macro_rules! impl_mul_assign {
         impl<const N: usize, T, A: Alignment> MulAssign<&Affine<N, T, A>> for Affine<N, T, A>
         where
             Length<N>: SupportedLength,
-            T: Scalar + Add<Output = T> + Mul<Output = T>,
+            T: Element + Add<Output = T> + Mul<Output = T>,
         {
             $(#[$doc])*
             #[inline]
@@ -510,7 +510,7 @@ impl_mul_assign!(
 unsafe impl<const N: usize, T, A: Alignment> Send for Affine<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar + Send,
+    T: Element + Send,
 {
 }
 
@@ -518,28 +518,28 @@ where
 unsafe impl<const N: usize, T, A: Alignment> Sync for Affine<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar + Sync,
+    T: Element + Sync,
 {
 }
 
 impl<const N: usize, T, A: Alignment> Unpin for Affine<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar + Unpin,
+    T: Element + Unpin,
 {
 }
 
 impl<const N: usize, T, A: Alignment> UnwindSafe for Affine<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar + UnwindSafe,
+    T: Element + UnwindSafe,
 {
 }
 
 impl<const N: usize, T, A: Alignment> RefUnwindSafe for Affine<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar + RefUnwindSafe,
+    T: Element + RefUnwindSafe,
 {
 }
 

@@ -1,6 +1,6 @@
 use wide::Select;
 
-use crate::{Alignment, Rotation2, Scalar, Vector, utils::WideTy};
+use crate::{Alignment, Element, Rotation2, Vector, utils::WideTy};
 
 /// Functionality for [SoA] (Structure of Arrays) 2D rotations.
 ///
@@ -15,7 +15,7 @@ use crate::{Alignment, Rotation2, Scalar, Vector, utils::WideTy};
 impl<Wide, T, const LANES: usize, A: Alignment> Rotation2<Wide, A>
 where
     Wide: WideTy<Array = [T; LANES]>,
-    T: Scalar,
+    T: Element,
 {
     /// Creates an SoA (Structure of Arrays) 2D rotation from an array of lanes
     /// or scalar 2D rotations.

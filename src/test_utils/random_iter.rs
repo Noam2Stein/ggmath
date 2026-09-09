@@ -5,7 +5,7 @@ extern crate std;
 use std::iter::repeat_n;
 
 use crate::{
-    Affine, Alignment, FloatExt, Length, Mask, Matrix, Projective, Rotation2, Rotor, Scalar,
+    Affine, Alignment, Element, FloatExt, Length, Mask, Matrix, Projective, Rotation2, Rotor,
     SupportedLength, Vector,
     length::{Three, TwoOrThree},
     utils::specialize_23,
@@ -251,7 +251,7 @@ where
 impl<const N: usize, T, A: Alignment> Random for Vector<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar + Random,
+    T: Element + Random,
 {
     type Input = T::Input;
 
@@ -263,7 +263,7 @@ where
 impl<const N: usize, T, A: Alignment> Random for Matrix<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar + Random,
+    T: Element + Random,
 {
     type Input = T::Input;
 
@@ -275,7 +275,7 @@ where
 impl<const N: usize, T, A: Alignment> Random for Affine<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar + Random,
+    T: Element + Random,
 {
     type Input = T::Input;
 
@@ -287,7 +287,7 @@ where
 impl<const N: usize, T, A: Alignment> Random for Projective<N, T, A>
 where
     Length<N>: TwoOrThree,
-    T: Scalar + Random,
+    T: Element + Random,
 {
     type Input = T::Input;
 
@@ -300,7 +300,7 @@ macro_rules! projective_backend {
     ($N:literal) => {
         impl<T, A: Alignment> Projective<$N, T, A>
         where
-            T: Scalar + Random,
+            T: Element + Random,
         {
             fn random_backend((state,): (&mut u64,), (input,): (T::Input,)) -> Self {
                 Self::from_row_fn(|_| Random::random(state, input))
@@ -313,7 +313,7 @@ projective_backend!(3);
 
 impl<T, A: Alignment> Random for Rotation2<T, A>
 where
-    T: Scalar + Random,
+    T: Element + Random,
 {
     type Input = T::Input;
 
@@ -325,7 +325,7 @@ where
 impl<const N: usize, T, A: Alignment> Random for Rotor<N, T, A>
 where
     Length<N>: Three,
-    T: Scalar + Random,
+    T: Element + Random,
 {
     type Input = T::Input;
 
@@ -337,7 +337,7 @@ where
 impl<const N: usize, T, A: Alignment> Random for Mask<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar,
+    T: Element,
 {
     type Input = Category;
 

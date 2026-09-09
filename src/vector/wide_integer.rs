@@ -117,7 +117,7 @@ macro_rules! items {
 
 #[cfg(doc)]
 #[doc(hidden)]
-pub trait WideInteger: crate::Scalar {}
+pub trait WideInteger: crate::Element {}
 
 /// Functionality for [SoA] (Structure of Arrays) integer vectors.
 ///

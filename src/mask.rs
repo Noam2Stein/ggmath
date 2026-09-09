@@ -7,7 +7,7 @@ use core::{
 };
 
 use crate::{
-    Aligned, Alignment, Length, Scalar, SupportedLength, Unaligned, Vector,
+    Aligned, Alignment, Element, Length, SupportedLength, Unaligned, Vector,
     backend::MaskBackend,
     utils::{specialize, transmute_generic, transmute_mut},
 };
@@ -56,7 +56,7 @@ pub struct Mask<const N: usize, T, A: Alignment>(
 )
 where
     Length<N>: SupportedLength,
-    T: Scalar;
+    T: Element;
 
 /// A 2-element vector mask.
 ///
@@ -133,7 +133,7 @@ pub type Mask4A<T> = Mask<4, T, Aligned>;
 impl<const N: usize, T, A: Alignment> Mask<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar,
+    T: Element,
 {
     /// Creates a vector mask from an array.
     #[inline]
@@ -416,7 +416,7 @@ where
 
 impl<T, A: Alignment> Mask<2, T, A>
 where
-    T: Scalar,
+    T: Element,
 {
     /// Creates a 2-element vector mask.
     #[inline]
@@ -428,7 +428,7 @@ where
 
 impl<T, A: Alignment> Mask<3, T, A>
 where
-    T: Scalar,
+    T: Element,
 {
     /// Creates a 3-element vector mask.
     #[inline]
@@ -440,7 +440,7 @@ where
 
 impl<T, A: Alignment> Mask<4, T, A>
 where
-    T: Scalar,
+    T: Element,
 {
     /// Creates a 4-element vector mask.
     #[inline]
@@ -453,7 +453,7 @@ where
 impl<const N: usize, T, A: Alignment> Clone for Mask<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar,
+    T: Element,
 {
     #[inline]
     fn clone(&self) -> Self {
@@ -464,14 +464,14 @@ where
 impl<const N: usize, T, A: Alignment> Copy for Mask<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar,
+    T: Element,
 {
 }
 
 impl<const N: usize, T, A: Alignment> IntoIterator for Mask<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar,
+    T: Element,
 {
     type Item = bool;
     type IntoIter = core::array::IntoIter<bool, N>;
@@ -485,7 +485,7 @@ where
 impl<const N: usize, T, A: Alignment> IntoIterator for &Mask<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar,
+    T: Element,
 {
     type Item = bool;
     type IntoIter = core::array::IntoIter<bool, N>;
@@ -499,7 +499,7 @@ where
 impl<const N: usize, T, A: Alignment> Debug for Mask<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar,
+    T: Element,
 {
     #[inline]
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
@@ -510,7 +510,7 @@ where
 impl<const N: usize, T, A: Alignment> Display for Mask<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar,
+    T: Element,
 {
     #[inline]
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
@@ -521,7 +521,7 @@ where
 impl<const N: usize, T, A: Alignment> PartialEq for Mask<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar,
+    T: Element,
 {
     #[inline]
     fn eq(&self, other: &Self) -> bool {
@@ -538,14 +538,14 @@ where
 impl<const N: usize, T, A: Alignment> Eq for Mask<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar,
+    T: Element,
 {
 }
 
 impl<const N: usize, T, A: Alignment> Hash for Mask<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar,
+    T: Element,
 {
     #[inline]
     fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
@@ -556,7 +556,7 @@ where
 impl<const N: usize, T, A: Alignment> Default for Mask<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar,
+    T: Element,
 {
     #[inline]
     fn default() -> Self {
@@ -569,7 +569,7 @@ macro_rules! impl_not {
         impl<const N: usize, T, A: Alignment> Not for Mask<N, T, A>
         where
             Length<N>: SupportedLength,
-            T: Scalar,
+            T: Element,
         {
             type Output = Self;
 
@@ -583,7 +583,7 @@ macro_rules! impl_not {
         impl<const N: usize, T, A: Alignment> Not for &Mask<N, T, A>
         where
             Length<N>: SupportedLength,
-            T: Scalar,
+            T: Element,
         {
             type Output = Mask<N, T, A>;
 
@@ -613,7 +613,7 @@ macro_rules! impl_binary_operator {
         impl<const N: usize, T, A: Alignment> $Op for Mask<N, T, A>
         where
             Length<N>: SupportedLength,
-            T: Scalar,
+            T: Element,
         {
             type Output = Self;
 
@@ -627,7 +627,7 @@ macro_rules! impl_binary_operator {
         impl<const N: usize, T, A: Alignment> $Op<bool> for Mask<N, T, A>
         where
             Length<N>: SupportedLength,
-            T: Scalar,
+            T: Element,
         {
             type Output = Self;
 
@@ -641,7 +641,7 @@ macro_rules! impl_binary_operator {
         impl<const N: usize, T, A: Alignment> $Op<&Mask<N, T, A>> for Mask<N, T, A>
         where
             Length<N>: SupportedLength,
-            T: Scalar,
+            T: Element,
         {
             type Output = Self;
 
@@ -655,7 +655,7 @@ macro_rules! impl_binary_operator {
         impl<const N: usize, T, A: Alignment> $Op<&bool> for Mask<N, T, A>
         where
             Length<N>: SupportedLength,
-            T: Scalar,
+            T: Element,
         {
             type Output = Self;
 
@@ -669,7 +669,7 @@ macro_rules! impl_binary_operator {
         impl<const N: usize, T, A: Alignment> $Op<Mask<N, T, A>> for &Mask<N, T, A>
         where
             Length<N>: SupportedLength,
-            T: Scalar,
+            T: Element,
         {
             type Output = Mask<N, T, A>;
 
@@ -683,7 +683,7 @@ macro_rules! impl_binary_operator {
         impl<const N: usize, T, A: Alignment> $Op<bool> for &Mask<N, T, A>
         where
             Length<N>: SupportedLength,
-            T: Scalar,
+            T: Element,
         {
             type Output = Mask<N, T, A>;
 
@@ -697,7 +697,7 @@ macro_rules! impl_binary_operator {
         impl<const N: usize, T, A: Alignment> $Op<&Mask<N, T, A>> for &Mask<N, T, A>
         where
             Length<N>: SupportedLength,
-            T: Scalar,
+            T: Element,
         {
             type Output = Mask<N, T, A>;
 
@@ -711,7 +711,7 @@ macro_rules! impl_binary_operator {
         impl<const N: usize, T, A: Alignment> $Op<&bool> for &Mask<N, T, A>
         where
             Length<N>: SupportedLength,
-            T: Scalar,
+            T: Element,
         {
             type Output = Mask<N, T, A>;
 
@@ -822,7 +822,7 @@ macro_rules! impl_assign_operator {
         impl<const N: usize, T, A: Alignment> $OpAssign for Mask<N, T, A>
         where
             Length<N>: SupportedLength,
-            T: Scalar,
+            T: Element,
         {
             #[inline]
             fn $op_assign(&mut self, rhs: Self) {
@@ -833,7 +833,7 @@ macro_rules! impl_assign_operator {
         impl<const N: usize, T, A: Alignment> $OpAssign<bool> for Mask<N, T, A>
         where
             Length<N>: SupportedLength,
-            T: Scalar,
+            T: Element,
         {
             #[inline]
             fn $op_assign(&mut self, rhs: bool) {
@@ -844,7 +844,7 @@ macro_rules! impl_assign_operator {
         impl<const N: usize, T, A: Alignment> $OpAssign<&Mask<N, T, A>> for Mask<N, T, A>
         where
             Length<N>: SupportedLength,
-            T: Scalar,
+            T: Element,
         {
             #[inline]
             fn $op_assign(&mut self, rhs: &Mask<N, T, A>) {
@@ -855,7 +855,7 @@ macro_rules! impl_assign_operator {
         impl<const N: usize, T, A: Alignment> $OpAssign<&bool> for Mask<N, T, A>
         where
             Length<N>: SupportedLength,
-            T: Scalar,
+            T: Element,
         {
             #[inline]
             fn $op_assign(&mut self, rhs: &bool) {
@@ -962,7 +962,7 @@ impl_assign_operator!(
 unsafe impl<const N: usize, T, A: Alignment> Send for Mask<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar,
+    T: Element,
 {
 }
 
@@ -970,28 +970,28 @@ where
 unsafe impl<const N: usize, T, A: Alignment> Sync for Mask<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar,
+    T: Element,
 {
 }
 
 impl<const N: usize, T, A: Alignment> Unpin for Mask<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar,
+    T: Element,
 {
 }
 
 impl<const N: usize, T, A: Alignment> UnwindSafe for Mask<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar,
+    T: Element,
 {
 }
 
 impl<const N: usize, T, A: Alignment> RefUnwindSafe for Mask<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar,
+    T: Element,
 {
 }
 

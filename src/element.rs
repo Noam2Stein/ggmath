@@ -8,21 +8,21 @@ use crate::{
 /// This requires [`Copy`].
 ///
 /// Due to type system limitations, this trait cannot be implemented directly.
-/// Instead implement the [`CustomScalar`] trait:
+/// Instead implement the [`CustomElement`] trait:
 ///
 /// ```
-/// use ggmath::{Alignment, CustomScalar, Vec2};
+/// use ggmath::{Alignment, CustomElement, Vec2};
 ///
 /// #[derive(Debug, Clone, Copy)]
 /// struct Foo(i32);
 ///
-/// impl CustomScalar for Foo {}
+/// impl CustomElement for Foo {}
 ///
 /// // `Foo` can then be stored inside vectors.
 /// println!("{:?}", Vec2::new(Foo(1), Foo(2)));
 /// ```
 #[expect(private_bounds)]
-pub trait Scalar:
+pub trait Element:
     Copy
     + VectorBackend<2, Aligned>
     + VectorBackend<3, Aligned>
@@ -47,56 +47,56 @@ pub trait Scalar:
 {
 }
 
-/// A trait to implement [`Scalar`] for downstream types.
+/// A trait to implement [`Element`] for downstream types.
 ///
-/// Due to type system limitations, the [`Scalar`] trait cannot be implemented
+/// Due to type system limitations, the [`Element`] trait cannot be implemented
 /// directly. Instead implement this trait:
 ///
 /// ```
-/// use ggmath::{Alignment, CustomScalar, Vec2};
+/// use ggmath::{Alignment, CustomElement, Vec2};
 ///
 /// #[derive(Debug, Clone, Copy)]
 /// struct Foo(i32);
 ///
-/// impl CustomScalar for Foo {}
+/// impl CustomElement for Foo {}
 ///
 /// // `Foo` can then be stored inside vectors.
 /// println!("{:?}", Vec2::new(Foo(1), Foo(2)));
 /// ```
-pub trait CustomScalar: Copy {}
+pub trait CustomElement: Copy {}
 
 #[diagnostic::do_not_recommend]
-impl<T> Scalar for T where T: CustomScalar {}
+impl<T> Element for T where T: CustomElement {}
 
 #[diagnostic::do_not_recommend]
-impl<T, const N: usize, A: Alignment> DefaultBackend<N, A> for T where T: CustomScalar {}
+impl<T, const N: usize, A: Alignment> DefaultBackend<N, A> for T where T: CustomElement {}
 
-impl Scalar for f32 {}
+impl Element for f32 {}
 
-impl Scalar for f64 {}
+impl Element for f64 {}
 
-impl Scalar for i8 {}
+impl Element for i8 {}
 
-impl Scalar for i16 {}
+impl Element for i16 {}
 
-impl Scalar for i32 {}
+impl Element for i32 {}
 
-impl Scalar for i64 {}
+impl Element for i64 {}
 
-impl Scalar for i128 {}
+impl Element for i128 {}
 
-impl Scalar for isize {}
+impl Element for isize {}
 
-impl Scalar for u8 {}
+impl Element for u8 {}
 
-impl Scalar for u16 {}
+impl Element for u16 {}
 
-impl Scalar for u32 {}
+impl Element for u32 {}
 
-impl Scalar for u64 {}
+impl Element for u64 {}
 
-impl Scalar for u128 {}
+impl Element for u128 {}
 
-impl Scalar for usize {}
+impl Element for usize {}
 
-impl Scalar for bool {}
+impl Element for bool {}
