@@ -10,7 +10,6 @@ use crate::{
     utils::{specialize_23, transmute_generic, transmute_ref},
 };
 
-#[expect(private_bounds)]
 impl<const N: usize, T, A: Alignment> Projective<N, T, A>
 where
     Dim<N>: TwoOrThree,
@@ -45,7 +44,6 @@ where
     };
 }
 
-#[expect(private_bounds)]
 impl<const N: usize, T, A: Alignment> Projective<N, T, A>
 where
     Dim<N>: TwoOrThree,
@@ -77,7 +75,6 @@ where
     };
 }
 
-#[expect(private_bounds)]
 impl<const N: usize, T, A: Alignment> Projective<N, T, A>
 where
     Dim<N>: TwoOrThree,

@@ -1142,7 +1142,6 @@ where
 macro_rules! impl_items {
     ($Wide:ident, $T:ident) => {
         #[cfg(not(doc))]
-        #[expect(private_bounds)]
         impl<const N: usize, A: Alignment> Projective<N, $Wide, A>
         where
             Dim<N>: TwoOrThree,

@@ -18,7 +18,6 @@ macro_rules! items {
         #[inline]
         #[must_use]
         #[track_caller]
-        #[expect(private_bounds)]
         pub fn from_projective(projective: &Projective<N, $Wide, A>) -> Self
         where
             Dim<N>: TwoOrThree,

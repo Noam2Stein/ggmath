@@ -73,7 +73,6 @@ mod wide_float;
 /// [`transform_vector`]: Projective::transform_vector
 /// [`project_point`]: Projective::project_point
 #[repr(transparent)]
-#[expect(private_bounds)]
 pub struct Projective<const N: usize, T, A: Alignment>(
     // This type always corresponds to `Matrix<N - 1, T, A>`, which cannot be
     // written directly due to type system limitations. Many functions here use

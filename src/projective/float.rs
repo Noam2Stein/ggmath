@@ -5,7 +5,6 @@ use crate::{
     utils::{specialize_3, specialize_23, transmute_generic},
 };
 
-#[expect(private_bounds)]
 impl<const N: usize, T, A: Alignment> Projective<N, T, A>
 where
     Dim<N>: TwoOrThree,

@@ -48,7 +48,6 @@ where
     #[inline]
     #[must_use]
     #[track_caller]
-    #[expect(private_bounds)]
     pub fn from_projective(projective: &Projective<N, T, A>) -> Self
     where
         Dim<N>: TwoOrThree,
