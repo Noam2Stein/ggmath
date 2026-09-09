@@ -56,6 +56,10 @@ stabilized, which should not affect most users.
 - [#81](https://github.com/Noam2Stein/ggmath/pull/81): Renamed the `Scalar`
   trait to `Element` and `CustomScalar` to `CustomElement`
 
+- [#82](https://github.com/Noam2Stein/ggmath/pull/82): Renamed `Length<N>` to
+  `Dim<N>`, `SupportedLength` to `TwoThreeOrFour` and added another trait
+  `TwoOrThree`
+
 - Most functions for converting between transform types. The function you
   want has most likely been renamed into one of these new functions:
   - `to/from_matrix`

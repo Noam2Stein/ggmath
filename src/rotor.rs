@@ -6,9 +6,9 @@ use core::{
 };
 
 use crate::{
-    Aligned, Alignment, Element, Length, One, Unaligned, Vector, Zero,
+    Aligned, Alignment, Dim, Element, One, Unaligned, Vector, Zero,
     backend::RotorBackend,
-    length::Three,
+    dim::Three,
     utils::{specialize_3, transmute_mut, transmute_ref},
 };
 
@@ -98,7 +98,7 @@ pub struct Rotor<const N: usize, T, A: Alignment>(
     pub(crate) Vector<4, T, A>,
 )
 where
-    Length<N>: Three,
+    Dim<N>: Three,
     T: Element;
 
 /// A 3D rotor representing 3D rotation.
@@ -226,7 +226,7 @@ where
 
 impl<const N: usize, T, A: Alignment> Clone for Rotor<N, T, A>
 where
-    Length<N>: Three,
+    Dim<N>: Three,
     T: Element,
 {
     #[inline]
@@ -237,7 +237,7 @@ where
 
 impl<const N: usize, T, A: Alignment> Copy for Rotor<N, T, A>
 where
-    Length<N>: Three,
+    Dim<N>: Three,
     T: Element,
 {
 }
@@ -303,7 +303,7 @@ where
 
 impl<const N: usize, T, A: Alignment> Debug for Rotor<N, T, A>
 where
-    Length<N>: Three,
+    Dim<N>: Three,
     T: Element + Debug,
 {
     #[inline]
@@ -319,7 +319,7 @@ where
 
 impl<const N: usize, T, A: Alignment> PartialEq for Rotor<N, T, A>
 where
-    Length<N>: Three,
+    Dim<N>: Three,
     T: Element + PartialEq,
 {
     #[inline]
@@ -330,14 +330,14 @@ where
 
 impl<const N: usize, T, A: Alignment> Eq for Rotor<N, T, A>
 where
-    Length<N>: Three,
+    Dim<N>: Three,
     T: Element + Eq,
 {
 }
 
 impl<const N: usize, T, A: Alignment> Hash for Rotor<N, T, A>
 where
-    Length<N>: Three,
+    Dim<N>: Three,
     T: Element + Hash,
 {
     #[inline]
@@ -348,7 +348,7 @@ where
 
 impl<const N: usize, T, A: Alignment> Default for Rotor<N, T, A>
 where
-    Length<N>: Three,
+    Dim<N>: Three,
     T: Element + Zero + One,
 {
     /// Returns [`IDENTITY`].
@@ -364,7 +364,7 @@ macro_rules! impl_neg {
     ($(#[$doc:meta])*) => {
         impl<const N: usize, T, A: Alignment> Neg for Rotor<N, T, A>
         where
-            Length<N>: Three,
+            Dim<N>: Three,
             T: Element + Neg<Output = T>,
         {
             type Output = Self;
@@ -379,7 +379,7 @@ macro_rules! impl_neg {
 
         impl<const N: usize, T, A: Alignment> Neg for &Rotor<N, T, A>
         where
-        Length<N>: Three,
+        Dim<N>: Three,
         T: Element + Neg<Output = T>,
         {
             type Output = Rotor<N, T, A>;
@@ -406,7 +406,7 @@ macro_rules! impl_add {
     ($(#[$doc:meta])*) => {
         impl<const N: usize, T, A: Alignment> Add for Rotor<N, T, A>
         where
-            Length<N>: Three,
+            Dim<N>: Three,
             T: Element + Add<Output = T>,
         {
             type Output = Self;
@@ -421,7 +421,7 @@ macro_rules! impl_add {
 
         impl<const N: usize, T, A: Alignment> Add<&Rotor<N, T, A>> for Rotor<N, T, A>
         where
-            Length<N>: Three,
+            Dim<N>: Three,
             T: Element + Add<Output = T>,
         {
             type Output = Self;
@@ -436,7 +436,7 @@ macro_rules! impl_add {
 
         impl<const N: usize, T, A: Alignment> Add<Rotor<N, T, A>> for &Rotor<N, T, A>
         where
-            Length<N>: Three,
+            Dim<N>: Three,
             T: Element + Add<Output = T>,
         {
             type Output = Rotor<N, T, A>;
@@ -451,7 +451,7 @@ macro_rules! impl_add {
 
         impl<const N: usize, T, A: Alignment> Add for &Rotor<N, T, A>
         where
-            Length<N>: Three,
+            Dim<N>: Three,
             T: Element + Add<Output = T>,
         {
             type Output = Rotor<N, T, A>;
@@ -466,7 +466,7 @@ macro_rules! impl_add {
 
         impl<const N: usize, T, A: Alignment> AddAssign for Rotor<N, T, A>
         where
-            Length<N>: Three,
+            Dim<N>: Three,
             T: Element + Add<Output = T>,
         {
             $(#[$doc])*
@@ -479,7 +479,7 @@ macro_rules! impl_add {
 
         impl<const N: usize, T, A: Alignment> AddAssign<&Rotor<N, T, A>> for Rotor<N, T, A>
         where
-            Length<N>: Three,
+            Dim<N>: Three,
             T: Element + Add<Output = T>,
         {
             $(#[$doc])*
@@ -503,7 +503,7 @@ macro_rules! impl_sub {
     ($(#[$doc:meta])*) => {
         impl<const N: usize, T, A: Alignment> Sub for Rotor<N, T, A>
         where
-            Length<N>: Three,
+            Dim<N>: Three,
             T: Element + Sub<Output = T>,
         {
             type Output = Self;
@@ -518,7 +518,7 @@ macro_rules! impl_sub {
 
         impl<const N: usize, T, A: Alignment> Sub<&Rotor<N, T, A>> for Rotor<N, T, A>
         where
-            Length<N>: Three,
+            Dim<N>: Three,
             T: Element + Sub<Output = T>,
         {
             type Output = Self;
@@ -533,7 +533,7 @@ macro_rules! impl_sub {
 
         impl<const N: usize, T, A: Alignment> Sub<Rotor<N, T, A>> for &Rotor<N, T, A>
         where
-            Length<N>: Three,
+            Dim<N>: Three,
             T: Element + Sub<Output = T>,
         {
             type Output = Rotor<N, T, A>;
@@ -548,7 +548,7 @@ macro_rules! impl_sub {
 
         impl<const N: usize, T, A: Alignment> Sub for &Rotor<N, T, A>
         where
-            Length<N>: Three,
+            Dim<N>: Three,
             T: Element + Sub<Output = T>,
         {
             type Output = Rotor<N, T, A>;
@@ -563,7 +563,7 @@ macro_rules! impl_sub {
 
         impl<const N: usize, T, A: Alignment> SubAssign for Rotor<N, T, A>
         where
-            Length<N>: Three,
+            Dim<N>: Three,
             T: Element + Sub<Output = T>,
         {
             $(#[$doc])*
@@ -576,7 +576,7 @@ macro_rules! impl_sub {
 
         impl<const N: usize, T, A: Alignment> SubAssign<&Rotor<N, T, A>> for Rotor<N, T, A>
         where
-            Length<N>: Three,
+            Dim<N>: Three,
             T: Element + Sub<Output = T>,
         {
             $(#[$doc])*
@@ -599,7 +599,7 @@ macro_rules! impl_mul_scalar {
     ($(#[$doc:meta])*) => {
         impl<const N: usize, T, A: Alignment> Mul<T> for Rotor<N, T, A>
         where
-            Length<N>: Three,
+            Dim<N>: Three,
             T: Element + Mul<Output = T>,
         {
             type Output = Self;
@@ -614,7 +614,7 @@ macro_rules! impl_mul_scalar {
 
         impl<const N: usize, T, A: Alignment> Mul<&T> for Rotor<N, T, A>
         where
-            Length<N>: Three,
+            Dim<N>: Three,
             T: Element + Mul<Output = T>,
         {
             type Output = Self;
@@ -629,7 +629,7 @@ macro_rules! impl_mul_scalar {
 
         impl<const N: usize, T, A: Alignment> Mul<T> for &Rotor<N, T, A>
         where
-            Length<N>: Three,
+            Dim<N>: Three,
             T: Element + Mul<Output = T>,
         {
             type Output = Rotor<N, T, A>;
@@ -644,7 +644,7 @@ macro_rules! impl_mul_scalar {
 
         impl<const N: usize, T, A: Alignment> Mul<&T> for &Rotor<N, T, A>
         where
-            Length<N>: Three,
+            Dim<N>: Three,
             T: Element + Mul<Output = T>,
         {
             type Output = Rotor<N, T, A>;
@@ -659,7 +659,7 @@ macro_rules! impl_mul_scalar {
 
         impl<const N: usize, T, A: Alignment> MulAssign<T> for Rotor<N, T, A>
         where
-            Length<N>: Three,
+            Dim<N>: Three,
             T: Element + Mul<Output = T>,
         {
             $(#[$doc])*
@@ -672,7 +672,7 @@ macro_rules! impl_mul_scalar {
 
         impl<const N: usize, T, A: Alignment> MulAssign<&T> for Rotor<N, T, A>
         where
-            Length<N>: Three,
+            Dim<N>: Three,
             T: Element + Mul<Output = T>,
         {
             $(#[$doc])*
@@ -695,7 +695,7 @@ macro_rules! impl_vector_mul {
     ($(#[$doc:meta])*) => {
         impl<const N: usize, T, A: Alignment> Mul<Rotor<N, T, A>> for Vector<N, T, A>
         where
-            Length<N>: Three,
+            Dim<N>: Three,
             T: Element + Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
         {
             type Output = Self;
@@ -710,7 +710,7 @@ macro_rules! impl_vector_mul {
 
         impl<const N: usize, T, A: Alignment> Mul<&Rotor<N, T, A>> for Vector<N, T, A>
         where
-            Length<N>: Three,
+            Dim<N>: Three,
             T: Element + Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
         {
             type Output = Self;
@@ -725,7 +725,7 @@ macro_rules! impl_vector_mul {
 
         impl<const N: usize, T, A: Alignment> Mul<Rotor<N, T, A>> for &Vector<N, T, A>
         where
-            Length<N>: Three,
+            Dim<N>: Three,
             T: Element + Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
         {
             type Output = Vector<N, T, A>;
@@ -740,7 +740,7 @@ macro_rules! impl_vector_mul {
 
         impl<const N: usize, T, A: Alignment> Mul<&Rotor<N, T, A>> for &Vector<N, T, A>
         where
-            Length<N>: Three,
+            Dim<N>: Three,
             T: Element + Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
         {
             type Output = Vector<N, T, A>;
@@ -755,7 +755,7 @@ macro_rules! impl_vector_mul {
 
         impl<const N: usize, T, A: Alignment> MulAssign<Rotor<N, T, A>> for Vector<N, T, A>
         where
-            Length<N>: Three,
+            Dim<N>: Three,
             T: Element + Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
         {
             $(#[$doc])*
@@ -768,7 +768,7 @@ macro_rules! impl_vector_mul {
 
         impl<const N: usize, T, A: Alignment> MulAssign<&Rotor<N, T, A>> for Vector<N, T, A>
         where
-            Length<N>: Three,
+            Dim<N>: Three,
             T: Element + Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
         {
             $(#[$doc])*
@@ -791,7 +791,7 @@ macro_rules! impl_mul {
     ($(#[$doc:meta])*) => {
         impl<const N: usize, T, A: Alignment> Mul for Rotor<N, T, A>
         where
-            Length<N>: Three,
+            Dim<N>: Three,
             T: Element + Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
         {
             type Output = Self;
@@ -806,7 +806,7 @@ macro_rules! impl_mul {
 
         impl<const N: usize, T, A: Alignment> Mul<&Rotor<N, T, A>> for Rotor<N, T, A>
         where
-            Length<N>: Three,
+            Dim<N>: Three,
             T: Element + Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
         {
             type Output = Self;
@@ -821,7 +821,7 @@ macro_rules! impl_mul {
 
         impl<const N: usize, T, A: Alignment> Mul<Rotor<N, T, A>> for &Rotor<N, T, A>
         where
-            Length<N>: Three,
+            Dim<N>: Three,
             T: Element + Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
         {
             type Output = Rotor<N, T, A>;
@@ -836,7 +836,7 @@ macro_rules! impl_mul {
 
         impl<const N: usize, T, A: Alignment> Mul<&Rotor<N, T, A>> for &Rotor<N, T, A>
         where
-            Length<N>: Three,
+            Dim<N>: Three,
             T: Element + Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
         {
             type Output = Rotor<N, T, A>;
@@ -851,7 +851,7 @@ macro_rules! impl_mul {
 
         impl<const N: usize, T, A: Alignment> MulAssign for Rotor<N, T, A>
         where
-            Length<N>: Three,
+            Dim<N>: Three,
             T: Element + Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
         {
             $(#[$doc])*
@@ -864,7 +864,7 @@ macro_rules! impl_mul {
 
         impl<const N: usize, T, A: Alignment> MulAssign<&Rotor<N, T, A>> for Rotor<N, T, A>
         where
-            Length<N>: Three,
+            Dim<N>: Three,
             T: Element + Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
         {
             $(#[$doc])*
@@ -885,7 +885,7 @@ macro_rules! impl_div_scalar {
     ($(#[$doc:meta])*) => {
         impl<const N: usize, T, A: Alignment> Div<T> for Rotor<N, T, A>
         where
-            Length<N>: Three,
+            Dim<N>: Three,
             T: Element + Div<Output = T>,
         {
             type Output = Self;
@@ -900,7 +900,7 @@ macro_rules! impl_div_scalar {
 
         impl<const N: usize, T, A: Alignment> Div<&T> for Rotor<N, T, A>
         where
-            Length<N>: Three,
+            Dim<N>: Three,
             T: Element + Div<Output = T>,
         {
             type Output = Self;
@@ -915,7 +915,7 @@ macro_rules! impl_div_scalar {
 
         impl<const N: usize, T, A: Alignment> Div<T> for &Rotor<N, T, A>
         where
-            Length<N>: Three,
+            Dim<N>: Three,
             T: Element + Div<Output = T>,
         {
             type Output = Rotor<N, T, A>;
@@ -930,7 +930,7 @@ macro_rules! impl_div_scalar {
 
         impl<const N: usize, T, A: Alignment> Div<&T> for &Rotor<N, T, A>
         where
-            Length<N>: Three,
+            Dim<N>: Three,
             T: Element + Div<Output = T>,
         {
             type Output = Rotor<N, T, A>;
@@ -945,7 +945,7 @@ macro_rules! impl_div_scalar {
 
         impl<const N: usize, T, A: Alignment> DivAssign<T> for Rotor<N, T, A>
         where
-            Length<N>: Three,
+            Dim<N>: Three,
             T: Element + Div<Output = T>,
         {
             $(#[$doc])*
@@ -958,7 +958,7 @@ macro_rules! impl_div_scalar {
 
         impl<const N: usize, T, A: Alignment> DivAssign<&T> for Rotor<N, T, A>
         where
-            Length<N>: Three,
+            Dim<N>: Three,
             T: Element + Div<Output = T>,
         {
             $(#[$doc])*
@@ -981,7 +981,7 @@ impl_div_scalar!(
 // Because `T` is `Send` the list also is, and the padding is `Send` too.
 unsafe impl<const N: usize, T, A: Alignment> Send for Rotor<N, T, A>
 where
-    Length<N>: Three,
+    Dim<N>: Three,
     T: Element + Send,
 {
 }
@@ -990,28 +990,28 @@ where
 // Because `T` is `Sync` the list also is, and the padding is `Sync` too.
 unsafe impl<const N: usize, T, A: Alignment> Sync for Rotor<N, T, A>
 where
-    Length<N>: Three,
+    Dim<N>: Three,
     T: Element + Sync,
 {
 }
 
 impl<const N: usize, T, A: Alignment> Unpin for Rotor<N, T, A>
 where
-    Length<N>: Three,
+    Dim<N>: Three,
     T: Element + Unpin,
 {
 }
 
 impl<const N: usize, T, A: Alignment> UnwindSafe for Rotor<N, T, A>
 where
-    Length<N>: Three,
+    Dim<N>: Three,
     T: Element + UnwindSafe,
 {
 }
 
 impl<const N: usize, T, A: Alignment> RefUnwindSafe for Rotor<N, T, A>
 where
-    Length<N>: Three,
+    Dim<N>: Three,
     T: Element + RefUnwindSafe,
 {
 }

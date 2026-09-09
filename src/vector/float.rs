@@ -1,7 +1,7 @@
 use core::cmp::Ordering;
 
 use crate::{
-    Alignment, FloatExt, Length, Mask, PrimitiveFloat, Rotor, SupportedLength, Vector,
+    Alignment, Dim, FloatExt, Mask, PrimitiveFloat, Rotor, TwoThreeOrFour, Vector,
     backend::FloatVectorBackend,
     utils::{specialize, transmute_generic},
 };
@@ -10,7 +10,7 @@ type Bits<T> = <T as PrimitiveFloat>::Bits;
 
 impl<const N: usize, T, A: Alignment> Vector<N, T, A>
 where
-    Length<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: PrimitiveFloat,
 {
     /// A vector with all elements set to [`MIN`].

@@ -1,13 +1,13 @@
 use crate::{
-    Affine, Alignment, EulerRot, Length, Matrix, PrimitiveFloat, Projective, Rotation2, Rotor,
-    SupportedLength, Vector,
-    length::{Three, TwoOrThree},
+    Affine, Alignment, Dim, EulerRot, Matrix, PrimitiveFloat, Projective, Rotation2, Rotor,
+    TwoThreeOrFour, Vector,
+    dim::{Three, TwoOrThree},
     utils::specialize_23,
 };
 
 impl<const N: usize, T, A: Alignment> Affine<N, T, A>
 where
-    Length<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: PrimitiveFloat,
 {
     /// An affine transform with all elements set to NaN (Not a Number).
@@ -48,10 +48,9 @@ where
     #[inline]
     #[must_use]
     #[track_caller]
-    #[expect(private_bounds)]
     pub fn from_projective(projective: &Projective<N, T, A>) -> Self
     where
-        Length<N>: TwoOrThree,
+        Dim<N>: TwoOrThree,
     {
         specialize_23!(Affine::<N, T, A>::from_projective_backend(projective))
     }
@@ -71,7 +70,7 @@ where
     #[expect(private_bounds)]
     pub fn from_rotor(rotor: Rotor<N, T, A>) -> Self
     where
-        Length<N>: Three,
+        Dim<N>: Three,
     {
         Self::from_matrix(&Matrix::<N, T, A>::from_rotor(rotor))
     }
@@ -91,7 +90,7 @@ where
     #[expect(private_bounds)]
     pub fn from_scale_rotor(scale: Vector<N, T, A>, rotor: Rotor<N, T, A>) -> Self
     where
-        Length<N>: Three,
+        Dim<N>: Three,
     {
         Self::from_matrix(&Matrix::<N, T, A>::from_scale_rotor(scale, rotor))
     }
@@ -111,7 +110,7 @@ where
     #[expect(private_bounds)]
     pub fn from_rotor_translation(rotor: Rotor<N, T, A>, translation: Vector<N, T, A>) -> Self
     where
-        Length<N>: Three,
+        Dim<N>: Three,
     {
         Self::from_matrix_translation(&Matrix::<N, T, A>::from_rotor(rotor), translation)
     }
@@ -136,7 +135,7 @@ where
         translation: Vector<N, T, A>,
     ) -> Self
     where
-        Length<N>: Three,
+        Dim<N>: Three,
     {
         Self::from_matrix_translation(
             &Matrix::<N, T, A>::from_scale_rotor(scale, rotor),
@@ -258,7 +257,7 @@ where
     #[expect(private_bounds)]
     pub fn to_scale_rotor(&self) -> (Vector<N, T, A>, Rotor<N, T, A>)
     where
-        Length<N>: Three,
+        Dim<N>: Three,
     {
         self.matrix.to_scale_rotor()
     }
@@ -279,7 +278,7 @@ where
     #[expect(private_bounds)]
     pub fn to_scale_rotor_translation(&self) -> (Vector<N, T, A>, Rotor<N, T, A>, Vector<N, T, A>)
     where
-        Length<N>: Three,
+        Dim<N>: Three,
     {
         let (scale, rotor) = self.to_scale_rotor();
         (scale, rotor, self.translation)

@@ -7,15 +7,15 @@ use serde::{
 };
 
 use crate::{
-    Affine, Alignment, Element, Length, Mask, Matrix, Projective, Rotation2, Rotor,
-    SupportedLength, Vector,
-    length::{Three, TwoOrThree},
+    Affine, Alignment, Dim, Element, Mask, Matrix, Projective, Rotation2, Rotor, TwoThreeOrFour,
+    Vector,
+    dim::{Three, TwoOrThree},
     utils::{transmute_generic, transmute_ref},
 };
 
 impl<const N: usize, T, A: Alignment> Serialize for Vector<N, T, A>
 where
-    Length<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + Serialize,
 {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -28,7 +28,7 @@ where
 
 impl<'de, const N: usize, T, A: Alignment> Deserialize<'de> for Vector<N, T, A>
 where
-    Length<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + Deserialize<'de>,
 {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -58,7 +58,7 @@ where
 
 impl<const N: usize, T, A: Alignment> Serialize for Matrix<N, T, A>
 where
-    Length<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + Serialize,
 {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -71,7 +71,7 @@ where
 
 impl<'de, const N: usize, T, A: Alignment> Deserialize<'de> for Matrix<N, T, A>
 where
-    Length<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + Deserialize<'de>,
 {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -107,7 +107,7 @@ where
 
 impl<const N: usize, T, A: Alignment> Serialize for Affine<N, T, A>
 where
-    Length<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + Serialize,
 {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -146,7 +146,7 @@ where
 
 impl<'de, const N: usize, T, A: Alignment> Deserialize<'de> for Affine<N, T, A>
 where
-    Length<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + Deserialize<'de>,
 {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -185,7 +185,7 @@ where
 
 impl<const N: usize, T, A: Alignment> Serialize for Projective<N, T, A>
 where
-    Length<N>: TwoOrThree,
+    Dim<N>: TwoOrThree,
     T: Element + Serialize,
 {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -216,7 +216,7 @@ where
 
 impl<'de, const N: usize, T, A: Alignment> Deserialize<'de> for Projective<N, T, A>
 where
-    Length<N>: TwoOrThree,
+    Dim<N>: TwoOrThree,
     T: Element + Deserialize<'de>,
 {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -364,7 +364,7 @@ where
 
 impl<const N: usize, T, A: Alignment> Serialize for Rotor<N, T, A>
 where
-    Length<N>: Three,
+    Dim<N>: Three,
     T: Element + Serialize,
 {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -382,7 +382,7 @@ where
 
 impl<'de, const N: usize, T, A: Alignment> Deserialize<'de> for Rotor<N, T, A>
 where
-    Length<N>: Three,
+    Dim<N>: Three,
     T: Element + Deserialize<'de>,
 {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -434,7 +434,7 @@ where
 
         impl<'de, const N: usize, T, A: Alignment> Visitor<'de> for RotorVisitor<N, T, A>
         where
-            Length<N>: Three,
+            Dim<N>: Three,
             T: Element + Deserialize<'de>,
         {
             type Value = Rotor<N, T, A>;
@@ -512,7 +512,7 @@ where
 
 impl<const N: usize, T, A: Alignment> Serialize for Mask<N, T, A>
 where
-    Length<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element,
 {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -525,7 +525,7 @@ where
 
 impl<'de, const N: usize, T, A: Alignment> Deserialize<'de> for Mask<N, T, A>
 where
-    Length<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element,
 {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>

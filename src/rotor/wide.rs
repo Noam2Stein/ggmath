@@ -1,6 +1,6 @@
 use wide::Select;
 
-use crate::{Alignment, Element, Length, Rotor, Vector, length::Three, utils::WideTy};
+use crate::{Alignment, Dim, Element, Rotor, Vector, dim::Three, utils::WideTy};
 
 /// Functionality for [SoA] (Structure of Arrays) rotors.
 ///
@@ -14,7 +14,7 @@ use crate::{Alignment, Element, Length, Rotor, Vector, length::Three, utils::Wid
 #[expect(private_bounds)]
 impl<const N: usize, Wide, T, const LANES: usize, A: Alignment> Rotor<N, Wide, A>
 where
-    Length<N>: Three,
+    Dim<N>: Three,
     Wide: WideTy<Array = [T; LANES]>,
     T: Element,
 {
@@ -210,7 +210,7 @@ macro_rules! impl_select {
     ($Mask:ident) => {
         impl<const N: usize, Wide, A: Alignment> Select<Rotor<N, Wide, A>> for wide::$Mask
         where
-            Length<N>: Three,
+            Dim<N>: Three,
             wide::$Mask: Select<Wide>,
             Wide: WideTy,
         {

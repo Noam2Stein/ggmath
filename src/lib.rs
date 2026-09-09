@@ -245,10 +245,10 @@ pub use crate::{
     affine::{Affine, Affine2, Affine2A, Affine3, Affine3A},
     alignment::{Aligned, Alignment, Unaligned},
     constants::{NegOne, One, Zero},
+    dim::{Dim, TwoOrThree, TwoThreeOrFour},
     element::{CustomElement, Element},
     euler_rot::EulerRot,
     float_ext::FloatExt,
-    length::{Length, SupportedLength},
     mask::{Mask, Mask2, Mask2A, Mask3, Mask3A, Mask4, Mask4A},
     matrix::{Mat2, Mat2A, Mat3, Mat3A, Mat4, Mat4A, Matrix},
     primitive_traits::{PrimitiveFloat, PrimitiveInteger, PrimitiveSigned, PrimitiveUnsigned},
@@ -262,10 +262,10 @@ mod affine;
 mod alignment;
 mod backend;
 mod constants;
+mod dim;
 mod element;
 mod euler_rot;
 mod float_ext;
-mod length;
 mod mask;
 mod matrix;
 mod primitive_traits;

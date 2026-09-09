@@ -3,12 +3,12 @@
 use std::{fmt::Debug, hash::Hash};
 
 use assert_impl_trait::assert_impl;
-use ggmath::{Aligned, Alignment, Element, Length, SupportedLength, Unaligned, Vector};
+use ggmath::{Aligned, Alignment, Dim, Element, TwoThreeOrFour, Unaligned, Vector};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 struct Aabb<const N: usize, T, A: Alignment>
 where
-    Length<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element,
 {
     center: Vector<N, T, A>,
@@ -25,7 +25,7 @@ type Aabb4A<T> = Aabb<4, T, Aligned>;
 assert_impl!(
     for<const N: usize, T, A: Alignment>
     where
-        Length<N>: SupportedLength,
+        Dim<N>: TwoThreeOrFour,
         T: Element,
     {
         where T: Debug {

@@ -1,8 +1,8 @@
 use wide::{f32x4, f32x8, f32x16, f64x2, f64x4, f64x8};
 
 use crate::{
-    Alignment, EulerRot, Length, Matrix, Projective, Rotation2, Rotor, SupportedLength, Vector,
-    length::{Three, TwoOrThree},
+    Alignment, Dim, EulerRot, Matrix, Projective, Rotation2, Rotor, TwoThreeOrFour, Vector,
+    dim::{Three, TwoOrThree},
     utils::{specialize, specialize_3, specialize_23},
 };
 
@@ -17,10 +17,9 @@ macro_rules! items {
         /// translation, it is ignored.
         #[inline]
         #[must_use]
-        #[expect(private_bounds)]
         pub fn from_projective(projective: &Projective<N, $Wide, A>) -> Self
         where
-            Length<N>: TwoOrThree,
+            Dim<N>: TwoOrThree,
         {
             specialize_23!(Matrix::<N, $Wide, A>::from_projective_backend(projective))
         }
@@ -33,7 +32,7 @@ macro_rules! items {
         #[expect(private_bounds)]
         pub fn from_rotor(rotor: Rotor<N, $Wide, A>) -> Self
         where
-            Length<N>: Three,
+            Dim<N>: Three,
         {
             specialize_3!(Matrix::<N, $Wide, A>::from_rotor_backend(rotor))
         }
@@ -46,7 +45,7 @@ macro_rules! items {
         #[expect(private_bounds)]
         pub fn from_scale_rotor(scale: Vector<N, $Wide, A>, rotor: Rotor<N, $Wide, A>) -> Self
         where
-            Length<N>: Three,
+            Dim<N>: Three,
         {
             Self::from_rotor(rotor).prepend_scale(scale)
         }
@@ -127,7 +126,7 @@ macro_rules! items {
         #[expect(private_bounds)]
         pub fn to_scale_rotor(&self) -> (Vector<N, $Wide, A>, Rotor<N, $Wide, A>)
         where
-            Length<N>: Three,
+            Dim<N>: Three,
         {
             specialize_3!(Matrix::<N, $Wide, A>::to_scale_rotor_backend(self))
         }
@@ -543,7 +542,7 @@ pub trait WideFloat: crate::Element {}
 #[cfg(doc)]
 impl<const N: usize, Wide, A: Alignment> Matrix<N, Wide, A>
 where
-    Length<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     Wide: WideFloat,
 {
     items!(Wide, f32);
@@ -588,7 +587,7 @@ macro_rules! impl_items {
         #[cfg(not(doc))]
         impl<const N: usize, A: Alignment> Matrix<N, $Wide, A>
         where
-            Length<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
         {
             items!($Wide, $T);
         }

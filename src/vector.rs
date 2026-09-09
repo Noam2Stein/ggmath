@@ -10,7 +10,7 @@ use core::{
 };
 
 use crate::{
-    Aligned, Alignment, Element, Length, SupportedLength, Unaligned,
+    Aligned, Alignment, Dim, Element, TwoThreeOrFour, Unaligned,
     backend::VectorBackend,
     utils::{specialize, transmute_mut, transmute_ref},
 };
@@ -96,12 +96,12 @@ mod wide_unsigned;
 pub struct Vector<const N: usize, T, A: Alignment>(
     #[expect(clippy::type_complexity)]
     pub(crate)  <A as Alignment>::Select<
-        <Length<N> as SupportedLength>::Select<
+        <Dim<N> as TwoThreeOrFour>::Select<
             <T as VectorBackend<2, Aligned>>::Inner,
             <T as VectorBackend<3, Aligned>>::Inner,
             <T as VectorBackend<4, Aligned>>::Inner,
         >,
-        <Length<N> as SupportedLength>::Select<
+        <Dim<N> as TwoThreeOrFour>::Select<
             <T as VectorBackend<2, Unaligned>>::Inner,
             <T as VectorBackend<3, Unaligned>>::Inner,
             <T as VectorBackend<4, Unaligned>>::Inner,
@@ -109,7 +109,7 @@ pub struct Vector<const N: usize, T, A: Alignment>(
     >,
 )
 where
-    Length<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element;
 
 /// A 2D vector.
@@ -213,7 +213,7 @@ pub type Vec4A<T> = Vector<4, T, Aligned>;
 
 impl<const N: usize, T, A: Alignment> Clone for Vector<N, T, A>
 where
-    Length<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element,
 {
     #[inline]
@@ -224,14 +224,14 @@ where
 
 impl<const N: usize, T, A: Alignment> Copy for Vector<N, T, A>
 where
-    Length<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element,
 {
 }
 
 impl<const N: usize, T, A: Alignment> Index<usize> for Vector<N, T, A>
 where
-    Length<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element,
 {
     type Output = T;
@@ -244,7 +244,7 @@ where
 
 impl<const N: usize, T, A: Alignment> IndexMut<usize> for Vector<N, T, A>
 where
-    Length<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element,
 {
     #[inline]
@@ -255,7 +255,7 @@ where
 
 impl<const N: usize, T, A: Alignment> IntoIterator for Vector<N, T, A>
 where
-    Length<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element,
 {
     type Item = T;
@@ -269,7 +269,7 @@ where
 
 impl<const N: usize, T, A: Alignment> IntoIterator for &Vector<N, T, A>
 where
-    Length<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element,
 {
     type Item = T;
@@ -283,7 +283,7 @@ where
 
 impl<'a, const N: usize, T, A: Alignment> IntoIterator for &'a mut Vector<N, T, A>
 where
-    Length<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element,
 {
     type Item = &'a mut T;
@@ -518,7 +518,7 @@ where
 
 impl<const N: usize, T, A: Alignment> Debug for Vector<N, T, A>
 where
-    Length<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + Debug,
 {
     #[inline]
@@ -538,7 +538,7 @@ where
 
 impl<const N: usize, T, A: Alignment> Display for Vector<N, T, A>
 where
-    Length<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + Display,
 {
     #[inline]
@@ -554,7 +554,7 @@ where
 
 impl<const N: usize, T, A: Alignment> PartialEq for Vector<N, T, A>
 where
-    Length<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + PartialEq,
 {
     #[inline]
@@ -571,14 +571,14 @@ where
 
 impl<const N: usize, T, A: Alignment> Eq for Vector<N, T, A>
 where
-    Length<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + Eq,
 {
 }
 
 impl<const N: usize, T, A: Alignment> Hash for Vector<N, T, A>
 where
-    Length<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + Hash,
 {
     #[inline]
@@ -589,7 +589,7 @@ where
 
 impl<const N: usize, T, A: Alignment> Default for Vector<N, T, A>
 where
-    Length<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + Default,
 {
     #[inline]
@@ -602,7 +602,7 @@ macro_rules! impl_unary_operator {
     ($Op:ident, $op:ident, $vector_op:ident, $(#[$doc:meta])*) => {
         impl<const N: usize, T, A: Alignment> $Op for Vector<N, T, A>
         where
-            Length<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
             T: Element + $Op<Output = T>,
         {
             type Output = Self;
@@ -617,7 +617,7 @@ macro_rules! impl_unary_operator {
 
         impl<const N: usize, T, A: Alignment> $Op for &Vector<N, T, A>
         where
-            Length<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
             T: Element + $Op<Output = T>,
         {
             type Output = Vector<N, T, A>;
@@ -671,7 +671,7 @@ macro_rules! impl_binary_operator {
     ($Op:ident, $op:ident, $vector_op:ident, $(#[$doc:meta])*, $(#[$doc_scalar:meta])*) => {
         impl<const N: usize, T, A: Alignment> $Op for Vector<N, T, A>
         where
-            Length<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
             T: Element + $Op<Output = T>,
         {
             type Output = Self;
@@ -686,7 +686,7 @@ macro_rules! impl_binary_operator {
 
         impl<const N: usize, T, A: Alignment> $Op<T> for Vector<N, T, A>
         where
-            Length<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
             T: Element + $Op<Output = T>,
         {
             type Output = Self;
@@ -701,7 +701,7 @@ macro_rules! impl_binary_operator {
 
         impl<const N: usize, T, A: Alignment> $Op<&Vector<N, T, A>> for Vector<N, T, A>
         where
-            Length<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
             T: Element + $Op<Output = T>,
         {
             type Output = Self;
@@ -716,7 +716,7 @@ macro_rules! impl_binary_operator {
 
         impl<const N: usize, T, A: Alignment> $Op<&T> for Vector<N, T, A>
         where
-            Length<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
             T: Element + $Op<Output = T>,
         {
             type Output = Self;
@@ -731,7 +731,7 @@ macro_rules! impl_binary_operator {
 
         impl<const N: usize, T, A: Alignment> $Op<Vector<N, T, A>> for &Vector<N, T, A>
         where
-            Length<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
             T: Element + $Op<Output = T>,
         {
             type Output = Vector<N, T, A>;
@@ -746,7 +746,7 @@ macro_rules! impl_binary_operator {
 
         impl<const N: usize, T, A: Alignment> $Op<T> for &Vector<N, T, A>
         where
-            Length<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
             T: Element + $Op<Output = T>,
         {
             type Output = Vector<N, T, A>;
@@ -761,7 +761,7 @@ macro_rules! impl_binary_operator {
 
         impl<const N: usize, T, A: Alignment> $Op<&Vector<N, T, A>> for &Vector<N, T, A>
         where
-            Length<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
             T: Element + $Op<Output = T>,
         {
             type Output = Vector<N, T, A>;
@@ -776,7 +776,7 @@ macro_rules! impl_binary_operator {
 
         impl<const N: usize, T, A: Alignment> $Op<&T> for &Vector<N, T, A>
         where
-            Length<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
             T: Element + $Op<Output = T>,
         {
             type Output = Vector<N, T, A>;
@@ -1179,7 +1179,7 @@ macro_rules! impl_assign_operator {
     ($Op:ident, $OpAssign:ident, $op_assign:ident, $op:ident, $(#[$doc:meta])*, $(#[$doc_scalar:meta])*) => {
         impl<const N: usize, T, A: Alignment> $OpAssign for Vector<N, T, A>
         where
-            Length<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
             T: Element + $Op<Output = T>,
         {
             $(#[$doc])*
@@ -1192,7 +1192,7 @@ macro_rules! impl_assign_operator {
 
         impl<const N: usize, T, A: Alignment> $OpAssign<T> for Vector<N, T, A>
         where
-            Length<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
             T: Element + $Op<Output = T>,
         {
             $(#[$doc_scalar])*
@@ -1205,7 +1205,7 @@ macro_rules! impl_assign_operator {
 
         impl<const N: usize, T, A: Alignment> $OpAssign<&Vector<N, T, A>> for Vector<N, T, A>
         where
-            Length<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
             T: Element + $Op<Output = T>,
         {
             $(#[$doc])*
@@ -1218,7 +1218,7 @@ macro_rules! impl_assign_operator {
 
         impl<const N: usize, T, A: Alignment> $OpAssign<&T> for Vector<N, T, A>
         where
-            Length<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
             T: Element + $Op<Output = T>,
         {
             $(#[$doc_scalar])*
@@ -1663,7 +1663,7 @@ impl_assign_operator!(
 // Because `T` is `Send` the list also is, and the padding is `Send` too.
 unsafe impl<const N: usize, T, A: Alignment> Send for Vector<N, T, A>
 where
-    Length<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + Send,
 {
 }
@@ -1672,28 +1672,28 @@ where
 // Because `T` is `Sync` the list also is, and the padding is `Sync` too.
 unsafe impl<const N: usize, T, A: Alignment> Sync for Vector<N, T, A>
 where
-    Length<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + Sync,
 {
 }
 
 impl<const N: usize, T, A: Alignment> Unpin for Vector<N, T, A>
 where
-    Length<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + Unpin,
 {
 }
 
 impl<const N: usize, T, A: Alignment> UnwindSafe for Vector<N, T, A>
 where
-    Length<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + UnwindSafe,
 {
 }
 
 impl<const N: usize, T, A: Alignment> RefUnwindSafe for Vector<N, T, A>
 where
-    Length<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + RefUnwindSafe,
 {
 }

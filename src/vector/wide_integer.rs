@@ -3,7 +3,7 @@ use wide::{
     u8x32, u8x64, u16x8, u16x16, u16x32, u32x4, u32x8, u32x16, u64x2, u64x4, u64x8,
 };
 
-use crate::{Alignment, Length, SupportedLength, Vector, utils::specialize};
+use crate::{Alignment, Dim, TwoThreeOrFour, Vector, utils::specialize};
 
 macro_rules! items {
     ($Wide:ident) => {
@@ -131,7 +131,7 @@ pub trait WideInteger: crate::Element {}
 #[cfg(doc)]
 impl<const N: usize, Wide, A: Alignment> Vector<N, Wide, A>
 where
-    Length<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     Wide: WideInteger,
 {
     items!(Wide);
@@ -142,7 +142,7 @@ macro_rules! impl_items {
         #[cfg(not(doc))]
         impl<const N: usize, A: Alignment> Vector<N, $Wide, A>
         where
-            Length<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
         {
             items!($Wide);
         }

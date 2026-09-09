@@ -1,14 +1,13 @@
 use crate::{
-    Alignment, EulerRot, FloatExt, Length, Matrix, PrimitiveFloat, Projective, Rotation2, Rotor,
+    Alignment, Dim, EulerRot, FloatExt, Matrix, PrimitiveFloat, Projective, Rotation2, Rotor,
     Vector,
-    length::{Three, TwoOrThree},
+    dim::{Three, TwoOrThree},
     utils::{specialize_3, specialize_23, transmute_generic},
 };
 
-#[expect(private_bounds)]
 impl<const N: usize, T, A: Alignment> Projective<N, T, A>
 where
-    Length<N>: TwoOrThree,
+    Dim<N>: TwoOrThree,
     T: PrimitiveFloat,
 {
     /// A transform with all elements set to NaN (Not a Number).
@@ -53,7 +52,7 @@ where
     #[expect(private_bounds)]
     pub fn from_rotor(rotor: Rotor<N, T, A>) -> Self
     where
-        Length<N>: Three,
+        Dim<N>: Three,
     {
         debug_assert!(
             rotor.is_normalized(),
@@ -78,7 +77,7 @@ where
     #[expect(private_bounds)]
     pub fn from_scale_rotor(scale: Vector<N, T, A>, rotor: Rotor<N, T, A>) -> Self
     where
-        Length<N>: Three,
+        Dim<N>: Three,
     {
         debug_assert!(
             rotor.is_normalized(),
@@ -105,7 +104,7 @@ where
     #[expect(private_bounds)]
     pub fn from_rotor_translation(rotor: Rotor<N, T, A>, translation: Vector<N, T, A>) -> Self
     where
-        Length<N>: Three,
+        Dim<N>: Three,
     {
         debug_assert!(
             rotor.is_normalized(),
@@ -138,7 +137,7 @@ where
         translation: Vector<N, T, A>,
     ) -> Self
     where
-        Length<N>: Three,
+        Dim<N>: Three,
     {
         debug_assert!(
             rotor.is_normalized(),
@@ -341,7 +340,7 @@ where
     #[expect(private_bounds)]
     pub fn to_scale_rotor(&self) -> (Vector<N, T, A>, Rotor<N, T, A>)
     where
-        Length<N>: Three,
+        Dim<N>: Three,
     {
         specialize_3!(Projective::<N, T, A>::to_scale_rotor_backend(self))
     }
@@ -362,7 +361,7 @@ where
     #[expect(private_bounds)]
     pub fn to_scale_rotor_translation(&self) -> (Vector<N, T, A>, Rotor<N, T, A>, Vector<N, T, A>)
     where
-        Length<N>: Three,
+        Dim<N>: Three,
     {
         let (scale, rotor) = self.to_scale_rotor();
         (scale, rotor, self.translation())

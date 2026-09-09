@@ -1,13 +1,13 @@
 use crate::{
-    Alignment, EulerRot, FloatExt, Length, Matrix, PrimitiveFloat, Projective, Rotation2, Rotor,
-    SupportedLength, Vector,
-    length::{Three, TwoOrThree},
+    Alignment, Dim, EulerRot, FloatExt, Matrix, PrimitiveFloat, Projective, Rotation2, Rotor,
+    TwoThreeOrFour, Vector,
+    dim::{Three, TwoOrThree},
     utils::{specialize, specialize_3, specialize_23},
 };
 
 impl<const N: usize, T, A: Alignment> Matrix<N, T, A>
 where
-    Length<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: PrimitiveFloat,
 {
     /// A matrix with all elements set to NaN (Not a Number).
@@ -47,10 +47,9 @@ where
     #[inline]
     #[must_use]
     #[track_caller]
-    #[expect(private_bounds)]
     pub fn from_projective(projective: &Projective<N, T, A>) -> Self
     where
-        Length<N>: TwoOrThree,
+        Dim<N>: TwoOrThree,
     {
         specialize_23!(Matrix::<N, T, A>::from_projective_backend(projective))
     }
@@ -70,7 +69,7 @@ where
     #[expect(private_bounds)]
     pub fn from_rotor(rotor: Rotor<N, T, A>) -> Self
     where
-        Length<N>: Three,
+        Dim<N>: Three,
     {
         debug_assert!(
             rotor.is_normalized(),
@@ -95,7 +94,7 @@ where
     #[expect(private_bounds)]
     pub fn from_scale_rotor(scale: Vector<N, T, A>, rotor: Rotor<N, T, A>) -> Self
     where
-        Length<N>: Three,
+        Dim<N>: Three,
     {
         Self::from_rotor(rotor).prepend_scale(scale)
     }
@@ -290,7 +289,7 @@ where
     #[expect(private_bounds)]
     pub fn to_scale_rotor(&self) -> (Vector<N, T, A>, Rotor<N, T, A>)
     where
-        Length<N>: Three,
+        Dim<N>: Three,
     {
         specialize_3!(Matrix::<N, T, A>::to_scale_rotor_backend(self))
     }

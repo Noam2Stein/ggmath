@@ -1,5 +1,5 @@
 use crate::{
-    Alignment, Length, Mask, PrimitiveSigned, SupportedLength, Vector,
+    Alignment, Dim, Mask, PrimitiveSigned, TwoThreeOrFour, Vector,
     backend::SignedVectorBackend,
     utils::{specialize, transmute_generic},
 };
@@ -73,7 +73,7 @@ macro_rules! conflicting_items {
 
 impl<const N: usize, T, A: Alignment> Vector<N, T, A>
 where
-    Length<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: PrimitiveSigned,
 {
     // When generating documentation, Rust does not care that these items are
@@ -156,7 +156,7 @@ macro_rules! impl_conflicting_items {
         #[cfg(not(doc))]
         impl<const N: usize, A: Alignment> Vector<N, $T, A>
         where
-            Length<N>: SupportedLength,
+            Dim<N>: TwoThreeOrFour,
         {
             conflicting_items!($T);
         }

@@ -1,15 +1,14 @@
 use core::ops::{Add, Mul, Neg, Sub};
 
 use crate::{
-    Aligned, Alignment, Element, Length, Mask, NegOne, One, SupportedLength, Unaligned, Vector,
-    Zero,
+    Aligned, Alignment, Dim, Element, Mask, NegOne, One, TwoThreeOrFour, Unaligned, Vector, Zero,
     backend::VectorBackend,
     utils::{Repr2, Repr3, Repr4, specialize, transmute_generic, transmute_mut, transmute_ref},
 };
 
 impl<const N: usize, T, A: Alignment> Vector<N, T, A>
 where
-    Length<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + Zero,
 {
     /// A vector with all elements set to `0`.
@@ -18,7 +17,7 @@ where
 
 impl<const N: usize, T, A: Alignment> Vector<N, T, A>
 where
-    Length<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + One,
 {
     /// A vector with all elements set to `1`.
@@ -27,7 +26,7 @@ where
 
 impl<const N: usize, T, A: Alignment> Vector<N, T, A>
 where
-    Length<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element + NegOne,
 {
     /// A vector with all elements set to `-1`.
@@ -36,7 +35,7 @@ where
 
 impl<const N: usize, T, A: Alignment> Vector<N, T, A>
 where
-    Length<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
     T: Element,
 {
     /// Creates a vector from an array.
@@ -635,12 +634,12 @@ where
             transmute_generic::<
                 <T as VectorBackend<N, A>>::Inner,
                 <A as Alignment>::Select<
-                    <Length<N> as SupportedLength>::Select<
+                    <Dim<N> as TwoThreeOrFour>::Select<
                         <T as VectorBackend<2, Aligned>>::Inner,
                         <T as VectorBackend<3, Aligned>>::Inner,
                         <T as VectorBackend<4, Aligned>>::Inner,
                     >,
-                    <Length<N> as SupportedLength>::Select<
+                    <Dim<N> as TwoThreeOrFour>::Select<
                         <T as VectorBackend<2, Unaligned>>::Inner,
                         <T as VectorBackend<3, Unaligned>>::Inner,
                         <T as VectorBackend<4, Unaligned>>::Inner,

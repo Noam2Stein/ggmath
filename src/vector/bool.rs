@@ -1,8 +1,8 @@
-use crate::{Alignment, Element, Length, SupportedLength, Vector, utils::specialize};
+use crate::{Alignment, Dim, Element, TwoThreeOrFour, Vector, utils::specialize};
 
 impl<const N: usize, A: Alignment> Vector<N, bool, A>
 where
-    Length<N>: SupportedLength,
+    Dim<N>: TwoThreeOrFour,
 {
     /// A vector with all elements set to `false`.
     pub const FALSE: Self = Self::splat(false);
