@@ -393,7 +393,7 @@ mod tests {
     #[test]
     fn test_simd_eq() {
         for ([a, b], mask) in random_iter::<([Rotor3<i32x4>; 2], Vec4<i32x4>)>() {
-            let b = Rotor3::from_vector(mask.negative_mask().select(a.0, b.0));
+            let b = Rotor3::from_raw_vector(mask.negative_mask().select(a.0, b.0));
 
             assert_test_eq!(
                 a.simd_eq(&b),
@@ -407,7 +407,7 @@ mod tests {
     #[test]
     fn test_simd_ne() {
         for ([a, b], mask) in random_iter::<([Rotor3<i32x4>; 2], Vec4<i32x4>)>() {
-            let b = Rotor3::from_vector(mask.negative_mask().select(a.0, b.0));
+            let b = Rotor3::from_raw_vector(mask.negative_mask().select(a.0, b.0));
 
             assert_test_eq!(
                 a.simd_ne(&b),

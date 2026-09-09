@@ -175,7 +175,7 @@ where
     /// elements directly. Instead, use higher level helper functions.
     #[inline]
     #[must_use]
-    pub const fn from_vector(vector: Vector<4, T, A>) -> Self {
+    pub const fn from_raw_vector(vector: Vector<4, T, A>) -> Self {
         Self(vector)
     }
 
@@ -185,7 +185,7 @@ where
     /// elements directly. Instead, use higher level helper functions.
     #[inline]
     #[must_use]
-    pub const fn to_vector(self) -> Vector<4, T, A> {
+    pub const fn to_raw_vector(self) -> Vector<4, T, A> {
         self.0
     }
 
@@ -195,7 +195,7 @@ where
     /// elements directly. Instead, use higher level helper functions.
     #[inline]
     #[must_use]
-    pub const fn as_vector(&self) -> &Vector<4, T, A> {
+    pub const fn as_raw_vector(&self) -> &Vector<4, T, A> {
         &self.0
     }
 
@@ -206,7 +206,7 @@ where
     /// elements directly. Instead, use higher level helper functions.
     #[inline]
     #[must_use]
-    pub const fn as_mut_vector(&mut self) -> &mut Vector<4, T, A> {
+    pub const fn as_mut_raw_vector(&mut self) -> &mut Vector<4, T, A> {
         &mut self.0
     }
 }

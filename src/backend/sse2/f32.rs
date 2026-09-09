@@ -307,7 +307,7 @@ impl RotorBackend<3, Aligned> for f32 {
     fn rotor_conjugate(rotor: Rotor3A<f32>) -> Rotor3A<f32> {
         const SIGNS: Vec4A<u32> = Vec4A::<f32>::new(-0.0, -0.0, -0.0, 0.0).to_bits();
 
-        Rotor3A::from_vector(Vec4A::<f32>::from_bits(rotor.0.to_bits() ^ SIGNS))
+        Rotor3A::from_raw_vector(Vec4A::<f32>::from_bits(rotor.0.to_bits() ^ SIGNS))
     }
 
     #[inline]
