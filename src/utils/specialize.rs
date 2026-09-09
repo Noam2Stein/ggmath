@@ -8,21 +8,21 @@ use crate::{
 /// Bypasses a type system limitation to perform specialization.
 ///
 /// Types that implement [`Element`] can override the implementation of math
-/// functions. Implementations are overriden via the [`ScalarBackend<N, A>`]
+/// functions. Implementations are overriden via the [`VectorBackend<N, A>`]
 /// trait, which has to be implemented for all lengths and both alignments.
 ///
 /// Implementations can be generic over `N` and `A`, but there can also be
 /// seperate implementations for each concrete case. To make this possible,
-/// [`Element`] is defined as:
+/// [`Element`] is defined roughly as:
 ///
 /// ```ignore
 /// trait Element:
-///     ScalarBackend<2, Aligned>
-///     + ScalarBackend<3, Aligned>
-///     + ScalarBackend<4, Aligned>
-///     + ScalarBackend<2, Unaligned>
-///     + ScalarBackend<3, Unaligned>
-///     + ScalarBackend<4, Unaligned>
+///     VectorBackend<2, Aligned>
+///     + VectorBackend<3, Aligned>
+///     + VectorBackend<4, Aligned>
+///     + VectorBackend<2, Unaligned>
+///     + VectorBackend<3, Unaligned>
+///     + VectorBackend<4, Unaligned>
 /// {
 /// }
 /// ```
@@ -30,13 +30,13 @@ use crate::{
 /// Math functions that want to call their implementation want to write:
 ///
 /// ```ignore
-/// <T as ScalarBackend<N, A>>::function_implementation(arguments)
+/// <T as Backend<N, A>>::function_implementation(arguments)
 /// ```
 ///
 /// This results in a compiler error. The compiler understands that `T`
-/// implements [`ScalarBackend`] for lengths `2`, `3`, `4`, and alignments
+/// implements [`VectorBackend`] for lengths `2`, `3`, `4`, and alignments
 /// [`Aligned`], [`Unaligned`], but is not smart enough to understand that those
-/// are all possible cases, and that `T` implements [`ScalarBackend<N, A>`].
+/// are all possible cases, and that `T` implements [`VectorBackend<N, A>`].
 ///
 /// To bypass this, math functions have to match over `N` and `A`, and for each
 /// of the 6 possible cases perform unsafe transmutations to convert inputs and
@@ -46,7 +46,7 @@ use crate::{
 /// functions to write:
 ///
 /// ```ignore
-/// specialize!(<T as ScalarBackend<N, A>>::function_implementation(arguments))
+/// specialize!(<T as Backend<N, A>>::function_implementation(arguments))
 /// ```
 ///
 /// Once the type system is smart enough, `specialize` could be removed. This
@@ -56,8 +56,8 @@ use crate::{
 /// Note: If certain function signatures fail to compile with this macro, the
 /// [`Specialize`] trait may not be implemented for those signature's types.
 ///
-/// [`ScalarBackend<N, A>`]: crate::ScalarBackend
-/// [`ScalarBackend`]: crate::ScalarBackend
+/// [`VectorBackend<N, A>`]: crate::backend::VectorBackend
+/// [`VectorBackend`]: crate::backend::VectorBackend
 macro_rules! specialize {
     (<$T:ty as $Backend:ident<$N:tt, $A:tt>>::$f:ident($($arg:expr),*$(,)?)) => {
         (const {
@@ -234,7 +234,7 @@ pub(crate) use specialize_3;
 /// The macro call:
 ///
 /// ```ignore
-/// specialize!(<T as ScalarBackend<N, A>>::function_implementation(arguments))
+/// specialize!(<T as VectorBackend<N, A>>::function_implementation(arguments))
 /// ```
 ///
 /// Expands to:
@@ -252,12 +252,12 @@ pub(crate) use specialize_3;
 ///         fn(_) -> _,
 ///         fn(_) -> _,
 ///     >(
-///         <T as ScalarBackend<2, Aligned>>::function_implementation,
-///         <T as ScalarBackend<3, Aligned>>::function_implementation,
-///         <T as ScalarBackend<4, Aligned>>::function_implementation,
-///         <T as ScalarBackend<2, Unaligned>>::function_implementation,
-///         <T as ScalarBackend<3, Unaligned>>::function_implementation,
-///         <T as ScalarBackend<4, Unaligned>>::function_implementation,
+///         <T as Backend<2, Aligned>>::function_implementation,
+///         <T as Backend<3, Aligned>>::function_implementation,
+///         <T as Backend<4, Aligned>>::function_implementation,
+///         <T as Backend<2, Unaligned>>::function_implementation,
+///         <T as Backend<3, Unaligned>>::function_implementation,
+///         <T as Backend<4, Unaligned>>::function_implementation,
 ///     )
 /// })(arguments)
 /// ```
