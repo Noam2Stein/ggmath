@@ -202,6 +202,8 @@ ggmath = { version = "0.18.0", features = ["libm"] }
 
 - [`fixed`]: Implements [`Element`] for fixed-point numbers.
 
+- [`half`]: Implements [`Element`] for [`f16`] and [`bf16`].
+
 - [`libm`]: Uses [`libm`] instead of [`std`] as the backend for
   floating-point functions. This makes the crate [`no_std`].
 
@@ -325,6 +327,9 @@ it serves the same purpose as [`glam`] but with generics.
 [`libm`]: https://crates.io/crates/libm
 
 [`bytemuck`]: https://crates.io/crates/bytemuck
+[`half`]: https://crates.io/crates/half
+[`f16`]: https://docs.rs/half/latest/half/struct.f16.html
+[`bf16`]: https://docs.rs/half/latest/half/struct.bf16.html
 [`std`]: https://doc.rust-lang.org/std
 [`mint`]: https://crates.io/crates/mint
 [`rand`]: https://crates.io/crates/rand
