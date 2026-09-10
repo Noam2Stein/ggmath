@@ -165,11 +165,6 @@ pub type Rotor3<T> = Rotor<3, T, Unaligned>;
 /// point "error creep" which can occur when successive operations are applied.
 /// Use [`rotor.normalize()`] to maintain precision.
 ///
-/// # SIMD alignment
-///
-/// For appropriate `T` types, [`Rotor3A<T>`] has SIMD alignment. For no SIMD
-/// use [`Rotor3<T>`].
-///
 /// # Representation
 ///
 /// Unless you are familiar with rotor/quaternion math, avoid using rotor
@@ -196,6 +191,11 @@ pub type Rotor3<T> = Rotor<3, T, Unaligned>;
 ///
 /// Note that the fields are only exposed by implementing [`Deref`] and
 /// [`DerefMut`].
+///
+/// # SIMD alignment
+///
+/// For appropriate `T` types, [`Rotor3A<T>`] has SIMD alignment. For no SIMD
+/// use [`Rotor3<T>`].
 ///
 /// [`rotor.normalize()`]: Rotor#method.normalize
 pub type Rotor3A<T> = Rotor<3, T, Aligned>;

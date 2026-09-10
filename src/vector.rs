@@ -150,11 +150,6 @@ pub type Vec4<T> = Vector<4, T, Unaligned>;
 
 /// A 2D vector.
 ///
-/// # SIMD alignment
-///
-/// For appropriate `T` types, [`Vec2A<T>`] has SIMD alignment. For no SIMD use
-/// [`Vec2<T>`].
-///
 /// # Fields
 ///
 /// - `x: T` (the first element of the vector)
@@ -162,14 +157,14 @@ pub type Vec4<T> = Vector<4, T, Unaligned>;
 ///
 /// Note that these fields are only exposed by implementing [`Deref`] and
 /// [`DerefMut`].
-pub type Vec2A<T> = Vector<2, T, Aligned>;
-
-/// A 3D vector.
 ///
 /// # SIMD alignment
 ///
-/// For appropriate `T` types, [`Vec3A<T>`] has SIMD alignment. For no SIMD use
-/// [`Vec3<T>`].
+/// For appropriate `T` types, [`Vec2A<T>`] has SIMD alignment. For no SIMD use
+/// [`Vec2<T>`].
+pub type Vec2A<T> = Vector<2, T, Aligned>;
+
+/// A 3D vector.
 ///
 /// # Fields
 ///
@@ -179,14 +174,14 @@ pub type Vec2A<T> = Vector<2, T, Aligned>;
 ///
 /// Note that these fields are only exposed by implementing [`Deref`] and
 /// [`DerefMut`].
-pub type Vec3A<T> = Vector<3, T, Aligned>;
-
-/// A 4D vector.
 ///
 /// # SIMD alignment
 ///
-/// For appropriate `T` types, [`Vec4A<T>`] has SIMD alignment. For no SIMD use
-/// [`Vec4<T>`].
+/// For appropriate `T` types, [`Vec3A<T>`] has SIMD alignment. For no SIMD use
+/// [`Vec3<T>`].
+pub type Vec3A<T> = Vector<3, T, Aligned>;
+
+/// A 4D vector.
 ///
 /// # Fields
 ///
@@ -197,6 +192,11 @@ pub type Vec3A<T> = Vector<3, T, Aligned>;
 ///
 /// Note that these fields are only exposed by implementing [`Deref`] and
 /// [`DerefMut`].
+///
+/// # SIMD alignment
+///
+/// For appropriate `T` types, [`Vec4A<T>`] has SIMD alignment. For no SIMD use
+/// [`Vec4<T>`].
 pub type Vec4A<T> = Vector<4, T, Aligned>;
 
 impl<const N: usize, T, A: Alignment> Clone for Vector<N, T, A>

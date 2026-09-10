@@ -120,11 +120,6 @@ pub type Affine3<T> = Affine<3, T, Unaligned>;
 ///
 /// Contains a 2x2 matrix and a 2D translation vector.
 ///
-/// # SIMD alignment
-///
-/// For appropriate `T` types, [`Affine2A<T>`] has SIMD alignment. For no SIMD
-/// use [`Affine2<T>`].
-///
 /// # Fields
 ///
 /// - `matrix: Mat2A<T>` (linear transformation matrix)
@@ -132,17 +127,17 @@ pub type Affine3<T> = Affine<3, T, Unaligned>;
 ///
 /// Note that these fields are only exposed by implementing [`Deref`] and
 /// [`DerefMut`].
+///
+/// # SIMD alignment
+///
+/// For appropriate `T` types, [`Affine2A<T>`] has SIMD alignment. For no SIMD
+/// use [`Affine2<T>`].
 pub type Affine2A<T> = Affine<2, T, Aligned>;
 
 /// A 3D affine transform which can represent translation, rotation, scaling and
 /// shear.
 ///
 /// Contains a 3x3 matrix and a 3D translation vector.
-///
-/// # SIMD alignment
-///
-/// For appropriate `T` types, [`Affine3A<T>`] has SIMD alignment. For no SIMD
-/// use [`Affine3<T>`].
 ///
 /// # Fields
 ///
@@ -151,6 +146,11 @@ pub type Affine2A<T> = Affine<2, T, Aligned>;
 ///
 /// Note that these fields are only exposed by implementing [`Deref`] and
 /// [`DerefMut`].
+///
+/// # SIMD alignment
+///
+/// For appropriate `T` types, [`Affine3A<T>`] has SIMD alignment. For no SIMD
+/// use [`Affine3<T>`].
 pub type Affine3A<T> = Affine<3, T, Aligned>;
 
 impl<const N: usize, T, A: Alignment> Clone for Affine<N, T, A>

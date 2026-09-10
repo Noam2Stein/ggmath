@@ -186,11 +186,6 @@ pub type Mat4<T> = Matrix<4, T, Unaligned>;
 /// If you need translation, use [`Affine2A`]. If you need 2D projections, use
 /// [`Proj2A`].
 ///
-/// # SIMD alignment
-///
-/// For appropriate `T` types, [`Mat2A<T>`] has SIMD alignment. For no SIMD use
-/// [`Mat2<T>`].
-///
 /// # Fields
 ///
 /// - `x_axis: Vec2A<T>` (the first row of the matrix, represents the result of
@@ -201,6 +196,11 @@ pub type Mat4<T> = Matrix<4, T, Unaligned>;
 ///
 /// Note that these fields are only exposed by implementing [`Deref`] and
 /// [`DerefMut`].
+///
+/// # SIMD alignment
+///
+/// For appropriate `T` types, [`Mat2A<T>`] has SIMD alignment. For no SIMD use
+/// [`Mat2<T>`].
 ///
 /// [`Affine2A`]: crate::Affine2A
 /// [`Proj2A`]: crate::Proj2A
@@ -217,11 +217,6 @@ pub type Mat2A<T> = Matrix<2, T, Aligned>;
 /// projective transformations. For that use the [`Affine2A`] and [`Proj2A`]
 /// types.
 ///
-/// # SIMD alignment
-///
-/// For appropriate `T` types, [`Mat3A<T>`] has SIMD alignment. For no SIMD use
-/// [`Mat3<T>`].
-///
 /// # Fields
 ///
 /// - `x_axis: Vec3A<T>` (the first row of the matrix, represents the result of
@@ -235,6 +230,11 @@ pub type Mat2A<T> = Matrix<2, T, Aligned>;
 ///
 /// Note that these fields are only exposed by implementing [`Deref`] and
 /// [`DerefMut`].
+///
+/// # SIMD alignment
+///
+/// For appropriate `T` types, [`Mat3A<T>`] has SIMD alignment. For no SIMD use
+/// [`Mat3<T>`].
 ///
 /// [`Affine3A`]: crate::Affine3A
 /// [`Proj3A`]: crate::Proj3A
@@ -253,11 +253,6 @@ pub type Mat3A<T> = Matrix<3, T, Aligned>;
 /// Even though this type does not have many use cases, it is still useful for
 /// raw matrix operations and interop with other libraries.
 ///
-/// # SIMD alignment
-///
-/// For appropriate `T` types, [`Mat4A<T>`] has SIMD alignment. For no SIMD use
-/// [`Mat4<T>`].
-///
 /// # Fields
 ///
 /// - `x_axis: Vec4A<T>` (the first row of the matrix, represents the result of
@@ -274,6 +269,11 @@ pub type Mat3A<T> = Matrix<3, T, Aligned>;
 ///
 /// Note that these fields are only exposed by implementing [`Deref`] and
 /// [`DerefMut`].
+///
+/// # SIMD alignment
+///
+/// For appropriate `T` types, [`Mat4A<T>`] has SIMD alignment. For no SIMD use
+/// [`Mat4<T>`].
 ///
 /// [`Affine3A`]: crate::Affine3A
 /// [`Proj3A`]: crate::Proj3A
