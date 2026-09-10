@@ -116,8 +116,16 @@ pub type Proj3<T> = Projective<3, T, Unaligned>;
 ///
 /// # SIMD alignment
 ///
-/// For appropriate `T` types, [`Proj2A<T>`] has SIMD alignment. For no SIMD use
-/// [`Proj2<T>`].
+/// [`Proj2A<T>`] is stored as `[Vec3A<T>; 3]`. This table shows for what `T`
+/// types and target configurations there is SIMD alignment. When there is SIMD
+/// alignment, appropriate functions use specialized SIMD implementations. For
+/// cases not mentioned in the table, the representation falls back to `[T; 9]`.
+/// Everything here can change between versions, so do not rely on any of it.
+///
+/// | `T`   | `cfg` condition                                         | Representation     | Size (bytes) | Alignment (bytes) |
+/// | ----- | ------------------------------------------------------- | ------------------ | ------------ | ----------------- |
+/// | `f32` | `target_feature = "sse2"`                               | `[__m128; 3]`      | 48           | 16                |
+/// | `f32` | `all(target_arch = "aarch64", target_feature = "neon")` | `[float32x4_t; 3]` | 48           | 16                |
 ///
 /// [`transform_point`]: Projective::transform_point
 /// [`transform_vector`]: Projective::transform_vector
@@ -133,8 +141,17 @@ pub type Proj2A<T> = Projective<2, T, Aligned>;
 ///
 /// # SIMD alignment
 ///
-/// For appropriate `T` types, [`Proj3A<T>`] has SIMD alignment. For no SIMD use
-/// [`Proj3<T>`].
+/// [`Proj3A<T>`] is stored as `[Vec4A<T>; 4]`. This table shows for what `T`
+/// types and target configurations there is SIMD alignment. When there is SIMD
+/// alignment, appropriate functions use specialized SIMD implementations. For
+/// cases not mentioned in the table, the representation falls back to
+/// `[T; 16]`. Everything here can change between versions, so do not rely on
+/// any of it.
+///
+/// | `T`   | `cfg` condition                                         | Representation     | Size (bytes) | Alignment (bytes) |
+/// | ----- | ------------------------------------------------------- | ------------------ | ------------ | ----------------- |
+/// | `f32` | `target_feature = "sse2"`                               | `[__m128; 4]`      | 64           | 16                |
+/// | `f32` | `all(target_arch = "aarch64", target_feature = "neon")` | `[float32x4_t; 4]` | 64           | 16                |
 ///
 /// [`transform_point`]: Projective::transform_point
 /// [`transform_vector`]: Projective::transform_vector

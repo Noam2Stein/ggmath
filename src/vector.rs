@@ -160,8 +160,9 @@ pub type Vec4<T> = Vector<4, T, Unaligned>;
 ///
 /// # SIMD alignment
 ///
-/// For appropriate `T` types, [`Vec2A<T>`] has SIMD alignment. For no SIMD use
-/// [`Vec2<T>`].
+/// Currently, this type does not have SIMD alignment for any `T` type. The
+/// representation is always `[T; 2]`. This could change in a future version, so
+/// do not rely on it.
 pub type Vec2A<T> = Vector<2, T, Aligned>;
 
 /// A 3D vector.
@@ -177,8 +178,16 @@ pub type Vec2A<T> = Vector<2, T, Aligned>;
 ///
 /// # SIMD alignment
 ///
-/// For appropriate `T` types, [`Vec3A<T>`] has SIMD alignment. For no SIMD use
-/// [`Vec3<T>`].
+/// This table shows for what `T` types and target configurations there is SIMD
+/// alignment. When there is SIMD alignment, appropriate functions use
+/// specialized SIMD implementations. For cases not mentioned in the table, the
+/// representation falls back to `[T; 3]`. Everything here can change between
+/// versions, so do not rely on any of it.
+///
+/// | `T`   | `cfg` condition                                         | Representation | Size (bytes) | Alignment (bytes) |
+/// | ----- | ------------------------------------------------------- | -------------- | ------------ | ----------------- |
+/// | `f32` | `target_feature = "sse2"`                               | `__m128`       | 16           | 16                |
+/// | `f32` | `all(target_arch = "aarch64", target_feature = "neon")` | `float32x4_t`  | 16           | 16                |
 pub type Vec3A<T> = Vector<3, T, Aligned>;
 
 /// A 4D vector.
@@ -195,8 +204,16 @@ pub type Vec3A<T> = Vector<3, T, Aligned>;
 ///
 /// # SIMD alignment
 ///
-/// For appropriate `T` types, [`Vec4A<T>`] has SIMD alignment. For no SIMD use
-/// [`Vec4<T>`].
+/// This table shows for what `T` types and target configurations there is SIMD
+/// alignment. When there is SIMD alignment, appropriate functions use
+/// specialized SIMD implementations. For cases not mentioned in the table, the
+/// representation falls back to `[T; 4]`. Everything here can change between
+/// versions, so do not rely on any of it.
+///
+/// | `T`   | `cfg` condition                                         | Representation | Size (bytes) | Alignment (bytes) |
+/// | ----- | ------------------------------------------------------- | -------------- | ------------ | ----------------- |
+/// | `f32` | `target_feature = "sse2"`                               | `__m128`       | 16           | 16                |
+/// | `f32` | `all(target_arch = "aarch64", target_feature = "neon")` | `float32x4_t`  | 16           | 16                |
 pub type Vec4A<T> = Vector<4, T, Aligned>;
 
 impl<const N: usize, T, A: Alignment> Clone for Vector<N, T, A>

@@ -130,8 +130,16 @@ pub type Affine3<T> = Affine<3, T, Unaligned>;
 ///
 /// # SIMD alignment
 ///
-/// For appropriate `T` types, [`Affine2A<T>`] has SIMD alignment. For no SIMD
-/// use [`Affine2<T>`].
+/// This table shows for what `T` types and target configurations there is SIMD
+/// alignment. When there is SIMD alignment, appropriate functions use
+/// specialized SIMD implementations. For cases not mentioned in the table, the
+/// representation falls back to `[T; 6]`. Everything here can change between
+/// versions, so do not rely on any of it.
+///
+/// | `T`   | `cfg` condition                                         | Representation     | Size (bytes) | Alignment (bytes) |
+/// | ----- | ------------------------------------------------------- | ------------------ | ------------ | ----------------- |
+/// | `f32` | `target_feature = "sse2"`                               | `[__m128; 2]`      | 32           | 16                |
+/// | `f32` | `all(target_arch = "aarch64", target_feature = "neon")` | `[float32x4_t; 2]` | 32           | 16                |
 pub type Affine2A<T> = Affine<2, T, Aligned>;
 
 /// A 3D affine transform which can represent translation, rotation, scaling and
@@ -149,8 +157,17 @@ pub type Affine2A<T> = Affine<2, T, Aligned>;
 ///
 /// # SIMD alignment
 ///
-/// For appropriate `T` types, [`Affine3A<T>`] has SIMD alignment. For no SIMD
-/// use [`Affine3<T>`].
+/// [`Affine3A<T>`] is stored as `[Vec3A<T>; 4]`. This table shows for what `T`
+/// types and target configurations there is SIMD alignment. When there is SIMD
+/// alignment, appropriate functions use specialized SIMD implementations. For
+/// cases not mentioned in the table, the representation falls back to
+/// `[T; 12]`. Everything here can change between versions, so do not rely on
+/// any of it.
+///
+/// | `T`   | `cfg` condition                                         | Representation     | Size (bytes) | Alignment (bytes) |
+/// | ----- | ------------------------------------------------------- | ------------------ | ------------ | ----------------- |
+/// | `f32` | `target_feature = "sse2"`                               | `[__m128; 4]`      | 64           | 16                |
+/// | `f32` | `all(target_arch = "aarch64", target_feature = "neon")` | `[float32x4_t; 4]` | 64           | 16                |
 pub type Affine3A<T> = Affine<3, T, Aligned>;
 
 impl<const N: usize, T, A: Alignment> Clone for Affine<N, T, A>

@@ -101,6 +101,12 @@ pub type Mask4<T> = Mask<4, T, Unaligned>;
 /// involving [`Vec3A<f32>`]. [`Mask2A<T>`] is optimized specifically for
 /// [`Vec2A<T>`].
 ///
+/// # SIMD alignment
+///
+/// Currently, this type does not have SIMD alignment for any `T` type. The
+/// representation is always `[bool; 2]`. This could change in a future version,
+/// so do not rely on it.
+///
 /// [`Vec3A<bool>`]: crate::Vec3A
 /// [`Vec3A<f32>`]: crate::Vec3A
 /// [`Vec2A<T>`]: crate::Vec2A
@@ -113,6 +119,19 @@ pub type Mask2A<T> = Mask<2, T, Aligned>;
 /// involving [`Vec3A<f32>`]. [`Mask3A<T>`] is optimized specifically for
 /// [`Vec3A<T>`].
 ///
+/// # SIMD alignment
+///
+/// This table shows for what `T` types and target configurations there is SIMD
+/// alignment. When there is SIMD alignment, appropriate functions use
+/// specialized SIMD implementations. For cases not mentioned in the table, the
+/// representation falls back to `[bool; 3]`. Everything here can change between
+/// versions, so do not rely on any of it.
+///
+/// | `T`   | `cfg` condition                                         | Representation | Size (bytes) | Alignment (bytes) |
+/// | ----- | ------------------------------------------------------- | -------------- | ------------ | ----------------- |
+/// | `f32` | `target_feature = "sse2"`                               | `__m128`       | 16           | 16                |
+/// | `f32` | `all(target_arch = "aarch64", target_feature = "neon")` | `float32x4_t`  | 16           | 16                |
+///
 /// [`Vec3A<bool>`]: crate::Vec3A
 /// [`Vec3A<f32>`]: crate::Vec3A
 /// [`Vec3A<T>`]: crate::Vec3A
@@ -124,6 +143,19 @@ pub type Mask3A<T> = Mask<3, T, Aligned>;
 /// [`Mask3A<f32>`] performs better than [`Vec3A<bool>`] for operations
 /// involving [`Vec3A<f32>`]. [`Mask4A<T>`] is optimized specifically for
 /// [`Vec4A<T>`].
+///
+/// # SIMD alignment
+///
+/// This table shows for what `T` types and target configurations there is SIMD
+/// alignment. When there is SIMD alignment, appropriate functions use
+/// specialized SIMD implementations. For cases not mentioned in the table, the
+/// representation falls back to `[bool; 4]`. Everything here can change between
+/// versions, so do not rely on any of it.
+///
+/// | `T`   | `cfg` condition                                         | Representation | Size (bytes) | Alignment (bytes) |
+/// | ----- | ------------------------------------------------------- | -------------- | ------------ | ----------------- |
+/// | `f32` | `target_feature = "sse2"`                               | `__m128`       | 16           | 16                |
+/// | `f32` | `all(target_arch = "aarch64", target_feature = "neon")` | `float32x4_t`  | 16           | 16                |
 ///
 /// [`Vec3A<bool>`]: crate::Vec3A
 /// [`Vec3A<f32>`]: crate::Vec3A

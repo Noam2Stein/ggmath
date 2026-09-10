@@ -199,11 +199,20 @@ pub type Mat4<T> = Matrix<4, T, Unaligned>;
 ///
 /// # SIMD alignment
 ///
-/// For appropriate `T` types, [`Mat2A<T>`] has SIMD alignment. For no SIMD use
-/// [`Mat2<T>`].
+/// [`Mat2A<T>`] is stored as [`Vec4A<T>`]. This table shows for what `T` types
+/// and target configurations there is SIMD alignment. When there is SIMD
+/// alignment, appropriate functions use specialized SIMD implementations. For
+/// cases not mentioned in the table, the representation falls back to `[T; 4]`.
+/// Everything here can change between versions, so do not rely on any of it.
+///
+/// | `T`   | `cfg` condition                                         | Representation      | Size (bytes) | Alignment (bytes) |
+/// | ----- | ------------------------------------------------------- | ------------------- | ------------ | ----------------- |
+/// | `f32` | `target_feature = "sse2"`                               | `__m128`            | 16           | 16                |
+/// | `f32` | `all(target_arch = "aarch64", target_feature = "neon")` | `float32x4_t`       | 16           | 16                |
 ///
 /// [`Affine2A`]: crate::Affine2A
 /// [`Proj2A`]: crate::Proj2A
+/// [`Vec4A<T>`]: crate::Vec4A
 pub type Mat2A<T> = Matrix<2, T, Aligned>;
 
 /// A 3x3 row-major matrix.
@@ -233,8 +242,16 @@ pub type Mat2A<T> = Matrix<2, T, Aligned>;
 ///
 /// # SIMD alignment
 ///
-/// For appropriate `T` types, [`Mat3A<T>`] has SIMD alignment. For no SIMD use
-/// [`Mat3<T>`].
+/// [`Mat3A<T>`] is stored as `[Vec3A<T>; 3]`. This table shows for what `T`
+/// types and target configurations there is SIMD alignment. When there is SIMD
+/// alignment, appropriate functions use specialized SIMD implementations. For
+/// cases not mentioned in the table, the representation falls back to `[T; 9]`.
+/// Everything here can change between versions, so do not rely on any of it.
+///
+/// | `T`   | `cfg` condition                                         | Representation     | Size (bytes) | Alignment (bytes) |
+/// | ----- | ------------------------------------------------------- | ------------------ | ------------ | ----------------- |
+/// | `f32` | `target_feature = "sse2"`                               | `[__m128; 3]`      | 48           | 16                |
+/// | `f32` | `all(target_arch = "aarch64", target_feature = "neon")` | `[float32x4_t; 3]` | 48           | 16                |
 ///
 /// [`Affine3A`]: crate::Affine3A
 /// [`Proj3A`]: crate::Proj3A
@@ -272,8 +289,17 @@ pub type Mat3A<T> = Matrix<3, T, Aligned>;
 ///
 /// # SIMD alignment
 ///
-/// For appropriate `T` types, [`Mat4A<T>`] has SIMD alignment. For no SIMD use
-/// [`Mat4<T>`].
+/// [`Mat4A<T>`] is stored as `[Vec4A<T>; 4]`. This table shows for what `T`
+/// types and target configurations there is SIMD alignment. When there is SIMD
+/// alignment, appropriate functions use specialized SIMD implementations. For
+/// cases not mentioned in the table, the representation falls back to
+/// `[T; 16]`. Everything here can change between versions, so do not rely on
+/// any of it.
+///
+/// | `T`   | `cfg` condition                                         | Representation     | Size (bytes) | Alignment (bytes) |
+/// | ----- | ------------------------------------------------------- | ------------------ | ------------ | ----------------- |
+/// | `f32` | `target_feature = "sse2"`                               | `[__m128; 4]`      | 64           | 16                |
+/// | `f32` | `all(target_arch = "aarch64", target_feature = "neon")` | `[float32x4_t; 4]` | 64           | 16                |
 ///
 /// [`Affine3A`]: crate::Affine3A
 /// [`Proj3A`]: crate::Proj3A

@@ -194,10 +194,18 @@ pub type Rotor3<T> = Rotor<3, T, Unaligned>;
 ///
 /// # SIMD alignment
 ///
-/// For appropriate `T` types, [`Rotor3A<T>`] has SIMD alignment. For no SIMD
-/// use [`Rotor3<T>`].
+/// [`Rotor3A<T>`] is stored as [`Vec4A<T>`]. This table shows for what `T` types
+/// and target configurations there is SIMD alignment. When there is SIMD
+/// alignment, appropriate functions use specialized SIMD implementations. For
+/// cases not mentioned in the table, the representation falls back to `[T; 4]`.
+/// Everything here can change between versions, so do not rely on any of it.
 ///
-/// [`rotor.normalize()`]: Rotor#method.normalize
+/// | `T`   | `cfg` condition                                         | Representation | Size (bytes) | Alignment (bytes) |
+/// | ----- | ------------------------------------------------------- | -------------- | ------------ | ----------------- |
+/// | `f32` | `target_feature = "sse2"`                               | `__m128`       | 16           | 16                |
+/// | `f32` | `all(target_arch = "aarch64", target_feature = "neon")` | `float32x4_t`  | 16           | 16                |
+///
+/// [`Vec4A<T>`]: crate::Vec4A
 pub type Rotor3A<T> = Rotor<3, T, Aligned>;
 
 impl<T, A: Alignment> Rotor<3, T, A>
