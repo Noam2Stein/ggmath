@@ -100,3 +100,14 @@ impl Element for u128 {}
 impl Element for usize {}
 
 impl Element for bool {}
+
+#[cfg(feature = "half")]
+mod half_impl {
+    use half::{bf16, f16};
+
+    use crate::CustomElement;
+
+    impl CustomElement for f16 {}
+
+    impl CustomElement for bf16 {}
+}
