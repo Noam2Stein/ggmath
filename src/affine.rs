@@ -92,10 +92,6 @@ where
 ///
 /// Contains a 2x2 matrix and a 2D translation vector.
 ///
-/// # No SIMD alignment
-///
-/// [`Affine2<T>`] does not have SIMD alignment, for that use [`Affine2A<T>`].
-///
 /// # Fields
 ///
 /// - `matrix: Mat2<T>` (linear transformation matrix)
@@ -109,10 +105,6 @@ pub type Affine2<T> = Affine<2, T, Unaligned>;
 /// shear.
 ///
 /// Contains a 3x3 matrix and a 3D translation vector.
-///
-/// # No SIMD alignment
-///
-/// [`Affine3<T>`] does not have SIMD alignment, for that use [`Affine3A<T>`].
 ///
 /// # Fields
 ///

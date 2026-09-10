@@ -114,10 +114,6 @@ where
 
 /// A 2D vector.
 ///
-/// # No SIMD alignment
-///
-/// [`Vec2<T>`] does not have SIMD alignment, for that use [`Vec2A<T>`].
-///
 /// # Fields
 ///
 /// - `x: T` (the first element of the vector)
@@ -128,10 +124,6 @@ where
 pub type Vec2<T> = Vector<2, T, Unaligned>;
 
 /// A 3D vector.
-///
-/// # No SIMD alignment
-///
-/// [`Vec3<T>`] does not have SIMD alignment, for that use [`Vec3A<T>`].
 ///
 /// # Fields
 ///
@@ -144,10 +136,6 @@ pub type Vec2<T> = Vector<2, T, Unaligned>;
 pub type Vec3<T> = Vector<3, T, Unaligned>;
 
 /// A 4D vector.
-///
-/// # No SIMD alignment
-///
-/// [`Vec4<T>`] does not have SIMD alignment, for that use [`Vec4A<T>`].
 ///
 /// # Fields
 ///

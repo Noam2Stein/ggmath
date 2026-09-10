@@ -100,10 +100,6 @@ where
 /// If you need translation, use [`Affine2`]. If you need 2D projections, use
 /// [`Proj2`].
 ///
-/// # No SIMD alignment
-///
-/// [`Mat2<T>`] does not have SIMD alignment, for that use [`Mat2A<T>`].
-///
 /// # Fields
 ///
 /// - `x_axis: Vec2<T>` (the first row of the matrix, represents the result of
@@ -129,10 +125,6 @@ pub type Mat2<T> = Matrix<2, T, Unaligned>;
 /// Unlike many other libraries, here [`Mat3`] is not used for 2D affine and
 /// projective transformations. For that use the [`Affine2`] and [`Proj2`]
 /// types.
-///
-/// # No SIMD alignment
-///
-/// [`Mat3<T>`] does not have SIMD alignment, for that use [`Mat3A<T>`].
 ///
 /// # Fields
 ///
@@ -164,10 +156,6 @@ pub type Mat3<T> = Matrix<3, T, Unaligned>;
 /// This represents a 4D linear transformation, applied using `vec4 * self`.
 /// Even though this type does not have many use cases, it is still useful for
 /// raw matrix operations and interop with other libraries.
-///
-/// # No SIMD alignment
-///
-/// [`Mat4<T>`] does not have SIMD alignment, for that use [`Mat4A<T>`].
 ///
 /// # Fields
 ///

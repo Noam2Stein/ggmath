@@ -118,10 +118,6 @@ where
 /// point "error creep" which can occur when successive operations are applied.
 /// Use [`rotor.normalize()`] to maintain precision.
 ///
-/// # No SIMD alignment
-///
-/// [`Rotor3<T>`] does not have SIMD alignment, for that use [`Rotor3A<T>`].
-///
 /// # Representation
 ///
 /// Unless you are familiar with rotor/quaternion math, avoid using rotor

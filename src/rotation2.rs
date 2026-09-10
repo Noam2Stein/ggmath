@@ -56,10 +56,6 @@ where
 
 /// A 2D rotation represented by a unit complex number.
 ///
-/// # No SIMD alignment
-///
-/// [`Rot2<T>`] does not have SIMD alignment, for that use [`Rot2A<T>`].
-///
 /// # Fields
 ///
 /// - `cos: T` (the cosine of the angle)

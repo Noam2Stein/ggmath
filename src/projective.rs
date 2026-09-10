@@ -90,10 +90,6 @@ where
 /// [`transform_vector`]. To apply this with perspective divide, use
 /// [`project_point`]. To transform a homogeneous 3D vector, use `vec3 * self`.
 ///
-/// # No SIMD alignment
-///
-/// [`Proj2<T>`] does not have SIMD alignment, for that use [`Proj2A<T>`].
-///
 /// [`transform_point`]: Projective::transform_point
 /// [`transform_vector`]: Projective::transform_vector
 /// [`project_point`]: Projective::project_point
@@ -105,10 +101,6 @@ pub type Proj2<T> = Projective<2, T, Unaligned>;
 /// To apply this assuming no projection, use [`transform_point`] and
 /// [`transform_vector`]. To apply this with perspective divide, use
 /// [`project_point`]. To transform a homogeneous 4D vector, use `vec4 * self`.
-///
-/// # No SIMD alignment
-///
-/// [`Proj3<T>`] does not have SIMD alignment, for that use [`Proj3A<T>`].
 ///
 /// [`transform_point`]: Projective::transform_point
 /// [`transform_vector`]: Projective::transform_vector
