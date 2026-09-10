@@ -233,6 +233,7 @@
 //! [`libm`]: https://crates.io/crates/libm
 //!
 //! [`bytemuck`]: https://crates.io/crates/bytemuck
+//! [`half`]: https://crates.io/crates/half
 //! [`f16`]: https://docs.rs/half/latest/half/struct.f16.html
 //! [`bf16`]: https://docs.rs/half/latest/half/struct.bf16.html
 //! [`std`]: https://doc.rust-lang.org/std
