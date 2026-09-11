@@ -54,6 +54,39 @@ where
         specialize!(Affine::<N, Wide, A>::from_lanes_backend(lanes))
     }
 
+    /// Converts an SoA (Structure of Arrays) affine transform to an array of
+    /// lanes or scalar affine transforms.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Affine2;
+    /// # use wide::i32x4;
+    /// #
+    /// let affine = Affine2::from_row_array(&[
+    ///     i32x4::new([1, 7, 13, 19]),
+    ///     i32x4::new([2, 8, 14, 20]),
+    ///     i32x4::new([3, 9, 15, 21]),
+    ///     i32x4::new([4, 10, 16, 22]),
+    ///     i32x4::new([5, 11, 17, 23]),
+    ///     i32x4::new([6, 12, 18, 24]),
+    /// ]);
+    /// assert_eq!(
+    ///     affine.to_lanes(),
+    ///     [
+    ///         Affine2::from_row_array(&[1, 2, 3, 4, 5, 6]),
+    ///         Affine2::from_row_array(&[7, 8, 9, 10, 11, 12]),
+    ///         Affine2::from_row_array(&[13, 14, 15, 16, 17, 18]),
+    ///         Affine2::from_row_array(&[19, 20, 21, 22, 23, 24]),
+    ///     ],
+    /// );
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn to_lanes(&self) -> [Affine<N, T, A>; LANES] {
+        core::array::from_fn(|lane| self.lane(lane))
+    }
+
     /// Creates an SoA (Structure of Arrays) affine transform by calling
     /// function `f` for each lane index.
     ///
@@ -89,39 +122,6 @@ where
         F: FnMut(usize) -> Affine<N, T, A>,
     {
         Self::from_lanes(&core::array::from_fn(f))
-    }
-
-    /// Converts an SoA (Structure of Arrays) affine transform to an array of
-    /// lanes or scalar affine transforms.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::Affine2;
-    /// # use wide::i32x4;
-    /// #
-    /// let affine = Affine2::from_row_array(&[
-    ///     i32x4::new([1, 7, 13, 19]),
-    ///     i32x4::new([2, 8, 14, 20]),
-    ///     i32x4::new([3, 9, 15, 21]),
-    ///     i32x4::new([4, 10, 16, 22]),
-    ///     i32x4::new([5, 11, 17, 23]),
-    ///     i32x4::new([6, 12, 18, 24]),
-    /// ]);
-    /// assert_eq!(
-    ///     affine.to_lanes(),
-    ///     [
-    ///         Affine2::from_row_array(&[1, 2, 3, 4, 5, 6]),
-    ///         Affine2::from_row_array(&[7, 8, 9, 10, 11, 12]),
-    ///         Affine2::from_row_array(&[13, 14, 15, 16, 17, 18]),
-    ///         Affine2::from_row_array(&[19, 20, 21, 22, 23, 24]),
-    ///     ],
-    /// );
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn to_lanes(&self) -> [Affine<N, T, A>; LANES] {
-        core::array::from_fn(|lane| self.lane(lane))
     }
 
     /// Takes an SoA (Structure of Arrays) affine transform and returns the lane

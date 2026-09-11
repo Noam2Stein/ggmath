@@ -10,6 +10,30 @@ use crate::{
 
 macro_rules! items {
     ($Wide:ident, $UnsignedWide:ty) => {
+        /// Returns the absolute values of the elements of `self`.
+        ///
+        /// Equivalent to `(self.x.abs(), self.y.abs(), ...)`.
+        #[inline]
+        #[must_use]
+        pub fn abs(self) -> Self {
+            specialize!(Vector::<N, $Wide, A>::abs_backend(self))
+        }
+
+        /// Returns the signum of the elements of `self`.
+        ///
+        /// Equivalent to `(self.x.signum(), self.y.signum(), ...)`.
+        ///
+        /// For each element:
+        ///
+        /// - `0` if the element is zero
+        /// - `1` if the element is positive
+        /// - `-1` if the element is negative
+        #[inline]
+        #[must_use]
+        pub fn signum(self) -> Self {
+            specialize!(Vector::<N, $Wide, A>::signum_backend(self))
+        }
+
         /// Returns a vector mask where each element is `true` if the
         /// corresponding element of `self` is positive, and `false` if it is
         /// zero or negative.
@@ -44,30 +68,6 @@ macro_rules! items {
         pub const fn cast_unsigned(self) -> Vector<N, $UnsignedWide, A> {
             // SAFETY: Both types accept all bit-patterns.
             unsafe { transmute_generic::<Vector<N, $Wide, A>, Vector<N, $UnsignedWide, A>>(self) }
-        }
-
-        /// Returns the absolute values of the elements of `self`.
-        ///
-        /// Equivalent to `(self.x.abs(), self.y.abs(), ...)`.
-        #[inline]
-        #[must_use]
-        pub fn abs(self) -> Self {
-            specialize!(Vector::<N, $Wide, A>::abs_backend(self))
-        }
-
-        /// Returns the signum of the elements of `self`.
-        ///
-        /// Equivalent to `(self.x.signum(), self.y.signum(), ...)`.
-        ///
-        /// For each element:
-        ///
-        /// - `0` if the element is zero
-        /// - `1` if the element is positive
-        /// - `-1` if the element is negative
-        #[inline]
-        #[must_use]
-        pub fn signum(self) -> Self {
-            specialize!(Vector::<N, $Wide, A>::signum_backend(self))
         }
     };
 }

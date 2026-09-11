@@ -16,6 +16,15 @@ macro_rules! items {
             Self::from_cos_sin(cos, sin)
         }
 
+        /// Converts a 2D rotation to an angle (in radians) rotating `+X` to `+Y`.
+        ///
+        /// This assumes `self` is normalized.
+        #[inline]
+        #[must_use]
+        pub fn to_angle(self) -> $Wide {
+            self.sin.atan2(self.cos)
+        }
+
         /// Returns the rotation transforming `from` to `to`.
         ///
         /// This assumes `from` and `to` are normalized.
@@ -69,29 +78,6 @@ macro_rules! items {
         #[must_use]
         pub fn from_projective(projective: &Projective<2, $Wide, A>) -> Self {
             Self(projective.x_axis.truncate())
-        }
-
-        /// Converts a 2D rotation to an angle (in radians) rotating `+X` to `+Y`.
-        ///
-        /// This assumes `self` is normalized.
-        #[inline]
-        #[must_use]
-        pub fn to_angle(self) -> $Wide {
-            self.sin.atan2(self.cos)
-        }
-
-        /// Returns `true` if any element is NaN.
-        #[inline]
-        #[must_use]
-        pub fn is_nan(self) -> $Wide {
-            self.0.is_nan()
-        }
-
-        /// Returns `true` if all elements are neither infinite nor NaN.
-        #[inline]
-        #[must_use]
-        pub fn is_finite(self) -> $Wide {
-            self.0.is_finite()
         }
 
         /// Returns the inverse of a 2D rotation.
@@ -267,6 +253,20 @@ macro_rules! items {
         #[must_use]
         pub fn abs_diff_eq(self, other: Self, max_abs_diff: $Wide) -> bool {
             self.0.abs_diff_eq(other.0, max_abs_diff)
+        }
+
+        /// Returns `true` if any element is NaN.
+        #[inline]
+        #[must_use]
+        pub fn is_nan(self) -> $Wide {
+            self.0.is_nan()
+        }
+
+        /// Returns `true` if all elements are neither infinite nor NaN.
+        #[inline]
+        #[must_use]
+        pub fn is_finite(self) -> $Wide {
+            self.0.is_finite()
         }
     };
 }

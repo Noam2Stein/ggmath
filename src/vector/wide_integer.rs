@@ -17,43 +17,6 @@ macro_rules! items {
         /// [`MAX`]: i32::MAX
         pub const MAX: Self = Self::splat($Wide::MAX);
 
-        /// Computes `self + rhs`, saturating at the numeric bounds instead of
-        /// overflowing.
-        #[inline]
-        #[must_use]
-        pub fn saturating_add(self, rhs: Self) -> Self {
-            specialize!(Vector::<N, $Wide, A>::saturating_add_backend(self, rhs))
-        }
-
-        /// Computes `self - rhs`, saturating at the numeric bounds instead of
-        /// overflowing.
-        #[inline]
-        #[must_use]
-        pub fn saturating_sub(self, rhs: Self) -> Self {
-            specialize!(Vector::<N, $Wide, A>::saturating_sub_backend(self, rhs))
-        }
-
-        /// Computes `self * rhs`, saturating at the numeric bounds instead of
-        /// overflowing.
-        #[inline]
-        #[must_use]
-        pub fn saturating_mul(self, rhs: Self) -> Self {
-            specialize!(Vector::<N, $Wide, A>::saturating_mul_backend(self, rhs))
-        }
-
-        /// Computes `self / rhs`, saturating at the numeric bounds instead of
-        /// overflowing.
-        ///
-        /// # Panics
-        ///
-        /// Panics if any component of `rhs` is `0`.
-        #[inline]
-        #[must_use]
-        #[track_caller]
-        pub fn saturating_div(self, rhs: Self) -> Self {
-            specialize!(Vector::<N, $Wide, A>::saturating_div_backend(self, rhs))
-        }
-
         /// Returns the maximum elements between `self` and `other`.
         ///
         /// Equivalent to `(self.x.max(other.x), self.y.max(other.y), ...)`.
@@ -102,6 +65,43 @@ macro_rules! items {
         #[must_use]
         pub fn min_element(self) -> $Wide {
             specialize!(Vector::<N, $Wide, A>::min_element_backend(self))
+        }
+
+        /// Computes `self + rhs`, saturating at the numeric bounds instead of
+        /// overflowing.
+        #[inline]
+        #[must_use]
+        pub fn saturating_add(self, rhs: Self) -> Self {
+            specialize!(Vector::<N, $Wide, A>::saturating_add_backend(self, rhs))
+        }
+
+        /// Computes `self - rhs`, saturating at the numeric bounds instead of
+        /// overflowing.
+        #[inline]
+        #[must_use]
+        pub fn saturating_sub(self, rhs: Self) -> Self {
+            specialize!(Vector::<N, $Wide, A>::saturating_sub_backend(self, rhs))
+        }
+
+        /// Computes `self * rhs`, saturating at the numeric bounds instead of
+        /// overflowing.
+        #[inline]
+        #[must_use]
+        pub fn saturating_mul(self, rhs: Self) -> Self {
+            specialize!(Vector::<N, $Wide, A>::saturating_mul_backend(self, rhs))
+        }
+
+        /// Computes `self / rhs`, saturating at the numeric bounds instead of
+        /// overflowing.
+        ///
+        /// # Panics
+        ///
+        /// Panics if any component of `rhs` is `0`.
+        #[inline]
+        #[must_use]
+        #[track_caller]
+        pub fn saturating_div(self, rhs: Self) -> Self {
+            specialize!(Vector::<N, $Wide, A>::saturating_div_backend(self, rhs))
         }
     };
 }

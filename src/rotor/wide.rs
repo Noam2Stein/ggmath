@@ -49,6 +49,37 @@ where
         Self(Vector::<4, Wide, A>::from_lane_fn(|lane| lanes[lane].0))
     }
 
+    /// Converts an SoA (Structure of Arrays) rotor to an array of regular,
+    /// non-SoA rotors corresponding to each input lane.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Rotor3;
+    /// # use wide::i32x4;
+    /// #
+    /// let soa = Rotor3::from_elements(
+    ///     i32x4::new([1, 11, 21, 31]),
+    ///     i32x4::new([2, 12, 22, 32]),
+    ///     i32x4::new([3, 13, 23, 33]),
+    ///     i32x4::new([4, 14, 24, 34]),
+    /// );
+    /// assert_eq!(
+    ///     soa.to_lanes(),
+    ///     [
+    ///         Rotor3::from_elements(1, 2, 3, 4),
+    ///         Rotor3::from_elements(11, 12, 13, 14),
+    ///         Rotor3::from_elements(21, 22, 23, 24),
+    ///         Rotor3::from_elements(31, 32, 33, 34),
+    ///     ],
+    /// );
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn to_lanes(&self) -> [Rotor<N, T, A>; LANES] {
+        core::array::from_fn(|lane| self.lane(lane))
+    }
+
     /// Creates an SoA (Structure of Arrays) rotor by calling function `f` for
     /// each output lane.
     ///
@@ -82,37 +113,6 @@ where
         F: FnMut(usize) -> Rotor<N, T, A>,
     {
         Self::from_lanes(&core::array::from_fn(f))
-    }
-
-    /// Converts an SoA (Structure of Arrays) rotor to an array of regular,
-    /// non-SoA rotors corresponding to each input lane.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::Rotor3;
-    /// # use wide::i32x4;
-    /// #
-    /// let soa = Rotor3::from_elements(
-    ///     i32x4::new([1, 11, 21, 31]),
-    ///     i32x4::new([2, 12, 22, 32]),
-    ///     i32x4::new([3, 13, 23, 33]),
-    ///     i32x4::new([4, 14, 24, 34]),
-    /// );
-    /// assert_eq!(
-    ///     soa.to_lanes(),
-    ///     [
-    ///         Rotor3::from_elements(1, 2, 3, 4),
-    ///         Rotor3::from_elements(11, 12, 13, 14),
-    ///         Rotor3::from_elements(21, 22, 23, 24),
-    ///         Rotor3::from_elements(31, 32, 33, 34),
-    ///     ],
-    /// );
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn to_lanes(&self) -> [Rotor<N, T, A>; LANES] {
-        core::array::from_fn(|lane| self.lane(lane))
     }
 
     /// Takes an SoA (Structure of Arrays) rotor transform and returns the

@@ -44,6 +44,24 @@ where
         unsafe { transmute_generic::<[Vector<N, T, A>; N], Matrix<N, T, A>>(*rows) }
     }
 
+    /// Returns a reference to the matrix's rows.
+    #[inline]
+    #[must_use]
+    pub const fn as_rows(&self) -> &[Vector<N, T, A>; N] {
+        // SAFETY: `Matrix<N, T, A>` is guaranteed to begin with `N` consecutive
+        // values of `Vector<N, T, A>`.
+        unsafe { transmute_ref::<Matrix<N, T, A>, [Vector<N, T, A>; N]>(self) }
+    }
+
+    /// Returns a mutable reference to the matrix's rows.
+    #[inline]
+    #[must_use]
+    pub const fn as_mut_rows(&mut self) -> &mut [Vector<N, T, A>; N] {
+        // SAFETY: `Matrix<N, T, A>` is guaranteed to begin with `N` consecutive
+        // values of `Vector<N, T, A>`.
+        unsafe { transmute_mut::<Matrix<N, T, A>, [Vector<N, T, A>; N]>(self) }
+    }
+
     /// Creates a matrix by calling function `f` for each row index.
     ///
     /// Equivalent to `[f(0), f(1), f(2), ...]` where each item is a row vector.
@@ -137,6 +155,60 @@ where
         }
     }
 
+    /// Returns the diagonal of `self`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Mat4, Vec4};
+    /// #
+    /// let matrix = Mat4::from_rows(&[
+    ///     Vec4::new(1, 1, 1, 0),
+    ///     Vec4::new(2, 2, 2, 0),
+    ///     Vec4::new(3, 3, 3, 0),
+    ///     Vec4::new(4, 4, 4, 1),
+    /// ]);
+    ///
+    /// assert_eq!(matrix.diagonal(), Vec4::new(1, 2, 3, 1));
+    /// ```
+    #[inline]
+    #[must_use]
+    pub const fn diagonal(&self) -> Vector<N, T, A> {
+        match N {
+            // SAFETY: Because `N == 2`, `Vector<2, T, A>` and `Vector<N, T, A>`
+            // are the same type.
+            2 => unsafe {
+                transmute_generic::<Vector<2, T, A>, Vector<N, T, A>>(Vector::<2, T, A>::new(
+                    self.as_rows()[0].as_array()[0],
+                    self.as_rows()[1].as_array()[1],
+                ))
+            },
+
+            // SAFETY: Because `N == 3`, `Vector<3, T, A>` and `Vector<N, T, A>`
+            // are the same type.
+            3 => unsafe {
+                transmute_generic::<Vector<3, T, A>, Vector<N, T, A>>(Vector::<3, T, A>::new(
+                    self.as_rows()[0].as_array()[0],
+                    self.as_rows()[1].as_array()[1],
+                    self.as_rows()[2].as_array()[2],
+                ))
+            },
+
+            // SAFETY: Because `N == 4`, `Vector<4, T, A>` and `Vector<N, T, A>`
+            // are the same type.
+            4 => unsafe {
+                transmute_generic::<Vector<4, T, A>, Vector<N, T, A>>(Vector::<4, T, A>::new(
+                    self.as_rows()[0].as_array()[0],
+                    self.as_rows()[1].as_array()[1],
+                    self.as_rows()[2].as_array()[2],
+                    self.as_rows()[3].as_array()[3],
+                ))
+            },
+
+            _ => unreachable!(),
+        }
+    }
+
     /// Creates a matrix from a non-uniform scale.
     ///
     /// This is identical to [`from_diagonal`]. Use whichever function that
@@ -164,82 +236,6 @@ where
         T: Zero,
     {
         Self::from_diagonal(scale)
-    }
-
-    /// Converts `self` to the specified SIMD-alignment mode.
-    ///
-    /// If the output mode is known to always be [`Aligned`] or always be
-    /// [`Unaligned`], use methods [`align`] and [`unalign`] instead.
-    ///
-    /// See [`Alignment`] for more information about SIMD-aligned types.
-    ///
-    /// [`align`]: Self::align
-    /// [`unalign`]: Self::unalign
-    #[inline]
-    #[must_use]
-    pub const fn to_alignment<A2: Alignment>(&self) -> Matrix<N, T, A2> {
-        match (N, A2::IS_ALIGNED == A::IS_ALIGNED) {
-            // SAFETY: If `A` is `A2`, the types of the transmute are the same
-            // and make it safe. Otherwhise, matrices with length `2` and `4`
-            // are guaranteed to be made out of `N * N` consecutive values of
-            // `T` with no padding. Meaning they have compatible layouts between
-            // alignments.
-            (2 | 4, _) | (_, true) => unsafe {
-                transmute_generic::<Matrix<N, T, A>, Matrix<N, T, A2>>(*self)
-            },
-
-            // SAFETY: Because `N == 3`, `Matrix<N, T, A>` and `Matrix<3, T, A>`
-            // are the same type, and `Matrix<N, T, A2>` and `Matrix<3, T, A2>`
-            // are the same type.
-            (3, false) => unsafe {
-                let matrix = transmute_ref::<Matrix<N, T, A>, Matrix<3, T, A>>(self);
-                transmute_generic::<Matrix<3, T, A2>, Matrix<N, T, A2>>(
-                    Matrix::<3, T, A2>::from_rows(&[
-                        matrix.as_rows()[0].to_alignment(),
-                        matrix.as_rows()[1].to_alignment(),
-                        matrix.as_rows()[2].to_alignment(),
-                    ]),
-                )
-            },
-
-            _ => unreachable!(),
-        }
-    }
-
-    /// Converts `self` to SIMD-aligned storage.
-    ///
-    /// See [`Alignment`] for more information about SIMD-aligned types.
-    #[inline]
-    #[must_use]
-    pub const fn align(&self) -> Matrix<N, T, Aligned> {
-        self.to_alignment()
-    }
-
-    /// Converts `self` to non-SIMD-aligned storage.
-    ///
-    /// See [`Alignment`] for more information about SIMD-aligned types.
-    #[inline]
-    #[must_use]
-    pub const fn unalign(&self) -> Matrix<N, T, Unaligned> {
-        self.to_alignment()
-    }
-
-    /// Returns a reference to the matrix's rows.
-    #[inline]
-    #[must_use]
-    pub const fn as_rows(&self) -> &[Vector<N, T, A>; N] {
-        // SAFETY: `Matrix<N, T, A>` is guaranteed to begin with `N` consecutive
-        // values of `Vector<N, T, A>`.
-        unsafe { transmute_ref::<Matrix<N, T, A>, [Vector<N, T, A>; N]>(self) }
-    }
-
-    /// Returns a mutable reference to the matrix's rows.
-    #[inline]
-    #[must_use]
-    pub const fn as_mut_rows(&mut self) -> &mut [Vector<N, T, A>; N] {
-        // SAFETY: `Matrix<N, T, A>` is guaranteed to begin with `N` consecutive
-        // values of `Vector<N, T, A>`.
-        unsafe { transmute_mut::<Matrix<N, T, A>, [Vector<N, T, A>; N]>(self) }
     }
 
     /// Returns the column at the given index.
@@ -370,6 +366,31 @@ where
         }
     }
 
+    /// Returns the determinant of `self`.
+    ///
+    /// # Consistency
+    ///
+    /// Floating-point precision and integer overflow may be inconsistent across
+    /// target architectures.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Mat3, Vec3};
+    /// #
+    /// let matrix = Mat3::from_scale(Vec3::splat(2));
+    ///
+    /// assert_eq!(matrix.determinant(), 8);
+    /// ```
+    #[must_use]
+    #[track_caller]
+    pub fn determinant(&self) -> T
+    where
+        T: Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
+    {
+        specialize!(Matrix::<N, T, A>::determinant_backend(self))
+    }
+
     /// Returns the transpose of `self`.
     ///
     /// # Examples
@@ -399,6 +420,21 @@ where
         specialize!(Matrix::<N, T, A>::transpose_backend(self))
     }
 
+    /// Returns a matrix that first applies scaling vector `scale` then applies
+    /// `self`.
+    ///
+    /// Equivalent to `Matrix::from_scale(scale) * self` but is faster. This
+    /// may be inconsistent for NaNs and `-0.0`.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn prepend_scale(&self, scale: Vector<N, T, A>) -> Self
+    where
+        T: Mul<Output = T>,
+    {
+        specialize!(Matrix::<N, T, A>::prepend_scale_backend(self, scale))
+    }
+
     /// Transforms `vector` by the transpose of `self`.
     ///
     /// Equivalent to `vector * self.transpose()` but is faster and may return a
@@ -415,98 +451,62 @@ where
         ))
     }
 
-    /// Returns the diagonal of `self`.
+    /// Converts `self` to SIMD-aligned storage.
     ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::{Mat4, Vec4};
-    /// #
-    /// let matrix = Mat4::from_rows(&[
-    ///     Vec4::new(1, 1, 1, 0),
-    ///     Vec4::new(2, 2, 2, 0),
-    ///     Vec4::new(3, 3, 3, 0),
-    ///     Vec4::new(4, 4, 4, 1),
-    /// ]);
-    ///
-    /// assert_eq!(matrix.diagonal(), Vec4::new(1, 2, 3, 1));
-    /// ```
+    /// See [`Alignment`] for more information about SIMD-aligned types.
     #[inline]
     #[must_use]
-    pub const fn diagonal(&self) -> Vector<N, T, A> {
-        match N {
-            // SAFETY: Because `N == 2`, `Vector<2, T, A>` and `Vector<N, T, A>`
-            // are the same type.
-            2 => unsafe {
-                transmute_generic::<Vector<2, T, A>, Vector<N, T, A>>(Vector::<2, T, A>::new(
-                    self.as_rows()[0].as_array()[0],
-                    self.as_rows()[1].as_array()[1],
-                ))
+    pub const fn align(&self) -> Matrix<N, T, Aligned> {
+        self.to_alignment()
+    }
+
+    /// Converts `self` to non-SIMD-aligned storage.
+    ///
+    /// See [`Alignment`] for more information about SIMD-aligned types.
+    #[inline]
+    #[must_use]
+    pub const fn unalign(&self) -> Matrix<N, T, Unaligned> {
+        self.to_alignment()
+    }
+
+    /// Converts `self` to the specified SIMD-alignment mode.
+    ///
+    /// If the output mode is known to always be [`Aligned`] or always be
+    /// [`Unaligned`], use methods [`align`] and [`unalign`] instead.
+    ///
+    /// See [`Alignment`] for more information about SIMD-aligned types.
+    ///
+    /// [`align`]: Self::align
+    /// [`unalign`]: Self::unalign
+    #[inline]
+    #[must_use]
+    pub const fn to_alignment<A2: Alignment>(&self) -> Matrix<N, T, A2> {
+        match (N, A2::IS_ALIGNED == A::IS_ALIGNED) {
+            // SAFETY: If `A` is `A2`, the types of the transmute are the same
+            // and make it safe. Otherwhise, matrices with length `2` and `4`
+            // are guaranteed to be made out of `N * N` consecutive values of
+            // `T` with no padding. Meaning they have compatible layouts between
+            // alignments.
+            (2 | 4, _) | (_, true) => unsafe {
+                transmute_generic::<Matrix<N, T, A>, Matrix<N, T, A2>>(*self)
             },
 
-            // SAFETY: Because `N == 3`, `Vector<3, T, A>` and `Vector<N, T, A>`
+            // SAFETY: Because `N == 3`, `Matrix<N, T, A>` and `Matrix<3, T, A>`
+            // are the same type, and `Matrix<N, T, A2>` and `Matrix<3, T, A2>`
             // are the same type.
-            3 => unsafe {
-                transmute_generic::<Vector<3, T, A>, Vector<N, T, A>>(Vector::<3, T, A>::new(
-                    self.as_rows()[0].as_array()[0],
-                    self.as_rows()[1].as_array()[1],
-                    self.as_rows()[2].as_array()[2],
-                ))
-            },
-
-            // SAFETY: Because `N == 4`, `Vector<4, T, A>` and `Vector<N, T, A>`
-            // are the same type.
-            4 => unsafe {
-                transmute_generic::<Vector<4, T, A>, Vector<N, T, A>>(Vector::<4, T, A>::new(
-                    self.as_rows()[0].as_array()[0],
-                    self.as_rows()[1].as_array()[1],
-                    self.as_rows()[2].as_array()[2],
-                    self.as_rows()[3].as_array()[3],
-                ))
+            (3, false) => unsafe {
+                let matrix = transmute_ref::<Matrix<N, T, A>, Matrix<3, T, A>>(self);
+                transmute_generic::<Matrix<3, T, A2>, Matrix<N, T, A2>>(
+                    Matrix::<3, T, A2>::from_rows(&[
+                        matrix.as_rows()[0].to_alignment(),
+                        matrix.as_rows()[1].to_alignment(),
+                        matrix.as_rows()[2].to_alignment(),
+                    ]),
+                )
             },
 
             _ => unreachable!(),
         }
-    }
-
-    /// Returns a matrix that first applies scaling vector `scale` then applies
-    /// `self`.
-    ///
-    /// Equivalent to `Matrix::from_scale(scale) * self` but is faster. This
-    /// may be inconsistent for NaNs and `-0.0`.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn prepend_scale(&self, scale: Vector<N, T, A>) -> Self
-    where
-        T: Mul<Output = T>,
-    {
-        specialize!(Matrix::<N, T, A>::prepend_scale_backend(self, scale))
-    }
-
-    /// Returns the determinant of `self`.
-    ///
-    /// # Consistency
-    ///
-    /// Floating-point precision and integer overflow may be inconsistent across
-    /// target architectures.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::{Mat3, Vec3};
-    /// #
-    /// let matrix = Mat3::from_scale(Vec3::splat(2));
-    ///
-    /// assert_eq!(matrix.determinant(), 8);
-    /// ```
-    #[must_use]
-    #[track_caller]
-    pub fn determinant(&self) -> T
-    where
-        T: Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
-    {
-        specialize!(Matrix::<N, T, A>::determinant_backend(self))
     }
 }
 
@@ -625,6 +625,29 @@ where
         ])
     }
 
+    /// Returns a 2x2 matrix discarding the given `row` and `column`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `row` or `column` are greater than `2`.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn remove(&self, row: usize, column: usize) -> Matrix<2, T, A> {
+        match (row, column) {
+            (0, 0) => Matrix::from_rows(&[self.y_axis.yz(), self.z_axis.yz()]),
+            (0, 1) => Matrix::from_rows(&[self.y_axis.xz(), self.z_axis.xz()]),
+            (0, 2) => Matrix::from_rows(&[self.y_axis.xy(), self.z_axis.xy()]),
+            (1, 0) => Matrix::from_rows(&[self.x_axis.yz(), self.z_axis.yz()]),
+            (1, 1) => Matrix::from_rows(&[self.x_axis.xz(), self.z_axis.xz()]),
+            (1, 2) => Matrix::from_rows(&[self.x_axis.xy(), self.z_axis.xy()]),
+            (2, 0) => Matrix::from_rows(&[self.x_axis.yz(), self.y_axis.yz()]),
+            (2, 1) => Matrix::from_rows(&[self.x_axis.xz(), self.y_axis.xz()]),
+            (2, 2) => Matrix::from_rows(&[self.x_axis.xy(), self.y_axis.xy()]),
+            _ => panic!("index out of bounds"),
+        }
+    }
+
     /// Creates an `N+1`x`N+1` homogeneous transformation matrix from an `N`x`N`
     /// linear transformation matrix.
     ///
@@ -659,29 +682,6 @@ where
             self.z_axis.extend(T::ZERO),
             Vector::<4, T, A>::W,
         ])
-    }
-
-    /// Returns a 2x2 matrix discarding the given `row` and `column`.
-    ///
-    /// # Panics
-    ///
-    /// Panics if `row` or `column` are greater than `2`.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn remove(&self, row: usize, column: usize) -> Matrix<2, T, A> {
-        match (row, column) {
-            (0, 0) => Matrix::from_rows(&[self.y_axis.yz(), self.z_axis.yz()]),
-            (0, 1) => Matrix::from_rows(&[self.y_axis.xz(), self.z_axis.xz()]),
-            (0, 2) => Matrix::from_rows(&[self.y_axis.xy(), self.z_axis.xy()]),
-            (1, 0) => Matrix::from_rows(&[self.x_axis.yz(), self.z_axis.yz()]),
-            (1, 1) => Matrix::from_rows(&[self.x_axis.xz(), self.z_axis.xz()]),
-            (1, 2) => Matrix::from_rows(&[self.x_axis.xy(), self.z_axis.xy()]),
-            (2, 0) => Matrix::from_rows(&[self.x_axis.yz(), self.y_axis.yz()]),
-            (2, 1) => Matrix::from_rows(&[self.x_axis.xz(), self.y_axis.xz()]),
-            (2, 2) => Matrix::from_rows(&[self.x_axis.xy(), self.y_axis.xy()]),
-            _ => panic!("index out of bounds"),
-        }
     }
 
     #[inline(always)]

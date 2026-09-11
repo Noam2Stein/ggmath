@@ -46,6 +46,35 @@ where
         Self(Vector::from_lane_fn(|lane| lanes[lane].0))
     }
 
+    /// Converts an SoA (Structure of Arrays) 2D rotation to an array of lanes or
+    /// scalar 2D rotations.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Rot2;
+    /// # use wide::i32x4;
+    /// #
+    /// let rotation = Rot2::from_cos_sin(
+    ///     i32x4::new([1, 3, 5, 7]),
+    ///     i32x4::new([2, 4, 6, 8]),
+    /// );
+    /// assert_eq!(
+    ///     rotation.to_lanes(),
+    ///     [
+    ///         Rot2::from_cos_sin(1, 2),
+    ///         Rot2::from_cos_sin(3, 4),
+    ///         Rot2::from_cos_sin(5, 6),
+    ///         Rot2::from_cos_sin(7, 8),
+    ///     ],
+    /// );
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn to_lanes(&self) -> [Rotation2<T, A>; LANES] {
+        core::array::from_fn(|lane| self.lane(lane))
+    }
+
     /// Creates an SoA (Structure of Arrays) 2D rotation by calling function `f`
     /// for each lane index.
     ///
@@ -77,35 +106,6 @@ where
         F: FnMut(usize) -> Rotation2<T, A>,
     {
         Self::from_lanes(&core::array::from_fn(f))
-    }
-
-    /// Converts an SoA (Structure of Arrays) 2D rotation to an array of lanes or
-    /// scalar 2D rotations.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::Rot2;
-    /// # use wide::i32x4;
-    /// #
-    /// let rotation = Rot2::from_cos_sin(
-    ///     i32x4::new([1, 3, 5, 7]),
-    ///     i32x4::new([2, 4, 6, 8]),
-    /// );
-    /// assert_eq!(
-    ///     rotation.to_lanes(),
-    ///     [
-    ///         Rot2::from_cos_sin(1, 2),
-    ///         Rot2::from_cos_sin(3, 4),
-    ///         Rot2::from_cos_sin(5, 6),
-    ///         Rot2::from_cos_sin(7, 8),
-    ///     ],
-    /// );
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn to_lanes(&self) -> [Rotation2<T, A>; LANES] {
-        core::array::from_fn(|lane| self.lane(lane))
     }
 
     /// Takes an SoA (Structure of Arrays) 2D rotation and returns the lane at

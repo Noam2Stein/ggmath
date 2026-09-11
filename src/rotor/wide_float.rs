@@ -81,20 +81,6 @@ macro_rules! items {
             specialize_3!(Rotor::<N, $Wide, A>::from_projective_backend(projective))
         }
 
-        /// Returns `true` if any element is NaN.
-        #[inline]
-        #[must_use]
-        pub fn is_nan(self) -> $Wide {
-            self.0.is_nan()
-        }
-
-        /// Returns `true` if all elements are neither infinite nor NaN.
-        #[inline]
-        #[must_use]
-        pub fn is_finite(self) -> $Wide {
-            self.0.is_finite()
-        }
-
         /// Returns the inverse of a rotor.
         ///
         /// This assumes `self` is normalized.
@@ -231,6 +217,20 @@ macro_rules! items {
         pub fn abs_diff_eq(self, other: Self, max_abs_diff: $Wide) -> bool {
             self.0.abs_diff_eq(other.0, max_abs_diff)
         }
+
+        /// Returns `true` if any element is NaN.
+        #[inline]
+        #[must_use]
+        pub fn is_nan(self) -> $Wide {
+            self.0.is_nan()
+        }
+
+        /// Returns `true` if all elements are neither infinite nor NaN.
+        #[inline]
+        #[must_use]
+        pub fn is_finite(self) -> $Wide {
+            self.0.is_finite()
+        }
     };
 }
 
@@ -275,6 +275,28 @@ macro_rules! items_3 {
             Self((axis * sin).extend(s))
         }
 
+        /// Converts the rotor `self` to a normalized rotation axis and an angle
+        /// (in radians), using the right-hand rule.
+        #[inline]
+        #[must_use]
+        pub fn to_axis_angle(self) -> (Vector<3, $Wide, A>, $Wide) {
+            let bivector = self.0.xyz();
+            let (axis, sin) = bivector.normalize_and_length();
+
+            let half_angle = sin.atan2(self.s);
+            let angle = half_angle + half_angle;
+
+            let angle_is_not_zero = sin.simd_ge(1e-8);
+            (
+                Vector::<3, $Wide, A>::new(
+                    angle_is_not_zero.select(axis.x, $Wide::ONE),
+                    axis.y & angle_is_not_zero,
+                    axis.z & angle_is_not_zero,
+                ),
+                angle & angle_is_not_zero,
+            )
+        }
+
         /// Creates a rotor that rotates `scaled_axis.length()` radians around
         /// `scaled_axis.normalize()`, using the right-hand rule.
         #[inline]
@@ -292,6 +314,21 @@ macro_rules! items_3 {
                 xy & angle_is_not_zero,
                 angle_is_not_zero.select(s, $Wide::ONE),
             )
+        }
+
+        // Converts the rotor `self` to a rotation axis scaled by an angle (in
+        /// radians), using the right-hand rule.
+        #[inline]
+        #[must_use]
+        pub fn to_scaled_axis(self) -> Vector<3, $Wide, A> {
+            let bivector = self.0.xyz();
+            let (axis, sin) = bivector.normalize_and_length();
+
+            let half_angle = sin.atan2(self.s);
+            let angle = half_angle + half_angle;
+
+            let angle_is_not_zero = sin.simd_ge(1e-8);
+            (axis * angle) & angle_is_not_zero
         }
 
         /// Creates a rotor from an Euler rotation order/sequence and angles (in
@@ -351,6 +388,14 @@ macro_rules! items_3 {
             Self(result)
         }
 
+        /// Returns the Euler angles forming `self` for the given Euler rotation
+        /// order/sequence.
+        #[inline]
+        #[must_use]
+        pub fn to_euler(self, order: EulerRot) -> ($Wide, $Wide, $Wide) {
+            Matrix::<3, $Wide, A>::from_rotor(self).to_euler(order)
+        }
+
         /// Creates a 3D rotor from a facing direction and an up direction.
         ///
         /// For a left-handed view coordinate system with `+X=right`, `+Y=up`
@@ -399,51 +444,6 @@ macro_rules! items_3 {
             up: Vector<3, $Wide, A>,
         ) -> Self {
             Self::from_matrix(&Matrix::<3, $Wide, A>::look_at_rh(eye, center, up))
-        }
-
-        /// Converts the rotor `self` to a normalized rotation axis and an angle
-        /// (in radians), using the right-hand rule.
-        #[inline]
-        #[must_use]
-        pub fn to_axis_angle(self) -> (Vector<3, $Wide, A>, $Wide) {
-            let bivector = self.0.xyz();
-            let (axis, sin) = bivector.normalize_and_length();
-
-            let half_angle = sin.atan2(self.s);
-            let angle = half_angle + half_angle;
-
-            let angle_is_not_zero = sin.simd_ge(1e-8);
-            (
-                Vector::<3, $Wide, A>::new(
-                    angle_is_not_zero.select(axis.x, $Wide::ONE),
-                    axis.y & angle_is_not_zero,
-                    axis.z & angle_is_not_zero,
-                ),
-                angle & angle_is_not_zero,
-            )
-        }
-
-        // Converts the rotor `self` to a rotation axis scaled by an angle (in
-        /// radians), using the right-hand rule.
-        #[inline]
-        #[must_use]
-        pub fn to_scaled_axis(self) -> Vector<3, $Wide, A> {
-            let bivector = self.0.xyz();
-            let (axis, sin) = bivector.normalize_and_length();
-
-            let half_angle = sin.atan2(self.s);
-            let angle = half_angle + half_angle;
-
-            let angle_is_not_zero = sin.simd_ge(1e-8);
-            (axis * angle) & angle_is_not_zero
-        }
-
-        /// Returns the Euler angles forming `self` for the given Euler rotation
-        /// order/sequence.
-        #[inline]
-        #[must_use]
-        pub fn to_euler(self, order: EulerRot) -> ($Wide, $Wide, $Wide) {
-            Matrix::<3, $Wide, A>::from_rotor(self).to_euler(order)
         }
     };
 }

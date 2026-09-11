@@ -68,6 +68,20 @@ macro_rules! items {
             ))
         }
 
+        /// Converts a projective transform to a non-uniform scale and a rotor.
+        ///
+        /// This assumes `self` only contains scale, rotation, and translation
+        /// which is ignored.
+        #[inline]
+        #[must_use]
+        #[expect(private_bounds)]
+        pub fn to_scale_rotor(&self) -> (Vector<N, $Wide, A>, Rotor<N, $Wide, A>)
+        where
+            Dim<N>: Three,
+        {
+            specialize_3!(Projective::<N, $Wide, A>::to_scale_rotor_backend(self))
+        }
+
         /// Creates a projective transform from a rotor and translation.
         ///
         /// This assumes `rotor` is normalized.
@@ -111,19 +125,58 @@ macro_rules! items {
             )
         }
 
-        /// For each lane, returns `true` if any element is NaN.
+        /// Converts a projective transform to a non-uniform scale, a rotor and
+        /// translation.
+        ///
+        /// This assumes `self` only contains scale, rotation and translation.
         #[inline]
         #[must_use]
-        pub fn is_nan(&self) -> $Wide {
-            specialize_23!(Projective::<N, $Wide, A>::is_nan_backend(self))
+        #[expect(private_bounds)]
+        pub fn to_scale_rotor_translation(
+            &self,
+        ) -> (Vector<N, $Wide, A>, Rotor<N, $Wide, A>, Vector<N, $Wide, A>)
+        where
+            Dim<N>: Three,
+        {
+            let (scale, rotor) = self.to_scale_rotor();
+            (scale, rotor, self.translation())
         }
 
-        /// For each lane, returns `true` if all elements are neither infinite
-        /// nor NaN.
+        /// Transforms the given vector as a point.
+        ///
+        /// Equivalent to `(point, 1) * self` but is faster.
+        ///
+        /// This function assumes `self` contains an affine transformation, with
+        /// no projections, meaning the last column must be `(0, 0, ..., 1)`.
         #[inline]
         #[must_use]
-        pub fn is_finite(&self) -> $Wide {
-            specialize_23!(Projective::<N, $Wide, A>::is_finite_backend(self))
+        pub fn transform_point(&self, point: Vector<N, $Wide, A>) -> Vector<N, $Wide, A> {
+            specialize_23!(Projective::<N, $Wide, A>::transform_point_backend(
+                self, point
+            ))
+        }
+
+        /// Transforms the given vector without applying translation.
+        ///
+        /// Equivalent to `(vector, 0) * self` but is faster.
+        ///
+        /// This function assumes `self` contains an affine transformation, with
+        /// no projections, meaning the last column must be `(0, 0, ..., 1)`.
+        #[inline]
+        #[must_use]
+        pub fn transform_vector(&self, vector: Vector<N, $Wide, A>) -> Vector<N, $Wide, A> {
+            specialize_23!(Projective::<N, $Wide, A>::transform_vector_backend(
+                self, vector
+            ))
+        }
+
+        /// Transforms the given vector as a point, applying perspective divide.
+        #[inline]
+        #[must_use]
+        pub fn project_point(&self, point: Vector<N, $Wide, A>) -> Vector<N, $Wide, A> {
+            specialize_23!(Projective::<N, $Wide, A>::project_point_backend(
+                self, point
+            ))
         }
 
         /// Returns the inverse of `self`.
@@ -165,83 +218,6 @@ macro_rules! items {
             specialize_23!(Projective::<N, $Wide, A>::inverse_or_zero_backend(self))
         }
 
-        /// Transforms the given vector as a point.
-        ///
-        /// Equivalent to `(point, 1) * self` but is faster.
-        ///
-        /// This function assumes `self` contains an affine transformation, with
-        /// no projections, meaning the last column must be `(0, 0, ..., 1)`.
-        #[inline]
-        #[must_use]
-        pub fn transform_point(&self, point: Vector<N, $Wide, A>) -> Vector<N, $Wide, A> {
-            specialize_23!(Projective::<N, $Wide, A>::transform_point_backend(
-                self, point
-            ))
-        }
-
-        /// Transforms the given vector without applying translation.
-        ///
-        /// Equivalent to `(vector, 0) * self` but is faster.
-        ///
-        /// This function assumes `self` contains an affine transformation, with
-        /// no projections, meaning the last column must be `(0, 0, ..., 1)`.
-        #[inline]
-        #[must_use]
-        pub fn transform_vector(&self, vector: Vector<N, $Wide, A>) -> Vector<N, $Wide, A> {
-            specialize_23!(Projective::<N, $Wide, A>::transform_vector_backend(
-                self, vector
-            ))
-        }
-
-        /// Transforms the given vector as a point, applying perspective divide.
-        #[inline]
-        #[must_use]
-        pub fn project_point(&self, point: Vector<N, $Wide, A>) -> Vector<N, $Wide, A> {
-            specialize_23!(Projective::<N, $Wide, A>::project_point_backend(
-                self, point
-            ))
-        }
-
-        /// Returns the absolute values of the elements of `self`.
-        ///
-        /// Equivalent to `(self.x_axis.abs(), self.y_axis.abs(), ...)`.
-        #[inline]
-        #[must_use]
-        pub fn abs(&self) -> Self {
-            specialize_23!(Projective::<N, $Wide, A>::abs_backend(self))
-        }
-
-        /// Converts a projective transform to a non-uniform scale and a rotor.
-        ///
-        /// This assumes `self` only contains scale, rotation, and translation
-        /// which is ignored.
-        #[inline]
-        #[must_use]
-        #[expect(private_bounds)]
-        pub fn to_scale_rotor(&self) -> (Vector<N, $Wide, A>, Rotor<N, $Wide, A>)
-        where
-            Dim<N>: Three,
-        {
-            specialize_3!(Projective::<N, $Wide, A>::to_scale_rotor_backend(self))
-        }
-
-        /// Converts a projective transform to a non-uniform scale, a rotor and
-        /// translation.
-        ///
-        /// This assumes `self` only contains scale, rotation and translation.
-        #[inline]
-        #[must_use]
-        #[expect(private_bounds)]
-        pub fn to_scale_rotor_translation(
-            &self,
-        ) -> (Vector<N, $Wide, A>, Rotor<N, $Wide, A>, Vector<N, $Wide, A>)
-        where
-            Dim<N>: Three,
-        {
-            let (scale, rotor) = self.to_scale_rotor();
-            (scale, rotor, self.translation())
-        }
-
         /// Returns `true` if the absolute difference of all elements between
         /// `self` and `other` is less than or equal to `max_abs_diff` for all
         /// lanes.
@@ -257,6 +233,30 @@ macro_rules! items {
                 other,
                 max_abs_diff
             ))
+        }
+
+        /// For each lane, returns `true` if any element is NaN.
+        #[inline]
+        #[must_use]
+        pub fn is_nan(&self) -> $Wide {
+            specialize_23!(Projective::<N, $Wide, A>::is_nan_backend(self))
+        }
+
+        /// For each lane, returns `true` if all elements are neither infinite
+        /// nor NaN.
+        #[inline]
+        #[must_use]
+        pub fn is_finite(&self) -> $Wide {
+            specialize_23!(Projective::<N, $Wide, A>::is_finite_backend(self))
+        }
+
+        /// Returns the absolute values of the elements of `self`.
+        ///
+        /// Equivalent to `(self.x_axis.abs(), self.y_axis.abs(), ...)`.
+        #[inline]
+        #[must_use]
+        pub fn abs(&self) -> Self {
+            specialize_23!(Projective::<N, $Wide, A>::abs_backend(self))
         }
     };
 }
@@ -294,6 +294,25 @@ macro_rules! items_2 {
                 ),
                 Vector::<3, $Wide, A>::Z,
             ])
+        }
+
+        /// Converts a projective transform to scale and rotation.
+        ///
+        /// This assumes `self` does not contain shear or projection.
+        #[inline]
+        #[must_use]
+        pub fn to_scale_rotation(&self) -> (Vector<2, $Wide, A>, Rotation2<$Wide, A>) {
+            let determinant = self.x_axis.truncate().perp_dot(self.y_axis.truncate());
+
+            let (rotation, x_axis_length) =
+                Rotation2(self.x_axis.truncate()).normalize_and_length();
+
+            let scale = Vector::<2, $Wide, A>::new(
+                x_axis_length,
+                self.y_axis.truncate().length() * determinant.signum(),
+            );
+
+            (scale, rotation)
         }
 
         /// Creates a projective transform from `rotation` and `translation`.
@@ -334,6 +353,22 @@ macro_rules! items_2 {
             ])
         }
 
+        /// Converts a projective transform to scale, rotation and translation.
+        ///
+        /// This assumes `self` does not contain shear.
+        #[inline]
+        #[must_use]
+        pub fn to_scale_rotation_translation(
+            &self,
+        ) -> (
+            Vector<2, $Wide, A>,
+            Rotation2<$Wide, A>,
+            Vector<2, $Wide, A>,
+        ) {
+            let (scale, rotation) = self.to_scale_rotation();
+            (scale, rotation, self.translation())
+        }
+
         /// Creates a projective transform containing a rotation from an `angle`
         /// (in radians) rotating `+X` to `+Y`.
         #[inline]
@@ -360,6 +395,18 @@ macro_rules! items_2 {
                 Vector::<3, $Wide, A>::new(-sin * scale.y, cos * scale.y, $Wide::ZERO),
                 Vector::<3, $Wide, A>::Z,
             ])
+        }
+
+        /// Returns the `scale` and `angle` of `self`.
+        ///
+        /// This function assumes `self` contains an affine transformation with
+        /// no shearing.
+        ///
+        /// `self` can contain translation, which is ignored.
+        #[inline]
+        #[must_use]
+        pub fn to_scale_angle(&self) -> (Vector<2, $Wide, A>, $Wide) {
+            Matrix::<2, $Wide, A>::from_projective(self).to_scale_angle()
         }
 
         /// Creates a 2D projective transform containing a rotation of `angle`
@@ -394,53 +441,6 @@ macro_rules! items_2 {
                 Vector::<3, $Wide, A>::new(-sin * scale.y, cos * scale.y, $Wide::ZERO),
                 Vector::<3, $Wide, A>::new(translation.x, translation.y, $Wide::ONE),
             ])
-        }
-
-        /// Converts a projective transform to scale and rotation.
-        ///
-        /// This assumes `self` does not contain shear or projection.
-        #[inline]
-        #[must_use]
-        pub fn to_scale_rotation(&self) -> (Vector<2, $Wide, A>, Rotation2<$Wide, A>) {
-            let determinant = self.x_axis.truncate().perp_dot(self.y_axis.truncate());
-
-            let (rotation, x_axis_length) =
-                Rotation2(self.x_axis.truncate()).normalize_and_length();
-
-            let scale = Vector::<2, $Wide, A>::new(
-                x_axis_length,
-                self.y_axis.truncate().length() * determinant.signum(),
-            );
-
-            (scale, rotation)
-        }
-
-        /// Converts a projective transform to scale, rotation and translation.
-        ///
-        /// This assumes `self` does not contain shear.
-        #[inline]
-        #[must_use]
-        pub fn to_scale_rotation_translation(
-            &self,
-        ) -> (
-            Vector<2, $Wide, A>,
-            Rotation2<$Wide, A>,
-            Vector<2, $Wide, A>,
-        ) {
-            let (scale, rotation) = self.to_scale_rotation();
-            (scale, rotation, self.translation())
-        }
-
-        /// Returns the `scale` and `angle` of `self`.
-        ///
-        /// This function assumes `self` contains an affine transformation with
-        /// no shearing.
-        ///
-        /// `self` can contain translation, which is ignored.
-        #[inline]
-        #[must_use]
-        pub fn to_scale_angle(&self) -> (Vector<2, $Wide, A>, $Wide) {
-            Matrix::<2, $Wide, A>::from_projective(self).to_scale_angle()
         }
 
         /// Returns the `scale`, `angle` and `translation` of `self`.
@@ -532,6 +532,17 @@ macro_rules! items_3 {
         #[must_use]
         pub fn from_euler(order: EulerRot, a: $Wide, b: $Wide, c: $Wide) -> Self {
             Self::from_matrix(&Matrix::<3, $Wide, A>::from_euler(order, a, b, c))
+        }
+
+        /// Returns the Euler angles forming `self` for the given Euler rotation
+        /// order/sequence.
+        ///
+        /// The upper-left 3x3 matrix of `self` must not contain any
+        /// non-rotation transformations. Otherwise the result is unspecified.
+        #[inline]
+        #[must_use]
+        pub fn to_euler(&self, order: EulerRot) -> ($Wide, $Wide, $Wide) {
+            Matrix::<3, $Wide, A>::from_projective(self).to_euler(order)
         }
 
         /// Creates a left-handed view transform from a camera position, a
@@ -1056,17 +1067,6 @@ macro_rules! items_3 {
                 Vector::<4, $Wide, A>::new($Wide::ZERO, $Wide::ZERO, scale_z, $Wide::ZERO),
                 Vector::<4, $Wide, A>::new(translation_x, translation_y, translation_z, $Wide::ONE),
             ])
-        }
-
-        /// Returns the Euler angles forming `self` for the given Euler rotation
-        /// order/sequence.
-        ///
-        /// The upper-left 3x3 matrix of `self` must not contain any
-        /// non-rotation transformations. Otherwise the result is unspecified.
-        #[inline]
-        #[must_use]
-        pub fn to_euler(&self, order: EulerRot) -> ($Wide, $Wide, $Wide) {
-            Matrix::<3, $Wide, A>::from_projective(self).to_euler(order)
         }
     };
 }

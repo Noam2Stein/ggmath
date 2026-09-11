@@ -99,58 +99,24 @@ where
         Self::from_rotor(rotor).prepend_scale(scale)
     }
 
-    /// Returns `true` if any element is NaN.
+    /// Converts a matrix to a non-uniform scale and a rotor.
     ///
-    /// # Examples
+    /// This assumes `self` only contains scale and rotation.
     ///
-    /// ```
-    /// # use ggmath::{Mat3, Vec3};
-    /// #
-    /// let normal = Mat3::from_rows(&[
-    ///     Vec3::new(1.0, 0.0, 0.0),
-    ///     Vec3::new(0.0, 1.0, 0.0),
-    ///     Vec3::new(1.0, 0.0, 1.0),
-    /// ]);
-    /// let nan = Mat3::from_rows(&[
-    ///     Vec3::new(1.0, 0.0, 0.0),
-    ///     Vec3::new(0.0, 1.0, f32::NAN),
-    ///     Vec3::new(1.0, 0.0, 1.0),
-    /// ]);
+    /// # Panics
     ///
-    /// assert!(!normal.is_nan());
-    /// assert!(nan.is_nan());
-    /// ```
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` contains anything but scale and rotation.
     #[inline]
     #[must_use]
-    pub fn is_nan(&self) -> bool {
-        specialize!(Matrix::<N, T, A>::is_nan_backend(self))
-    }
-
-    /// Returns `true` if all elements are neither infinite nor NaN.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::{Mat3, Vec3};
-    /// #
-    /// let finite = Mat3::from_rows(&[
-    ///     Vec3::new(1.0, 0.0, 0.0),
-    ///     Vec3::new(0.0, 1.0, 0.0),
-    ///     Vec3::new(1.0, 0.0, 1.0),
-    /// ]);
-    /// let infinite = Mat3::from_rows(&[
-    ///     Vec3::new(1.0, 0.0, 0.0),
-    ///     Vec3::new(0.0, 1.0, f32::INFINITY),
-    ///     Vec3::new(1.0, 0.0, 1.0),
-    /// ]);
-    ///
-    /// assert!(finite.is_finite());
-    /// assert!(!infinite.is_finite());
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn is_finite(&self) -> bool {
-        specialize!(Matrix::<N, T, A>::is_finite_backend(self))
+    #[track_caller]
+    #[expect(private_bounds)]
+    pub fn to_scale_rotor(&self) -> (Vector<N, T, A>, Rotor<N, T, A>)
+    where
+        Dim<N>: Three,
+    {
+        specialize_3!(Matrix::<N, T, A>::to_scale_rotor_backend(self))
     }
 
     /// Returns the inverse of `self`.
@@ -216,32 +182,73 @@ where
         specialize!(Matrix::<N, T, A>::inverse_and_determinant_backend(self))
     }
 
-    /// Returns the element-wise reciprocal (inverse) of a matrix, `1 / self`.
+    /// Returns `true` if the absolute difference of all elements between `self`
+    /// and `other` is less than or equal to `max_abs_diff`.
+    ///
+    /// This can be used to compare two matrices that should be equal, but may
+    /// have a slight difference due to operations having rounding errors.
+    #[inline]
+    #[must_use]
+    pub fn abs_diff_eq(&self, other: &Self, max_abs_diff: T) -> bool {
+        specialize!(Matrix::<N, T, A>::abs_diff_eq_backend(
+            self,
+            other,
+            max_abs_diff
+        ))
+    }
+
+    /// Returns `true` if any element is NaN.
     ///
     /// # Examples
     ///
     /// ```
     /// # use ggmath::{Mat3, Vec3};
     /// #
-    /// let matrix = Mat3::from_rows(&[
-    ///     Vec3::new(2.0, 4.0, 1.0),
-    ///     Vec3::new(1.0, 2.0, 4.0),
-    ///     Vec3::new(4.0, 1.0, 2.0),
+    /// let normal = Mat3::from_rows(&[
+    ///     Vec3::new(1.0, 0.0, 0.0),
+    ///     Vec3::new(0.0, 1.0, 0.0),
+    ///     Vec3::new(1.0, 0.0, 1.0),
+    /// ]);
+    /// let nan = Mat3::from_rows(&[
+    ///     Vec3::new(1.0, 0.0, 0.0),
+    ///     Vec3::new(0.0, 1.0, f32::NAN),
+    ///     Vec3::new(1.0, 0.0, 1.0),
     /// ]);
     ///
-    /// assert_eq!(
-    ///     matrix.recip(),
-    ///     Mat3::from_rows(&[
-    ///         Vec3::new(0.5, 0.25, 1.0),
-    ///         Vec3::new(1.0, 0.5, 0.25),
-    ///         Vec3::new(0.25, 1.0, 0.5),
-    ///     ]),
-    /// );
+    /// assert!(!normal.is_nan());
+    /// assert!(nan.is_nan());
     /// ```
     #[inline]
     #[must_use]
-    pub fn recip(&self) -> Self {
-        specialize!(Matrix::<N, T, A>::recip_backend(self))
+    pub fn is_nan(&self) -> bool {
+        specialize!(Matrix::<N, T, A>::is_nan_backend(self))
+    }
+
+    /// Returns `true` if all elements are neither infinite nor NaN.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Mat3, Vec3};
+    /// #
+    /// let finite = Mat3::from_rows(&[
+    ///     Vec3::new(1.0, 0.0, 0.0),
+    ///     Vec3::new(0.0, 1.0, 0.0),
+    ///     Vec3::new(1.0, 0.0, 1.0),
+    /// ]);
+    /// let infinite = Mat3::from_rows(&[
+    ///     Vec3::new(1.0, 0.0, 0.0),
+    ///     Vec3::new(0.0, 1.0, f32::INFINITY),
+    ///     Vec3::new(1.0, 0.0, 1.0),
+    /// ]);
+    ///
+    /// assert!(finite.is_finite());
+    /// assert!(!infinite.is_finite());
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn is_finite(&self) -> bool {
+        specialize!(Matrix::<N, T, A>::is_finite_backend(self))
     }
 
     /// Returns the absolute values of the elements of `self`.
@@ -274,39 +281,32 @@ where
         specialize!(Matrix::<N, T, A>::abs_backend(self))
     }
 
-    /// Converts a matrix to a non-uniform scale and a rotor.
+    /// Returns the element-wise reciprocal (inverse) of a matrix, `1 / self`.
     ///
-    /// This assumes `self` only contains scale and rotation.
+    /// # Examples
     ///
-    /// # Panics
+    /// ```
+    /// # use ggmath::{Mat3, Vec3};
+    /// #
+    /// let matrix = Mat3::from_rows(&[
+    ///     Vec3::new(2.0, 4.0, 1.0),
+    ///     Vec3::new(1.0, 2.0, 4.0),
+    ///     Vec3::new(4.0, 1.0, 2.0),
+    /// ]);
     ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `self` contains anything but scale and rotation.
+    /// assert_eq!(
+    ///     matrix.recip(),
+    ///     Mat3::from_rows(&[
+    ///         Vec3::new(0.5, 0.25, 1.0),
+    ///         Vec3::new(1.0, 0.5, 0.25),
+    ///         Vec3::new(0.25, 1.0, 0.5),
+    ///     ]),
+    /// );
+    /// ```
     #[inline]
     #[must_use]
-    #[track_caller]
-    #[expect(private_bounds)]
-    pub fn to_scale_rotor(&self) -> (Vector<N, T, A>, Rotor<N, T, A>)
-    where
-        Dim<N>: Three,
-    {
-        specialize_3!(Matrix::<N, T, A>::to_scale_rotor_backend(self))
-    }
-
-    /// Returns `true` if the absolute difference of all elements between `self`
-    /// and `other` is less than or equal to `max_abs_diff`.
-    ///
-    /// This can be used to compare two matrices that should be equal, but may
-    /// have a slight difference due to operations having rounding errors.
-    #[inline]
-    #[must_use]
-    pub fn abs_diff_eq(&self, other: &Self, max_abs_diff: T) -> bool {
-        specialize!(Matrix::<N, T, A>::abs_diff_eq_backend(
-            self,
-            other,
-            max_abs_diff
-        ))
+    pub fn recip(&self) -> Self {
+        specialize!(Matrix::<N, T, A>::recip_backend(self))
     }
 }
 
@@ -366,6 +366,40 @@ where
         ))
     }
 
+    /// Converts a matrix to scale and rotation.
+    ///
+    /// This assumes `self` does not contain shear.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` contains shear or the determinant of `self` is zero.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_scale_rotation(&self) -> (Vector<2, T, A>, Rotation2<T, A>) {
+        let determinant = self.determinant();
+
+        let (rotation, x_axis_length) = Rotation2(self.x_axis).normalize_and_length();
+
+        let scale =
+            Vector::<2, T, A>::new(x_axis_length, self.y_axis.length() * determinant.signum());
+
+        debug_assert!(
+            (self.x_axis / scale.x)
+                .dot(self.y_axis / scale.y)
+                .abs_diff_eq(T::ZERO, T::as_from(1e-4)),
+            "matrix contains shear: {self:?}.to_scale_angle()"
+        );
+        debug_assert!(
+            determinant != T::ZERO,
+            "determinant is zero: {self:?}.to_scale_angle()"
+        );
+
+        (scale, rotation)
+    }
+
     /// Creates a rotation matrix from an `angle` (in radians) rotating `+X` to
     /// `+Y`.
     #[inline]
@@ -390,6 +424,39 @@ where
             Vector::<2, T, A>::new(cos * scale.x, sin * scale.x),
             Vector::<2, T, A>::new(-sin * scale.y, cos * scale.y),
         ])
+    }
+
+    /// Returns the `scale` and `angle` of `self`.
+    ///
+    /// `self` must not contain shearing. Otherwise the result is unspecified.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` contains shearing or the determinant of `self` is zero.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_scale_angle(&self) -> (Vector<2, T, A>, T) {
+        let determinant = self.determinant();
+
+        let scale = Vector::<2, T, A>::new(
+            self.x_axis.length() * determinant.signum(),
+            self.y_axis.length(),
+        );
+
+        debug_assert!(
+            determinant != T::ZERO
+                && (self.x_axis / scale.x)
+                    .dot(self.y_axis / scale.y)
+                    .abs_diff_eq(T::ZERO, T::as_from(1e-4)),
+            "matrix contains shearing or determinant is zero: {self:?}.to_scale_angle()"
+        );
+
+        let angle = (-self.y_axis.x).atan2(self.y_axis.y);
+
+        (scale, angle)
     }
 
     /// Takes the `N`x`N` linear transformation part of an `N+1`x`N+1`
@@ -433,73 +500,6 @@ where
         );
 
         Self::from_rows(&[homogeneous.x_axis.truncate(), homogeneous.y_axis.truncate()])
-    }
-
-    /// Converts a matrix to scale and rotation.
-    ///
-    /// This assumes `self` does not contain shear.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `self` contains shear or the determinant of `self` is zero.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn to_scale_rotation(&self) -> (Vector<2, T, A>, Rotation2<T, A>) {
-        let determinant = self.determinant();
-
-        let (rotation, x_axis_length) = Rotation2(self.x_axis).normalize_and_length();
-
-        let scale =
-            Vector::<2, T, A>::new(x_axis_length, self.y_axis.length() * determinant.signum());
-
-        debug_assert!(
-            (self.x_axis / scale.x)
-                .dot(self.y_axis / scale.y)
-                .abs_diff_eq(T::ZERO, T::as_from(1e-4)),
-            "matrix contains shear: {self:?}.to_scale_angle()"
-        );
-        debug_assert!(
-            determinant != T::ZERO,
-            "determinant is zero: {self:?}.to_scale_angle()"
-        );
-
-        (scale, rotation)
-    }
-
-    /// Returns the `scale` and `angle` of `self`.
-    ///
-    /// `self` must not contain shearing. Otherwise the result is unspecified.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `self` contains shearing or the determinant of `self` is zero.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn to_scale_angle(&self) -> (Vector<2, T, A>, T) {
-        let determinant = self.determinant();
-
-        let scale = Vector::<2, T, A>::new(
-            self.x_axis.length() * determinant.signum(),
-            self.y_axis.length(),
-        );
-
-        debug_assert!(
-            determinant != T::ZERO
-                && (self.x_axis / scale.x)
-                    .dot(self.y_axis / scale.y)
-                    .abs_diff_eq(T::ZERO, T::as_from(1e-4)),
-            "matrix contains shearing or determinant is zero: {self:?}.to_scale_angle()"
-        );
-
-        let angle = (-self.y_axis.x).atan2(self.y_axis.y);
-
-        (scale, angle)
     }
 
     #[inline(always)]
@@ -708,51 +708,83 @@ where
         result
     }
 
-    /// Takes the `N`x`N` linear transformation part of an `N+1`x`N+1`
-    /// homogeneous transformation matrix, removing the last row and column.
+    /// Returns the Euler angles forming `self` for the given Euler rotation
+    /// order/sequence.
     ///
-    /// This assumes `homogeneous` does not contain projections. If there is
-    /// translation, it is ignored.
+    /// `self` must not contain any non-rotation transformations. Otherwise the
+    /// result is unspecified.
     ///
     /// # Panics
     ///
-    /// Panics if the last column of `homogeneous` is not approximately
-    /// `(0, 0, ..., 1)`.
+    /// When debug assertions are enabled:
     ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::{Mat2, Mat3, Vec2, Vec3};
-    /// #
-    /// let homogeneous = Mat3::from_rows(&[
-    ///     Vec3::new(11.0, 12.0, 0.0),
-    ///     Vec3::new(21.0, 22.0, 0.0),
-    ///     Vec3::new(5.0, 8.0, 1.0),
-    /// ]);
-    ///
-    /// assert_eq!(
-    ///     Mat2::<f32>::from_homogeneous(&homogeneous),
-    ///     Mat2::from_rows(&[
-    ///         Vec2::new(11.0, 12.0),
-    ///         Vec2::new(21.0, 22.0),
-    ///     ]),
-    /// );
-    /// ```
+    /// Panics if `self` is not a rotation matrix.
     #[inline]
     #[must_use]
-    pub fn from_homogeneous(homogeneous: &Matrix<4, T, A>) -> Self {
+    #[track_caller]
+    pub fn to_euler(&self, order: EulerRot) -> (T, T, T) {
+        // Ported from https://github.com/bitshifter/glam-rs.
+
+        // Based on Ken Shoemake. 1994. Euler angle conversion. Graphics gems IV.
+        // Academic Press Professional, Inc., USA, 222–229.
+
         debug_assert!(
-            homogeneous
-                .column(3)
-                .abs_diff_eq(Vector::<4, T, A>::W, T::as_from(1e-4)),
-            "input contains projection: Matrix::from_homogeneous({homogeneous:?})"
+            self.x_axis
+                .length_squared()
+                .abs_diff_eq(T::ONE, T::as_from(2e-2))
+                && self
+                    .y_axis
+                    .length_squared()
+                    .abs_diff_eq(T::ONE, T::as_from(2e-2))
+                && self
+                    .x_axis
+                    .dot(self.y_axis)
+                    .abs_diff_eq(T::ZERO, T::as_from(2e-2))
+                && self
+                    .x_axis
+                    .cross(self.y_axis)
+                    .abs_diff_eq(self.z_axis, T::as_from(2e-2)),
+            "not a rotation matrix"
         );
 
-        Self::from_rows(&[
-            homogeneous.x_axis.truncate(),
-            homogeneous.y_axis.truncate(),
-            homogeneous.z_axis.truncate(),
-        ])
+        let order = order.properties();
+        let (i, j, k) = order.axes_indices();
+
+        let mut ea = Vector::<3, T, A>::ZERO;
+        if order.initial_repeated {
+            let sy = (self[i][j] * self[i][j] + self[i][k] * self[i][k]).sqrt();
+
+            if sy > T::as_from(16.0) * T::EPSILON {
+                ea.x = self[i][j].atan2(self[i][k]);
+                ea.y = sy.atan2(self[i][i]);
+                ea.z = self[j][i].atan2(-self[k][i]);
+            } else {
+                ea.x = (-self[j][k]).atan2(self[j][j]);
+                ea.y = sy.atan2(self[i][i]);
+            }
+        } else {
+            let cy = (self[i][i] * self[i][i] + self[j][i] * self[j][i]).sqrt();
+
+            if cy > T::as_from(16.0) * T::EPSILON {
+                ea.x = self[k][j].atan2(self[k][k]);
+                ea.y = (-self[k][i]).atan2(cy);
+                ea.z = self[j][i].atan2(self[i][i]);
+            } else {
+                ea.x = (-self[j][k]).atan2(self[j][j]);
+                ea.y = (-self[k][i]).atan2(cy);
+            }
+        }
+
+        // Reverse rotation angle of original code.
+        if order.parity_even {
+            ea = -ea;
+        }
+
+        if !order.frame_static {
+            ea = ea.zyx();
+        }
+
+        (ea.x, ea.y, ea.z)
     }
 
     /// Creates a left-handed view matrix from a facing direction and an up
@@ -927,83 +959,51 @@ where
         ])
     }
 
-    /// Returns the Euler angles forming `self` for the given Euler rotation
-    /// order/sequence.
+    /// Takes the `N`x`N` linear transformation part of an `N+1`x`N+1`
+    /// homogeneous transformation matrix, removing the last row and column.
     ///
-    /// `self` must not contain any non-rotation transformations. Otherwise the
-    /// result is unspecified.
+    /// This assumes `homogeneous` does not contain projections. If there is
+    /// translation, it is ignored.
     ///
     /// # Panics
     ///
-    /// When debug assertions are enabled:
+    /// Panics if the last column of `homogeneous` is not approximately
+    /// `(0, 0, ..., 1)`.
     ///
-    /// Panics if `self` is not a rotation matrix.
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Mat2, Mat3, Vec2, Vec3};
+    /// #
+    /// let homogeneous = Mat3::from_rows(&[
+    ///     Vec3::new(11.0, 12.0, 0.0),
+    ///     Vec3::new(21.0, 22.0, 0.0),
+    ///     Vec3::new(5.0, 8.0, 1.0),
+    /// ]);
+    ///
+    /// assert_eq!(
+    ///     Mat2::<f32>::from_homogeneous(&homogeneous),
+    ///     Mat2::from_rows(&[
+    ///         Vec2::new(11.0, 12.0),
+    ///         Vec2::new(21.0, 22.0),
+    ///     ]),
+    /// );
+    /// ```
     #[inline]
     #[must_use]
-    #[track_caller]
-    pub fn to_euler(&self, order: EulerRot) -> (T, T, T) {
-        // Ported from https://github.com/bitshifter/glam-rs.
-
-        // Based on Ken Shoemake. 1994. Euler angle conversion. Graphics gems IV.
-        // Academic Press Professional, Inc., USA, 222–229.
-
+    pub fn from_homogeneous(homogeneous: &Matrix<4, T, A>) -> Self {
         debug_assert!(
-            self.x_axis
-                .length_squared()
-                .abs_diff_eq(T::ONE, T::as_from(2e-2))
-                && self
-                    .y_axis
-                    .length_squared()
-                    .abs_diff_eq(T::ONE, T::as_from(2e-2))
-                && self
-                    .x_axis
-                    .dot(self.y_axis)
-                    .abs_diff_eq(T::ZERO, T::as_from(2e-2))
-                && self
-                    .x_axis
-                    .cross(self.y_axis)
-                    .abs_diff_eq(self.z_axis, T::as_from(2e-2)),
-            "not a rotation matrix"
+            homogeneous
+                .column(3)
+                .abs_diff_eq(Vector::<4, T, A>::W, T::as_from(1e-4)),
+            "input contains projection: Matrix::from_homogeneous({homogeneous:?})"
         );
 
-        let order = order.properties();
-        let (i, j, k) = order.axes_indices();
-
-        let mut ea = Vector::<3, T, A>::ZERO;
-        if order.initial_repeated {
-            let sy = (self[i][j] * self[i][j] + self[i][k] * self[i][k]).sqrt();
-
-            if sy > T::as_from(16.0) * T::EPSILON {
-                ea.x = self[i][j].atan2(self[i][k]);
-                ea.y = sy.atan2(self[i][i]);
-                ea.z = self[j][i].atan2(-self[k][i]);
-            } else {
-                ea.x = (-self[j][k]).atan2(self[j][j]);
-                ea.y = sy.atan2(self[i][i]);
-            }
-        } else {
-            let cy = (self[i][i] * self[i][i] + self[j][i] * self[j][i]).sqrt();
-
-            if cy > T::as_from(16.0) * T::EPSILON {
-                ea.x = self[k][j].atan2(self[k][k]);
-                ea.y = (-self[k][i]).atan2(cy);
-                ea.z = self[j][i].atan2(self[i][i]);
-            } else {
-                ea.x = (-self[j][k]).atan2(self[j][j]);
-                ea.y = (-self[k][i]).atan2(cy);
-            }
-        }
-
-        // Reverse rotation angle of original code.
-        if order.parity_even {
-            ea = -ea;
-        }
-
-        if !order.frame_static {
-            ea = ea.zyx();
-        }
-
-        (ea.x, ea.y, ea.z)
+        Self::from_rows(&[
+            homogeneous.x_axis.truncate(),
+            homogeneous.y_axis.truncate(),
+            homogeneous.z_axis.truncate(),
+        ])
     }
 
     #[inline(always)]

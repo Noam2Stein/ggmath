@@ -67,21 +67,6 @@ where
         self.0.length_squared()
     }
 
-    /// Converts `self` to the specified SIMD-alignment mode.
-    ///
-    /// If the output mode is known to always be [`Aligned`] or always be
-    /// [`Unaligned`], use methods [`align`] and [`unalign`] instead.
-    ///
-    /// See [`Alignment`] for more information about SIMD-aligned types.
-    ///
-    /// [`align`]: Self::align
-    /// [`unalign`]: Self::unalign
-    #[inline]
-    #[must_use]
-    pub const fn to_alignment<A2: Alignment>(self) -> Rotor<N, T, A2> {
-        Rotor(self.0.to_alignment())
-    }
-
     /// Converts `self` to SIMD-aligned storage.
     ///
     /// See [`Alignment`] for more information about SIMD-aligned types.
@@ -98,6 +83,21 @@ where
     #[must_use]
     pub const fn unalign(self) -> Rotor<N, T, Unaligned> {
         self.to_alignment()
+    }
+
+    /// Converts `self` to the specified SIMD-alignment mode.
+    ///
+    /// If the output mode is known to always be [`Aligned`] or always be
+    /// [`Unaligned`], use methods [`align`] and [`unalign`] instead.
+    ///
+    /// See [`Alignment`] for more information about SIMD-aligned types.
+    ///
+    /// [`align`]: Self::align
+    /// [`unalign`]: Self::unalign
+    #[inline]
+    #[must_use]
+    pub const fn to_alignment<A2: Alignment>(self) -> Rotor<N, T, A2> {
+        Rotor(self.0.to_alignment())
     }
 }
 

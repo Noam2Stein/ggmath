@@ -51,6 +51,36 @@ where
         specialize!(Vector::<N, Wide, A>::from_lanes_backend(lanes))
     }
 
+    /// Converts an SoA (Structure of Arrays) vector to an array of
+    /// lanes or scalar vectors.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// # use wide::i32x4;
+    /// #
+    /// let vector = Vec3::new(
+    ///     i32x4::new([1, 4, 7, 10]),
+    ///     i32x4::new([2, 5, 8, 11]),
+    ///     i32x4::new([3, 6, 9, 12]),
+    /// );
+    /// assert_eq!(
+    ///     vector.to_lanes(),
+    ///     [
+    ///         Vec3::new(1, 2, 3),
+    ///         Vec3::new(4, 5, 6),
+    ///         Vec3::new(7, 8, 9),
+    ///         Vec3::new(10, 11, 12),
+    ///     ],
+    /// );
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn to_lanes(self) -> [Vector<N, T, A>; LANES] {
+        core::array::from_fn(|lane| self.lane(lane))
+    }
+
     /// Creates an SoA (Structure of Arrays) vector by calling function
     /// `f` for each lane index.
     ///
@@ -83,36 +113,6 @@ where
         F: FnMut(usize) -> Vector<N, T, A>,
     {
         Self::from_lanes(&core::array::from_fn(f))
-    }
-
-    /// Converts an SoA (Structure of Arrays) vector to an array of
-    /// lanes or scalar vectors.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::Vec3;
-    /// # use wide::i32x4;
-    /// #
-    /// let vector = Vec3::new(
-    ///     i32x4::new([1, 4, 7, 10]),
-    ///     i32x4::new([2, 5, 8, 11]),
-    ///     i32x4::new([3, 6, 9, 12]),
-    /// );
-    /// assert_eq!(
-    ///     vector.to_lanes(),
-    ///     [
-    ///         Vec3::new(1, 2, 3),
-    ///         Vec3::new(4, 5, 6),
-    ///         Vec3::new(7, 8, 9),
-    ///         Vec3::new(10, 11, 12),
-    ///     ],
-    /// );
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn to_lanes(self) -> [Vector<N, T, A>; LANES] {
-        core::array::from_fn(|lane| self.lane(lane))
     }
 
     /// Takes an SoA (Structure of Arrays) vector and returns the lane

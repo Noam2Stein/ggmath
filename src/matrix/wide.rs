@@ -52,6 +52,37 @@ where
         specialize!(Matrix::<N, Wide, A>::from_lanes_backend(lanes))
     }
 
+    /// Converts an SoA (Structure of Arrays) matrix to an array of lanes or
+    /// scalar matrices.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Mat2;
+    /// # use wide::i32x4;
+    /// #
+    /// let matrix = Mat2::from_row_array(&[
+    ///     i32x4::new([1, 5, 9, 13]),
+    ///     i32x4::new([2, 6, 10, 14]),
+    ///     i32x4::new([3, 7, 11, 15]),
+    ///     i32x4::new([4, 8, 12, 16]),
+    /// ]);
+    /// assert_eq!(
+    ///     matrix.to_lanes(),
+    ///     [
+    ///         Mat2::from_row_array(&[1, 2, 3, 4]),
+    ///         Mat2::from_row_array(&[5, 6, 7, 8]),
+    ///         Mat2::from_row_array(&[9, 10, 11, 12]),
+    ///         Mat2::from_row_array(&[13, 14, 15, 16]),
+    ///     ],
+    /// );
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn to_lanes(&self) -> [Matrix<N, T, A>; LANES] {
+        core::array::from_fn(|lane| self.lane(lane))
+    }
+
     /// Creates an SoA (Structure of Arrays) matrix by calling function `f` for
     /// each lane index.
     ///
@@ -85,37 +116,6 @@ where
         F: FnMut(usize) -> Matrix<N, T, A>,
     {
         Self::from_lanes(&core::array::from_fn(f))
-    }
-
-    /// Converts an SoA (Structure of Arrays) matrix to an array of lanes or
-    /// scalar matrices.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::Mat2;
-    /// # use wide::i32x4;
-    /// #
-    /// let matrix = Mat2::from_row_array(&[
-    ///     i32x4::new([1, 5, 9, 13]),
-    ///     i32x4::new([2, 6, 10, 14]),
-    ///     i32x4::new([3, 7, 11, 15]),
-    ///     i32x4::new([4, 8, 12, 16]),
-    /// ]);
-    /// assert_eq!(
-    ///     matrix.to_lanes(),
-    ///     [
-    ///         Mat2::from_row_array(&[1, 2, 3, 4]),
-    ///         Mat2::from_row_array(&[5, 6, 7, 8]),
-    ///         Mat2::from_row_array(&[9, 10, 11, 12]),
-    ///         Mat2::from_row_array(&[13, 14, 15, 16]),
-    ///     ],
-    /// );
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn to_lanes(&self) -> [Matrix<N, T, A>; LANES] {
-        core::array::from_fn(|lane| self.lane(lane))
     }
 
     /// Takes an SoA (Structure of Arrays) matrix and returns the lane at the

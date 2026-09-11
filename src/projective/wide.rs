@@ -59,6 +59,43 @@ where
         specialize_23!(Projective::<N, Wide, A>::from_lanes_backend(lanes))
     }
 
+    /// Converts an SoA (Structure of Arrays) projective transform to an array
+    /// of regular, non-SoA projective transforms corresponding to each input
+    /// lane.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Proj2;
+    /// # use wide::i32x4;
+    /// #
+    /// let soa = Proj2::from_row_array(&[
+    ///     i32x4::new([1, 11, 21, 31]),
+    ///     i32x4::new([2, 12, 22, 32]),
+    ///     i32x4::new([3, 13, 23, 33]),
+    ///     i32x4::new([4, 14, 24, 34]),
+    ///     i32x4::new([5, 15, 25, 35]),
+    ///     i32x4::new([6, 16, 26, 36]),
+    ///     i32x4::new([7, 17, 27, 37]),
+    ///     i32x4::new([8, 18, 28, 38]),
+    ///     i32x4::new([9, 19, 29, 39]),
+    /// ]);
+    /// assert_eq!(
+    ///     soa.to_lanes(),
+    ///     [
+    ///         Proj2::from_row_array(&[1, 2, 3, 4, 5, 6, 7, 8, 9]),
+    ///         Proj2::from_row_array(&[11, 12, 13, 14, 15, 16, 17, 18, 19]),
+    ///         Proj2::from_row_array(&[21, 22, 23, 24, 25, 26, 27, 28, 29]),
+    ///         Proj2::from_row_array(&[31, 32, 33, 34, 35, 36, 37, 38, 39]),
+    ///     ],
+    /// );
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn to_lanes(&self) -> [Projective<N, T, A>; LANES] {
+        core::array::from_fn(|lane| self.lane(lane))
+    }
+
     /// Creates an SoA (Structure of Arrays) projective transform by calling
     /// function `f` for each output lane.
     ///
@@ -97,43 +134,6 @@ where
         F: FnMut(usize) -> Projective<N, T, A>,
     {
         Self::from_lanes(&core::array::from_fn(f))
-    }
-
-    /// Converts an SoA (Structure of Arrays) projective transform to an array
-    /// of regular, non-SoA projective transforms corresponding to each input
-    /// lane.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::Proj2;
-    /// # use wide::i32x4;
-    /// #
-    /// let soa = Proj2::from_row_array(&[
-    ///     i32x4::new([1, 11, 21, 31]),
-    ///     i32x4::new([2, 12, 22, 32]),
-    ///     i32x4::new([3, 13, 23, 33]),
-    ///     i32x4::new([4, 14, 24, 34]),
-    ///     i32x4::new([5, 15, 25, 35]),
-    ///     i32x4::new([6, 16, 26, 36]),
-    ///     i32x4::new([7, 17, 27, 37]),
-    ///     i32x4::new([8, 18, 28, 38]),
-    ///     i32x4::new([9, 19, 29, 39]),
-    /// ]);
-    /// assert_eq!(
-    ///     soa.to_lanes(),
-    ///     [
-    ///         Proj2::from_row_array(&[1, 2, 3, 4, 5, 6, 7, 8, 9]),
-    ///         Proj2::from_row_array(&[11, 12, 13, 14, 15, 16, 17, 18, 19]),
-    ///         Proj2::from_row_array(&[21, 22, 23, 24, 25, 26, 27, 28, 29]),
-    ///         Proj2::from_row_array(&[31, 32, 33, 34, 35, 36, 37, 38, 39]),
-    ///     ],
-    /// );
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn to_lanes(&self) -> [Projective<N, T, A>; LANES] {
-        core::array::from_fn(|lane| self.lane(lane))
     }
 
     /// Takes an SoA (Structure of Arrays) projective transform and returns the

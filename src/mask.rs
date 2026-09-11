@@ -171,13 +171,6 @@ where
     Dim<N>: TwoThreeOrFour,
     T: Element,
 {
-    /// Creates a vector mask from an array.
-    #[inline]
-    #[must_use]
-    pub fn from_array(array: [bool; N]) -> Self {
-        specialize!(<T as MaskBackend<N, A>>::mask_from_array(array))
-    }
-
     /// Creates a vector mask with all elements set to `value`.
     ///
     /// # Examples
@@ -237,51 +230,11 @@ where
         }
     }
 
-    /// Converts `self` to the specified SIMD-alignment mode.
-    ///
-    /// If the output mode is known to always be [`Aligned`] or always be
-    /// [`Unaligned`], use methods [`align`] and [`unalign`] instead.
-    ///
-    /// See [`Alignment`] for more information about SIMD-aligned types.
-    ///
-    /// [`align`]: Self::align
-    /// [`unalign`]: Self::unalign
+    /// Creates a vector mask from an array.
     #[inline]
     #[must_use]
-    pub fn to_alignment<A2: Alignment>(self) -> Mask<N, T, A2> {
-        (const {
-            if A::IS_ALIGNED == A2::IS_ALIGNED {
-                // `A` and `A2` are guaranteed to be the same type as long as
-                // `A::IS_ALIGNED == A2::IS_ALIGNED` which was just checked.
-                // Thus the transmuted types are the same type.
-                unsafe {
-                    transmute::<
-                        fn(Mask<N, T, A>) -> Mask<N, T, A>,
-                        fn(Mask<N, T, A>) -> Mask<N, T, A2>,
-                    >(|mask| mask)
-                }
-            } else {
-                |mask: Self| Mask::from_array(mask.to_array())
-            }
-        })(self)
-    }
-
-    /// Converts `self` to SIMD-aligned storage.
-    ///
-    /// See [`Alignment`] for more information about SIMD-aligned types.
-    #[inline]
-    #[must_use]
-    pub fn align(self) -> Mask<N, T, Aligned> {
-        self.to_alignment()
-    }
-
-    /// Converts `self` to non-SIMD-aligned storage.
-    ///
-    /// See [`Alignment`] for more information about SIMD-aligned types.
-    #[inline]
-    #[must_use]
-    pub fn unalign(self) -> Mask<N, T, Unaligned> {
-        self.to_alignment()
+    pub fn from_array(array: [bool; N]) -> Self {
+        specialize!(<T as MaskBackend<N, A>>::mask_from_array(array))
     }
 
     /// Converts the vector mask to an array.
@@ -289,6 +242,29 @@ where
     #[must_use]
     pub fn to_array(self) -> [bool; N] {
         specialize!(<T as MaskBackend<N, A>>::mask_to_array(self))
+    }
+
+    /// Returns the element at the given index.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `index` is greater than or equal to the number of elements.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn get(self, index: usize) -> bool {
+        specialize!(<T as MaskBackend<N, A>>::mask_get(self, index))
+    }
+
+    /// Sets the element at the given index to `value`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `index` is greater than or equal to the number of elements.
+    #[inline]
+    #[track_caller]
+    pub fn set(&mut self, index: usize, value: bool) {
+        specialize!(<T as MaskBackend<N, A>>::mask_set(self, index, value))
     }
 
     /// Returns `true` if all elements of `self` are `true`.
@@ -359,27 +335,51 @@ where
         self.to_array().into_iter()
     }
 
-    /// Returns the element at the given index.
+    /// Converts `self` to SIMD-aligned storage.
     ///
-    /// # Panics
-    ///
-    /// Panics if `index` is greater than or equal to the number of elements.
+    /// See [`Alignment`] for more information about SIMD-aligned types.
     #[inline]
     #[must_use]
-    #[track_caller]
-    pub fn get(self, index: usize) -> bool {
-        specialize!(<T as MaskBackend<N, A>>::mask_get(self, index))
+    pub fn align(self) -> Mask<N, T, Aligned> {
+        self.to_alignment()
     }
 
-    /// Sets the element at the given index to `value`.
+    /// Converts `self` to non-SIMD-aligned storage.
     ///
-    /// # Panics
-    ///
-    /// Panics if `index` is greater than or equal to the number of elements.
+    /// See [`Alignment`] for more information about SIMD-aligned types.
     #[inline]
-    #[track_caller]
-    pub fn set(&mut self, index: usize, value: bool) {
-        specialize!(<T as MaskBackend<N, A>>::mask_set(self, index, value))
+    #[must_use]
+    pub fn unalign(self) -> Mask<N, T, Unaligned> {
+        self.to_alignment()
+    }
+
+    /// Converts `self` to the specified SIMD-alignment mode.
+    ///
+    /// If the output mode is known to always be [`Aligned`] or always be
+    /// [`Unaligned`], use methods [`align`] and [`unalign`] instead.
+    ///
+    /// See [`Alignment`] for more information about SIMD-aligned types.
+    ///
+    /// [`align`]: Self::align
+    /// [`unalign`]: Self::unalign
+    #[inline]
+    #[must_use]
+    pub fn to_alignment<A2: Alignment>(self) -> Mask<N, T, A2> {
+        (const {
+            if A::IS_ALIGNED == A2::IS_ALIGNED {
+                // `A` and `A2` are guaranteed to be the same type as long as
+                // `A::IS_ALIGNED == A2::IS_ALIGNED` which was just checked.
+                // Thus the transmuted types are the same type.
+                unsafe {
+                    transmute::<
+                        fn(Mask<N, T, A>) -> Mask<N, T, A>,
+                        fn(Mask<N, T, A>) -> Mask<N, T, A2>,
+                    >(|mask| mask)
+                }
+            } else {
+                |mask: Self| Mask::from_array(mask.to_array())
+            }
+        })(self)
     }
 
     #[inline]

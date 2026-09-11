@@ -50,19 +50,17 @@ macro_rules! items {
             Self::from_rotor(rotor).prepend_scale(scale)
         }
 
-        /// For each lane, returns `true` if any element is NaN.
+        /// Converts a matrix to a non-uniform scale and a rotor.
+        ///
+        /// This assumes `self` only contains scale and rotation.
         #[inline]
         #[must_use]
-        pub fn is_nan(&self) -> $Wide {
-            specialize!(Matrix::<N, $Wide, A>::is_nan_backend(self))
-        }
-
-        /// For each lane, returns `true` if all elements are neither infinite
-        /// nor NaN.
-        #[inline]
-        #[must_use]
-        pub fn is_finite(&self) -> $Wide {
-            specialize!(Matrix::<N, $Wide, A>::is_finite_backend(self))
+        #[expect(private_bounds)]
+        pub fn to_scale_rotor(&self) -> (Vector<N, $Wide, A>, Rotor<N, $Wide, A>)
+        where
+            Dim<N>: Three,
+        {
+            specialize_3!(Matrix::<N, $Wide, A>::to_scale_rotor_backend(self))
         }
 
         /// Returns the inverse of `self`.
@@ -101,36 +99,6 @@ macro_rules! items {
             specialize!(Matrix::<N, $Wide, A>::inverse_and_determinant_backend(self))
         }
 
-        /// Returns the element-wise reciprocal (inverse) of a matrix,
-        /// `1 / self`.
-        #[inline]
-        #[must_use]
-        pub fn recip(&self) -> Self {
-            specialize!(Matrix::<N, $Wide, A>::recip_backend(self))
-        }
-
-        /// Returns the absolute values of the elements of `self`.
-        ///
-        /// Equivalent to `(self.x_axis.abs(), self.y_axis.abs(), ...)`.
-        #[inline]
-        #[must_use]
-        pub fn abs(&self) -> Self {
-            specialize!(Matrix::<N, $Wide, A>::abs_backend(self))
-        }
-
-        /// Converts a matrix to a non-uniform scale and a rotor.
-        ///
-        /// This assumes `self` only contains scale and rotation.
-        #[inline]
-        #[must_use]
-        #[expect(private_bounds)]
-        pub fn to_scale_rotor(&self) -> (Vector<N, $Wide, A>, Rotor<N, $Wide, A>)
-        where
-            Dim<N>: Three,
-        {
-            specialize_3!(Matrix::<N, $Wide, A>::to_scale_rotor_backend(self))
-        }
-
         /// Returns `true` if the absolute difference of all elements between
         /// `self` and `other` is less than or equal to `max_abs_diff` for all
         /// lanes.
@@ -146,6 +114,38 @@ macro_rules! items {
                 other,
                 max_abs_diff
             ))
+        }
+
+        /// For each lane, returns `true` if any element is NaN.
+        #[inline]
+        #[must_use]
+        pub fn is_nan(&self) -> $Wide {
+            specialize!(Matrix::<N, $Wide, A>::is_nan_backend(self))
+        }
+
+        /// For each lane, returns `true` if all elements are neither infinite
+        /// nor NaN.
+        #[inline]
+        #[must_use]
+        pub fn is_finite(&self) -> $Wide {
+            specialize!(Matrix::<N, $Wide, A>::is_finite_backend(self))
+        }
+
+        /// Returns the absolute values of the elements of `self`.
+        ///
+        /// Equivalent to `(self.x_axis.abs(), self.y_axis.abs(), ...)`.
+        #[inline]
+        #[must_use]
+        pub fn abs(&self) -> Self {
+            specialize!(Matrix::<N, $Wide, A>::abs_backend(self))
+        }
+
+        /// Returns the element-wise reciprocal (inverse) of a matrix,
+        /// `1 / self`.
+        #[inline]
+        #[must_use]
+        pub fn recip(&self) -> Self {
+            specialize!(Matrix::<N, $Wide, A>::recip_backend(self))
         }
     };
 }
@@ -183,6 +183,24 @@ macro_rules! items_2 {
             ))
         }
 
+        /// Converts a matrix to scale and rotation.
+        ///
+        /// This assumes `self` does not contain shear.
+        #[inline]
+        #[must_use]
+        pub fn to_scale_rotation(&self) -> (Vector<2, $Wide, A>, Rotation2<$Wide, A>) {
+            let determinant = self.determinant();
+
+            let (rotation, x_axis_length) = Rotation2(self.x_axis).normalize_and_length();
+
+            let scale = Vector::<2, $Wide, A>::new(
+                x_axis_length,
+                self.y_axis.length() * determinant.signum(),
+            );
+
+            (scale, rotation)
+        }
+
         /// Creates a rotation matrix from an `angle` (in radians) rotating `+X`
         /// to `+Y`.
         #[inline]
@@ -209,35 +227,6 @@ macro_rules! items_2 {
             ])
         }
 
-        /// Takes the `N`x`N` linear transformation part of an `N+1`x`N+1`
-        /// homogeneous transformation matrix, removing the last row and column.
-        ///
-        /// This assumes `homogeneous` does not contain projections. If there is
-        /// translation, it is ignored.
-        #[inline]
-        #[must_use]
-        pub fn from_homogeneous(homogeneous: &Matrix<3, $Wide, A>) -> Self {
-            Self::from_rows(&[homogeneous.x_axis.truncate(), homogeneous.y_axis.truncate()])
-        }
-
-        /// Converts a matrix to scale and rotation.
-        ///
-        /// This assumes `self` does not contain shear.
-        #[inline]
-        #[must_use]
-        pub fn to_scale_rotation(&self) -> (Vector<2, $Wide, A>, Rotation2<$Wide, A>) {
-            let determinant = self.determinant();
-
-            let (rotation, x_axis_length) = Rotation2(self.x_axis).normalize_and_length();
-
-            let scale = Vector::<2, $Wide, A>::new(
-                x_axis_length,
-                self.y_axis.length() * determinant.signum(),
-            );
-
-            (scale, rotation)
-        }
-
         /// Returns the `scale` and `angle` of `self`.
         ///
         /// `self` must not contain shearing. Otherwise the result is
@@ -255,6 +244,17 @@ macro_rules! items_2 {
             let angle = (-self.y_axis.x).atan2(self.y_axis.y);
 
             (scale, angle)
+        }
+
+        /// Takes the `N`x`N` linear transformation part of an `N+1`x`N+1`
+        /// homogeneous transformation matrix, removing the last row and column.
+        ///
+        /// This assumes `homogeneous` does not contain projections. If there is
+        /// translation, it is ignored.
+        #[inline]
+        #[must_use]
+        pub fn from_homogeneous(homogeneous: &Matrix<3, $Wide, A>) -> Self {
+            Self::from_rows(&[homogeneous.x_axis.truncate(), homogeneous.y_axis.truncate()])
         }
     };
 }
@@ -383,19 +383,55 @@ macro_rules! items_3 {
             result
         }
 
-        /// Takes the `N`x`N` linear transformation part of an `N+1`x`N+1`
-        /// homogeneous transformation matrix, removing the last row and column.
+        /// Returns the Euler angles forming `self` for the given Euler rotation
+        /// order/sequence.
         ///
-        /// This assumes `homogeneous` does not contain projections. If there is
-        /// translation, it is ignored.
+        /// `self` must not contain any non-rotation transformations. Otherwise
+        /// the result is unspecified.
         #[inline]
         #[must_use]
-        pub fn from_homogeneous(homogeneous: &Matrix<4, $Wide, A>) -> Self {
-            Self::from_rows(&[
-                homogeneous.x_axis.truncate(),
-                homogeneous.y_axis.truncate(),
-                homogeneous.z_axis.truncate(),
-            ])
+        pub fn to_euler(&self, order: EulerRot) -> ($Wide, $Wide, $Wide) {
+            // Ported from https://github.com/bitshifter/glam-rs.
+
+            // Based on Ken Shoemake. 1994. Euler angle conversion. Graphics
+            // gems IV. Academic Press Professional, Inc., USA, 222–229.
+
+            let order = order.properties();
+            let (i, j, k) = order.axes_indices();
+
+            let mut ea = Vector::<3, $Wide, A>::ZERO;
+            if order.initial_repeated {
+                let sy = (self[i][j] * self[i][j] + self[i][k] * self[i][k]).sqrt();
+
+                let mask = sy.simd_gt($Wide::splat(16.0 * $T::EPSILON));
+                ea.x = mask.select(
+                    self[i][j].atan2(self[i][k]),
+                    (-self[j][k]).atan2(self[j][j]),
+                );
+                ea.y = sy.atan2(self[i][i]);
+                ea.z = mask & self[j][i].atan2(-self[k][i]);
+            } else {
+                let cy = (self[i][i] * self[i][i] + self[j][i] * self[j][i]).sqrt();
+
+                let mask = cy.simd_gt($Wide::splat(16.0 * $T::EPSILON));
+                ea.x = mask.select(
+                    self[k][j].atan2(self[k][k]),
+                    (-self[j][k]).atan2(self[j][j]),
+                );
+                ea.y = (-self[k][i]).atan2(cy);
+                ea.z = mask & self[j][i].atan2(self[i][i]);
+            }
+
+            // Reverse rotation angle of original code.
+            if order.parity_even {
+                ea = -ea;
+            }
+
+            if !order.frame_static {
+                ea = ea.zyx();
+            }
+
+            (ea.x, ea.y, ea.z)
         }
 
         /// Creates a left-handed view matrix from a facing direction and an up
@@ -464,55 +500,19 @@ macro_rules! items_3 {
             Self::look_to_rh((center - eye).normalize(), up)
         }
 
-        /// Returns the Euler angles forming `self` for the given Euler rotation
-        /// order/sequence.
+        /// Takes the `N`x`N` linear transformation part of an `N+1`x`N+1`
+        /// homogeneous transformation matrix, removing the last row and column.
         ///
-        /// `self` must not contain any non-rotation transformations. Otherwise
-        /// the result is unspecified.
+        /// This assumes `homogeneous` does not contain projections. If there is
+        /// translation, it is ignored.
         #[inline]
         #[must_use]
-        pub fn to_euler(&self, order: EulerRot) -> ($Wide, $Wide, $Wide) {
-            // Ported from https://github.com/bitshifter/glam-rs.
-
-            // Based on Ken Shoemake. 1994. Euler angle conversion. Graphics
-            // gems IV. Academic Press Professional, Inc., USA, 222–229.
-
-            let order = order.properties();
-            let (i, j, k) = order.axes_indices();
-
-            let mut ea = Vector::<3, $Wide, A>::ZERO;
-            if order.initial_repeated {
-                let sy = (self[i][j] * self[i][j] + self[i][k] * self[i][k]).sqrt();
-
-                let mask = sy.simd_gt($Wide::splat(16.0 * $T::EPSILON));
-                ea.x = mask.select(
-                    self[i][j].atan2(self[i][k]),
-                    (-self[j][k]).atan2(self[j][j]),
-                );
-                ea.y = sy.atan2(self[i][i]);
-                ea.z = mask & self[j][i].atan2(-self[k][i]);
-            } else {
-                let cy = (self[i][i] * self[i][i] + self[j][i] * self[j][i]).sqrt();
-
-                let mask = cy.simd_gt($Wide::splat(16.0 * $T::EPSILON));
-                ea.x = mask.select(
-                    self[k][j].atan2(self[k][k]),
-                    (-self[j][k]).atan2(self[j][j]),
-                );
-                ea.y = (-self[k][i]).atan2(cy);
-                ea.z = mask & self[j][i].atan2(self[i][i]);
-            }
-
-            // Reverse rotation angle of original code.
-            if order.parity_even {
-                ea = -ea;
-            }
-
-            if !order.frame_static {
-                ea = ea.zyx();
-            }
-
-            (ea.x, ea.y, ea.z)
+        pub fn from_homogeneous(homogeneous: &Matrix<4, $Wide, A>) -> Self {
+            Self::from_rows(&[
+                homogeneous.x_axis.truncate(),
+                homogeneous.y_axis.truncate(),
+                homogeneous.z_axis.truncate(),
+            ])
         }
     };
 }

@@ -36,6 +36,568 @@ where
     /// [`NEG_INFINITY`]: f32::NEG_INFINITY
     pub const NEG_INFINITY: Self = Self::splat(T::NEG_INFINITY);
 
+    /// Returns the length/magnitude of `self`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let vector = Vec3::new(2.0, 3.0, 1.0);
+    ///
+    /// assert_eq!(vector.length(), 14.0_f32.sqrt());
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn length(self) -> T {
+        self.dot(self).sqrt()
+    }
+
+    /// Returns a vector with the direction of `self` and length `1.0`.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` is a zero vector, or if the result is non finite or
+    /// zero.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let vector = Vec3::new(1.0, 2.0, 3.0);
+    ///
+    /// assert_eq!(vector.normalize(), vector / vector.length());
+    /// ```
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn normalize(self) -> Self {
+        let result = self / self.length();
+
+        debug_assert!(
+            result.is_finite() && result != Self::ZERO,
+            "vector is zero or non-finite: {self:?}.normalize()"
+        );
+
+        result
+    }
+
+    /// Returns [`normalize`], or `None` if `self` is zero or if the result is
+    /// non finite or zero.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let non_zero = Vec3::new(1.0, 2.0, 3.0);
+    /// let zero = Vec3::new(0.0, 0.0, 0.0);
+    ///
+    /// assert_eq!(non_zero.try_normalize(), Some(non_zero.normalize()));
+    /// assert_eq!(zero.try_normalize(), None);
+    /// ```
+    ///
+    /// [`normalize`]: Self::normalize
+    #[inline]
+    #[must_use]
+    pub fn try_normalize(self) -> Option<Self> {
+        let recip = T::ONE / self.length();
+        if recip.is_finite() && recip > T::ZERO {
+            Some(self * recip)
+        } else {
+            None
+        }
+    }
+
+    /// Returns [`normalize`], or `fallback` if `self` is zero or if the result
+    /// is non finite or zero.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let non_zero = Vec3::new(1.0, 2.0, 3.0);
+    /// let zero = Vec3::new(0.0, 0.0, 0.0);
+    /// let fallback = Vec3::new(9.0, 10.0, 21.0);
+    ///
+    /// assert_eq!(non_zero.normalize_or(fallback), non_zero.normalize());
+    /// assert_eq!(zero.normalize_or(fallback), fallback);
+    /// ```
+    ///
+    /// [`normalize`]: Self::normalize
+    #[inline]
+    #[must_use]
+    pub fn normalize_or(self, fallback: Self) -> Self {
+        self.try_normalize().unwrap_or(fallback)
+    }
+
+    /// Returns [`normalize`], or a zero vector if `self` is zero or if the
+    /// result is non finite.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let non_zero = Vec3::new(1.0, 2.0, 3.0);
+    /// let zero = Vec3::new(0.0, 0.0, 0.0);
+    ///
+    /// assert_eq!(non_zero.normalize_or_zero(), non_zero.normalize());
+    /// assert_eq!(zero.normalize_or_zero(), zero);
+    /// ```
+    ///
+    /// [`normalize`]: Self::normalize
+    #[inline]
+    #[must_use]
+    pub fn normalize_or_zero(self) -> Self {
+        self.normalize_or(Self::ZERO)
+    }
+
+    /// Simultaneously computes [`normalize`] and [`length`].
+    ///
+    /// If `self` is a zero vector, the result is length `0` and an unspecified
+    /// vector. Consider manually checking for `length == 0.0`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let vector = Vec3::new(1.0, 2.0, 3.0);
+    /// let (normalize, length) = vector.normalize_and_length();
+    ///
+    /// assert_eq!(normalize, vector.normalize());
+    /// assert_eq!(length, vector.length());
+    /// ```
+    ///
+    /// [`normalize`]: Self::normalize
+    /// [`length`]: Self::length
+    #[inline]
+    #[must_use]
+    pub fn normalize_and_length(self) -> (Self, T) {
+        let length = self.length();
+        (self / length, length)
+    }
+
+    /// Returns whether the vector has the length `1.0` or not.
+    ///
+    /// This uses a precision threshold of approximately `1e-4`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let unit = Vec3::splat((1.0_f32 / 3.0).sqrt());
+    /// let non_unit = Vec3::splat(2.0);
+    ///
+    /// assert!(unit.is_normalized());
+    /// assert!(!non_unit.is_normalized());
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn is_normalized(self) -> bool {
+        (self.length_squared() - T::ONE).abs() <= T::as_from(2e-4)
+    }
+
+    /// Computes the Euclidean distance between `self` and `other`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let a = Vec3::new(1.0, 2.0, 3.0);
+    /// let b = Vec3::new(4.0, 5.0, 6.0);
+    ///
+    /// assert_eq!(a.distance(b), (a - b).length());
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn distance(self, other: Self) -> T {
+        (self - other).length()
+    }
+
+    /// Returns the angle (in radians) between `self` and `other` in the range
+    /// `0..=+π`.
+    ///
+    /// The vectors do not need to be unit vectors but they do need to be
+    /// non-zero.
+    ///
+    /// # Unspecified precision
+    ///
+    /// The precision of this function is non-deterministic. This means it
+    /// varies by platform, version, and can even differ within the same
+    /// execution from one invocation to the next.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` or `other` are zero vectors.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let x = Vec3::new(2.0, 0.0, 0.0);
+    /// let y = Vec3::new(0.0, 3.0, 0.0);
+    /// let angle = x.angle_between(y);
+    ///
+    /// assert!((angle - 90.0_f32.to_radians()).abs() < 1e-5);
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn angle_between(self, other: Self) -> T {
+        let length_product = (self.length_squared() * other.length_squared()).sqrt();
+
+        debug_assert!(
+            length_product.recip().is_finite(),
+            "vectors cannot be normalized: {self:?}.angle_between({other:?})"
+        );
+
+        (self.dot(other) / length_product).acos_approx()
+    }
+
+    /// Computes the linear interpolation between `self` and `other` based on
+    /// the value `t`.
+    ///
+    /// When `t` is `0.0`, the result is `self`.  When `t` is `1.0`, the result
+    /// is `rhs`. When `t` is outside of the range `0.0..=1.0`, the result is
+    /// linearly extrapolated.
+    #[inline]
+    #[must_use]
+    pub fn lerp(self, other: Self, t: T) -> Self {
+        self * (T::ONE - t) + other * t
+    }
+
+    /// Computes the middle point between `self` and `other`.
+    ///
+    /// Equivalent to `self.lerp(other, 0.5)`, but is cheaper to compute. This
+    /// may return a slightly different value.
+    #[inline]
+    #[must_use]
+    pub fn midpoint(self, other: Self) -> Self {
+        (self + other) * T::as_from(0.5)
+    }
+
+    /// Moves `self` towards `other` by at most `max_delta`.
+    ///
+    /// When `max_delta` is `0.0`, the result is `self`. When `max_delta` is
+    /// equal to or greater than `self.distance(other)`, the result is `other`.
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let vector = Vec3::new(2.0, 0.0, 0.0);
+    /// let target = Vec3::new(5.0, 0.0, 0.0);
+    /// let max_delta = 1.0;
+    /// let move_towards = vector.move_towards(target, max_delta);
+    ///
+    /// assert_eq!(move_towards, Vec3::new(3.0, 0.0, 0.0));
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn move_towards(self, target: Self, max_delta: T) -> Self {
+        let delta = target - self;
+        let delta_length = delta.length();
+
+        if delta_length <= max_delta || delta_length <= T::as_from(1e-4) {
+            target
+        } else {
+            self + delta / delta_length * max_delta
+        }
+    }
+
+    /// Computes the spherical linear interpolation between `self` and `other`
+    /// based on the value `t`.
+    ///
+    /// When `t` is `0`, the result is `self`.  When `t` is `1`, the result
+    /// is `other`. When `t` is outside of the range `0..=1`, the result is
+    /// spherically linearly extrapolated.
+    ///
+    /// The vectors do not need to be unit vectors but they do need to be
+    /// non-zero.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` or `other` are zero vectors.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn slerp(self, other: Self, t: T) -> Self {
+        specialize!(Vector::<N, T, A>::slerp_backend(self, other, t))
+    }
+
+    /// Rotates `self` towards `target` by at most `max_angle` (in radians).
+    ///
+    /// When `max_angle` is `0`, the result is `self`. When `max_angle` is equal
+    /// to or greater than `self.angle_between(target)`, the result is `target`.
+    /// When `max_angle` is negative, this rotates towards `-target`.
+    ///
+    /// The vectors do not need to be unit vectors but `target` does need to be
+    /// non-zero.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `target` is a zero vector.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn rotate_towards(self, target: Self, max_angle: T) -> Self {
+        specialize!(Vector::<N, T, A>::rotate_towards_backend(
+            self, target, max_angle
+        ))
+    }
+
+    /// Returns the vector projection of `self` onto `other`.
+    ///
+    /// `other` must not be a zero vector.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `other` is a zero vector.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn project_onto(self, other: Self) -> Self {
+        let other_length_squared_recip = other.length_squared().recip();
+
+        debug_assert!(
+            other_length_squared_recip.is_finite(),
+            "other cannot be normalized: {self:?}.project_onto({other:?})"
+        );
+
+        other * self.dot(other) * other_length_squared_recip
+    }
+
+    /// Returns the vector projection of `self` onto `other`.
+    ///
+    /// `other` must be normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `other` is not normalized.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn project_onto_normalized(self, other: Self) -> Self {
+        debug_assert!(
+            other.is_normalized(),
+            "other is not normalized: {self:?}.project_onto_normalized({other:?})"
+        );
+
+        other * self.dot(other)
+    }
+
+    /// Returns the vector rejection of `self` from `other`.
+    ///
+    /// Equivalent to `self - self.project_onto(other)`.
+    ///
+    /// `other` must not be a zero vector.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `other` is a zero vector.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn reject_from(self, other: Self) -> Self {
+        let other_length_squared_recip = other.length_squared().recip();
+
+        debug_assert!(
+            other_length_squared_recip.is_finite(),
+            "other cannot be normalized: {self:?}.reject_from({other:?})"
+        );
+
+        self - other * self.dot(other) * other_length_squared_recip
+    }
+
+    /// Returns the vector rejection of `self` from `other`.
+    ///
+    /// Equivalent to `self - self.project_onto(other)`.
+    ///
+    /// `other` must be normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `other` is not normalized.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn reject_from_normalized(self, other: Self) -> Self {
+        debug_assert!(
+            other.is_normalized(),
+            "other is not normalized: {self:?}.reject_from_normalized({other:?})"
+        );
+
+        self - other * self.dot(other)
+    }
+
+    /// Returns the reflection of `self` through `normal`.
+    ///
+    /// `normal` must be normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `normal` is not normalized.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn reflect(self, normal: Self) -> Self {
+        debug_assert!(
+            normal.is_normalized(),
+            "normal is not normalized: {self:?}.reflect({normal:?})"
+        );
+
+        self - normal * (T::as_from(2.0) * self.dot(normal))
+    }
+
+    /// Returns the vector refraction of `self` through `normal` and `eta`.
+    ///
+    /// `eta` is the incident refraction-index divided by the transmitted
+    /// refraction-index.
+    ///
+    /// When total internal reflection occurs, the result is a zero vector.
+    ///
+    /// `self` and `normal` must be normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` or `normal` are not normalized.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn refract(self, normal: Self, eta: T) -> Self {
+        debug_assert!(
+            self.is_normalized() && normal.is_normalized(),
+            "vector or normal are not normalized: {self:?}.refract({normal:?}, {eta:?})"
+        );
+
+        let self_dot_normal = self.dot(normal);
+        let k = T::ONE - eta * eta * (T::ONE - self_dot_normal * self_dot_normal);
+        if k >= T::ZERO {
+            self * eta - normal * (eta * self_dot_normal + k.sqrt())
+        } else {
+            Self::ZERO
+        }
+    }
+
+    /// Returns some vector that is orthogonal to `self`.
+    ///
+    /// The result is not necessarily normalized. For that use
+    /// [`any_orthonormal_vector`] instead.
+    ///
+    /// For 2D vectors this is equivalent to [`perp`].
+    ///
+    /// [`any_orthonormal_vector`]: Self::any_orthonormal_vector
+    /// [`perp`]: Vector::perp
+    #[inline]
+    #[must_use]
+    pub fn any_orthogonal_vector(self) -> Self {
+        specialize!(Vector::<N, T, A>::any_orthogonal_vector_backend(self))
+    }
+
+    /// Returns some unit vector that is orthogonal to `self`.
+    ///
+    /// `self` must normalized.
+    ///
+    /// For 2D vectors this is equivalent to [`perp`].
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` is not normalized.
+    ///
+    /// [`perp`]: Vector::perp
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn any_orthonormal_vector(self) -> Self {
+        debug_assert!(
+            self.is_normalized(),
+            "vector is not normalized: {self:?}.any_orthonormal_vector()"
+        );
+
+        specialize!(Vector::<N, T, A>::any_orthonormal_vector_backend(self))
+    }
+
+    /// Returns `true` if the absolute difference of all elements between `self`
+    /// and `other` is less than or equal to `max_abs_diff`.
+    ///
+    /// This can be used to compare two vectors that should be equal, but may
+    /// have a slight difference due to operations having rounding errors.
+    #[inline]
+    #[must_use]
+    pub fn abs_diff_eq(self, other: Self, max_abs_diff: T) -> bool {
+        (self - other)
+            .abs()
+            .le_mask(Self::splat(max_abs_diff))
+            .all()
+    }
+
+    /// Raw transmutation from unsigned integer vector.
+    ///
+    /// Note that this function is distinct from [`as`] conversions, which
+    /// attempt to preserve the *numeric* value, and not the bitwise value.
+    ///
+    /// [`as`]: https://rust-for-c-programmers.com/ch16/16_2_primitive_casting_with_as.html
+    #[inline]
+    #[must_use]
+    pub const fn from_bits(value: Vector<N, Bits<T>, A>) -> Self {
+        if const { size_of::<Vector<N, T, A>>() == size_of::<Vector<N, Bits<T>, A>>() } {
+            // SAFETY: Both types accept all bit-patterns.
+            unsafe { transmute_generic::<Vector<N, Bits<T>, A>, Vector<N, T, A>>(value) }
+        } else {
+            // SAFETY: Both types accept all bit-patterns.
+            Vector::from_array(unsafe {
+                transmute_generic::<[Bits<T>; N], [T; N]>(value.to_array())
+            })
+        }
+    }
+
+    /// Raw transmutation to unsigned integer vector.
+    ///
+    /// Note that this function is distinct from [`as`] conversions, which
+    /// attempt to preserve the *numeric* value, and not the bitwise value.
+    ///
+    /// [`as`]: https://rust-for-c-programmers.com/ch16/16_2_primitive_casting_with_as.html
+    #[inline]
+    #[must_use]
+    pub const fn to_bits(self) -> Vector<N, Bits<T>, A> {
+        if const { size_of::<Vector<N, T, A>>() == size_of::<Vector<N, Bits<T>, A>>() } {
+            // SAFETY: Both types accept all bit-patterns.
+            unsafe { transmute_generic::<Vector<N, T, A>, Vector<N, Bits<T>, A>>(self) }
+        } else {
+            // SAFETY: Both types accept all bit-patterns.
+            Vector::from_array(unsafe {
+                transmute_generic::<[T; N], [Bits<T>; N]>(self.to_array())
+            })
+        }
+    }
+
     /// Returns `true` if any element is NaN.
     ///
     /// # Examples
@@ -168,25 +730,6 @@ where
         specialize!(<T as FloatVectorBackend<N, A>>::vector_sign_negative_mask(
             self
         ))
-    }
-
-    /// Returns the element-wise reciprocal (inverse) of a vector, `1 / self`.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::Vec3;
-    /// #
-    /// let vector = Vec3::new(2.0, 3.0, 4.0);
-    /// let recip = vector.recip();
-    /// let div = Vec3::ONE / vector;
-    ///
-    /// assert_eq!(recip, div);
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn recip(self) -> Self {
-        Self::ONE / self
     }
 
     /// Returns the maximum elements between `self` and `other`.
@@ -362,6 +905,159 @@ where
         specialize!(<T as FloatVectorBackend<N, A>>::vector_min_element(self))
     }
 
+    /// Returns `self` with a length of no more than `max`.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `max` is negative or `self` cannot be normalized.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let a = Vec3::new(2.0, 0.0, 0.0);
+    /// let b = Vec3::new(6.0, 0.0, 0.0);
+    /// let max = 4.0;
+    ///
+    /// assert_eq!(a.with_max_length(max), Vec3::new(2.0, 0.0, 0.0));
+    /// assert_eq!(b.with_max_length(max), Vec3::new(4.0, 0.0, 0.0));
+    /// ```
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn with_max_length(self, max: T) -> Self {
+        debug_assert!(
+            matches!(
+                max.partial_cmp(&T::ZERO),
+                None | Some(Ordering::Greater | Ordering::Equal)
+            ),
+            "negative maximum length: {self:?}.with_max_length({max:?})"
+        );
+
+        let length_squared = self.length_squared();
+        if length_squared > max * max {
+            let normalized = self / length_squared.sqrt();
+
+            debug_assert!(
+                normalized.is_finite() && normalized != Self::ZERO,
+                "vector cannot be normalized: {self:?}.with_max_length({max:?})"
+            );
+
+            normalized * max
+        } else {
+            self
+        }
+    }
+
+    /// Returns `self` with a length of no less than `min`.
+    ///
+    /// If `min` is negative, this returns `self`.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` cannot be normalized.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let a = Vec3::new(2.0, 0.0, 0.0);
+    /// let b = Vec3::new(6.0, 0.0, 0.0);
+    /// let min = 4.0;
+    ///
+    /// assert_eq!(a.with_min_length(min), Vec3::new(4.0, 0.0, 0.0));
+    /// assert_eq!(b.with_min_length(min), Vec3::new(6.0, 0.0, 0.0));
+    /// ```
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn with_min_length(self, min: T) -> Self {
+        let length_squared = self.length_squared();
+        if length_squared < min * min.abs() {
+            let normalized = self / length_squared.sqrt();
+
+            debug_assert!(
+                normalized.is_finite() && normalized != Self::ZERO,
+                "vector cannot be normalized: {self:?}.with_min_length({min:?})"
+            );
+
+            normalized * min
+        } else {
+            self
+        }
+    }
+
+    /// Returns `self` with a length of no less than `min` and no more than
+    /// `max`.
+    ///
+    /// If `min` is negative it is ignored.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `min > max`, `max` is negative or `self` cannot be normalized.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let a = Vec3::new(2.0, 0.0, 0.0);
+    /// let b = Vec3::new(6.0, 0.0, 0.0);
+    /// let c = Vec3::new(10.0, 0.0, 0.0);
+    /// let min = 4.0;
+    /// let max = 8.0;
+    ///
+    /// assert_eq!(a.clamp_length(min, max), Vec3::new(4.0, 0.0, 0.0));
+    /// assert_eq!(b.clamp_length(min, max), Vec3::new(6.0, 0.0, 0.0));
+    /// assert_eq!(c.clamp_length(min, max), Vec3::new(8.0, 0.0, 0.0));
+    /// ```
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn clamp_length(self, min: T, max: T) -> Self {
+        debug_assert!(
+            matches!(
+                max.partial_cmp(&T::ZERO),
+                None | Some(Ordering::Greater | Ordering::Equal)
+            ) && matches!(
+                min.partial_cmp(&max),
+                None | Some(Ordering::Less | Ordering::Equal)
+            ),
+            "max_length < min_length or max_length < 0: {self:?}.clamp_length({min:?}, {max:?})"
+        );
+
+        let length_squared = self.length_squared();
+        if length_squared < min * min.abs() {
+            let normalized = self / length_squared.sqrt();
+
+            debug_assert!(
+                normalized.is_finite() && normalized != Self::ZERO,
+                "invalid vector: {self:?}.clamp_length({min:?}, {max:?})"
+            );
+
+            normalized * min
+        } else if length_squared > max * max {
+            let normalized = self / length_squared.sqrt();
+
+            debug_assert!(
+                normalized.is_finite() && normalized != Self::ZERO,
+                "invalid vector: {self:?}.clamp_length({min:?}, {max:?})"
+            );
+
+            normalized * max
+        } else {
+            self
+        }
+    }
+
     /// Returns the absolute values of elements of `self`.
     ///
     /// Equivalent to `(self.x.abs(), self.y.abs(), ...)`.
@@ -529,6 +1225,25 @@ where
     #[must_use]
     pub fn fract(self) -> Self {
         self - self.trunc()
+    }
+
+    /// Returns the element-wise reciprocal (inverse) of a vector, `1 / self`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let vector = Vec3::new(2.0, 3.0, 4.0);
+    /// let recip = vector.recip();
+    /// let div = Vec3::ONE / vector;
+    ///
+    /// assert_eq!(recip, div);
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn recip(self) -> Self {
+        Self::ONE / self
     }
 
     /// Fused multiply-add. Computes `(self * a) + b` with only one rounding
@@ -784,721 +1499,6 @@ where
     #[must_use]
     pub fn sin_cos(self) -> (Self, Self) {
         specialize!(<T as FloatVectorBackend<N, A>>::vector_sin_cos(self))
-    }
-
-    /// Computes the linear interpolation between `self` and `other` based on
-    /// the value `t`.
-    ///
-    /// When `t` is `0.0`, the result is `self`.  When `t` is `1.0`, the result
-    /// is `rhs`. When `t` is outside of the range `0.0..=1.0`, the result is
-    /// linearly extrapolated.
-    #[inline]
-    #[must_use]
-    pub fn lerp(self, other: Self, t: T) -> Self {
-        self * (T::ONE - t) + other * t
-    }
-
-    /// Computes the middle point between `self` and `other`.
-    ///
-    /// Equivalent to `self.lerp(other, 0.5)`, but is cheaper to compute. This
-    /// may return a slightly different value.
-    #[inline]
-    #[must_use]
-    pub fn midpoint(self, other: Self) -> Self {
-        (self + other) * T::as_from(0.5)
-    }
-
-    /// Moves `self` towards `other` by at most `max_delta`.
-    ///
-    /// When `max_delta` is `0.0`, the result is `self`. When `max_delta` is
-    /// equal to or greater than `self.distance(other)`, the result is `other`.
-    ///
-    /// ```
-    /// # use ggmath::Vec3;
-    /// #
-    /// let vector = Vec3::new(2.0, 0.0, 0.0);
-    /// let target = Vec3::new(5.0, 0.0, 0.0);
-    /// let max_delta = 1.0;
-    /// let move_towards = vector.move_towards(target, max_delta);
-    ///
-    /// assert_eq!(move_towards, Vec3::new(3.0, 0.0, 0.0));
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn move_towards(self, target: Self, max_delta: T) -> Self {
-        let delta = target - self;
-        let delta_length = delta.length();
-
-        if delta_length <= max_delta || delta_length <= T::as_from(1e-4) {
-            target
-        } else {
-            self + delta / delta_length * max_delta
-        }
-    }
-
-    /// Computes the spherical linear interpolation between `self` and `other`
-    /// based on the value `t`.
-    ///
-    /// When `t` is `0`, the result is `self`.  When `t` is `1`, the result
-    /// is `other`. When `t` is outside of the range `0..=1`, the result is
-    /// spherically linearly extrapolated.
-    ///
-    /// The vectors do not need to be unit vectors but they do need to be
-    /// non-zero.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `self` or `other` are zero vectors.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn slerp(self, other: Self, t: T) -> Self {
-        specialize!(Vector::<N, T, A>::slerp_backend(self, other, t))
-    }
-
-    /// Rotates `self` towards `target` by at most `max_angle` (in radians).
-    ///
-    /// When `max_angle` is `0`, the result is `self`. When `max_angle` is equal
-    /// to or greater than `self.angle_between(target)`, the result is `target`.
-    /// When `max_angle` is negative, this rotates towards `-target`.
-    ///
-    /// The vectors do not need to be unit vectors but `target` does need to be
-    /// non-zero.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `target` is a zero vector.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn rotate_towards(self, target: Self, max_angle: T) -> Self {
-        specialize!(Vector::<N, T, A>::rotate_towards_backend(
-            self, target, max_angle
-        ))
-    }
-
-    /// Returns the length/magnitude of `self`.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::Vec3;
-    /// #
-    /// let vector = Vec3::new(2.0, 3.0, 1.0);
-    ///
-    /// assert_eq!(vector.length(), 14.0_f32.sqrt());
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn length(self) -> T {
-        self.dot(self).sqrt()
-    }
-
-    /// Computes the Euclidean distance between `self` and `other`.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::Vec3;
-    /// #
-    /// let a = Vec3::new(1.0, 2.0, 3.0);
-    /// let b = Vec3::new(4.0, 5.0, 6.0);
-    ///
-    /// assert_eq!(a.distance(b), (a - b).length());
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn distance(self, other: Self) -> T {
-        (self - other).length()
-    }
-
-    /// Returns a vector with the direction of `self` and length `1.0`.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `self` is a zero vector, or if the result is non finite or
-    /// zero.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::Vec3;
-    /// #
-    /// let vector = Vec3::new(1.0, 2.0, 3.0);
-    ///
-    /// assert_eq!(vector.normalize(), vector / vector.length());
-    /// ```
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn normalize(self) -> Self {
-        let result = self / self.length();
-
-        debug_assert!(
-            result.is_finite() && result != Self::ZERO,
-            "vector is zero or non-finite: {self:?}.normalize()"
-        );
-
-        result
-    }
-
-    /// Returns [`normalize`], or `None` if `self` is zero or if the result is
-    /// non finite or zero.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::Vec3;
-    /// #
-    /// let non_zero = Vec3::new(1.0, 2.0, 3.0);
-    /// let zero = Vec3::new(0.0, 0.0, 0.0);
-    ///
-    /// assert_eq!(non_zero.try_normalize(), Some(non_zero.normalize()));
-    /// assert_eq!(zero.try_normalize(), None);
-    /// ```
-    ///
-    /// [`normalize`]: Self::normalize
-    #[inline]
-    #[must_use]
-    pub fn try_normalize(self) -> Option<Self> {
-        let recip = T::ONE / self.length();
-        if recip.is_finite() && recip > T::ZERO {
-            Some(self * recip)
-        } else {
-            None
-        }
-    }
-
-    /// Returns [`normalize`], or `fallback` if `self` is zero or if the result
-    /// is non finite or zero.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::Vec3;
-    /// #
-    /// let non_zero = Vec3::new(1.0, 2.0, 3.0);
-    /// let zero = Vec3::new(0.0, 0.0, 0.0);
-    /// let fallback = Vec3::new(9.0, 10.0, 21.0);
-    ///
-    /// assert_eq!(non_zero.normalize_or(fallback), non_zero.normalize());
-    /// assert_eq!(zero.normalize_or(fallback), fallback);
-    /// ```
-    ///
-    /// [`normalize`]: Self::normalize
-    #[inline]
-    #[must_use]
-    pub fn normalize_or(self, fallback: Self) -> Self {
-        self.try_normalize().unwrap_or(fallback)
-    }
-
-    /// Returns [`normalize`], or a zero vector if `self` is zero or if the
-    /// result is non finite.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::Vec3;
-    /// #
-    /// let non_zero = Vec3::new(1.0, 2.0, 3.0);
-    /// let zero = Vec3::new(0.0, 0.0, 0.0);
-    ///
-    /// assert_eq!(non_zero.normalize_or_zero(), non_zero.normalize());
-    /// assert_eq!(zero.normalize_or_zero(), zero);
-    /// ```
-    ///
-    /// [`normalize`]: Self::normalize
-    #[inline]
-    #[must_use]
-    pub fn normalize_or_zero(self) -> Self {
-        self.normalize_or(Self::ZERO)
-    }
-
-    /// Simultaneously computes [`normalize`] and [`length`].
-    ///
-    /// If `self` is a zero vector, the result is length `0` and an unspecified
-    /// vector. Consider manually checking for `length == 0.0`.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::Vec3;
-    /// #
-    /// let vector = Vec3::new(1.0, 2.0, 3.0);
-    /// let (normalize, length) = vector.normalize_and_length();
-    ///
-    /// assert_eq!(normalize, vector.normalize());
-    /// assert_eq!(length, vector.length());
-    /// ```
-    ///
-    /// [`normalize`]: Self::normalize
-    /// [`length`]: Self::length
-    #[inline]
-    #[must_use]
-    pub fn normalize_and_length(self) -> (Self, T) {
-        let length = self.length();
-        (self / length, length)
-    }
-
-    /// Returns whether the vector has the length `1.0` or not.
-    ///
-    /// This uses a precision threshold of approximately `1e-4`.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::Vec3;
-    /// #
-    /// let unit = Vec3::splat((1.0_f32 / 3.0).sqrt());
-    /// let non_unit = Vec3::splat(2.0);
-    ///
-    /// assert!(unit.is_normalized());
-    /// assert!(!non_unit.is_normalized());
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn is_normalized(self) -> bool {
-        (self.length_squared() - T::ONE).abs() <= T::as_from(2e-4)
-    }
-
-    /// Returns `self` with a length of no more than `max`.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `max` is negative or `self` cannot be normalized.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::Vec3;
-    /// #
-    /// let a = Vec3::new(2.0, 0.0, 0.0);
-    /// let b = Vec3::new(6.0, 0.0, 0.0);
-    /// let max = 4.0;
-    ///
-    /// assert_eq!(a.with_max_length(max), Vec3::new(2.0, 0.0, 0.0));
-    /// assert_eq!(b.with_max_length(max), Vec3::new(4.0, 0.0, 0.0));
-    /// ```
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn with_max_length(self, max: T) -> Self {
-        debug_assert!(
-            matches!(
-                max.partial_cmp(&T::ZERO),
-                None | Some(Ordering::Greater | Ordering::Equal)
-            ),
-            "negative maximum length: {self:?}.with_max_length({max:?})"
-        );
-
-        let length_squared = self.length_squared();
-        if length_squared > max * max {
-            let normalized = self / length_squared.sqrt();
-
-            debug_assert!(
-                normalized.is_finite() && normalized != Self::ZERO,
-                "vector cannot be normalized: {self:?}.with_max_length({max:?})"
-            );
-
-            normalized * max
-        } else {
-            self
-        }
-    }
-
-    /// Returns `self` with a length of no less than `min`.
-    ///
-    /// If `min` is negative, this returns `self`.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `self` cannot be normalized.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::Vec3;
-    /// #
-    /// let a = Vec3::new(2.0, 0.0, 0.0);
-    /// let b = Vec3::new(6.0, 0.0, 0.0);
-    /// let min = 4.0;
-    ///
-    /// assert_eq!(a.with_min_length(min), Vec3::new(4.0, 0.0, 0.0));
-    /// assert_eq!(b.with_min_length(min), Vec3::new(6.0, 0.0, 0.0));
-    /// ```
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn with_min_length(self, min: T) -> Self {
-        let length_squared = self.length_squared();
-        if length_squared < min * min.abs() {
-            let normalized = self / length_squared.sqrt();
-
-            debug_assert!(
-                normalized.is_finite() && normalized != Self::ZERO,
-                "vector cannot be normalized: {self:?}.with_min_length({min:?})"
-            );
-
-            normalized * min
-        } else {
-            self
-        }
-    }
-
-    /// Returns `self` with a length of no less than `min` and no more than
-    /// `max`.
-    ///
-    /// If `min` is negative it is ignored.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `min > max`, `max` is negative or `self` cannot be normalized.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::Vec3;
-    /// #
-    /// let a = Vec3::new(2.0, 0.0, 0.0);
-    /// let b = Vec3::new(6.0, 0.0, 0.0);
-    /// let c = Vec3::new(10.0, 0.0, 0.0);
-    /// let min = 4.0;
-    /// let max = 8.0;
-    ///
-    /// assert_eq!(a.clamp_length(min, max), Vec3::new(4.0, 0.0, 0.0));
-    /// assert_eq!(b.clamp_length(min, max), Vec3::new(6.0, 0.0, 0.0));
-    /// assert_eq!(c.clamp_length(min, max), Vec3::new(8.0, 0.0, 0.0));
-    /// ```
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn clamp_length(self, min: T, max: T) -> Self {
-        debug_assert!(
-            matches!(
-                max.partial_cmp(&T::ZERO),
-                None | Some(Ordering::Greater | Ordering::Equal)
-            ) && matches!(
-                min.partial_cmp(&max),
-                None | Some(Ordering::Less | Ordering::Equal)
-            ),
-            "max_length < min_length or max_length < 0: {self:?}.clamp_length({min:?}, {max:?})"
-        );
-
-        let length_squared = self.length_squared();
-        if length_squared < min * min.abs() {
-            let normalized = self / length_squared.sqrt();
-
-            debug_assert!(
-                normalized.is_finite() && normalized != Self::ZERO,
-                "invalid vector: {self:?}.clamp_length({min:?}, {max:?})"
-            );
-
-            normalized * min
-        } else if length_squared > max * max {
-            let normalized = self / length_squared.sqrt();
-
-            debug_assert!(
-                normalized.is_finite() && normalized != Self::ZERO,
-                "invalid vector: {self:?}.clamp_length({min:?}, {max:?})"
-            );
-
-            normalized * max
-        } else {
-            self
-        }
-    }
-
-    /// Returns the angle (in radians) between `self` and `other` in the range
-    /// `0..=+π`.
-    ///
-    /// The vectors do not need to be unit vectors but they do need to be
-    /// non-zero.
-    ///
-    /// # Unspecified precision
-    ///
-    /// The precision of this function is non-deterministic. This means it
-    /// varies by platform, version, and can even differ within the same
-    /// execution from one invocation to the next.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `self` or `other` are zero vectors.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::Vec3;
-    /// #
-    /// let x = Vec3::new(2.0, 0.0, 0.0);
-    /// let y = Vec3::new(0.0, 3.0, 0.0);
-    /// let angle = x.angle_between(y);
-    ///
-    /// assert!((angle - 90.0_f32.to_radians()).abs() < 1e-5);
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn angle_between(self, other: Self) -> T {
-        let length_product = (self.length_squared() * other.length_squared()).sqrt();
-
-        debug_assert!(
-            length_product.recip().is_finite(),
-            "vectors cannot be normalized: {self:?}.angle_between({other:?})"
-        );
-
-        (self.dot(other) / length_product).acos_approx()
-    }
-
-    /// Returns the vector projection of `self` onto `other`.
-    ///
-    /// `other` must not be a zero vector.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `other` is a zero vector.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn project_onto(self, other: Self) -> Self {
-        let other_length_squared_recip = other.length_squared().recip();
-
-        debug_assert!(
-            other_length_squared_recip.is_finite(),
-            "other cannot be normalized: {self:?}.project_onto({other:?})"
-        );
-
-        other * self.dot(other) * other_length_squared_recip
-    }
-
-    /// Returns the vector projection of `self` onto `other`.
-    ///
-    /// `other` must be normalized.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `other` is not normalized.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn project_onto_normalized(self, other: Self) -> Self {
-        debug_assert!(
-            other.is_normalized(),
-            "other is not normalized: {self:?}.project_onto_normalized({other:?})"
-        );
-
-        other * self.dot(other)
-    }
-
-    /// Returns the vector rejection of `self` from `other`.
-    ///
-    /// Equivalent to `self - self.project_onto(other)`.
-    ///
-    /// `other` must not be a zero vector.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `other` is a zero vector.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn reject_from(self, other: Self) -> Self {
-        let other_length_squared_recip = other.length_squared().recip();
-
-        debug_assert!(
-            other_length_squared_recip.is_finite(),
-            "other cannot be normalized: {self:?}.reject_from({other:?})"
-        );
-
-        self - other * self.dot(other) * other_length_squared_recip
-    }
-
-    /// Returns the vector rejection of `self` from `other`.
-    ///
-    /// Equivalent to `self - self.project_onto(other)`.
-    ///
-    /// `other` must be normalized.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `other` is not normalized.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn reject_from_normalized(self, other: Self) -> Self {
-        debug_assert!(
-            other.is_normalized(),
-            "other is not normalized: {self:?}.reject_from_normalized({other:?})"
-        );
-
-        self - other * self.dot(other)
-    }
-
-    /// Returns the reflection of `self` through `normal`.
-    ///
-    /// `normal` must be normalized.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `normal` is not normalized.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn reflect(self, normal: Self) -> Self {
-        debug_assert!(
-            normal.is_normalized(),
-            "normal is not normalized: {self:?}.reflect({normal:?})"
-        );
-
-        self - normal * (T::as_from(2.0) * self.dot(normal))
-    }
-
-    /// Returns the vector refraction of `self` through `normal` and `eta`.
-    ///
-    /// `eta` is the incident refraction-index divided by the transmitted
-    /// refraction-index.
-    ///
-    /// When total internal reflection occurs, the result is a zero vector.
-    ///
-    /// `self` and `normal` must be normalized.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `self` or `normal` are not normalized.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn refract(self, normal: Self, eta: T) -> Self {
-        debug_assert!(
-            self.is_normalized() && normal.is_normalized(),
-            "vector or normal are not normalized: {self:?}.refract({normal:?}, {eta:?})"
-        );
-
-        let self_dot_normal = self.dot(normal);
-        let k = T::ONE - eta * eta * (T::ONE - self_dot_normal * self_dot_normal);
-        if k >= T::ZERO {
-            self * eta - normal * (eta * self_dot_normal + k.sqrt())
-        } else {
-            Self::ZERO
-        }
-    }
-
-    /// Returns some vector that is orthogonal to `self`.
-    ///
-    /// The result is not necessarily normalized. For that use
-    /// [`any_orthonormal_vector`] instead.
-    ///
-    /// For 2D vectors this is equivalent to [`perp`].
-    ///
-    /// [`any_orthonormal_vector`]: Self::any_orthonormal_vector
-    /// [`perp`]: Vector::perp
-    #[inline]
-    #[must_use]
-    pub fn any_orthogonal_vector(self) -> Self {
-        specialize!(Vector::<N, T, A>::any_orthogonal_vector_backend(self))
-    }
-
-    /// Returns some unit vector that is orthogonal to `self`.
-    ///
-    /// `self` must normalized.
-    ///
-    /// For 2D vectors this is equivalent to [`perp`].
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `self` is not normalized.
-    ///
-    /// [`perp`]: Vector::perp
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn any_orthonormal_vector(self) -> Self {
-        debug_assert!(
-            self.is_normalized(),
-            "vector is not normalized: {self:?}.any_orthonormal_vector()"
-        );
-
-        specialize!(Vector::<N, T, A>::any_orthonormal_vector_backend(self))
-    }
-
-    /// Returns `true` if the absolute difference of all elements between `self`
-    /// and `other` is less than or equal to `max_abs_diff`.
-    ///
-    /// This can be used to compare two vectors that should be equal, but may
-    /// have a slight difference due to operations having rounding errors.
-    #[inline]
-    #[must_use]
-    pub fn abs_diff_eq(self, other: Self, max_abs_diff: T) -> bool {
-        (self - other)
-            .abs()
-            .le_mask(Self::splat(max_abs_diff))
-            .all()
-    }
-
-    /// Raw transmutation to unsigned integer vector.
-    ///
-    /// Note that this function is distinct from [`as`] conversions, which
-    /// attempt to preserve the *numeric* value, and not the bitwise value.
-    ///
-    /// [`as`]: https://rust-for-c-programmers.com/ch16/16_2_primitive_casting_with_as.html
-    #[inline]
-    #[must_use]
-    pub const fn to_bits(self) -> Vector<N, Bits<T>, A> {
-        if const { size_of::<Vector<N, T, A>>() == size_of::<Vector<N, Bits<T>, A>>() } {
-            // SAFETY: Both types accept all bit-patterns.
-            unsafe { transmute_generic::<Vector<N, T, A>, Vector<N, Bits<T>, A>>(self) }
-        } else {
-            // SAFETY: Both types accept all bit-patterns.
-            Vector::from_array(unsafe {
-                transmute_generic::<[T; N], [Bits<T>; N]>(self.to_array())
-            })
-        }
-    }
-
-    /// Raw transmutation from unsigned integer vector.
-    ///
-    /// Note that this function is distinct from [`as`] conversions, which
-    /// attempt to preserve the *numeric* value, and not the bitwise value.
-    ///
-    /// [`as`]: https://rust-for-c-programmers.com/ch16/16_2_primitive_casting_with_as.html
-    #[inline]
-    #[must_use]
-    pub const fn from_bits(value: Vector<N, Bits<T>, A>) -> Self {
-        if const { size_of::<Vector<N, T, A>>() == size_of::<Vector<N, Bits<T>, A>>() } {
-            // SAFETY: Both types accept all bit-patterns.
-            unsafe { transmute_generic::<Vector<N, Bits<T>, A>, Vector<N, T, A>>(value) }
-        } else {
-            // SAFETY: Both types accept all bit-patterns.
-            Vector::from_array(unsafe {
-                transmute_generic::<[Bits<T>; N], [T; N]>(value.to_array())
-            })
-        }
     }
 }
 

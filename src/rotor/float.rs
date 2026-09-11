@@ -124,20 +124,6 @@ where
         specialize_3!(Rotor::<N, T, A>::from_projective_backend(projective))
     }
 
-    /// Returns `true` if any element is NaN.
-    #[inline]
-    #[must_use]
-    pub fn is_nan(self) -> bool {
-        self.0.is_nan()
-    }
-
-    /// Returns `true` if all elements are neither infinite nor NaN.
-    #[inline]
-    #[must_use]
-    pub fn is_finite(self) -> bool {
-        self.0.is_finite()
-    }
-
     /// Returns the inverse of a rotor.
     ///
     /// This assumes `self` is normalized.
@@ -359,6 +345,20 @@ where
     pub fn abs_diff_eq(self, other: Self, max_abs_diff: T) -> bool {
         self.0.abs_diff_eq(other.0, max_abs_diff)
     }
+
+    /// Returns `true` if any element is NaN.
+    #[inline]
+    #[must_use]
+    pub fn is_nan(self) -> bool {
+        self.0.is_nan()
+    }
+
+    /// Returns `true` if all elements are neither infinite nor NaN.
+    #[inline]
+    #[must_use]
+    pub fn is_finite(self) -> bool {
+        self.0.is_finite()
+    }
 }
 
 impl<T, A: Alignment> Rotor<3, T, A>
@@ -416,6 +416,37 @@ where
         Self((axis * sin).extend(s))
     }
 
+    /// Converts the rotor `self` to a normalized rotation axis and an angle (in
+    /// radians), using the right-hand rule.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` is not normalized.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_axis_angle(self) -> (Vector<3, T, A>, T) {
+        debug_assert!(
+            self.is_normalized(),
+            "rotor is not normalized: {self:?}.to_axis_angle()"
+        );
+
+        let bivector = self.0.xyz();
+        let sin = bivector.length();
+
+        if sin >= T::as_from(1e-8) {
+            let axis = bivector / sin;
+            let half_angle = sin.atan2(self.s);
+            let angle = half_angle + half_angle;
+
+            (axis, angle)
+        } else {
+            (Vector::<3, T, A>::X, T::ZERO)
+        }
+    }
+
     /// Creates a rotor that rotates `scaled_axis.length()` radians around
     /// `scaled_axis.normalize()`, using the right-hand rule.
     #[inline]
@@ -428,6 +459,36 @@ where
             let half_angle = angle * T::as_from(0.5);
             let (sin, s) = half_angle.sin_cos();
             Self((axis * sin).extend(s))
+        }
+    }
+
+    // Converts the rotor `self` to a rotation axis scaled by an angle (in
+    /// radians), using the right-hand rule.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` is not normalized.
+    #[inline]
+    #[must_use]
+    pub fn to_scaled_axis(self) -> Vector<3, T, A> {
+        debug_assert!(
+            self.is_normalized(),
+            "rotor is not normalized: {self:?}.to_axis_angle()"
+        );
+
+        let bivector = self.0.xyz();
+        let sin = bivector.length();
+
+        if sin >= T::as_from(1e-8) {
+            let axis = bivector / sin;
+            let half_angle = sin.atan2(self.s);
+            let angle = half_angle + half_angle;
+
+            axis * angle
+        } else {
+            Vector::ZERO
         }
     }
 
@@ -486,6 +547,26 @@ where
         }
 
         Self(result)
+    }
+
+    /// Returns the Euler angles forming `self` for the given Euler rotation
+    /// order/sequence.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` is not normalized.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_euler(self, order: EulerRot) -> (T, T, T) {
+        debug_assert!(
+            self.is_normalized(),
+            "rotor is not normalized: {self:?}.to_euler({order:?})"
+        );
+
+        Matrix::<3, T, A>::from_rotor(self).to_euler(order)
     }
 
     /// Creates a 3D rotor from a facing direction and an up direction.
@@ -570,87 +651,6 @@ where
     #[track_caller]
     pub fn look_at_rh(eye: Vector<3, T, A>, center: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
         Self::from_matrix(&Matrix::<3, T, A>::look_at_rh(eye, center, up))
-    }
-
-    /// Converts the rotor `self` to a normalized rotation axis and an angle (in
-    /// radians), using the right-hand rule.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `self` is not normalized.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn to_axis_angle(self) -> (Vector<3, T, A>, T) {
-        debug_assert!(
-            self.is_normalized(),
-            "rotor is not normalized: {self:?}.to_axis_angle()"
-        );
-
-        let bivector = self.0.xyz();
-        let sin = bivector.length();
-
-        if sin >= T::as_from(1e-8) {
-            let axis = bivector / sin;
-            let half_angle = sin.atan2(self.s);
-            let angle = half_angle + half_angle;
-
-            (axis, angle)
-        } else {
-            (Vector::<3, T, A>::X, T::ZERO)
-        }
-    }
-
-    // Converts the rotor `self` to a rotation axis scaled by an angle (in
-    /// radians), using the right-hand rule.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `self` is not normalized.
-    #[inline]
-    #[must_use]
-    pub fn to_scaled_axis(self) -> Vector<3, T, A> {
-        debug_assert!(
-            self.is_normalized(),
-            "rotor is not normalized: {self:?}.to_axis_angle()"
-        );
-
-        let bivector = self.0.xyz();
-        let sin = bivector.length();
-
-        if sin >= T::as_from(1e-8) {
-            let axis = bivector / sin;
-            let half_angle = sin.atan2(self.s);
-            let angle = half_angle + half_angle;
-
-            axis * angle
-        } else {
-            Vector::ZERO
-        }
-    }
-
-    /// Returns the Euler angles forming `self` for the given Euler rotation
-    /// order/sequence.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `self` is not normalized.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn to_euler(self, order: EulerRot) -> (T, T, T) {
-        debug_assert!(
-            self.is_normalized(),
-            "rotor is not normalized: {self:?}.to_euler({order:?})"
-        );
-
-        Matrix::<3, T, A>::from_rotor(self).to_euler(order)
     }
 
     #[inline(always)]
