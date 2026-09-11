@@ -289,19 +289,9 @@ where
         self.to_alignment()
     }
 
-    /// Conversion to [`Unaligned`] storage.
+    /// Converts `self` to non-SIMD-aligned storage.
     ///
-    /// See [`Alignment`] for more information.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::{Mask3, Mask3A};
-    /// #
-    /// let aligned = Mask3A::<f32>::new(false, true, false);
-    /// let unaligned = aligned.unalign();
-    /// assert_eq!(unaligned, Mask3::new(false, true, false));
-    /// ```
+    /// See [`Alignment`] for more information about SIMD-aligned types.
     #[inline]
     #[must_use]
     pub fn unalign(self) -> Mask<N, T, Unaligned> {

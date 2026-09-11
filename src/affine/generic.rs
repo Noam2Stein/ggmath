@@ -189,19 +189,9 @@ where
         self.to_alignment()
     }
 
-    /// Conversion to [`Unaligned`] storage.
+    /// Converts `self` to non-SIMD-aligned storage.
     ///
-    /// See [`Alignment`] for more details.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::{Affine2, Affine2A};
-    /// #
-    /// let aligned = Affine2A::<f32>::IDENTITY;
-    /// let unaligned = aligned.unalign();
-    /// assert_eq!(unaligned, Affine2::IDENTITY);
-    /// ```
+    /// See [`Alignment`] for more information about SIMD-aligned types.
     #[inline]
     #[must_use]
     pub const fn unalign(&self) -> Affine<N, T, Unaligned> {

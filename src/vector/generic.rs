@@ -235,19 +235,9 @@ where
         self.to_alignment()
     }
 
-    /// Conversion to [`Unaligned`] storage.
+    /// Converts `self` to non-SIMD-aligned storage.
     ///
-    /// See [`Alignment`] for more information.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::{Vec3, Vec3A};
-    /// #
-    /// let aligned = Vec3A::new(1, 2, 3);
-    /// let unaligned = aligned.unalign();
-    /// assert_eq!(unaligned, Vec3::new(1, 2, 3));
-    /// ```
+    /// See [`Alignment`] for more information about SIMD-aligned types.
     #[inline]
     #[must_use]
     pub const fn unalign(self) -> Vector<N, T, Unaligned> {
