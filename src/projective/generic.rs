@@ -192,12 +192,12 @@ where
         specialize_23!(Projective::<N, T, A>::translation_backend(self))
     }
 
-    /// Conversion between [`Aligned`] and [`Unaligned`] storage.
+    /// Converts `self` to the specified SIMD-alignment mode.
     ///
-    /// See [`align`] and [`unalign`] for scenarios where the output alignment
-    /// is known.
+    /// If the output mode is known to always be [`Aligned`] or always be
+    /// [`Unaligned`], use methods [`align`] and [`unalign`] instead.
     ///
-    /// See [`Alignment`] for more details.
+    /// See [`Alignment`] for more information about SIMD-aligned types.
     ///
     /// [`align`]: Self::align
     /// [`unalign`]: Self::unalign
@@ -233,18 +233,18 @@ where
         }
     }
 
-    /// Conversion to [`Aligned`] storage.
+    /// Converts `self` to SIMD-aligned storage.
     ///
-    /// See [`Alignment`] for more information.
+    /// See [`Alignment`] for more information about SIMD-aligned types.
     #[inline]
     #[must_use]
     pub const fn align(&self) -> Projective<N, T, Aligned> {
         self.to_alignment()
     }
 
-    /// Conversion to [`Unaligned`] storage.
+    /// Converts `self` to non-SIMD-aligned storage.
     ///
-    /// See [`Alignment`] for more information.
+    /// See [`Alignment`] for more information about SIMD-aligned types.
     #[inline]
     #[must_use]
     pub const fn unalign(&self) -> Projective<N, T, Unaligned> {

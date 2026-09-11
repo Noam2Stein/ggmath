@@ -176,12 +176,12 @@ where
         &mut self.0
     }
 
-    /// Conversion between [`Aligned`] and [`Unaligned`] storage.
+    /// Converts `self` to the specified SIMD-alignment mode.
     ///
-    /// See [`align`] and [`unalign`] for scenarios where the output alignment
-    /// is known.
+    /// If the output mode is known to always be [`Aligned`] or always be
+    /// [`Unaligned`], use methods [`align`] and [`unalign`] instead.
     ///
-    /// See [`Alignment`] for more details.
+    /// See [`Alignment`] for more information about SIMD-aligned types.
     ///
     /// [`Aligned`]: crate::Aligned
     /// [`Unaligned`]: crate::Unaligned
@@ -193,18 +193,18 @@ where
         Rotation2(self.0.to_alignment())
     }
 
-    /// Conversion to [`Aligned`] storage.
+    /// Converts `self` to SIMD-aligned storage.
     ///
-    /// [`Aligned`]: crate::Aligned
+    /// See [`Alignment`] for more information about SIMD-aligned types.
     #[inline]
     #[must_use]
     pub const fn align(self) -> Rot2A<T> {
         Rotation2(self.0.align())
     }
 
-    /// Conversion to [`Unaligned`] storage.
+    /// Converts `self` to non-SIMD-aligned storage.
     ///
-    /// [`Unaligned`]: crate::Unaligned
+    /// See [`Alignment`] for more information about SIMD-aligned types.
     #[inline]
     #[must_use]
     pub const fn unalign(self) -> Rot2<T> {

@@ -145,26 +145,12 @@ where
         }
     }
 
-    /// Conversion between [`Aligned`] and [`Unaligned`] storage.
+    /// Converts `self` to the specified SIMD-alignment mode.
     ///
-    /// See [`align`] and [`unalign`] for scenarios where the output alignment
-    /// is known.
+    /// If the output mode is known to always be [`Aligned`] or always be
+    /// [`Unaligned`], use methods [`align`] and [`unalign`] instead.
     ///
-    /// See [`Alignment`] for more details.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::{Aligned, Affine2, Affine2A, Unaligned};
-    /// #
-    /// let unaligned = Affine2::<f32>::IDENTITY;
-    /// let aligned = unaligned.to_alignment::<Aligned>();
-    /// assert_eq!(aligned, Affine2A::IDENTITY);
-    ///
-    /// let aligned = Affine2A::<f32>::IDENTITY;
-    /// let unaligned = aligned.to_alignment::<Unaligned>();
-    /// assert_eq!(unaligned, Affine2::IDENTITY);
-    /// ```
+    /// See [`Alignment`] for more information about SIMD-aligned types.
     ///
     /// [`align`]: Self::align
     /// [`unalign`]: Self::unalign
@@ -180,38 +166,18 @@ where
         )
     }
 
-    /// Conversion to [`Aligned`] storage.
+    /// Converts `self` to SIMD-aligned storage.
     ///
-    /// See [`Alignment`] for more details.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::{Affine2, Affine2A};
-    /// #
-    /// let unaligned = Affine2::<f32>::IDENTITY;
-    /// let aligned = unaligned.align();
-    /// assert_eq!(aligned, Affine2A::IDENTITY);
-    /// ```
+    /// See [`Alignment`] for more information about SIMD-aligned types.
     #[inline]
     #[must_use]
     pub const fn align(&self) -> Affine<N, T, Aligned> {
         self.to_alignment()
     }
 
-    /// Conversion to [`Unaligned`] storage.
+    /// Converts `self` to non-SIMD-aligned storage.
     ///
-    /// See [`Alignment`] for more details.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::{Affine2, Affine2A};
-    /// #
-    /// let aligned = Affine2A::<f32>::IDENTITY;
-    /// let unaligned = aligned.unalign();
-    /// assert_eq!(unaligned, Affine2::IDENTITY);
-    /// ```
+    /// See [`Alignment`] for more information about SIMD-aligned types.
     #[inline]
     #[must_use]
     pub const fn unalign(&self) -> Affine<N, T, Unaligned> {

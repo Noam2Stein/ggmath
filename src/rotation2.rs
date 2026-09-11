@@ -56,10 +56,6 @@ where
 
 /// A 2D rotation represented by a unit complex number.
 ///
-/// # No SIMD alignment
-///
-/// [`Rot2<T>`] does not have SIMD alignment, for that use [`Rot2A<T>`].
-///
 /// # Fields
 ///
 /// - `cos: T` (the cosine of the angle)
@@ -71,11 +67,6 @@ pub type Rot2<T> = Rotation2<T, Unaligned>;
 
 /// A 2D rotation represented by a unit complex number.
 ///
-/// # SIMD alignment
-///
-/// For appropriate `T` types, [`Rot2A<T>`] has SIMD alignment. For no SIMD use
-/// [`Rot2<T>`].
-///
 /// # Fields
 ///
 /// - `cos: T` (the cosine of the angle)
@@ -83,6 +74,12 @@ pub type Rot2<T> = Rotation2<T, Unaligned>;
 ///
 /// Note that these fields are only exposed by implementing [`Deref`] and
 /// [`DerefMut`].
+///
+/// # SIMD alignment
+///
+/// Currently, [`Rot2A<T>`] does not have SIMD alignment for any `T` type. The
+/// representation is always `[T; 2]`. This could be changed in a future
+/// version, so do not rely on it.
 pub type Rot2A<T> = Rotation2<T, Aligned>;
 
 impl<T, A: Alignment> Clone for Rotation2<T, A>

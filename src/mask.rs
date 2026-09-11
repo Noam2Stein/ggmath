@@ -101,6 +101,12 @@ pub type Mask4<T> = Mask<4, T, Unaligned>;
 /// involving [`Vec3A<f32>`]. [`Mask2A<T>`] is optimized specifically for
 /// [`Vec2A<T>`].
 ///
+/// # SIMD alignment
+///
+/// Currently, [`Mask2A<T>`] does not have SIMD alignment for any `T` type. The
+/// representation is always `[bool; 2]`. This could be changed in a future
+/// version, so do not rely on it.
+///
 /// [`Vec3A<bool>`]: crate::Vec3A
 /// [`Vec3A<f32>`]: crate::Vec3A
 /// [`Vec2A<T>`]: crate::Vec2A
@@ -113,6 +119,21 @@ pub type Mask2A<T> = Mask<2, T, Aligned>;
 /// involving [`Vec3A<f32>`]. [`Mask3A<T>`] is optimized specifically for
 /// [`Vec3A<T>`].
 ///
+/// # SIMD alignment
+///
+/// The following table shows for what `T` types and target configurations
+/// [`Mask3A<T>`] has SIMD alignment. When there is SIMD alignment, appropriate
+/// functions use specialized SIMD implementations. This table could be changed
+/// in future versions, so do not rely on the current representations.
+///
+/// For cases not mentioned in this table, the representation falls back to
+/// `[bool; 3]`.
+///
+/// | `T`   | `cfg` condition                                         | Representation | Size (bytes) | Alignment (bytes) |
+/// | ----- | ------------------------------------------------------- | -------------- | ------------ | ----------------- |
+/// | `f32` | `target_feature = "sse2"`                               | `__m128`       | 16           | 16                |
+/// | `f32` | `all(target_arch = "aarch64", target_feature = "neon")` | `float32x4_t`  | 16           | 16                |
+///
 /// [`Vec3A<bool>`]: crate::Vec3A
 /// [`Vec3A<f32>`]: crate::Vec3A
 /// [`Vec3A<T>`]: crate::Vec3A
@@ -124,6 +145,21 @@ pub type Mask3A<T> = Mask<3, T, Aligned>;
 /// [`Mask3A<f32>`] performs better than [`Vec3A<bool>`] for operations
 /// involving [`Vec3A<f32>`]. [`Mask4A<T>`] is optimized specifically for
 /// [`Vec4A<T>`].
+///
+/// # SIMD alignment
+///
+/// The following table shows for what `T` types and target configurations
+/// [`Mask4A<T>`] has SIMD alignment. When there is SIMD alignment, appropriate
+/// functions use specialized SIMD implementations. This table could be changed
+/// in future versions, so do not rely on the current representations.
+///
+/// For cases not mentioned in this table, the representation falls back to
+/// `[bool; 4]`.
+///
+/// | `T`   | `cfg` condition                                         | Representation | Size (bytes) | Alignment (bytes) |
+/// | ----- | ------------------------------------------------------- | -------------- | ------------ | ----------------- |
+/// | `f32` | `target_feature = "sse2"`                               | `__m128`       | 16           | 16                |
+/// | `f32` | `all(target_arch = "aarch64", target_feature = "neon")` | `float32x4_t`  | 16           | 16                |
 ///
 /// [`Vec3A<bool>`]: crate::Vec3A
 /// [`Vec3A<f32>`]: crate::Vec3A
@@ -201,26 +237,12 @@ where
         }
     }
 
-    /// Conversion between [`Aligned`] and [`Unaligned`] storage.
+    /// Converts `self` to the specified SIMD-alignment mode.
     ///
-    /// See [`align`] and [`unalign`] for scenarios where the output alignment
-    /// is known.
+    /// If the output mode is known to always be [`Aligned`] or always be
+    /// [`Unaligned`], use methods [`align`] and [`unalign`] instead.
     ///
-    /// See [`Alignment`] for more details.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::{Aligned, Unaligned, Mask3, Mask3A};
-    /// #
-    /// let unaligned = Mask3::<f32>::new(false, true, false);
-    /// let aligned = unaligned.to_alignment::<Aligned>();
-    /// assert_eq!(aligned, Mask3A::new(false, true, false));
-    ///
-    /// let aligned = Mask3A::<f32>::new(false, true, false);
-    /// let unaligned = aligned.to_alignment::<Unaligned>();
-    /// assert_eq!(unaligned, Mask3::new(false, true, false));
-    /// ```
+    /// See [`Alignment`] for more information about SIMD-aligned types.
     ///
     /// [`align`]: Self::align
     /// [`unalign`]: Self::unalign
@@ -244,38 +266,18 @@ where
         })(self)
     }
 
-    /// Conversion to [`Aligned`] storage.
+    /// Converts `self` to SIMD-aligned storage.
     ///
-    /// See [`Alignment`] for more information.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::{Mask3, Mask3A};
-    /// #
-    /// let unaligned = Mask3::<f32>::new(false, true, false);
-    /// let aligned = unaligned.align();
-    /// assert_eq!(aligned, Mask3A::new(false, true, false));
-    /// ```
+    /// See [`Alignment`] for more information about SIMD-aligned types.
     #[inline]
     #[must_use]
     pub fn align(self) -> Mask<N, T, Aligned> {
         self.to_alignment()
     }
 
-    /// Conversion to [`Unaligned`] storage.
+    /// Converts `self` to non-SIMD-aligned storage.
     ///
-    /// See [`Alignment`] for more information.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::{Mask3, Mask3A};
-    /// #
-    /// let aligned = Mask3A::<f32>::new(false, true, false);
-    /// let unaligned = aligned.unalign();
-    /// assert_eq!(unaligned, Mask3::new(false, true, false));
-    /// ```
+    /// See [`Alignment`] for more information about SIMD-aligned types.
     #[inline]
     #[must_use]
     pub fn unalign(self) -> Mask<N, T, Unaligned> {

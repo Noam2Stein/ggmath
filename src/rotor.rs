@@ -118,10 +118,6 @@ where
 /// point "error creep" which can occur when successive operations are applied.
 /// Use [`rotor.normalize()`] to maintain precision.
 ///
-/// # No SIMD alignment
-///
-/// [`Rotor3<T>`] does not have SIMD alignment, for that use [`Rotor3A<T>`].
-///
 /// # Representation
 ///
 /// Unless you are familiar with rotor/quaternion math, avoid using rotor
@@ -169,11 +165,6 @@ pub type Rotor3<T> = Rotor<3, T, Unaligned>;
 /// point "error creep" which can occur when successive operations are applied.
 /// Use [`rotor.normalize()`] to maintain precision.
 ///
-/// # SIMD alignment
-///
-/// For appropriate `T` types, [`Rotor3A<T>`] has SIMD alignment. For no SIMD
-/// use [`Rotor3<T>`].
-///
 /// # Representation
 ///
 /// Unless you are familiar with rotor/quaternion math, avoid using rotor
@@ -201,7 +192,24 @@ pub type Rotor3<T> = Rotor<3, T, Unaligned>;
 /// Note that the fields are only exposed by implementing [`Deref`] and
 /// [`DerefMut`].
 ///
+/// # SIMD alignment
+///
+/// [`Rotor3A<T>`] is stored as [`Vec4A<T>`]. The following table shows for what
+/// `T` types and target configurations [`Rotor3A<T>`] has SIMD alignment. When
+/// there is SIMD alignment, appropriate functions use specialized SIMD
+/// implementations. This table could be changed in future versions, so do not
+/// rely on the current representations.
+///
+/// For cases not mentioned in this table, the representation falls back to
+/// `[T; 4]`.
+///
+/// | `T`   | `cfg` condition                                         | Representation | Size (bytes) | Alignment (bytes) |
+/// | ----- | ------------------------------------------------------- | -------------- | ------------ | ----------------- |
+/// | `f32` | `target_feature = "sse2"`                               | `__m128`       | 16           | 16                |
+/// | `f32` | `all(target_arch = "aarch64", target_feature = "neon")` | `float32x4_t`  | 16           | 16                |
+///
 /// [`rotor.normalize()`]: Rotor#method.normalize
+/// [`Vec4A<T>`]: crate::Vec4A
 pub type Rotor3A<T> = Rotor<3, T, Aligned>;
 
 impl<T, A: Alignment> Rotor<3, T, A>

@@ -114,10 +114,6 @@ where
 
 /// A 2D vector.
 ///
-/// # No SIMD alignment
-///
-/// [`Vec2<T>`] does not have SIMD alignment, for that use [`Vec2A<T>`].
-///
 /// # Fields
 ///
 /// - `x: T` (the first element of the vector)
@@ -128,10 +124,6 @@ where
 pub type Vec2<T> = Vector<2, T, Unaligned>;
 
 /// A 3D vector.
-///
-/// # No SIMD alignment
-///
-/// [`Vec3<T>`] does not have SIMD alignment, for that use [`Vec3A<T>`].
 ///
 /// # Fields
 ///
@@ -144,10 +136,6 @@ pub type Vec2<T> = Vector<2, T, Unaligned>;
 pub type Vec3<T> = Vector<3, T, Unaligned>;
 
 /// A 4D vector.
-///
-/// # No SIMD alignment
-///
-/// [`Vec4<T>`] does not have SIMD alignment, for that use [`Vec4A<T>`].
 ///
 /// # Fields
 ///
@@ -162,11 +150,6 @@ pub type Vec4<T> = Vector<4, T, Unaligned>;
 
 /// A 2D vector.
 ///
-/// # SIMD alignment
-///
-/// For appropriate `T` types, [`Vec2A<T>`] has SIMD alignment. For no SIMD use
-/// [`Vec2<T>`].
-///
 /// # Fields
 ///
 /// - `x: T` (the first element of the vector)
@@ -174,14 +157,15 @@ pub type Vec4<T> = Vector<4, T, Unaligned>;
 ///
 /// Note that these fields are only exposed by implementing [`Deref`] and
 /// [`DerefMut`].
-pub type Vec2A<T> = Vector<2, T, Aligned>;
-
-/// A 3D vector.
 ///
 /// # SIMD alignment
 ///
-/// For appropriate `T` types, [`Vec3A<T>`] has SIMD alignment. For no SIMD use
-/// [`Vec3<T>`].
+/// Currently, [`Vec2A<T>`] does not have SIMD alignment for any `T` type. The
+/// representation is always `[T; 2]`. This could be changed in a future
+/// version, so do not rely on it.
+pub type Vec2A<T> = Vector<2, T, Aligned>;
+
+/// A 3D vector.
 ///
 /// # Fields
 ///
@@ -191,14 +175,24 @@ pub type Vec2A<T> = Vector<2, T, Aligned>;
 ///
 /// Note that these fields are only exposed by implementing [`Deref`] and
 /// [`DerefMut`].
-pub type Vec3A<T> = Vector<3, T, Aligned>;
-
-/// A 4D vector.
 ///
 /// # SIMD alignment
 ///
-/// For appropriate `T` types, [`Vec4A<T>`] has SIMD alignment. For no SIMD use
-/// [`Vec4<T>`].
+/// The following table shows for what `T` types and target configurations
+/// [`Vec3A<T>`] has SIMD alignment. When there is SIMD alignment, appropriate
+/// functions use specialized SIMD implementations. This table could be changed
+/// in future versions, so do not rely on the current representations.
+///
+/// For cases not mentioned in this table, the representation falls back to
+/// `[T; 3]`.
+///
+/// | `T`   | `cfg` condition                                         | Representation | Size (bytes) | Alignment (bytes) |
+/// | ----- | ------------------------------------------------------- | -------------- | ------------ | ----------------- |
+/// | `f32` | `target_feature = "sse2"`                               | `__m128`       | 16           | 16                |
+/// | `f32` | `all(target_arch = "aarch64", target_feature = "neon")` | `float32x4_t`  | 16           | 16                |
+pub type Vec3A<T> = Vector<3, T, Aligned>;
+
+/// A 4D vector.
 ///
 /// # Fields
 ///
@@ -209,6 +203,21 @@ pub type Vec3A<T> = Vector<3, T, Aligned>;
 ///
 /// Note that these fields are only exposed by implementing [`Deref`] and
 /// [`DerefMut`].
+///
+/// # SIMD alignment
+///
+/// The following table shows for what `T` types and target configurations
+/// [`Vec4A<T>`] has SIMD alignment. When there is SIMD alignment, appropriate
+/// functions use specialized SIMD implementations. This table could be changed
+/// in future versions, so do not rely on the current representations.
+///
+/// For cases not mentioned in this table, the representation falls back to
+/// `[T; 4]`.
+///
+/// | `T`   | `cfg` condition                                         | Representation | Size (bytes) | Alignment (bytes) |
+/// | ----- | ------------------------------------------------------- | -------------- | ------------ | ----------------- |
+/// | `f32` | `target_feature = "sse2"`                               | `__m128`       | 16           | 16                |
+/// | `f32` | `all(target_arch = "aarch64", target_feature = "neon")` | `float32x4_t`  | 16           | 16                |
 pub type Vec4A<T> = Vector<4, T, Aligned>;
 
 impl<const N: usize, T, A: Alignment> Clone for Vector<N, T, A>

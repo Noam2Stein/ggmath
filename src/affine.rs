@@ -92,10 +92,6 @@ where
 ///
 /// Contains a 2x2 matrix and a 2D translation vector.
 ///
-/// # No SIMD alignment
-///
-/// [`Affine2<T>`] does not have SIMD alignment, for that use [`Affine2A<T>`].
-///
 /// # Fields
 ///
 /// - `matrix: Mat2<T>` (linear transformation matrix)
@@ -109,10 +105,6 @@ pub type Affine2<T> = Affine<2, T, Unaligned>;
 /// shear.
 ///
 /// Contains a 3x3 matrix and a 3D translation vector.
-///
-/// # No SIMD alignment
-///
-/// [`Affine3<T>`] does not have SIMD alignment, for that use [`Affine3A<T>`].
 ///
 /// # Fields
 ///
@@ -128,11 +120,6 @@ pub type Affine3<T> = Affine<3, T, Unaligned>;
 ///
 /// Contains a 2x2 matrix and a 2D translation vector.
 ///
-/// # SIMD alignment
-///
-/// For appropriate `T` types, [`Affine2A<T>`] has SIMD alignment. For no SIMD
-/// use [`Affine2<T>`].
-///
 /// # Fields
 ///
 /// - `matrix: Mat2A<T>` (linear transformation matrix)
@@ -140,17 +127,28 @@ pub type Affine3<T> = Affine<3, T, Unaligned>;
 ///
 /// Note that these fields are only exposed by implementing [`Deref`] and
 /// [`DerefMut`].
+///
+/// # SIMD alignment
+///
+/// The following table shows for what `T` types and target configurations
+/// [`Affine2A<T>`] has SIMD alignment. When there is SIMD alignment,
+/// appropriate functions use specialized SIMD implementations. This table could
+/// be changed in future versions, so do not rely on the current
+/// representations.
+///
+/// For cases not mentioned in this table, the representation falls back to
+/// `[T; 6]`.
+///
+/// | `T`   | `cfg` condition                                         | Representation     | Size (bytes) | Alignment (bytes) |
+/// | ----- | ------------------------------------------------------- | ------------------ | ------------ | ----------------- |
+/// | `f32` | `target_feature = "sse2"`                               | `[__m128; 2]`      | 32           | 16                |
+/// | `f32` | `all(target_arch = "aarch64", target_feature = "neon")` | `[float32x4_t; 2]` | 32           | 16                |
 pub type Affine2A<T> = Affine<2, T, Aligned>;
 
 /// A 3D affine transform which can represent translation, rotation, scaling and
 /// shear.
 ///
 /// Contains a 3x3 matrix and a 3D translation vector.
-///
-/// # SIMD alignment
-///
-/// For appropriate `T` types, [`Affine3A<T>`] has SIMD alignment. For no SIMD
-/// use [`Affine3<T>`].
 ///
 /// # Fields
 ///
@@ -159,6 +157,22 @@ pub type Affine2A<T> = Affine<2, T, Aligned>;
 ///
 /// Note that these fields are only exposed by implementing [`Deref`] and
 /// [`DerefMut`].
+///
+/// # SIMD alignment
+///
+/// [`Affine3A<T>`] is stored as `[Vec3A<T>; 4]`. The following table shows for
+/// what `T` types and target configurations [`Affine3A<T>`] has SIMD alignment.
+/// When there is SIMD alignment, appropriate functions use specialized SIMD
+/// implementations. This table could be changed in future versions, so do not
+/// rely on the current representations.
+///
+/// For cases not mentioned in this table, the representation falls back to
+/// `[T; 12]`.
+///
+/// | `T`   | `cfg` condition                                         | Representation     | Size (bytes) | Alignment (bytes) |
+/// | ----- | ------------------------------------------------------- | ------------------ | ------------ | ----------------- |
+/// | `f32` | `target_feature = "sse2"`                               | `[__m128; 4]`      | 64           | 16                |
+/// | `f32` | `all(target_arch = "aarch64", target_feature = "neon")` | `[float32x4_t; 4]` | 64           | 16                |
 pub type Affine3A<T> = Affine<3, T, Aligned>;
 
 impl<const N: usize, T, A: Alignment> Clone for Affine<N, T, A>

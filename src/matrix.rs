@@ -100,10 +100,6 @@ where
 /// If you need translation, use [`Affine2`]. If you need 2D projections, use
 /// [`Proj2`].
 ///
-/// # No SIMD alignment
-///
-/// [`Mat2<T>`] does not have SIMD alignment, for that use [`Mat2A<T>`].
-///
 /// # Fields
 ///
 /// - `x_axis: Vec2<T>` (the first row of the matrix, represents the result of
@@ -129,10 +125,6 @@ pub type Mat2<T> = Matrix<2, T, Unaligned>;
 /// Unlike many other libraries, here [`Mat3`] is not used for 2D affine and
 /// projective transformations. For that use the [`Affine2`] and [`Proj2`]
 /// types.
-///
-/// # No SIMD alignment
-///
-/// [`Mat3<T>`] does not have SIMD alignment, for that use [`Mat3A<T>`].
 ///
 /// # Fields
 ///
@@ -165,10 +157,6 @@ pub type Mat3<T> = Matrix<3, T, Unaligned>;
 /// Even though this type does not have many use cases, it is still useful for
 /// raw matrix operations and interop with other libraries.
 ///
-/// # No SIMD alignment
-///
-/// [`Mat4<T>`] does not have SIMD alignment, for that use [`Mat4A<T>`].
-///
 /// # Fields
 ///
 /// - `x_axis: Vec4<T>` (the first row of the matrix, represents the result of
@@ -198,11 +186,6 @@ pub type Mat4<T> = Matrix<4, T, Unaligned>;
 /// If you need translation, use [`Affine2A`]. If you need 2D projections, use
 /// [`Proj2A`].
 ///
-/// # SIMD alignment
-///
-/// For appropriate `T` types, [`Mat2A<T>`] has SIMD alignment. For no SIMD use
-/// [`Mat2<T>`].
-///
 /// # Fields
 ///
 /// - `x_axis: Vec2A<T>` (the first row of the matrix, represents the result of
@@ -214,8 +197,25 @@ pub type Mat4<T> = Matrix<4, T, Unaligned>;
 /// Note that these fields are only exposed by implementing [`Deref`] and
 /// [`DerefMut`].
 ///
+/// # SIMD alignment
+///
+/// [`Mat2A<T>`] is stored as [`Vec4A<T>`]. The following table shows for what
+/// `T` types and target configurations [`Mat2A<T>`] has SIMD alignment. When
+/// there is SIMD alignment, appropriate functions use specialized SIMD
+/// implementations. This table could be changed in future versions, so do not
+/// rely on the current representations.
+///
+/// For cases not mentioned in this table, the representation falls back to
+/// `[T; 4]`.
+///
+/// | `T`   | `cfg` condition                                         | Representation      | Size (bytes) | Alignment (bytes) |
+/// | ----- | ------------------------------------------------------- | ------------------- | ------------ | ----------------- |
+/// | `f32` | `target_feature = "sse2"`                               | `__m128`            | 16           | 16                |
+/// | `f32` | `all(target_arch = "aarch64", target_feature = "neon")` | `float32x4_t`       | 16           | 16                |
+///
 /// [`Affine2A`]: crate::Affine2A
 /// [`Proj2A`]: crate::Proj2A
+/// [`Vec4A<T>`]: crate::Vec4A
 pub type Mat2A<T> = Matrix<2, T, Aligned>;
 
 /// A 3x3 row-major matrix.
@@ -228,11 +228,6 @@ pub type Mat2A<T> = Matrix<2, T, Aligned>;
 /// Unlike many other libraries, here [`Mat3A`] is not used for 2D affine and
 /// projective transformations. For that use the [`Affine2A`] and [`Proj2A`]
 /// types.
-///
-/// # SIMD alignment
-///
-/// For appropriate `T` types, [`Mat3A<T>`] has SIMD alignment. For no SIMD use
-/// [`Mat3<T>`].
 ///
 /// # Fields
 ///
@@ -247,6 +242,22 @@ pub type Mat2A<T> = Matrix<2, T, Aligned>;
 ///
 /// Note that these fields are only exposed by implementing [`Deref`] and
 /// [`DerefMut`].
+///
+/// # SIMD alignment
+///
+/// [`Mat3A<T>`] is stored as `[Vec3A<T>; 3]`. The following table shows for
+/// what `T` types and target configurations [`Mat3A<T>`] has SIMD alignment.
+/// When there is SIMD alignment, appropriate functions use specialized SIMD
+/// implementations. This table could be changed in future versions, so do not
+/// rely on the current representations.
+///
+/// For cases not mentioned in this table, the representation falls back to
+/// `[T; 9]`.
+///
+/// | `T`   | `cfg` condition                                         | Representation     | Size (bytes) | Alignment (bytes) |
+/// | ----- | ------------------------------------------------------- | ------------------ | ------------ | ----------------- |
+/// | `f32` | `target_feature = "sse2"`                               | `[__m128; 3]`      | 48           | 16                |
+/// | `f32` | `all(target_arch = "aarch64", target_feature = "neon")` | `[float32x4_t; 3]` | 48           | 16                |
 ///
 /// [`Affine3A`]: crate::Affine3A
 /// [`Proj3A`]: crate::Proj3A
@@ -265,11 +276,6 @@ pub type Mat3A<T> = Matrix<3, T, Aligned>;
 /// Even though this type does not have many use cases, it is still useful for
 /// raw matrix operations and interop with other libraries.
 ///
-/// # SIMD alignment
-///
-/// For appropriate `T` types, [`Mat4A<T>`] has SIMD alignment. For no SIMD use
-/// [`Mat4<T>`].
-///
 /// # Fields
 ///
 /// - `x_axis: Vec4A<T>` (the first row of the matrix, represents the result of
@@ -286,6 +292,22 @@ pub type Mat3A<T> = Matrix<3, T, Aligned>;
 ///
 /// Note that these fields are only exposed by implementing [`Deref`] and
 /// [`DerefMut`].
+///
+/// # SIMD alignment
+///
+/// [`Mat4A<T>`] is stored as `[Vec4A<T>; 4]`. The following table shows for
+/// what `T` types and target configurations [`Mat4A<T>`] has SIMD alignment.
+/// When there is SIMD alignment, appropriate functions use specialized SIMD
+/// implementations. This table could be changed in future versions, so do not
+/// rely on the current representations.
+///
+/// For cases not mentioned in this table, the representation falls back to
+/// `[T; 16]`.
+///
+/// | `T`   | `cfg` condition                                         | Representation     | Size (bytes) | Alignment (bytes) |
+/// | ----- | ------------------------------------------------------- | ------------------ | ------------ | ----------------- |
+/// | `f32` | `target_feature = "sse2"`                               | `[__m128; 4]`      | 64           | 16                |
+/// | `f32` | `all(target_arch = "aarch64", target_feature = "neon")` | `[float32x4_t; 4]` | 64           | 16                |
 ///
 /// [`Affine3A`]: crate::Affine3A
 /// [`Proj3A`]: crate::Proj3A

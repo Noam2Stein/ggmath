@@ -7,7 +7,7 @@
 //! - Rotations: [`Rot2<T>`], [`Rotor3<T>`]
 //! - Masks: [`Mask2<T>`], [`Mask3<T>`], [`Mask4<T>`]
 //!
-//! SIMD variants:
+//! SIMD-aligned variants:
 //!
 //! - Vectors: [`Vec2A<T>`], [`Vec3A<T>`], [`Vec4A<T>`]
 //! - Square Matrices: [`Mat2A<T>`], [`Mat3A<T>`], [`Mat4A<T>`]
@@ -26,31 +26,25 @@
 //! - [`Rotor<N, T, A>`]
 //! - [`Mask<N, T, A>`]
 //!
-//! # SIMD
+//! # SIMD-aligned types
 //!
-//! SIMD variants use specialization to have appropriate alignment and to use
-//! explicit SIMD in function implementations.
+//! Types with an `A` suffix (`A = Aligned` in generic form) are SIMD-aligned
+//! types. For example, [`Vec3A<T>`] is the SIMD-aligned variant of [`Vec3<T>`].
 //!
-//! SIMD results in faster computations, but can actually hurt performance if
-//! the bottleneck is memory bandwidth rather than computation throughput. For
-//! maximum performance, there are both SIMD, non-SIMD and SoA types
-//! ([see below](#soa)).
+//! For supported `T` types and target configurations, these types use
+//! SIMD-compatible representations, and appropriate operations use specialized
+//! SIMD implementations. Exact representations are documented on each SIMD
+//! type. For unsupported types, SIMD-aligned types are identical to their
+//! non-SIMD variants.
 //!
-//! | Type              | [`Vec3<f32>`] | [`Vec3A<f32>`] | [`Mat3<f32>`] | [`Mat3A<f32>`] |
-//! | ----------------- | ------------- | -------------- | ------------- | -------------- |
-//! | Size (bytes)      | 12            | 16             | 36            | 48             |
-//! | Alignment (bytes) | 4             | 16             | 4             | 16             |
-//! | Padding (bytes)   | 0             | 4              | 0             | 12             |
+//! SIMD-aligned types tend to improve arithmetic throughput, but have higher
+//! alignment and may have padding. For example, [`Vec3<f32>`] has a size of 12
+//! bytes and an alignment of 4 bytes, while [`Vec3A<f32>`] has a size and
+//! alignment of 16 bytes.
 //!
-//! | Type              | [`Vec4<f32>`] | [`Vec4A<f32>`] | [`Mat4<f32>`] | [`Mat4A<f32>`] |
-//! | ----------------- | ------------- | -------------- | ------------- | -------------- |
-//! | Size (bytes)      | 16            | 16             | 64            | 64             |
-//! | Alignment (bytes) | 4             | 16             | 4             | 16             |
-//! | Padding (bytes)   | 0             | 0              | 0             | 0              |
-//!
-//! > This table is true only for target architectures that have SIMD and are
-//! > supported. Types incompatible with SIMD use fallback implementations.
-//! > Currently support is limited to [`f32`] types on x86 and aarch64.
+//! SIMD-aligned types tend to improve performance when the bottleneck is
+//! arithmetic throughput, and tend to hurt performance when the bottleneck is
+//! memory bandwidth.
 //!
 //! # Generics
 //!

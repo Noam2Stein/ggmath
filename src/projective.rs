@@ -90,10 +90,6 @@ where
 /// [`transform_vector`]. To apply this with perspective divide, use
 /// [`project_point`]. To transform a homogeneous 3D vector, use `vec3 * self`.
 ///
-/// # No SIMD alignment
-///
-/// [`Proj2<T>`] does not have SIMD alignment, for that use [`Proj2A<T>`].
-///
 /// [`transform_point`]: Projective::transform_point
 /// [`transform_vector`]: Projective::transform_vector
 /// [`project_point`]: Projective::project_point
@@ -105,10 +101,6 @@ pub type Proj2<T> = Projective<2, T, Unaligned>;
 /// To apply this assuming no projection, use [`transform_point`] and
 /// [`transform_vector`]. To apply this with perspective divide, use
 /// [`project_point`]. To transform a homogeneous 4D vector, use `vec4 * self`.
-///
-/// # No SIMD alignment
-///
-/// [`Proj3<T>`] does not have SIMD alignment, for that use [`Proj3A<T>`].
 ///
 /// [`transform_point`]: Projective::transform_point
 /// [`transform_vector`]: Projective::transform_vector
@@ -124,8 +116,19 @@ pub type Proj3<T> = Projective<3, T, Unaligned>;
 ///
 /// # SIMD alignment
 ///
-/// For appropriate `T` types, [`Proj2A<T>`] has SIMD alignment. For no SIMD use
-/// [`Proj2<T>`].
+/// [`Proj2A<T>`] is stored as `[Vec3A<T>; 3]`. The following table shows for
+/// what `T` types and target configurations [`Proj2A<T>`] has SIMD alignment.
+/// When there is SIMD alignment, appropriate functions use specialized SIMD
+/// implementations. This table could be changed in future versions, so do not
+/// rely on the current representations.
+///
+/// For cases not mentioned in this table, the representation falls back to
+/// `[T; 9]`.
+///
+/// | `T`   | `cfg` condition                                         | Representation     | Size (bytes) | Alignment (bytes) |
+/// | ----- | ------------------------------------------------------- | ------------------ | ------------ | ----------------- |
+/// | `f32` | `target_feature = "sse2"`                               | `[__m128; 3]`      | 48           | 16                |
+/// | `f32` | `all(target_arch = "aarch64", target_feature = "neon")` | `[float32x4_t; 3]` | 48           | 16                |
 ///
 /// [`transform_point`]: Projective::transform_point
 /// [`transform_vector`]: Projective::transform_vector
@@ -141,8 +144,19 @@ pub type Proj2A<T> = Projective<2, T, Aligned>;
 ///
 /// # SIMD alignment
 ///
-/// For appropriate `T` types, [`Proj3A<T>`] has SIMD alignment. For no SIMD use
-/// [`Proj3<T>`].
+/// [`Proj3A<T>`] is stored as `[Vec4A<T>; 4]`. The following table shows for
+/// what `T` types and target configurations [`Proj3A<T>`] has SIMD alignment.
+/// When there is SIMD alignment, appropriate functions use specialized SIMD
+/// implementations. This table could be changed in future versions, so do not
+/// rely on the current representations.
+///
+/// For cases not mentioned in this table, the representation falls back to
+/// `[T; 16]`.
+///
+/// | `T`   | `cfg` condition                                         | Representation     | Size (bytes) | Alignment (bytes) |
+/// | ----- | ------------------------------------------------------- | ------------------ | ------------ | ----------------- |
+/// | `f32` | `target_feature = "sse2"`                               | `[__m128; 4]`      | 64           | 16                |
+/// | `f32` | `all(target_arch = "aarch64", target_feature = "neon")` | `[float32x4_t; 4]` | 64           | 16                |
 ///
 /// [`transform_point`]: Projective::transform_point
 /// [`transform_vector`]: Projective::transform_vector

@@ -170,26 +170,12 @@ where
         }
     }
 
-    /// Conversion between [`Aligned`] and [`Unaligned`] storage.
+    /// Converts `self` to the specified SIMD-alignment mode.
     ///
-    /// See [`align`] and [`unalign`] for scenarios where the output alignment
-    /// is known.
+    /// If the output mode is known to always be [`Aligned`] or always be
+    /// [`Unaligned`], use methods [`align`] and [`unalign`] instead.
     ///
-    /// See [`Alignment`] for more details.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::{Aligned, Unaligned, Vec3, Vec3A};
-    /// #
-    /// let unaligned = Vec3::new(1, 2, 3);
-    /// let aligned = unaligned.to_alignment::<Aligned>();
-    /// assert_eq!(aligned, Vec3A::new(1, 2, 3));
-    ///
-    /// let aligned = Vec3A::new(1, 2, 3);
-    /// let unaligned = aligned.to_alignment::<Unaligned>();
-    /// assert_eq!(unaligned, Vec3::new(1, 2, 3));
-    /// ```
+    /// See [`Alignment`] for more information about SIMD-aligned types.
     ///
     /// [`align`]: Self::align
     /// [`unalign`]: Self::unalign
@@ -226,38 +212,18 @@ where
         }
     }
 
-    /// Conversion to [`Aligned`] storage.
+    /// Converts `self` to SIMD-aligned storage.
     ///
-    /// See [`Alignment`] for more information.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::{Vec3, Vec3A};
-    /// #
-    /// let unaligned = Vec3::new(1, 2, 3);
-    /// let aligned = unaligned.align();
-    /// assert_eq!(aligned, Vec3A::new(1, 2, 3));
-    /// ```
+    /// See [`Alignment`] for more information about SIMD-aligned types.
     #[inline]
     #[must_use]
     pub const fn align(self) -> Vector<N, T, Aligned> {
         self.to_alignment()
     }
 
-    /// Conversion to [`Unaligned`] storage.
+    /// Converts `self` to non-SIMD-aligned storage.
     ///
-    /// See [`Alignment`] for more information.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::{Vec3, Vec3A};
-    /// #
-    /// let aligned = Vec3A::new(1, 2, 3);
-    /// let unaligned = aligned.unalign();
-    /// assert_eq!(unaligned, Vec3::new(1, 2, 3));
-    /// ```
+    /// See [`Alignment`] for more information about SIMD-aligned types.
     #[inline]
     #[must_use]
     pub const fn unalign(self) -> Vector<N, T, Unaligned> {
