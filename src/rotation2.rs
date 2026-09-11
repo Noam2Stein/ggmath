@@ -77,9 +77,9 @@ pub type Rot2<T> = Rotation2<T, Unaligned>;
 ///
 /// # SIMD alignment
 ///
-/// Currently, this type does not have SIMD alignment for any `T` type. The
-/// representation is always `[T; 2]`. This could change in a future version, so
-/// do not rely on it.
+/// Currently, [`Rot2A<T>`] does not have SIMD alignment for any `T` type. The
+/// representation is always `[T; 2]`. This could be changed in a future
+/// version, so do not rely on it.
 pub type Rot2A<T> = Rotation2<T, Aligned>;
 
 impl<T, A: Alignment> Clone for Rotation2<T, A>

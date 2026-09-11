@@ -160,9 +160,9 @@ pub type Vec4<T> = Vector<4, T, Unaligned>;
 ///
 /// # SIMD alignment
 ///
-/// Currently, this type does not have SIMD alignment for any `T` type. The
-/// representation is always `[T; 2]`. This could change in a future version, so
-/// do not rely on it.
+/// Currently, [`Vec2A<T>`] does not have SIMD alignment for any `T` type. The
+/// representation is always `[T; 2]`. This could be changed in a future
+/// version, so do not rely on it.
 pub type Vec2A<T> = Vector<2, T, Aligned>;
 
 /// A 3D vector.

@@ -103,9 +103,9 @@ pub type Mask4<T> = Mask<4, T, Unaligned>;
 ///
 /// # SIMD alignment
 ///
-/// Currently, this type does not have SIMD alignment for any `T` type. The
-/// representation is always `[bool; 2]`. This could change in a future version,
-/// so do not rely on it.
+/// Currently, [`Mask2A<T>`] does not have SIMD alignment for any `T` type. The
+/// representation is always `[bool; 2]`. This could be changed in a future
+/// version, so do not rely on it.
 ///
 /// [`Vec3A<bool>`]: crate::Vec3A
 /// [`Vec3A<f32>`]: crate::Vec3A
