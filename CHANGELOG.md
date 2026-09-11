@@ -12,6 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#85](https://github.com/Noam2Stein/ggmath/pull/85): Cargo feature `half` that
   implements `Element` for `half::f16` and `half::bf16`
 
+### Changed
+
+- [#86](https://github.com/Noam2Stein/ggmath/pull/86): Improve documentation
+  regarding SIMD alignment
+
 ## [0.18.0] - 2026-09-09
 
 This version makes a lot of breaking changes, including changing and removing
