@@ -183,6 +183,8 @@ where
     ///
     /// See [`Alignment`] for more information about SIMD-aligned types.
     ///
+    /// [`Aligned`]: crate::Aligned
+    /// [`Unaligned`]: crate::Unaligned
     /// [`align`]: Self::align
     /// [`unalign`]: Self::unalign
     #[inline]
