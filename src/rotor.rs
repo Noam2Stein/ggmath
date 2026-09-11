@@ -208,6 +208,7 @@ pub type Rotor3<T> = Rotor<3, T, Unaligned>;
 /// | `f32` | `target_feature = "sse2"`                               | `__m128`       | 16           | 16                |
 /// | `f32` | `all(target_arch = "aarch64", target_feature = "neon")` | `float32x4_t`  | 16           | 16                |
 ///
+/// [`rotor.normalize()`]: Rotor#method.normalize
 /// [`Vec4A<T>`]: crate::Vec4A
 pub type Rotor3A<T> = Rotor<3, T, Aligned>;
 
