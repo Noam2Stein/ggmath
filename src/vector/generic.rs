@@ -38,39 +38,6 @@ where
     Dim<N>: TwoThreeOrFour,
     T: Element,
 {
-    /// Creates a vector from an array.
-    #[inline]
-    #[must_use]
-    pub const fn from_array(array: [T; N]) -> Self {
-        match N {
-            // SAFETY: Because `N == 2`, `Vector<N, T, A>` and `Vector<2, T, A>`
-            // are the same type.
-            2 => unsafe {
-                transmute_generic::<Vector<2, T, A>, Vector<N, T, A>>(Vector::<2, T, A>::new(
-                    array[0], array[1],
-                ))
-            },
-
-            // SAFETY: Because `N == 3`, `Vector<N, T, A>` and `Vector<3, T, A>`
-            // are the same type.
-            3 => unsafe {
-                transmute_generic::<Vector<3, T, A>, Vector<N, T, A>>(Vector::<3, T, A>::new(
-                    array[0], array[1], array[2],
-                ))
-            },
-
-            // SAFETY: Because `N == 4`, `Vector<N, T, A>` and `Vector<4, T, A>`
-            // are the same type.
-            4 => unsafe {
-                transmute_generic::<Vector<4, T, A>, Vector<N, T, A>>(Vector::<4, T, A>::new(
-                    array[0], array[1], array[2], array[3],
-                ))
-            },
-
-            _ => unreachable!(),
-        }
-    }
-
     /// Creates a vector with all elements set to `value`.
     ///
     /// # Examples
@@ -170,64 +137,37 @@ where
         }
     }
 
-    /// Converts `self` to the specified SIMD-alignment mode.
-    ///
-    /// If the output mode is known to always be [`Aligned`] or always be
-    /// [`Unaligned`], use methods [`align`] and [`unalign`] instead.
-    ///
-    /// See [`Alignment`] for more information about SIMD-aligned types.
-    ///
-    /// [`align`]: Self::align
-    /// [`unalign`]: Self::unalign
+    /// Creates a vector from an array.
     #[inline]
     #[must_use]
-    pub const fn to_alignment<A2: Alignment>(self) -> Vector<N, T, A2> {
+    pub const fn from_array(array: [T; N]) -> Self {
         match N {
-            // SAFETY: Vectors with length `2` and `4` are guaranteed to be made
-            // out of `N` consecutive values of `T` with no padding. Meaning
-            // they have compatible layouts between alignments.
-            2 | 4 => unsafe { transmute_generic::<Vector<N, T, A>, Vector<N, T, A2>>(self) },
+            // SAFETY: Because `N == 2`, `Vector<N, T, A>` and `Vector<2, T, A>`
+            // are the same type.
+            2 => unsafe {
+                transmute_generic::<Vector<2, T, A>, Vector<N, T, A>>(Vector::<2, T, A>::new(
+                    array[0], array[1],
+                ))
+            },
 
-            3 => {
-                if const { size_of::<Vector<N, T, A2>>() > size_of::<Vector<N, T, A>>() } {
-                    // SAFETY: Because `N == 3`, `Vector<N, T, A2>` and
-                    // `Vector<3, T, A2>` are the same type.
-                    unsafe {
-                        transmute_generic::<Vector<3, T, A2>, Vector<N, T, A2>>(
-                            Vector::<3, T, A2>::new(
-                                self.as_array()[0],
-                                self.as_array()[1],
-                                self.as_array()[2],
-                            ),
-                        )
-                    }
-                } else {
-                    // SAFETY: The output type contains `[T; 3]` then `Pod`
-                    // padding. The input type also begins with exactly this.
-                    unsafe { *transmute_ref::<Vector<N, T, A>, Vector<N, T, A2>>(&self) }
-                }
-            }
+            // SAFETY: Because `N == 3`, `Vector<N, T, A>` and `Vector<3, T, A>`
+            // are the same type.
+            3 => unsafe {
+                transmute_generic::<Vector<3, T, A>, Vector<N, T, A>>(Vector::<3, T, A>::new(
+                    array[0], array[1], array[2],
+                ))
+            },
+
+            // SAFETY: Because `N == 4`, `Vector<N, T, A>` and `Vector<4, T, A>`
+            // are the same type.
+            4 => unsafe {
+                transmute_generic::<Vector<4, T, A>, Vector<N, T, A>>(Vector::<4, T, A>::new(
+                    array[0], array[1], array[2], array[3],
+                ))
+            },
 
             _ => unreachable!(),
         }
-    }
-
-    /// Converts `self` to SIMD-aligned storage.
-    ///
-    /// See [`Alignment`] for more information about SIMD-aligned types.
-    #[inline]
-    #[must_use]
-    pub const fn align(self) -> Vector<N, T, Aligned> {
-        self.to_alignment()
-    }
-
-    /// Converts `self` to non-SIMD-aligned storage.
-    ///
-    /// See [`Alignment`] for more information about SIMD-aligned types.
-    #[inline]
-    #[must_use]
-    pub const fn unalign(self) -> Vector<N, T, Unaligned> {
-        self.to_alignment()
     }
 
     /// Converts the vector to an array.
@@ -358,6 +298,91 @@ where
         T: Mul<Output = T>,
     {
         specialize!(<T as VectorBackend<N, A>>::vector_element_product(self))
+    }
+
+    /// Computes the dot product of `self` and `rhs`.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions or overflow checks are enabled:
+    ///
+    /// For integers this panics if an overflow occurs.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let x = Vec3::new(2, 0, 0);
+    /// let y = Vec3::new(0, 3, 0);
+    ///
+    /// assert_eq!(x.dot(y), 0);
+    /// assert_eq!(x.dot(x), 4);
+    /// assert_eq!(y.dot(y), 9);
+    /// ```
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn dot(self, rhs: Self) -> T
+    where
+        T: Add<Output = T> + Mul<Output = T>,
+    {
+        (self * rhs).element_sum()
+    }
+
+    /// Computes the squared length/magnitude of `self`.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions or overflow checks are enabled:
+    ///
+    /// For integers this panics if an overflow occurs.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec2;
+    /// #
+    /// let vector = Vec2::new(1, 2);
+    /// assert_eq!(vector.length_squared(), 5);
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn length_squared(self) -> T
+    where
+        T: Add<Output = T> + Mul<Output = T>,
+    {
+        (self * self).element_sum()
+    }
+
+    /// Computes the squared Euclidean distance between `self` and `other`.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions or overflow checks are enabled:
+    ///
+    /// For integers this panics if an overflow occurs.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let x = Vec3::<i32>::new(2, 0, 0);
+    /// let y = Vec3::<i32>::new(0, 3, 0);
+    ///
+    /// assert_eq!(x.distance_squared(y), 13);
+    /// assert_eq!(x.distance_squared(x), 0);
+    /// assert_eq!(y.distance_squared(y), 0);
+    /// ```
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn distance_squared(self, other: Self) -> T
+    where
+        T: Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
+    {
+        (self - other).length_squared()
     }
 
     /// Returns a vector mask where each element is `true` if the corresponding
@@ -500,89 +525,64 @@ where
         specialize!(<T as VectorBackend<N, A>>::vector_ge_mask(self, other))
     }
 
-    /// Computes the dot product of `self` and `rhs`.
+    /// Converts `self` to SIMD-aligned storage.
     ///
-    /// # Panics
-    ///
-    /// When debug assertions or overflow checks are enabled:
-    ///
-    /// For integers this panics if an overflow occurs.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::Vec3;
-    /// #
-    /// let x = Vec3::new(2, 0, 0);
-    /// let y = Vec3::new(0, 3, 0);
-    ///
-    /// assert_eq!(x.dot(y), 0);
-    /// assert_eq!(x.dot(x), 4);
-    /// assert_eq!(y.dot(y), 9);
-    /// ```
+    /// See [`Alignment`] for more information about SIMD-aligned types.
     #[inline]
     #[must_use]
-    #[track_caller]
-    pub fn dot(self, rhs: Self) -> T
-    where
-        T: Add<Output = T> + Mul<Output = T>,
-    {
-        (self * rhs).element_sum()
+    pub const fn align(self) -> Vector<N, T, Aligned> {
+        self.to_alignment()
     }
 
-    /// Computes the squared length/magnitude of `self`.
+    /// Converts `self` to non-SIMD-aligned storage.
     ///
-    /// # Panics
-    ///
-    /// When debug assertions or overflow checks are enabled:
-    ///
-    /// For integers this panics if an overflow occurs.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::Vec2;
-    /// #
-    /// let vector = Vec2::new(1, 2);
-    /// assert_eq!(vector.length_squared(), 5);
-    /// ```
+    /// See [`Alignment`] for more information about SIMD-aligned types.
     #[inline]
     #[must_use]
-    pub fn length_squared(self) -> T
-    where
-        T: Add<Output = T> + Mul<Output = T>,
-    {
-        (self * self).element_sum()
+    pub const fn unalign(self) -> Vector<N, T, Unaligned> {
+        self.to_alignment()
     }
 
-    /// Computes the squared Euclidean distance between `self` and `other`.
+    /// Converts `self` to the specified SIMD-alignment mode.
     ///
-    /// # Panics
+    /// If the output mode is known to always be [`Aligned`] or always be
+    /// [`Unaligned`], use methods [`align`] and [`unalign`] instead.
     ///
-    /// When debug assertions or overflow checks are enabled:
+    /// See [`Alignment`] for more information about SIMD-aligned types.
     ///
-    /// For integers this panics if an overflow occurs.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::Vec3;
-    /// #
-    /// let x = Vec3::<i32>::new(2, 0, 0);
-    /// let y = Vec3::<i32>::new(0, 3, 0);
-    ///
-    /// assert_eq!(x.distance_squared(y), 13);
-    /// assert_eq!(x.distance_squared(x), 0);
-    /// assert_eq!(y.distance_squared(y), 0);
-    /// ```
+    /// [`align`]: Self::align
+    /// [`unalign`]: Self::unalign
     #[inline]
     #[must_use]
-    #[track_caller]
-    pub fn distance_squared(self, other: Self) -> T
-    where
-        T: Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
-    {
-        (self - other).length_squared()
+    pub const fn to_alignment<A2: Alignment>(self) -> Vector<N, T, A2> {
+        match N {
+            // SAFETY: Vectors with length `2` and `4` are guaranteed to be made
+            // out of `N` consecutive values of `T` with no padding. Meaning
+            // they have compatible layouts between alignments.
+            2 | 4 => unsafe { transmute_generic::<Vector<N, T, A>, Vector<N, T, A2>>(self) },
+
+            3 => {
+                if const { size_of::<Vector<N, T, A2>>() > size_of::<Vector<N, T, A>>() } {
+                    // SAFETY: Because `N == 3`, `Vector<N, T, A2>` and
+                    // `Vector<3, T, A2>` are the same type.
+                    unsafe {
+                        transmute_generic::<Vector<3, T, A2>, Vector<N, T, A2>>(
+                            Vector::<3, T, A2>::new(
+                                self.as_array()[0],
+                                self.as_array()[1],
+                                self.as_array()[2],
+                            ),
+                        )
+                    }
+                } else {
+                    // SAFETY: The output type contains `[T; 3]` then `Pod`
+                    // padding. The input type also begins with exactly this.
+                    unsafe { *transmute_ref::<Vector<N, T, A>, Vector<N, T, A2>>(&self) }
+                }
+            }
+
+            _ => unreachable!(),
+        }
     }
 
     #[inline]

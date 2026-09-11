@@ -30,6 +30,318 @@ macro_rules! items {
         /// [`NEG_INFINITY`]: f32::NEG_INFINITY
         pub const NEG_INFINITY: Self = Self::splat($Wide::NEG_INFINITY);
 
+        /// Returns the length/magnitude of `self`.
+        #[inline]
+        #[must_use]
+        pub fn length(self) -> $Wide {
+            self.dot(self).sqrt()
+        }
+
+        /// For each lane, returns a vector with the direction of `self` and
+        /// length `1`.
+        #[inline]
+        #[must_use]
+        pub fn normalize(self) -> Self {
+            self / self.length()
+        }
+
+        // `try_normalize` is exluded on purpose. It would not be useful because
+        // it would only return `Some` if all lanes succeed.
+
+        /// Returns [`normalize`] for each lane, or `fallback` if `self` is zero
+        /// or if the result is non finite or zero.
+        ///
+        /// The fallback is only applied for invalid lanes. Other lanes are not
+        /// affected.
+        ///
+        /// [`normalize`]: Self::normalize
+        #[inline]
+        #[must_use]
+        pub fn normalize_or(self, fallback: Self) -> Self {
+            let length_recip = $Wide::ONE / self.length();
+
+            (length_recip.is_finite() & length_recip.simd_gt($Wide::ZERO))
+                .select(self * length_recip, fallback)
+        }
+
+        /// Returns [`normalize`] for each lane, or a zero vector if `self` is
+        /// zero or if the result is non finite.
+        ///
+        /// The fallback is only applied for invalid lanes. Other lanes are not
+        /// affected.
+        ///
+        /// [`normalize`]: Self::normalize
+        #[inline]
+        #[must_use]
+        pub fn normalize_or_zero(self) -> Self {
+            let length_recip = $Wide::ONE / self.length();
+
+            (length_recip.is_finite() & length_recip.simd_gt($Wide::ZERO))
+                .select(self * length_recip, Self::ZERO)
+        }
+
+        /// Simultaneously computes [`normalize`] and [`length`].
+        ///
+        /// If `self` is a zero vector, the result for that lane is length `0`
+        /// and an unspecified vector. Consider manually checking for
+        /// `length == 0.0`.
+        ///
+        /// [`normalize`]: Self::normalize
+        /// [`length`]: Self::length
+        #[inline]
+        #[must_use]
+        pub fn normalize_and_length(self) -> (Self, $Wide) {
+            let length = self.length();
+            (self / length, length)
+        }
+
+        /// For each lane, returns whether the vector has the length `1` or not.
+        ///
+        /// This uses a precision threshold of approximately `1e-4`.
+        #[inline]
+        #[must_use]
+        pub fn is_normalized(self) -> $Wide {
+            (self.length_squared() - $Wide::ONE)
+                .abs()
+                .simd_le($Wide::splat(2e-4))
+        }
+
+        /// Computes the Euclidean distance between `self` and `other`.
+        #[inline]
+        #[must_use]
+        pub fn distance(self, other: Self) -> $Wide {
+            (self - other).length()
+        }
+
+        /// For each lane, returns the angle (in radians) between `self` and
+        /// `other` in the range `0..=+π`.
+        ///
+        /// The vectors do not need to be unit vectors but they do need to be
+        /// non-zero.
+        ///
+        /// # Unspecified precision
+        ///
+        /// The precision of this function is non-deterministic. This means it
+        /// varies by platform, version, and can even differ within the same
+        /// execution from one invocation to the next.
+        #[inline]
+        #[must_use]
+        pub fn angle_between(self, other: Self) -> $Wide {
+            (self.dot(other) / (self.length_squared() * other.length_squared()).sqrt())
+                .acos_approx()
+        }
+
+        /// Computes the linear interpolation between `self` and `other` based
+        /// on the value `t`.
+        ///
+        /// When `t` is `0`, the result is `self`. When `t` is `1`, the result
+        /// is `rhs`. When `t` is outside of the range `0..=1`, the result is
+        /// linearly extrapolated.
+        #[inline]
+        #[must_use]
+        pub fn lerp(self, other: Self, t: $Wide) -> Self {
+            self * ($Wide::ONE - t) + other * t
+        }
+
+        /// Computes the middle point between `self` and `other`.
+        ///
+        /// Equivalent to `self.lerp(other, 0.5)`, but is cheaper to compute.
+        /// This may return a slightly different value.
+        #[inline]
+        #[must_use]
+        pub fn midpoint(self, other: Self) -> Self {
+            (self + other) * $Wide::HALF
+        }
+
+        /// Moves `self` towards `other` by at most `max_delta`.
+        ///
+        /// When `max_delta` is `0`, the result is `self`. When `max_delta` is
+        /// equal to or greater than `self.distance(other)`, the result is
+        /// `other`.
+        #[inline]
+        #[must_use]
+        pub fn move_towards(self, target: Self, max_delta: $Wide) -> Self {
+            let delta = target - self;
+            let delta_length = delta.length();
+
+            (delta_length.simd_le(max_delta) | delta_length.simd_le($Wide::splat(1e-4)))
+                .select(target, self + delta / delta_length * max_delta)
+        }
+
+        /// For each lane, computes the spherical linear interpolation between
+        /// `self` and `other` based on the value `t`.
+        ///
+        /// When `t` is `0`, the result is `self`.  When `t` is `1`, the result
+        /// is `other`. When `t` is outside of the range `0..=1`, the result is
+        /// spherically linearly extrapolated.
+        ///
+        /// The vectors do not need to be unit vectors but they do need to be
+        /// non-zero.
+        #[inline]
+        #[must_use]
+        pub fn slerp(self, other: Self, t: $Wide) -> Self {
+            specialize!(Vector::<N, $Wide, A>::slerp_backend(self, other, t))
+        }
+
+        /// For each lane, rotates `self` towards `target` by at most
+        /// `max_angle` (in radians).
+        ///
+        /// When `max_angle` is `0`, the result is `self`. When `max_angle` is
+        /// equal to or greater than `self.angle_between(target)`, the result is
+        /// `target`. When `max_angle` is negative, this rotates towards
+        /// `-target`.
+        ///
+        /// The vectors do not need to be unit vectors but `target` does need to
+        /// be non-zero.
+        #[inline]
+        #[must_use]
+        pub fn rotate_towards(self, target: Self, max_angle: $Wide) -> Self {
+            specialize!(Vector::<N, $Wide, A>::rotate_towards_backend(
+                self, target, max_angle
+            ))
+        }
+
+        /// Returns the vector projection of `self` onto `other`.
+        ///
+        /// `other` must not be a zero vector.
+        #[inline]
+        #[must_use]
+        pub fn project_onto(self, other: Self) -> Self {
+            let other_length_squared_recip = $Wide::ONE / other.length_squared();
+
+            other * self.dot(other) * other_length_squared_recip
+        }
+
+        /// Returns the vector projection of `self` onto `other`.
+        ///
+        /// `other` must be normalized.
+        #[inline]
+        #[must_use]
+        pub fn project_onto_normalized(self, other: Self) -> Self {
+            other * self.dot(other)
+        }
+
+        /// Returns the vector rejection of `self` from `other`.
+        ///
+        /// Equivalent to `self - self.project_onto(other)`.
+        ///
+        /// `other` must not be a zero vector.
+        #[inline]
+        #[must_use]
+        pub fn reject_from(self, other: Self) -> Self {
+            self - self.project_onto(other)
+        }
+
+        /// Returns the vector rejection of `self` from `other`.
+        ///
+        /// Equivalent to `self - self.project_onto(other)`.
+        ///
+        /// `other` must be normalized.
+        #[inline]
+        #[must_use]
+        pub fn reject_from_normalized(self, other: Self) -> Self {
+            self - self.project_onto_normalized(other)
+        }
+
+        /// Returns the reflection of `self` through `normal`.
+        ///
+        /// `normal` must be normalized.
+        #[inline]
+        #[must_use]
+        pub fn reflect(self, normal: Self) -> Self {
+            self - normal * ($Wide::splat(2.0) * self.dot(normal))
+        }
+
+        /// Returns the vector refraction of `self` through `normal` and `eta`.
+        ///
+        /// `eta` is the incident refraction-index divided by the transmitted
+        /// refraction-index.
+        ///
+        /// When total internal reflection occurs, the result is a zero vector.
+        ///
+        /// `self` and `normal` must be normalized.
+        #[inline]
+        #[must_use]
+        pub fn refract(self, normal: Self, eta: $Wide) -> Self {
+            let self_dot_normal = self.dot(normal);
+            let k = $Wide::ONE - eta * eta * ($Wide::ONE - self_dot_normal * self_dot_normal);
+
+            k.simd_ge($Wide::ZERO).select(
+                self * eta - normal * (eta * self_dot_normal + k.sqrt()),
+                Self::ZERO,
+            )
+        }
+
+        /// For each lane, returns some vector that is orthogonal to `self`.
+        ///
+        /// The result is not necessarily normalized.
+        ///
+        /// For 2D vectors this is equivalent to [`perp`].
+        ///
+        /// [`perp`]: Vector::perp
+        #[inline]
+        #[must_use]
+        pub fn any_orthogonal_vector(self) -> Self {
+            specialize!(Vector::<N, $Wide, A>::any_orthogonal_vector_backend(self))
+        }
+
+        /// For each lane, returns some unit vector that is orthogonal to
+        /// `self`.
+        ///
+        /// `self` must normalized.
+        ///
+        /// For 2D vectors this is equivalent to [`perp`].
+        ///
+        /// [`perp`]: Self::perp
+        #[inline]
+        #[must_use]
+        pub fn any_orthonormal_vector(self) -> Self {
+            specialize!(Vector::<N, $Wide, A>::any_orthonormal_vector_backend(self))
+        }
+
+        /// Returns `true` if the absolute difference of all elements between
+        /// `self` and `other` is less than or equal to `max_abs_diff` for all
+        /// lanes.
+        ///
+        /// This can be used to compare two vectors that should be equal, but
+        /// may have a slight difference due to operations having rounding
+        /// errors.
+        #[inline]
+        #[must_use]
+        pub fn abs_diff_eq(self, other: Self, max_abs_diff: $Wide) -> bool {
+            (self - other)
+                .abs()
+                .simd_le_mask(Self::splat(max_abs_diff))
+                .all()
+                .all()
+        }
+
+        /// Raw transmutation from unsigned integer vector.
+        ///
+        /// Note that this function is distinct from [`as`] conversions, which
+        /// attempt to preserve the *numeric* value, and not the bitwise value.
+        ///
+        /// [`as`]: https://rust-for-c-programmers.com/ch16/16_2_primitive_casting_with_as.html
+        #[inline]
+        #[must_use]
+        pub const fn from_bits(value: Vector<N, $UnsignedWide, A>) -> Self {
+            // SAFETY: Both types accept all bit-patterns.
+            unsafe { transmute_generic::<Vector<N, $UnsignedWide, A>, Vector<N, $Wide, A>>(value) }
+        }
+
+        /// Raw transmutation to unsigned integer vector.
+        ///
+        /// Note that this function is distinct from [`as`] conversions, which
+        /// attempt to preserve the *numeric* value, and not the bitwise value.
+        ///
+        /// [`as`]: https://rust-for-c-programmers.com/ch16/16_2_primitive_casting_with_as.html
+        #[inline]
+        #[must_use]
+        pub const fn to_bits(self) -> Vector<N, $UnsignedWide, A> {
+            // SAFETY: Both types accept all bit-patterns.
+            unsafe { transmute_generic::<Vector<N, $Wide, A>, Vector<N, $UnsignedWide, A>>(self) }
+        }
+
         /// For each lane, returns `true` if any element is NaN.
         #[inline]
         #[must_use]
@@ -93,14 +405,6 @@ macro_rules! items {
             specialize!(Vector::<N, $Wide, A>::sign_negative_mask_backend(self))
         }
 
-        /// Returns the element-wise reciprocal (inverse) of a vector,
-        /// `1 / self`.
-        #[inline]
-        #[must_use]
-        pub fn recip(self) -> Self {
-            Self::ONE / self
-        }
-
         /// Returns the maximum elements between `self` and `other`.
         ///
         /// Equivalent to `(self.x.max(other.x), self.y.max(other.y), ...)`.
@@ -161,6 +465,44 @@ macro_rules! items {
         #[must_use]
         pub fn min_element(self) -> $Wide {
             specialize!(Vector::<N, $Wide, A>::min_element_backend(self))
+        }
+
+        /// For each lane, returns `self` with a length of no more than `max`.
+        #[inline]
+        #[must_use]
+        pub fn with_max_length(self, max: $Wide) -> Self {
+            let length_squared = self.length_squared();
+            length_squared
+                .simd_gt(max * max)
+                .select(self / length_squared.sqrt() * max, self)
+        }
+
+        /// For any lane, returns `self` with a length of no less than `min`.
+        ///
+        /// If `min` is negative, this returns `self` for that lane.
+        #[inline]
+        #[must_use]
+        pub fn with_min_length(self, min: $Wide) -> Self {
+            let length_squared = self.length_squared();
+            length_squared
+                .simd_lt(min * min.abs())
+                .select(self / length_squared.sqrt() * min, self)
+        }
+
+        /// For each lane, returns `self` with a length of no less than `min`
+        /// and no more than `max`.
+        ///
+        /// If `min` is negative it is ignored.
+        #[inline]
+        #[must_use]
+        pub fn clamp_length(self, min: $Wide, max: $Wide) -> Self {
+            let length_squared = self.length_squared();
+            length_squared.simd_lt(min * min.abs()).select(
+                self / length_squared.sqrt() * min,
+                length_squared
+                    .simd_gt(max * max)
+                    .select(self / length_squared.sqrt() * max, self),
+            )
         }
 
         /// Returns the absolute values of elements of `self`.
@@ -239,6 +581,14 @@ macro_rules! items {
         #[must_use]
         pub fn fract(self) -> Self {
             self - self.trunc()
+        }
+
+        /// Returns the element-wise reciprocal (inverse) of a vector,
+        /// `1 / self`.
+        #[inline]
+        #[must_use]
+        pub fn recip(self) -> Self {
+            Self::ONE / self
         }
 
         /// Fused multiply-add. Computes `(self * a) + b`.
@@ -467,356 +817,6 @@ macro_rules! items {
         #[must_use]
         pub fn sin_cos(self) -> (Self, Self) {
             specialize!(Vector::<N, $Wide, A>::sin_cos_backend(self))
-        }
-
-        /// Computes the linear interpolation between `self` and `other` based
-        /// on the value `t`.
-        ///
-        /// When `t` is `0`, the result is `self`. When `t` is `1`, the result
-        /// is `rhs`. When `t` is outside of the range `0..=1`, the result is
-        /// linearly extrapolated.
-        #[inline]
-        #[must_use]
-        pub fn lerp(self, other: Self, t: $Wide) -> Self {
-            self * ($Wide::ONE - t) + other * t
-        }
-
-        /// Computes the middle point between `self` and `other`.
-        ///
-        /// Equivalent to `self.lerp(other, 0.5)`, but is cheaper to compute.
-        /// This may return a slightly different value.
-        #[inline]
-        #[must_use]
-        pub fn midpoint(self, other: Self) -> Self {
-            (self + other) * $Wide::HALF
-        }
-
-        /// Moves `self` towards `other` by at most `max_delta`.
-        ///
-        /// When `max_delta` is `0`, the result is `self`. When `max_delta` is
-        /// equal to or greater than `self.distance(other)`, the result is
-        /// `other`.
-        #[inline]
-        #[must_use]
-        pub fn move_towards(self, target: Self, max_delta: $Wide) -> Self {
-            let delta = target - self;
-            let delta_length = delta.length();
-
-            (delta_length.simd_le(max_delta) | delta_length.simd_le($Wide::splat(1e-4)))
-                .select(target, self + delta / delta_length * max_delta)
-        }
-
-        /// For each lane, computes the spherical linear interpolation between
-        /// `self` and `other` based on the value `t`.
-        ///
-        /// When `t` is `0`, the result is `self`.  When `t` is `1`, the result
-        /// is `other`. When `t` is outside of the range `0..=1`, the result is
-        /// spherically linearly extrapolated.
-        ///
-        /// The vectors do not need to be unit vectors but they do need to be
-        /// non-zero.
-        #[inline]
-        #[must_use]
-        pub fn slerp(self, other: Self, t: $Wide) -> Self {
-            specialize!(Vector::<N, $Wide, A>::slerp_backend(self, other, t))
-        }
-
-        /// For each lane, rotates `self` towards `target` by at most
-        /// `max_angle` (in radians).
-        ///
-        /// When `max_angle` is `0`, the result is `self`. When `max_angle` is
-        /// equal to or greater than `self.angle_between(target)`, the result is
-        /// `target`. When `max_angle` is negative, this rotates towards
-        /// `-target`.
-        ///
-        /// The vectors do not need to be unit vectors but `target` does need to
-        /// be non-zero.
-        #[inline]
-        #[must_use]
-        pub fn rotate_towards(self, target: Self, max_angle: $Wide) -> Self {
-            specialize!(Vector::<N, $Wide, A>::rotate_towards_backend(
-                self, target, max_angle
-            ))
-        }
-
-        /// Returns the length/magnitude of `self`.
-        #[inline]
-        #[must_use]
-        pub fn length(self) -> $Wide {
-            self.dot(self).sqrt()
-        }
-
-        /// Computes the Euclidean distance between `self` and `other`.
-        #[inline]
-        #[must_use]
-        pub fn distance(self, other: Self) -> $Wide {
-            (self - other).length()
-        }
-
-        /// For each lane, returns a vector with the direction of `self` and
-        /// length `1`.
-        #[inline]
-        #[must_use]
-        pub fn normalize(self) -> Self {
-            self / self.length()
-        }
-
-        // `try_normalize` is exluded on purpose. It would not be useful because
-        // it would only return `Some` if all lanes succeed.
-
-        /// Returns [`normalize`] for each lane, or `fallback` if `self` is zero
-        /// or if the result is non finite or zero.
-        ///
-        /// The fallback is only applied for invalid lanes. Other lanes are not
-        /// affected.
-        ///
-        /// [`normalize`]: Self::normalize
-        #[inline]
-        #[must_use]
-        pub fn normalize_or(self, fallback: Self) -> Self {
-            let length_recip = $Wide::ONE / self.length();
-
-            (length_recip.is_finite() & length_recip.simd_gt($Wide::ZERO))
-                .select(self * length_recip, fallback)
-        }
-
-        /// Returns [`normalize`] for each lane, or a zero vector if `self` is
-        /// zero or if the result is non finite.
-        ///
-        /// The fallback is only applied for invalid lanes. Other lanes are not
-        /// affected.
-        ///
-        /// [`normalize`]: Self::normalize
-        #[inline]
-        #[must_use]
-        pub fn normalize_or_zero(self) -> Self {
-            let length_recip = $Wide::ONE / self.length();
-
-            (length_recip.is_finite() & length_recip.simd_gt($Wide::ZERO))
-                .select(self * length_recip, Self::ZERO)
-        }
-
-        /// Simultaneously computes [`normalize`] and [`length`].
-        ///
-        /// If `self` is a zero vector, the result for that lane is length `0`
-        /// and an unspecified vector. Consider manually checking for
-        /// `length == 0.0`.
-        ///
-        /// [`normalize`]: Self::normalize
-        /// [`length`]: Self::length
-        #[inline]
-        #[must_use]
-        pub fn normalize_and_length(self) -> (Self, $Wide) {
-            let length = self.length();
-            (self / length, length)
-        }
-
-        /// For each lane, returns whether the vector has the length `1` or not.
-        ///
-        /// This uses a precision threshold of approximately `1e-4`.
-        #[inline]
-        #[must_use]
-        pub fn is_normalized(self) -> $Wide {
-            (self.length_squared() - $Wide::ONE)
-                .abs()
-                .simd_le($Wide::splat(2e-4))
-        }
-
-        /// For each lane, returns `self` with a length of no more than `max`.
-        #[inline]
-        #[must_use]
-        pub fn with_max_length(self, max: $Wide) -> Self {
-            let length_squared = self.length_squared();
-            length_squared
-                .simd_gt(max * max)
-                .select(self / length_squared.sqrt() * max, self)
-        }
-
-        /// For any lane, returns `self` with a length of no less than `min`.
-        ///
-        /// If `min` is negative, this returns `self` for that lane.
-        #[inline]
-        #[must_use]
-        pub fn with_min_length(self, min: $Wide) -> Self {
-            let length_squared = self.length_squared();
-            length_squared
-                .simd_lt(min * min.abs())
-                .select(self / length_squared.sqrt() * min, self)
-        }
-
-        /// For each lane, returns `self` with a length of no less than `min`
-        /// and no more than `max`.
-        ///
-        /// If `min` is negative it is ignored.
-        #[inline]
-        #[must_use]
-        pub fn clamp_length(self, min: $Wide, max: $Wide) -> Self {
-            let length_squared = self.length_squared();
-            length_squared.simd_lt(min * min.abs()).select(
-                self / length_squared.sqrt() * min,
-                length_squared
-                    .simd_gt(max * max)
-                    .select(self / length_squared.sqrt() * max, self),
-            )
-        }
-
-        /// For each lane, returns the angle (in radians) between `self` and
-        /// `other` in the range `0..=+π`.
-        ///
-        /// The vectors do not need to be unit vectors but they do need to be
-        /// non-zero.
-        ///
-        /// # Unspecified precision
-        ///
-        /// The precision of this function is non-deterministic. This means it
-        /// varies by platform, version, and can even differ within the same
-        /// execution from one invocation to the next.
-        #[inline]
-        #[must_use]
-        pub fn angle_between(self, other: Self) -> $Wide {
-            (self.dot(other) / (self.length_squared() * other.length_squared()).sqrt())
-                .acos_approx()
-        }
-
-        /// Returns the vector projection of `self` onto `other`.
-        ///
-        /// `other` must not be a zero vector.
-        #[inline]
-        #[must_use]
-        pub fn project_onto(self, other: Self) -> Self {
-            let other_length_squared_recip = $Wide::ONE / other.length_squared();
-
-            other * self.dot(other) * other_length_squared_recip
-        }
-
-        /// Returns the vector projection of `self` onto `other`.
-        ///
-        /// `other` must be normalized.
-        #[inline]
-        #[must_use]
-        pub fn project_onto_normalized(self, other: Self) -> Self {
-            other * self.dot(other)
-        }
-
-        /// Returns the vector rejection of `self` from `other`.
-        ///
-        /// Equivalent to `self - self.project_onto(other)`.
-        ///
-        /// `other` must not be a zero vector.
-        #[inline]
-        #[must_use]
-        pub fn reject_from(self, other: Self) -> Self {
-            self - self.project_onto(other)
-        }
-
-        /// Returns the vector rejection of `self` from `other`.
-        ///
-        /// Equivalent to `self - self.project_onto(other)`.
-        ///
-        /// `other` must be normalized.
-        #[inline]
-        #[must_use]
-        pub fn reject_from_normalized(self, other: Self) -> Self {
-            self - self.project_onto_normalized(other)
-        }
-
-        /// Returns the reflection of `self` through `normal`.
-        ///
-        /// `normal` must be normalized.
-        #[inline]
-        #[must_use]
-        pub fn reflect(self, normal: Self) -> Self {
-            self - normal * ($Wide::splat(2.0) * self.dot(normal))
-        }
-
-        /// Returns the vector refraction of `self` through `normal` and `eta`.
-        ///
-        /// `eta` is the incident refraction-index divided by the transmitted
-        /// refraction-index.
-        ///
-        /// When total internal reflection occurs, the result is a zero vector.
-        ///
-        /// `self` and `normal` must be normalized.
-        #[inline]
-        #[must_use]
-        pub fn refract(self, normal: Self, eta: $Wide) -> Self {
-            let self_dot_normal = self.dot(normal);
-            let k = $Wide::ONE - eta * eta * ($Wide::ONE - self_dot_normal * self_dot_normal);
-
-            k.simd_ge($Wide::ZERO).select(
-                self * eta - normal * (eta * self_dot_normal + k.sqrt()),
-                Self::ZERO,
-            )
-        }
-
-        /// For each lane, returns some vector that is orthogonal to `self`.
-        ///
-        /// The result is not necessarily normalized.
-        ///
-        /// For 2D vectors this is equivalent to [`perp`].
-        ///
-        /// [`perp`]: Vector::perp
-        #[inline]
-        #[must_use]
-        pub fn any_orthogonal_vector(self) -> Self {
-            specialize!(Vector::<N, $Wide, A>::any_orthogonal_vector_backend(self))
-        }
-
-        /// For each lane, returns some unit vector that is orthogonal to
-        /// `self`.
-        ///
-        /// `self` must normalized.
-        ///
-        /// For 2D vectors this is equivalent to [`perp`].
-        ///
-        /// [`perp`]: Self::perp
-        #[inline]
-        #[must_use]
-        pub fn any_orthonormal_vector(self) -> Self {
-            specialize!(Vector::<N, $Wide, A>::any_orthonormal_vector_backend(self))
-        }
-
-        /// Returns `true` if the absolute difference of all elements between
-        /// `self` and `other` is less than or equal to `max_abs_diff` for all
-        /// lanes.
-        ///
-        /// This can be used to compare two vectors that should be equal, but
-        /// may have a slight difference due to operations having rounding
-        /// errors.
-        #[inline]
-        #[must_use]
-        pub fn abs_diff_eq(self, other: Self, max_abs_diff: $Wide) -> bool {
-            (self - other)
-                .abs()
-                .simd_le_mask(Self::splat(max_abs_diff))
-                .all()
-                .all()
-        }
-
-        /// Raw transmutation to unsigned integer vector.
-        ///
-        /// Note that this function is distinct from [`as`] conversions, which
-        /// attempt to preserve the *numeric* value, and not the bitwise value.
-        ///
-        /// [`as`]: https://rust-for-c-programmers.com/ch16/16_2_primitive_casting_with_as.html
-        #[inline]
-        #[must_use]
-        pub const fn to_bits(self) -> Vector<N, $UnsignedWide, A> {
-            // SAFETY: Both types accept all bit-patterns.
-            unsafe { transmute_generic::<Vector<N, $Wide, A>, Vector<N, $UnsignedWide, A>>(self) }
-        }
-
-        /// Raw transmutation from unsigned integer vector.
-        ///
-        /// Note that this function is distinct from [`as`] conversions, which
-        /// attempt to preserve the *numeric* value, and not the bitwise value.
-        ///
-        /// [`as`]: https://rust-for-c-programmers.com/ch16/16_2_primitive_casting_with_as.html
-        #[inline]
-        #[must_use]
-        pub const fn from_bits(value: Vector<N, $UnsignedWide, A>) -> Self {
-            // SAFETY: Both types accept all bit-patterns.
-            unsafe { transmute_generic::<Vector<N, $UnsignedWide, A>, Vector<N, $Wide, A>>(value) }
         }
     };
 }

@@ -28,72 +28,6 @@ where
         Self(Vector::<2, T, A>::new(cos, sin))
     }
 
-    /// Negates the sine element.
-    ///
-    /// This affectively inverts the rotation, though consider using [`inverse`]
-    /// for that.
-    ///
-    /// [`inverse`]: Rotation2::inverse
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn conjugate(self) -> Self
-    where
-        T: Neg<Output = T>,
-    {
-        Self::from_cos_sin(self.cos, -self.sin)
-    }
-
-    /// Rotates a complex number by a quarter of a turn, adding 90 degrees to
-    /// the rotation.
-    ///
-    /// This rotates `+X` to `+Y`.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn perp(self) -> Self
-    where
-        T: Neg<Output = T>,
-    {
-        Self(self.0.perp())
-    }
-
-    /// Computes the dot product of two rotations.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn dot(self, rhs: Self) -> T
-    where
-        T: Add<Output = T> + Mul<Output = T>,
-    {
-        self.0.dot(rhs.0)
-    }
-
-    /// Computes `self.perp().dot(rhs)`.
-    ///
-    /// Also reffered to as the wedge/outer product, the 2D cross product, the
-    /// determinant and the signed area.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn perp_dot(self, rhs: Self) -> T
-    where
-        T: Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
-    {
-        self.0.perp_dot(rhs.0)
-    }
-
-    /// Computes the squared length/magnitude of `self`.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn length_squared(self) -> T
-    where
-        T: Add<Output = T> + Mul<Output = T>,
-    {
-        self.0.length_squared()
-    }
-
     /// Creates a 2D rotation from raw elements `[cos(a), sin(a)]`.
     ///
     /// This is how the rotation is stored, so this function is akin to
@@ -176,21 +110,70 @@ where
         &mut self.0
     }
 
-    /// Converts `self` to the specified SIMD-alignment mode.
+    /// Negates the sine element.
     ///
-    /// If the output mode is known to always be [`Aligned`] or always be
-    /// [`Unaligned`], use methods [`align`] and [`unalign`] instead.
+    /// This affectively inverts the rotation, though consider using [`inverse`]
+    /// for that.
     ///
-    /// See [`Alignment`] for more information about SIMD-aligned types.
-    ///
-    /// [`Aligned`]: crate::Aligned
-    /// [`Unaligned`]: crate::Unaligned
-    /// [`align`]: Self::align
-    /// [`unalign`]: Self::unalign
+    /// [`inverse`]: Rotation2::inverse
     #[inline]
     #[must_use]
-    pub const fn to_alignment<A2: Alignment>(self) -> Rotation2<T, A2> {
-        Rotation2(self.0.to_alignment())
+    #[track_caller]
+    pub fn conjugate(self) -> Self
+    where
+        T: Neg<Output = T>,
+    {
+        Self::from_cos_sin(self.cos, -self.sin)
+    }
+
+    /// Rotates a complex number by a quarter of a turn, adding 90 degrees to
+    /// the rotation.
+    ///
+    /// This rotates `+X` to `+Y`.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn perp(self) -> Self
+    where
+        T: Neg<Output = T>,
+    {
+        Self(self.0.perp())
+    }
+
+    /// Computes the dot product of two rotations.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn dot(self, rhs: Self) -> T
+    where
+        T: Add<Output = T> + Mul<Output = T>,
+    {
+        self.0.dot(rhs.0)
+    }
+
+    /// Computes `self.perp().dot(rhs)`.
+    ///
+    /// Also reffered to as the wedge/outer product, the 2D cross product, the
+    /// determinant and the signed area.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn perp_dot(self, rhs: Self) -> T
+    where
+        T: Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
+    {
+        self.0.perp_dot(rhs.0)
+    }
+
+    /// Computes the squared length/magnitude of `self`.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn length_squared(self) -> T
+    where
+        T: Add<Output = T> + Mul<Output = T>,
+    {
+        self.0.length_squared()
     }
 
     /// Converts `self` to SIMD-aligned storage.
@@ -209,6 +192,23 @@ where
     #[must_use]
     pub const fn unalign(self) -> Rot2<T> {
         Rotation2(self.0.unalign())
+    }
+
+    /// Converts `self` to the specified SIMD-alignment mode.
+    ///
+    /// If the output mode is known to always be [`Aligned`] or always be
+    /// [`Unaligned`], use methods [`align`] and [`unalign`] instead.
+    ///
+    /// See [`Alignment`] for more information about SIMD-aligned types.
+    ///
+    /// [`Aligned`]: crate::Aligned
+    /// [`Unaligned`]: crate::Unaligned
+    /// [`align`]: Self::align
+    /// [`unalign`]: Self::unalign
+    #[inline]
+    #[must_use]
+    pub const fn to_alignment<A2: Alignment>(self) -> Rotation2<T, A2> {
+        Rotation2(self.0.to_alignment())
     }
 }
 

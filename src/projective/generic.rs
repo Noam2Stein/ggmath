@@ -100,6 +100,29 @@ where
         specialize_23!(Projective::<N, T, A>::from_translation_backend(translation))
     }
 
+    /// Returns the translation part of a projective transform.
+    ///
+    /// Even if `self` contains a projection, non-translation cells are
+    /// completely ignored.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Proj2, Vec2, Vec3};
+    /// #
+    /// let proj = Proj2::from_rows(&[
+    ///     Vec3::new(1, 0, 0),
+    ///     Vec3::new(0, 1, 0),
+    ///     Vec3::new(6, 8, 1),
+    /// ]);
+    /// assert_eq!(proj.translation(), Vec2::new(6, 8));
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn translation(&self) -> Vector<N, T, A> {
+        specialize_23!(Projective::<N, T, A>::translation_backend(self))
+    }
+
     /// Creates a projective transform from a non-uniform `scale` and a
     /// `translation` vector.
     #[inline]
@@ -169,27 +192,22 @@ where
         specialize_23!(Projective::<N, T, A>::from_affine_backend(affine))
     }
 
-    /// Returns the translation part of a projective transform.
+    /// Converts `self` to SIMD-aligned storage.
     ///
-    /// Even if `self` contains a projection, non-translation cells are
-    /// completely ignored.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::{Proj2, Vec2, Vec3};
-    /// #
-    /// let proj = Proj2::from_rows(&[
-    ///     Vec3::new(1, 0, 0),
-    ///     Vec3::new(0, 1, 0),
-    ///     Vec3::new(6, 8, 1),
-    /// ]);
-    /// assert_eq!(proj.translation(), Vec2::new(6, 8));
-    /// ```
+    /// See [`Alignment`] for more information about SIMD-aligned types.
     #[inline]
     #[must_use]
-    pub fn translation(&self) -> Vector<N, T, A> {
-        specialize_23!(Projective::<N, T, A>::translation_backend(self))
+    pub const fn align(&self) -> Projective<N, T, Aligned> {
+        self.to_alignment()
+    }
+
+    /// Converts `self` to non-SIMD-aligned storage.
+    ///
+    /// See [`Alignment`] for more information about SIMD-aligned types.
+    #[inline]
+    #[must_use]
+    pub const fn unalign(&self) -> Projective<N, T, Unaligned> {
+        self.to_alignment()
     }
 
     /// Converts `self` to the specified SIMD-alignment mode.
@@ -232,24 +250,6 @@ where
             _ => unreachable!(),
         }
     }
-
-    /// Converts `self` to SIMD-aligned storage.
-    ///
-    /// See [`Alignment`] for more information about SIMD-aligned types.
-    #[inline]
-    #[must_use]
-    pub const fn align(&self) -> Projective<N, T, Aligned> {
-        self.to_alignment()
-    }
-
-    /// Converts `self` to non-SIMD-aligned storage.
-    ///
-    /// See [`Alignment`] for more information about SIMD-aligned types.
-    #[inline]
-    #[must_use]
-    pub const fn unalign(&self) -> Projective<N, T, Unaligned> {
-        self.to_alignment()
-    }
 }
 
 impl<T, A: Alignment> Projective<2, T, A>
@@ -261,6 +261,20 @@ where
     #[must_use]
     pub const fn from_rows(rows: &[Vector<3, T, A>; 3]) -> Self {
         Self(Matrix::from_rows(rows))
+    }
+
+    /// Returns a reference to the projective transform's rows.
+    #[inline]
+    #[must_use]
+    pub const fn as_rows(&self) -> &[Vector<3, T, A>; 3] {
+        self.0.as_rows()
+    }
+
+    /// Returns a mutable reference to the projective transform's rows.
+    #[inline]
+    #[must_use]
+    pub const fn as_mut_rows(&mut self) -> &mut [Vector<3, T, A>; 3] {
+        self.0.as_mut_rows()
     }
 
     /// Creates a projective transform by calling function `f` for each
@@ -350,20 +364,6 @@ where
     #[must_use]
     pub const fn as_mut_homogeneous(&mut self) -> &mut Matrix<3, T, A> {
         &mut self.0
-    }
-
-    /// Returns a reference to the projective transform's rows.
-    #[inline]
-    #[must_use]
-    pub const fn as_rows(&self) -> &[Vector<3, T, A>; 3] {
-        self.0.as_rows()
-    }
-
-    /// Returns a mutable reference to the projective transform's rows.
-    #[inline]
-    #[must_use]
-    pub const fn as_mut_rows(&mut self) -> &mut [Vector<3, T, A>; 3] {
-        self.0.as_mut_rows()
     }
 
     /// Returns the column at the given index.
@@ -562,6 +562,20 @@ where
         Self(Matrix::from_rows(rows))
     }
 
+    /// Returns a reference to the projective transform's rows.
+    #[inline]
+    #[must_use]
+    pub const fn as_rows(&self) -> &[Vector<4, T, A>; 4] {
+        self.0.as_rows()
+    }
+
+    /// Returns a mutable reference to the projective transform's rows.
+    #[inline]
+    #[must_use]
+    pub const fn as_mut_rows(&mut self) -> &mut [Vector<4, T, A>; 4] {
+        self.0.as_mut_rows()
+    }
+
     /// Creates a projective transform by calling function `f` for each
     /// homogeneous row index.
     ///
@@ -649,20 +663,6 @@ where
     #[must_use]
     pub const fn as_mut_homogeneous(&mut self) -> &mut Matrix<4, T, A> {
         &mut self.0
-    }
-
-    /// Returns a reference to the projective transform's rows.
-    #[inline]
-    #[must_use]
-    pub const fn as_rows(&self) -> &[Vector<4, T, A>; 4] {
-        self.0.as_rows()
-    }
-
-    /// Returns a mutable reference to the projective transform's rows.
-    #[inline]
-    #[must_use]
-    pub const fn as_mut_rows(&mut self) -> &mut [Vector<4, T, A>; 4] {
-        self.0.as_mut_rows()
     }
 
     /// Returns the column at the given index.

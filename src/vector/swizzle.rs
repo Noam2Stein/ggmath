@@ -9,6 +9,21 @@ impl<T, A: Alignment> Vector<2, T, A>
 where
     T: Element,
 {
+    /// Returns `(self.x, self.y)`.
+    #[inline]
+    #[must_use]
+    pub fn xy(self) -> Vector<2, T, A> {
+        self
+    }
+
+    /// Returns `self` with the elements `x` and `y` replaced by `value.x`
+    /// and `value.y`.
+    #[inline]
+    #[must_use]
+    pub fn with_xy(self, value: Vector<2, T, A>) -> Self {
+        value
+    }
+
     declare_swizzle_fns! {
         xx: [x, x],
         // xy: [x, y],
@@ -55,27 +70,36 @@ where
         // with_xy: [x, y],
         with_yx: [y, x],
     }
-
-    /// Returns `(self.x, self.y)`.
-    #[inline]
-    #[must_use]
-    pub fn xy(self) -> Vector<2, T, A> {
-        self
-    }
-
-    /// Returns `self` with the elements `x` and `y` replaced by `value.x`
-    /// and `value.y`.
-    #[inline]
-    #[must_use]
-    pub fn with_xy(self, value: Vector<2, T, A>) -> Self {
-        value
-    }
 }
 
 impl<T, A: Alignment> Vector<3, T, A>
 where
     T: Element,
 {
+    /// Returns `(self.x, self.y)`.
+    #[inline]
+    #[must_use]
+    pub fn xy(self) -> Vector<2, T, A> {
+        // SAFETY: The output type contains two values of `T`, which the input
+        // type is guaranteed to begin with.
+        unsafe { transmute_copy::<Vector<3, T, A>, Vector<2, T, A>>(&self) }
+    }
+
+    /// Returns `(self.x, self.y, self.z)`.
+    #[inline]
+    #[must_use]
+    pub fn xyz(self) -> Vector<3, T, A> {
+        self
+    }
+
+    /// Returns `self` with the elements `x`, `y` and `z` replaced by `value.x`,
+    /// `value.y` and `value.z`.
+    #[inline]
+    #[must_use]
+    pub fn with_xyz(self, value: Vector<3, T, A>) -> Self {
+        value
+    }
+
     declare_swizzle_fns! {
         xx: [x, x],
         // xy: [x, y],
@@ -225,36 +249,45 @@ where
         with_zxy: [z, x, y],
         with_zyx: [z, y, x],
     }
-
-    /// Returns `(self.x, self.y)`.
-    #[inline]
-    #[must_use]
-    pub fn xy(self) -> Vector<2, T, A> {
-        // SAFETY: The output type contains two values of `T`, which the input
-        // type is guaranteed to begin with.
-        unsafe { transmute_copy::<Vector<3, T, A>, Vector<2, T, A>>(&self) }
-    }
-
-    /// Returns `(self.x, self.y, self.z)`.
-    #[inline]
-    #[must_use]
-    pub fn xyz(self) -> Vector<3, T, A> {
-        self
-    }
-
-    /// Returns `self` with the elements `x`, `y` and `z` replaced by `value.x`,
-    /// `value.y` and `value.z`.
-    #[inline]
-    #[must_use]
-    pub fn with_xyz(self, value: Vector<3, T, A>) -> Self {
-        value
-    }
 }
 
 impl<T, A: Alignment> Vector<4, T, A>
 where
     T: Element,
 {
+    /// Returns `(self.x, self.y)`.
+    #[inline]
+    #[must_use]
+    pub fn xy(self) -> Vector<2, T, A> {
+        // SAFETY: The output type contains two values of `T`, which the input
+        // type is guaranteed to begin with.
+        unsafe { transmute_copy::<Vector<4, T, A>, Vector<2, T, A>>(&self) }
+    }
+
+    /// Returns `(self.x, self.y, self.z)`.
+    #[inline]
+    #[must_use]
+    pub fn xyz(self) -> Vector<3, T, A> {
+        // SAFETY: The output type contains three or four values of `T`, which
+        // the input type is guaranteed to begin with.
+        unsafe { transmute_copy::<Vector<4, T, A>, Vector<3, T, A>>(&self) }
+    }
+
+    /// Returns `(self.x, self.y, self.z, self.w)`.
+    #[inline]
+    #[must_use]
+    pub fn xyzw(self) -> Vector<4, T, A> {
+        self
+    }
+
+    /// Returns `self` with the elements `x`, `y`, `z` and `w` replaced by
+    /// `value.x`, `value.y`, `value.z` and `value.w`.
+    #[inline]
+    #[must_use]
+    pub fn with_xyzw(self, value: Vector<4, T, A>) -> Self {
+        value
+    }
+
     declare_swizzle_fns! {
         xx: [x, x],
         // xy: [x, y],
@@ -674,39 +707,6 @@ where
         with_wyzx: [w, y, z, x],
         with_wzxy: [w, z, x, y],
         with_wzyx: [w, z, y, x],
-    }
-
-    /// Returns `(self.x, self.y)`.
-    #[inline]
-    #[must_use]
-    pub fn xy(self) -> Vector<2, T, A> {
-        // SAFETY: The output type contains two values of `T`, which the input
-        // type is guaranteed to begin with.
-        unsafe { transmute_copy::<Vector<4, T, A>, Vector<2, T, A>>(&self) }
-    }
-
-    /// Returns `(self.x, self.y, self.z)`.
-    #[inline]
-    #[must_use]
-    pub fn xyz(self) -> Vector<3, T, A> {
-        // SAFETY: The output type contains three or four values of `T`, which
-        // the input type is guaranteed to begin with.
-        unsafe { transmute_copy::<Vector<4, T, A>, Vector<3, T, A>>(&self) }
-    }
-
-    /// Returns `(self.x, self.y, self.z, self.w)`.
-    #[inline]
-    #[must_use]
-    pub fn xyzw(self) -> Vector<4, T, A> {
-        self
-    }
-
-    /// Returns `self` with the elements `x`, `y`, `z` and `w` replaced by
-    /// `value.x`, `value.y`, `value.z` and `value.w`.
-    #[inline]
-    #[must_use]
-    pub fn with_xyzw(self, value: Vector<4, T, A>) -> Self {
-        value
     }
 }
 

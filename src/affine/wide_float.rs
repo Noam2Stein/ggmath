@@ -51,6 +51,20 @@ macro_rules! items {
             Self::from_matrix(&Matrix::<N, $Wide, A>::from_scale_rotor(scale, rotor))
         }
 
+        /// Converts an affine transform to a non-uniform scale and a rotor.
+        ///
+        /// This assumes `self` only contains scale, rotation, and translation
+        /// which is ignored.
+        #[inline]
+        #[must_use]
+        #[expect(private_bounds)]
+        pub fn to_scale_rotor(&self) -> (Vector<N, $Wide, A>, Rotor<N, $Wide, A>)
+        where
+            Dim<N>: Three,
+        {
+            self.matrix.to_scale_rotor()
+        }
+
         /// Creates an affine transform from a rotor and translation.
         ///
         /// This assumes `rotor` is normalized.
@@ -88,18 +102,21 @@ macro_rules! items {
             )
         }
 
-        /// Returns `true` if any element is NaN.
+        /// Converts an affine transform to a non-uniform scale, a rotor and
+        /// translation.
+        ///
+        /// This assumes `self` only contains scale, rotation and translation.
         #[inline]
         #[must_use]
-        pub fn is_nan(&self) -> $Wide {
-            self.matrix.is_nan() | self.translation.is_nan()
-        }
-
-        /// Returns `true` if all elements are neither infinite nor NaN.
-        #[inline]
-        #[must_use]
-        pub fn is_finite(&self) -> $Wide {
-            self.matrix.is_finite() & self.translation.is_finite()
+        #[expect(private_bounds)]
+        pub fn to_scale_rotor_translation(
+            &self,
+        ) -> (Vector<N, $Wide, A>, Rotor<N, $Wide, A>, Vector<N, $Wide, A>)
+        where
+            Dim<N>: Three,
+        {
+            let (scale, rotor) = self.to_scale_rotor();
+            (scale, rotor, self.translation)
         }
 
         /// Returns the inverse of `self`.
@@ -139,37 +156,6 @@ macro_rules! items {
             specialize!(Affine::<N, $Wide, A>::inverse_or_zero_backend(self))
         }
 
-        /// Converts an affine transform to a non-uniform scale and a rotor.
-        ///
-        /// This assumes `self` only contains scale, rotation, and translation
-        /// which is ignored.
-        #[inline]
-        #[must_use]
-        #[expect(private_bounds)]
-        pub fn to_scale_rotor(&self) -> (Vector<N, $Wide, A>, Rotor<N, $Wide, A>)
-        where
-            Dim<N>: Three,
-        {
-            self.matrix.to_scale_rotor()
-        }
-
-        /// Converts an affine transform to a non-uniform scale, a rotor and
-        /// translation.
-        ///
-        /// This assumes `self` only contains scale, rotation and translation.
-        #[inline]
-        #[must_use]
-        #[expect(private_bounds)]
-        pub fn to_scale_rotor_translation(
-            &self,
-        ) -> (Vector<N, $Wide, A>, Rotor<N, $Wide, A>, Vector<N, $Wide, A>)
-        where
-            Dim<N>: Three,
-        {
-            let (scale, rotor) = self.to_scale_rotor();
-            (scale, rotor, self.translation)
-        }
-
         /// Returns `true` if the absolute difference of all elements between
         /// `self` and `other` is less than or equal to `max_abs_diff` for all
         /// lanes.
@@ -184,6 +170,20 @@ macro_rules! items {
                 && self
                     .translation
                     .abs_diff_eq(other.translation, max_abs_diff)
+        }
+
+        /// Returns `true` if any element is NaN.
+        #[inline]
+        #[must_use]
+        pub fn is_nan(&self) -> $Wide {
+            self.matrix.is_nan() | self.translation.is_nan()
+        }
+
+        /// Returns `true` if all elements are neither infinite nor NaN.
+        #[inline]
+        #[must_use]
+        pub fn is_finite(&self) -> $Wide {
+            self.matrix.is_finite() & self.translation.is_finite()
         }
     };
 }
@@ -209,6 +209,15 @@ macro_rules! items_2 {
             rotation: Rotation2<$Wide, A>,
         ) -> Self {
             Self::from_matrix(&Matrix::<2, $Wide, A>::from_scale_rotation(scale, rotation))
+        }
+
+        /// Converts an affine transform to scale and rotation.
+        ///
+        /// This assumes `self` does not contain shear.
+        #[inline]
+        #[must_use]
+        pub fn to_scale_rotation(&self) -> (Vector<2, $Wide, A>, Rotation2<$Wide, A>) {
+            self.matrix.to_scale_rotation()
         }
 
         /// Creates an affine transform from `rotation` and `translation`.
@@ -242,22 +251,28 @@ macro_rules! items_2 {
             )
         }
 
+        /// Converts an affine transform to scale, rotation and translation.
+        ///
+        /// This assumes `self` does not contain shear.
+        #[inline]
+        #[must_use]
+        pub fn to_scale_rotation_translation(
+            &self,
+        ) -> (
+            Vector<2, $Wide, A>,
+            Rotation2<$Wide, A>,
+            Vector<2, $Wide, A>,
+        ) {
+            let (scale, rotation) = self.matrix.to_scale_rotation();
+            (scale, rotation, self.translation)
+        }
+
         /// Creates an affine transform containing a rotation from an `angle`
         /// (in radians) rotating `+X` to `+Y`.
         #[inline]
         #[must_use]
         pub fn from_angle(angle: $Wide) -> Self {
             Self::from_matrix(&Matrix::<2, $Wide, A>::from_angle(angle))
-        }
-
-        /// Creates an affine transform containing a rotation of `angle` (in
-        /// radians) and `translation`.
-        ///
-        /// This rotates `+X` to `+Y`.
-        #[inline]
-        #[must_use]
-        pub fn from_angle_translation(angle: $Wide, translation: Vector<2, $Wide, A>) -> Self {
-            Self::from_matrix_translation(&Matrix::<2, $Wide, A>::from_angle(angle), translation)
         }
 
         /// Creates an affine transform containing a non-uniform `scale` and
@@ -268,6 +283,26 @@ macro_rules! items_2 {
         #[must_use]
         pub fn from_scale_angle(scale: Vector<2, $Wide, A>, angle: $Wide) -> Self {
             Self::from_matrix(&Matrix::<2, $Wide, A>::from_scale_angle(scale, angle))
+        }
+
+        /// For each lane, returns the `scale` and `angle` of `self`.
+        ///
+        /// `self` must be reversible and not contain shearing. Otherwise the
+        /// result is unspecified.
+        #[inline]
+        #[must_use]
+        pub fn to_scale_angle(&self) -> (Vector<2, $Wide, A>, $Wide) {
+            self.matrix.to_scale_angle()
+        }
+
+        /// Creates an affine transform containing a rotation of `angle` (in
+        /// radians) and `translation`.
+        ///
+        /// This rotates `+X` to `+Y`.
+        #[inline]
+        #[must_use]
+        pub fn from_angle_translation(angle: $Wide, translation: Vector<2, $Wide, A>) -> Self {
+            Self::from_matrix_translation(&Matrix::<2, $Wide, A>::from_angle(angle), translation)
         }
 
         /// Creates an affine transform containing a non-uniform `scale`,
@@ -287,55 +322,6 @@ macro_rules! items_2 {
             )
         }
 
-        /// Takes the `N+1`x`N` affine transform part of an `N+1`x`N+1`
-        /// homogeneous transformation matrix, removing the last column.
-        ///
-        /// This assumes `homogeneous` does not contain projections.
-        #[inline]
-        #[must_use]
-        pub fn from_homogeneous(homogeneous: &Matrix<3, $Wide, A>) -> Self {
-            Self::from_rows(&[
-                homogeneous.x_axis.truncate(),
-                homogeneous.y_axis.truncate(),
-                homogeneous.z_axis.truncate(),
-            ])
-        }
-
-        /// Converts an affine transform to scale and rotation.
-        ///
-        /// This assumes `self` does not contain shear.
-        #[inline]
-        #[must_use]
-        pub fn to_scale_rotation(&self) -> (Vector<2, $Wide, A>, Rotation2<$Wide, A>) {
-            self.matrix.to_scale_rotation()
-        }
-
-        /// Converts an affine transform to scale, rotation and translation.
-        ///
-        /// This assumes `self` does not contain shear.
-        #[inline]
-        #[must_use]
-        pub fn to_scale_rotation_translation(
-            &self,
-        ) -> (
-            Vector<2, $Wide, A>,
-            Rotation2<$Wide, A>,
-            Vector<2, $Wide, A>,
-        ) {
-            let (scale, rotation) = self.matrix.to_scale_rotation();
-            (scale, rotation, self.translation)
-        }
-
-        /// For each lane, returns the `scale` and `angle` of `self`.
-        ///
-        /// `self` must be reversible and not contain shearing. Otherwise the
-        /// result is unspecified.
-        #[inline]
-        #[must_use]
-        pub fn to_scale_angle(&self) -> (Vector<2, $Wide, A>, $Wide) {
-            self.matrix.to_scale_angle()
-        }
-
         /// For each lane, returns the `scale`, `angle` and `translation` of
         /// `self`.
         ///
@@ -348,6 +334,20 @@ macro_rules! items_2 {
         ) -> (Vector<2, $Wide, A>, $Wide, Vector<2, $Wide, A>) {
             let (scale, angle) = self.matrix.to_scale_angle();
             (scale, angle, self.translation)
+        }
+
+        /// Takes the `N+1`x`N` affine transform part of an `N+1`x`N+1`
+        /// homogeneous transformation matrix, removing the last column.
+        ///
+        /// This assumes `homogeneous` does not contain projections.
+        #[inline]
+        #[must_use]
+        pub fn from_homogeneous(homogeneous: &Matrix<3, $Wide, A>) -> Self {
+            Self::from_rows(&[
+                homogeneous.x_axis.truncate(),
+                homogeneous.y_axis.truncate(),
+                homogeneous.z_axis.truncate(),
+            ])
         }
     };
 }
@@ -396,19 +396,15 @@ macro_rules! items_3 {
             Self::from_matrix(&Matrix::<3, $Wide, A>::from_euler(order, a, b, c))
         }
 
-        /// Takes the `N+1`x`N` affine transform part of an `N+1`x`N+1`
-        /// homogeneous transformation matrix, removing the last column.
+        /// Returns the Euler angles forming `self` for the given Euler rotation
+        /// order/sequence.
         ///
-        /// This assumes `homogeneous` does not contain projections.
+        /// `self` must not contain any non-rotation transformations, excluding
+        /// translation. Otherwise the result is unspecified.
         #[inline]
         #[must_use]
-        pub fn from_homogeneous(homogeneous: &Matrix<4, $Wide, A>) -> Self {
-            Self::from_rows(&[
-                homogeneous.x_axis.truncate(),
-                homogeneous.y_axis.truncate(),
-                homogeneous.z_axis.truncate(),
-                homogeneous.w_axis.truncate(),
-            ])
+        pub fn to_euler(&self, order: EulerRot) -> ($Wide, $Wide, $Wide) {
+            self.matrix.to_euler(order)
         }
 
         /// Creates a left-handed view transform from a camera position, a
@@ -487,15 +483,19 @@ macro_rules! items_3 {
             Self::look_to_rh(eye, (center - eye).normalize(), up)
         }
 
-        /// Returns the Euler angles forming `self` for the given Euler rotation
-        /// order/sequence.
+        /// Takes the `N+1`x`N` affine transform part of an `N+1`x`N+1`
+        /// homogeneous transformation matrix, removing the last column.
         ///
-        /// `self` must not contain any non-rotation transformations, excluding
-        /// translation. Otherwise the result is unspecified.
+        /// This assumes `homogeneous` does not contain projections.
         #[inline]
         #[must_use]
-        pub fn to_euler(&self, order: EulerRot) -> ($Wide, $Wide, $Wide) {
-            self.matrix.to_euler(order)
+        pub fn from_homogeneous(homogeneous: &Matrix<4, $Wide, A>) -> Self {
+            Self::from_rows(&[
+                homogeneous.x_axis.truncate(),
+                homogeneous.y_axis.truncate(),
+                homogeneous.z_axis.truncate(),
+                homogeneous.w_axis.truncate(),
+            ])
         }
     };
 }

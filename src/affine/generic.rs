@@ -145,45 +145,6 @@ where
         }
     }
 
-    /// Converts `self` to the specified SIMD-alignment mode.
-    ///
-    /// If the output mode is known to always be [`Aligned`] or always be
-    /// [`Unaligned`], use methods [`align`] and [`unalign`] instead.
-    ///
-    /// See [`Alignment`] for more information about SIMD-aligned types.
-    ///
-    /// [`align`]: Self::align
-    /// [`unalign`]: Self::unalign
-    #[inline]
-    #[must_use]
-    pub const fn to_alignment<A2: Alignment>(&self) -> Affine<N, T, A2> {
-        // SAFETY: Just like in `Deref`, this operation is sound.
-        let fields = unsafe { transmute_ref::<Affine<N, T, A>, AffineFields<N, T, A>>(self) };
-
-        Affine::from_matrix_translation(
-            &fields.matrix.to_alignment(),
-            fields.translation.to_alignment(),
-        )
-    }
-
-    /// Converts `self` to SIMD-aligned storage.
-    ///
-    /// See [`Alignment`] for more information about SIMD-aligned types.
-    #[inline]
-    #[must_use]
-    pub const fn align(&self) -> Affine<N, T, Aligned> {
-        self.to_alignment()
-    }
-
-    /// Converts `self` to non-SIMD-aligned storage.
-    ///
-    /// See [`Alignment`] for more information about SIMD-aligned types.
-    #[inline]
-    #[must_use]
-    pub const fn unalign(&self) -> Affine<N, T, Unaligned> {
-        self.to_alignment()
-    }
-
     /// Transforms the given vector applying scale, rotation and translation.
     #[inline]
     #[must_use]
@@ -210,6 +171,45 @@ where
     {
         vector * self.matrix
     }
+
+    /// Converts `self` to SIMD-aligned storage.
+    ///
+    /// See [`Alignment`] for more information about SIMD-aligned types.
+    #[inline]
+    #[must_use]
+    pub const fn align(&self) -> Affine<N, T, Aligned> {
+        self.to_alignment()
+    }
+
+    /// Converts `self` to non-SIMD-aligned storage.
+    ///
+    /// See [`Alignment`] for more information about SIMD-aligned types.
+    #[inline]
+    #[must_use]
+    pub const fn unalign(&self) -> Affine<N, T, Unaligned> {
+        self.to_alignment()
+    }
+
+    /// Converts `self` to the specified SIMD-alignment mode.
+    ///
+    /// If the output mode is known to always be [`Aligned`] or always be
+    /// [`Unaligned`], use methods [`align`] and [`unalign`] instead.
+    ///
+    /// See [`Alignment`] for more information about SIMD-aligned types.
+    ///
+    /// [`align`]: Self::align
+    /// [`unalign`]: Self::unalign
+    #[inline]
+    #[must_use]
+    pub const fn to_alignment<A2: Alignment>(&self) -> Affine<N, T, A2> {
+        // SAFETY: Just like in `Deref`, this operation is sound.
+        let fields = unsafe { transmute_ref::<Affine<N, T, A>, AffineFields<N, T, A>>(self) };
+
+        Affine::from_matrix_translation(
+            &fields.matrix.to_alignment(),
+            fields.translation.to_alignment(),
+        )
+    }
 }
 
 impl<T, A: Alignment> Affine<2, T, A>
@@ -221,6 +221,26 @@ where
     #[must_use]
     pub const fn from_rows(rows: &[Vector<2, T, A>; 3]) -> Self {
         Self::from_matrix_translation(&Matrix::from_rows(&[rows[0], rows[1]]), rows[2])
+    }
+
+    /// Returns a reference to the affine transform's rows.
+    #[inline]
+    #[must_use]
+    pub const fn as_rows(&self) -> &[Vector<2, T, A>; 3] {
+        // SAFETY: `Affine<2, T, A>` is guaranteed to begin with
+        // `Matrix<2, T, A>` (two vectors) then `Vector<2, T, A>`, which is 3
+        // vectors in total.
+        unsafe { transmute_ref::<Affine<2, T, A>, [Vector<2, T, A>; 3]>(self) }
+    }
+
+    /// Returns a mutable reference to the affine transform's rows.
+    #[inline]
+    #[must_use]
+    pub const fn as_mut_rows(&mut self) -> &mut [Vector<2, T, A>; 3] {
+        // SAFETY: `Affine<2, T, A>` is guaranteed to begin with
+        // `Matrix<2, T, A>` (two vectors) then `Vector<2, T, A>`, which is 3
+        // vectors in total.
+        unsafe { transmute_mut::<Affine<2, T, A>, [Vector<2, T, A>; 3]>(self) }
     }
 
     /// Creates an affine transform from a row-major array of elements.
@@ -248,26 +268,6 @@ where
             Vector::<2, T, A>::new(array[2], array[3]),
             Vector::<2, T, A>::new(array[4], array[5]),
         ])
-    }
-
-    /// Returns a reference to the affine transform's rows.
-    #[inline]
-    #[must_use]
-    pub const fn as_rows(&self) -> &[Vector<2, T, A>; 3] {
-        // SAFETY: `Affine<2, T, A>` is guaranteed to begin with
-        // `Matrix<2, T, A>` (two vectors) then `Vector<2, T, A>`, which is 3
-        // vectors in total.
-        unsafe { transmute_ref::<Affine<2, T, A>, [Vector<2, T, A>; 3]>(self) }
-    }
-
-    /// Returns a mutable reference to the affine transform's rows.
-    #[inline]
-    #[must_use]
-    pub const fn as_mut_rows(&mut self) -> &mut [Vector<2, T, A>; 3] {
-        // SAFETY: `Affine<2, T, A>` is guaranteed to begin with
-        // `Matrix<2, T, A>` (two vectors) then `Vector<2, T, A>`, which is 3
-        // vectors in total.
-        unsafe { transmute_mut::<Affine<2, T, A>, [Vector<2, T, A>; 3]>(self) }
     }
 
     /// Creates an `N+1`x`N+1` homogeneous transformation matrix from an
@@ -318,6 +318,26 @@ where
         Self::from_matrix_translation(&Matrix::from_rows(&[rows[0], rows[1], rows[2]]), rows[3])
     }
 
+    /// Returns a reference to the affine transform's rows.
+    #[inline]
+    #[must_use]
+    pub const fn as_rows(&self) -> &[Vector<3, T, A>; 4] {
+        // SAFETY: `Affine<3, T, A>` is guaranteed to begin with
+        // `Matrix<3, T, A>` (three vectors) then `Vector<3, T, A>`, which is 4
+        // vectors in total.
+        unsafe { transmute_ref::<Affine<3, T, A>, [Vector<3, T, A>; 4]>(self) }
+    }
+
+    /// Returns a mutable reference to the affine transform's rows.
+    #[inline]
+    #[must_use]
+    pub const fn as_mut_rows(&mut self) -> &mut [Vector<3, T, A>; 4] {
+        // SAFETY: `Affine<3, T, A>` is guaranteed to begin with
+        // `Matrix<3, T, A>` (three vectors) then `Vector<3, T, A>`, which is 4
+        // vectors in total.
+        unsafe { transmute_mut::<Affine<3, T, A>, [Vector<3, T, A>; 4]>(self) }
+    }
+
     /// Creates an affine transform from a row-major array of elements.
     ///
     /// # Examples
@@ -344,26 +364,6 @@ where
             Vector::<3, T, A>::new(array[6], array[7], array[8]),
             Vector::<3, T, A>::new(array[9], array[10], array[11]),
         ])
-    }
-
-    /// Returns a reference to the affine transform's rows.
-    #[inline]
-    #[must_use]
-    pub const fn as_rows(&self) -> &[Vector<3, T, A>; 4] {
-        // SAFETY: `Affine<3, T, A>` is guaranteed to begin with
-        // `Matrix<3, T, A>` (three vectors) then `Vector<3, T, A>`, which is 4
-        // vectors in total.
-        unsafe { transmute_ref::<Affine<3, T, A>, [Vector<3, T, A>; 4]>(self) }
-    }
-
-    /// Returns a mutable reference to the affine transform's rows.
-    #[inline]
-    #[must_use]
-    pub const fn as_mut_rows(&mut self) -> &mut [Vector<3, T, A>; 4] {
-        // SAFETY: `Affine<3, T, A>` is guaranteed to begin with
-        // `Matrix<3, T, A>` (three vectors) then `Vector<3, T, A>`, which is 4
-        // vectors in total.
-        unsafe { transmute_mut::<Affine<3, T, A>, [Vector<3, T, A>; 4]>(self) }
     }
 
     /// Creates an `N+1`x`N+1` homogeneous transformation matrix from an
@@ -418,6 +418,26 @@ where
         )
     }
 
+    /// Returns a reference to the affine transform's rows.
+    #[inline]
+    #[must_use]
+    pub const fn as_rows(&self) -> &[Vector<4, T, A>; 5] {
+        // SAFETY: `Affine<4, T, A>` is guaranteed to begin with
+        // `Matrix<4, T, A>` (four vectors) then `Vector<4, T, A>`, which is 5
+        // vectors in total.
+        unsafe { transmute_ref::<Affine<4, T, A>, [Vector<4, T, A>; 5]>(self) }
+    }
+
+    /// Returns a mutable reference to the affine transform's rows.
+    #[inline]
+    #[must_use]
+    pub const fn as_mut_rows(&mut self) -> &mut [Vector<4, T, A>; 5] {
+        // SAFETY: `Affine<4, T, A>` is guaranteed to begin with
+        // `Matrix<4, T, A>` (four vectors) then `Vector<4, T, A>`, which is 5
+        // vectors in total.
+        unsafe { transmute_mut::<Affine<4, T, A>, [Vector<4, T, A>; 5]>(self) }
+    }
+
     /// Creates an affine transform from a row-major array of elements.
     ///
     /// # Examples
@@ -445,26 +465,6 @@ where
             Vector::<4, T, A>::new(array[12], array[13], array[14], array[15]),
             Vector::<4, T, A>::new(array[16], array[17], array[18], array[19]),
         ])
-    }
-
-    /// Returns a reference to the affine transform's rows.
-    #[inline]
-    #[must_use]
-    pub const fn as_rows(&self) -> &[Vector<4, T, A>; 5] {
-        // SAFETY: `Affine<4, T, A>` is guaranteed to begin with
-        // `Matrix<4, T, A>` (four vectors) then `Vector<4, T, A>`, which is 5
-        // vectors in total.
-        unsafe { transmute_ref::<Affine<4, T, A>, [Vector<4, T, A>; 5]>(self) }
-    }
-
-    /// Returns a mutable reference to the affine transform's rows.
-    #[inline]
-    #[must_use]
-    pub const fn as_mut_rows(&mut self) -> &mut [Vector<4, T, A>; 5] {
-        // SAFETY: `Affine<4, T, A>` is guaranteed to begin with
-        // `Matrix<4, T, A>` (four vectors) then `Vector<4, T, A>`, which is 5
-        // vectors in total.
-        unsafe { transmute_mut::<Affine<4, T, A>, [Vector<4, T, A>; 5]>(self) }
     }
 }
 

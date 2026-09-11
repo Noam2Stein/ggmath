@@ -89,6 +89,27 @@ where
         ))
     }
 
+    /// Converts a projective transform to a non-uniform scale and a rotor.
+    ///
+    /// This assumes `self` only contains scale, rotation, and translation which
+    /// is ignored.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` contains anything but scale, rotation and translation.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    #[expect(private_bounds)]
+    pub fn to_scale_rotor(&self) -> (Vector<N, T, A>, Rotor<N, T, A>)
+    where
+        Dim<N>: Three,
+    {
+        specialize_3!(Projective::<N, T, A>::to_scale_rotor_backend(self))
+    }
+
     /// Creates a projective transform from a rotor and translation.
     ///
     /// This assumes `rotor` is normalized.
@@ -151,6 +172,132 @@ where
         ))
     }
 
+    /// Converts a projective transform to a non-uniform scale, a rotor and
+    /// translation.
+    ///
+    /// This assumes `self` only contains scale, rotation and translation.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` contains anything but scale, rotation and translation.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    #[expect(private_bounds)]
+    pub fn to_scale_rotor_translation(&self) -> (Vector<N, T, A>, Rotor<N, T, A>, Vector<N, T, A>)
+    where
+        Dim<N>: Three,
+    {
+        let (scale, rotor) = self.to_scale_rotor();
+        (scale, rotor, self.translation())
+    }
+
+    /// Transforms the given vector as a point.
+    ///
+    /// Equivalent to `(point, 1) * self` but is faster.
+    ///
+    /// This function assumes `self` contains an affine transformation, with no
+    /// projections, meaning the last column must be `(0, 0, ..., 1)`.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if the last column of `self` is not `(0, 0, ..., 1)`.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn transform_point(&self, point: Vector<N, T, A>) -> Vector<N, T, A> {
+        specialize_23!(Projective::<N, T, A>::transform_point_backend(self, point))
+    }
+
+    /// Transforms the given vector without applying translation.
+    ///
+    /// Equivalent to `(vector, 0) * self` but is faster.
+    ///
+    /// This function assumes `self` contains an affine transformation, with no
+    /// projections, meaning the last column must be `(0, 0, ..., 1)`.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if the last column of `self` is not `(0, 0, ..., 1)`.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn transform_vector(&self, vector: Vector<N, T, A>) -> Vector<N, T, A> {
+        specialize_23!(Projective::<N, T, A>::transform_vector_backend(
+            self, vector
+        ))
+    }
+
+    /// Transforms the given vector as a point, applying perspective divide.
+    #[inline]
+    #[must_use]
+    pub fn project_point(&self, point: Vector<N, T, A>) -> Vector<N, T, A> {
+        specialize_23!(Projective::<N, T, A>::project_point_backend(self, point))
+    }
+
+    /// Returns the inverse of `self`.
+    ///
+    /// If `self` is not invertable, the result is unspecified.
+    ///
+    /// This computes the inverse of the inner homogeneous matrix.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if the determinant of the homogeneous matrix is `0`.
+    #[must_use]
+    #[track_caller]
+    pub fn inverse(&self) -> Self {
+        specialize_23!(Projective::<N, T, A>::inverse_backend(self))
+    }
+
+    /// Returns the inverse of `self` or `None` if `self` is not invertable.
+    ///
+    /// This computes the inverse of the inner homogeneous matrix.
+    #[must_use]
+    pub fn try_inverse(&self) -> Option<Self> {
+        specialize_23!(Projective::<N, T, A>::try_inverse_backend(self))
+    }
+
+    /// Returns the inverse of `self` or `fallback` if `self` is not invertable.
+    ///
+    /// This computes the inverse of the inner homogeneous matrix.
+    #[must_use]
+    pub fn inverse_or(&self, fallback: &Self) -> Self {
+        specialize_23!(Projective::<N, T, A>::inverse_or_backend(self, fallback))
+    }
+
+    /// Returns the inverse of `self` or the zero transform if `self` is not
+    /// invertable.
+    ///
+    /// This computes the inverse of the inner homogeneous matrix.
+    #[must_use]
+    pub fn inverse_or_zero(&self) -> Self {
+        specialize_23!(Projective::<N, T, A>::inverse_or_zero_backend(self))
+    }
+
+    /// Returns `true` if the absolute difference of all elements between `self`
+    /// and `other` is less than or equal to `max_abs_diff`.
+    ///
+    /// This can be used to compare two transforms that should be equal, but may
+    /// have a slight difference due to operations having rounding errors.
+    #[inline]
+    #[must_use]
+    pub fn abs_diff_eq(&self, other: &Self, max_abs_diff: T) -> bool {
+        specialize_23!(Projective::<N, T, A>::abs_diff_eq_backend(
+            self,
+            other,
+            max_abs_diff
+        ))
+    }
+
     /// Returns `true` if any element is NaN.
     ///
     /// # Examples
@@ -205,95 +352,6 @@ where
         specialize_23!(Projective::<N, T, A>::is_finite_backend(self))
     }
 
-    /// Returns the inverse of `self`.
-    ///
-    /// If `self` is not invertable, the result is unspecified.
-    ///
-    /// This computes the inverse of the inner homogeneous matrix.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if the determinant of the homogeneous matrix is `0`.
-    #[must_use]
-    #[track_caller]
-    pub fn inverse(&self) -> Self {
-        specialize_23!(Projective::<N, T, A>::inverse_backend(self))
-    }
-
-    /// Returns the inverse of `self` or `None` if `self` is not invertable.
-    ///
-    /// This computes the inverse of the inner homogeneous matrix.
-    #[must_use]
-    pub fn try_inverse(&self) -> Option<Self> {
-        specialize_23!(Projective::<N, T, A>::try_inverse_backend(self))
-    }
-
-    /// Returns the inverse of `self` or `fallback` if `self` is not invertable.
-    ///
-    /// This computes the inverse of the inner homogeneous matrix.
-    #[must_use]
-    pub fn inverse_or(&self, fallback: &Self) -> Self {
-        specialize_23!(Projective::<N, T, A>::inverse_or_backend(self, fallback))
-    }
-
-    /// Returns the inverse of `self` or the zero transform if `self` is not
-    /// invertable.
-    ///
-    /// This computes the inverse of the inner homogeneous matrix.
-    #[must_use]
-    pub fn inverse_or_zero(&self) -> Self {
-        specialize_23!(Projective::<N, T, A>::inverse_or_zero_backend(self))
-    }
-
-    /// Transforms the given vector as a point.
-    ///
-    /// Equivalent to `(point, 1) * self` but is faster.
-    ///
-    /// This function assumes `self` contains an affine transformation, with no
-    /// projections, meaning the last column must be `(0, 0, ..., 1)`.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if the last column of `self` is not `(0, 0, ..., 1)`.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn transform_point(&self, point: Vector<N, T, A>) -> Vector<N, T, A> {
-        specialize_23!(Projective::<N, T, A>::transform_point_backend(self, point))
-    }
-
-    /// Transforms the given vector without applying translation.
-    ///
-    /// Equivalent to `(vector, 0) * self` but is faster.
-    ///
-    /// This function assumes `self` contains an affine transformation, with no
-    /// projections, meaning the last column must be `(0, 0, ..., 1)`.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if the last column of `self` is not `(0, 0, ..., 1)`.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn transform_vector(&self, vector: Vector<N, T, A>) -> Vector<N, T, A> {
-        specialize_23!(Projective::<N, T, A>::transform_vector_backend(
-            self, vector
-        ))
-    }
-
-    /// Transforms the given vector as a point, applying perspective divide.
-    #[inline]
-    #[must_use]
-    pub fn project_point(&self, point: Vector<N, T, A>) -> Vector<N, T, A> {
-        specialize_23!(Projective::<N, T, A>::project_point_backend(self, point))
-    }
-
     /// Returns the absolute values of the elements of `self`.
     ///
     /// Equivalent to `(self.x_axis.abs(), self.y_axis.abs(), ...)`.
@@ -322,64 +380,6 @@ where
     #[must_use]
     pub fn abs(&self) -> Self {
         specialize_23!(Projective::<N, T, A>::abs_backend(self))
-    }
-
-    /// Converts a projective transform to a non-uniform scale and a rotor.
-    ///
-    /// This assumes `self` only contains scale, rotation, and translation which
-    /// is ignored.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `self` contains anything but scale, rotation and translation.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    #[expect(private_bounds)]
-    pub fn to_scale_rotor(&self) -> (Vector<N, T, A>, Rotor<N, T, A>)
-    where
-        Dim<N>: Three,
-    {
-        specialize_3!(Projective::<N, T, A>::to_scale_rotor_backend(self))
-    }
-
-    /// Converts a projective transform to a non-uniform scale, a rotor and
-    /// translation.
-    ///
-    /// This assumes `self` only contains scale, rotation and translation.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `self` contains anything but scale, rotation and translation.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    #[expect(private_bounds)]
-    pub fn to_scale_rotor_translation(&self) -> (Vector<N, T, A>, Rotor<N, T, A>, Vector<N, T, A>)
-    where
-        Dim<N>: Three,
-    {
-        let (scale, rotor) = self.to_scale_rotor();
-        (scale, rotor, self.translation())
-    }
-
-    /// Returns `true` if the absolute difference of all elements between `self`
-    /// and `other` is less than or equal to `max_abs_diff`.
-    ///
-    /// This can be used to compare two transforms that should be equal, but may
-    /// have a slight difference due to operations having rounding errors.
-    #[inline]
-    #[must_use]
-    pub fn abs_diff_eq(&self, other: &Self, max_abs_diff: T) -> bool {
-        specialize_23!(Projective::<N, T, A>::abs_diff_eq_backend(
-            self,
-            other,
-            max_abs_diff
-        ))
     }
 }
 
@@ -435,6 +435,48 @@ where
             Vector::<3, T, A>::new(-rotation.sin * scale.y, rotation.cos * scale.y, T::ZERO),
             Vector::<3, T, A>::Z,
         ])
+    }
+
+    /// Converts a projective transform to scale and rotation.
+    ///
+    /// This assumes `self` does not contain shear or projection.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` contains shear or projection or the determinant of
+    /// `self` is zero.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_scale_rotation(&self) -> (Vector<2, T, A>, Rotation2<T, A>) {
+        let determinant = self.x_axis.truncate().perp_dot(self.y_axis.truncate());
+
+        let (rotation, x_axis_length) = Rotation2(self.x_axis.truncate()).normalize_and_length();
+
+        let scale = Vector::<2, T, A>::new(
+            x_axis_length,
+            self.y_axis.truncate().length() * determinant.signum(),
+        );
+
+        debug_assert!(
+            (self.x_axis.truncate() / scale.x)
+                .dot(self.y_axis.truncate() / scale.y)
+                .abs_diff_eq(T::ZERO, T::as_from(1e-4)),
+            "matrix contains shear: {self:?}.to_scale_angle()"
+        );
+        debug_assert!(
+            self.z_axis
+                .abs_diff_eq(Vector::<3, T, A>::Z, T::as_from(1e-4)),
+            "matrix contains projection: {self:?}.to_scale_angle()"
+        );
+        debug_assert!(
+            determinant != T::ZERO,
+            "determinant is zero: {self:?}.to_scale_angle()"
+        );
+
+        (scale, rotation)
     }
 
     /// Creates a projective transform from `rotation` and `translation`.
@@ -495,6 +537,25 @@ where
         ])
     }
 
+    /// Converts a projective transform to scale, rotation and translation.
+    ///
+    /// This assumes `self` does not contain shear.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` contains shear or the determinant of `self` is zero.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_scale_rotation_translation(
+        &self,
+    ) -> (Vector<2, T, A>, Rotation2<T, A>, Vector<2, T, A>) {
+        let (scale, rotation) = self.to_scale_rotation();
+        (scale, rotation, self.translation())
+    }
+
     /// Creates a projective transform containing a rotation from an `angle` (in
     /// radians) rotating `+X` to `+Y`.
     #[inline]
@@ -521,6 +582,25 @@ where
             Vector::<3, T, A>::new(-sin * scale.y, cos * scale.y, T::ZERO),
             Vector::<3, T, A>::Z,
         ])
+    }
+
+    /// Returns the `scale` and `angle` of `self`.
+    ///
+    /// This function assumes `self` contains an affine transformation with no
+    /// shearing.
+    ///
+    /// `self` can contain translation, which is ignored.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` contains shearing or the 2D determinant of `self` is zero.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_scale_angle(&self) -> (Vector<2, T, A>, T) {
+        Matrix::<2, T, A>::from_projective(self).to_scale_angle()
     }
 
     /// Creates a 2D projective transform containing a rotation of `angle` (in
@@ -555,86 +635,6 @@ where
             Vector::<3, T, A>::new(-sin * scale.y, cos * scale.y, T::ZERO),
             Vector::<3, T, A>::new(translation.x, translation.y, T::ONE),
         ])
-    }
-
-    /// Converts a projective transform to scale and rotation.
-    ///
-    /// This assumes `self` does not contain shear or projection.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `self` contains shear or projection or the determinant of
-    /// `self` is zero.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn to_scale_rotation(&self) -> (Vector<2, T, A>, Rotation2<T, A>) {
-        let determinant = self.x_axis.truncate().perp_dot(self.y_axis.truncate());
-
-        let (rotation, x_axis_length) = Rotation2(self.x_axis.truncate()).normalize_and_length();
-
-        let scale = Vector::<2, T, A>::new(
-            x_axis_length,
-            self.y_axis.truncate().length() * determinant.signum(),
-        );
-
-        debug_assert!(
-            (self.x_axis.truncate() / scale.x)
-                .dot(self.y_axis.truncate() / scale.y)
-                .abs_diff_eq(T::ZERO, T::as_from(1e-4)),
-            "matrix contains shear: {self:?}.to_scale_angle()"
-        );
-        debug_assert!(
-            self.z_axis
-                .abs_diff_eq(Vector::<3, T, A>::Z, T::as_from(1e-4)),
-            "matrix contains projection: {self:?}.to_scale_angle()"
-        );
-        debug_assert!(
-            determinant != T::ZERO,
-            "determinant is zero: {self:?}.to_scale_angle()"
-        );
-
-        (scale, rotation)
-    }
-
-    /// Converts a projective transform to scale, rotation and translation.
-    ///
-    /// This assumes `self` does not contain shear.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `self` contains shear or the determinant of `self` is zero.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn to_scale_rotation_translation(
-        &self,
-    ) -> (Vector<2, T, A>, Rotation2<T, A>, Vector<2, T, A>) {
-        let (scale, rotation) = self.to_scale_rotation();
-        (scale, rotation, self.translation())
-    }
-
-    /// Returns the `scale` and `angle` of `self`.
-    ///
-    /// This function assumes `self` contains an affine transformation with no
-    /// shearing.
-    ///
-    /// `self` can contain translation, which is ignored.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `self` contains shearing or the 2D determinant of `self` is zero.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn to_scale_angle(&self) -> (Vector<2, T, A>, T) {
-        Matrix::<2, T, A>::from_projective(self).to_scale_angle()
     }
 
     /// Returns the `scale`, `angle` and `translation` of `self`.
@@ -815,6 +815,24 @@ where
     #[must_use]
     pub fn from_euler(order: EulerRot, a: T, b: T, c: T) -> Self {
         Self::from_matrix(&Matrix::<3, T, A>::from_euler(order, a, b, c))
+    }
+
+    /// Returns the Euler angles forming `self` for the given Euler rotation
+    /// order/sequence.
+    ///
+    /// The upper-left 3x3 matrix of `self` must not contain any non-rotation
+    /// transformations. Otherwise the result is unspecified.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` is not a rotation matrix.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_euler(&self, order: EulerRot) -> (T, T, T) {
+        Matrix::<3, T, A>::from_projective(self).to_euler(order)
     }
 
     /// Creates a left-handed view transform from a camera position, a facing
@@ -1443,24 +1461,6 @@ where
             Vector::<4, T, A>::new(T::ZERO, T::ZERO, scale_z, T::ZERO),
             Vector::<4, T, A>::new(translation_x, translation_y, translation_z, T::ONE),
         ])
-    }
-
-    /// Returns the Euler angles forming `self` for the given Euler rotation
-    /// order/sequence.
-    ///
-    /// The upper-left 3x3 matrix of `self` must not contain any non-rotation
-    /// transformations. Otherwise the result is unspecified.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `self` is not a rotation matrix.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn to_euler(&self, order: EulerRot) -> (T, T, T) {
-        Matrix::<3, T, A>::from_projective(self).to_euler(order)
     }
 
     #[inline(always)]

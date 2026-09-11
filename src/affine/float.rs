@@ -95,6 +95,27 @@ where
         Self::from_matrix(&Matrix::<N, T, A>::from_scale_rotor(scale, rotor))
     }
 
+    /// Converts an affine transform to a non-uniform scale and a rotor.
+    ///
+    /// This assumes `self` only contains scale, rotation, and translation which
+    /// is ignored.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` contains anything but scale, rotation and translation.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    #[expect(private_bounds)]
+    pub fn to_scale_rotor(&self) -> (Vector<N, T, A>, Rotor<N, T, A>)
+    where
+        Dim<N>: Three,
+    {
+        self.matrix.to_scale_rotor()
+    }
+
     /// Creates an affine transform from a rotor and translation.
     ///
     /// This assumes `rotor` is normalized.
@@ -141,6 +162,86 @@ where
             &Matrix::<N, T, A>::from_scale_rotor(scale, rotor),
             translation,
         )
+    }
+
+    /// Converts an affine transform to a non-uniform scale, a rotor and
+    /// translation.
+    ///
+    /// This assumes `self` only contains scale, rotation and translation.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` contains anything but scale, rotation and translation.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    #[expect(private_bounds)]
+    pub fn to_scale_rotor_translation(&self) -> (Vector<N, T, A>, Rotor<N, T, A>, Vector<N, T, A>)
+    where
+        Dim<N>: Three,
+    {
+        let (scale, rotor) = self.to_scale_rotor();
+        (scale, rotor, self.translation)
+    }
+
+    /// Returns the inverse of `self`.
+    ///
+    /// If `self` is not invertable the result is unspecified.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if the determinant is `0`.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn inverse(&self) -> Self {
+        let matrix = self.matrix.inverse();
+        let translation = -self.translation * matrix;
+
+        Self::from_matrix_translation(&matrix, translation)
+    }
+
+    /// Returns the inverse of `self` or `None` if `self` is not invertable.
+    #[inline]
+    #[must_use]
+    pub fn try_inverse(&self) -> Option<Self> {
+        let matrix = self.matrix.try_inverse()?;
+        let translation = -self.translation * matrix;
+
+        Some(Self::from_matrix_translation(&matrix, translation))
+    }
+
+    /// Returns the inverse of `self` or `fallback` if `self` is not invertable.
+    #[inline]
+    #[must_use]
+    pub fn inverse_or(&self, fallback: &Self) -> Self {
+        self.try_inverse().unwrap_or(*fallback)
+    }
+
+    /// Returns the inverse of `self` or the zero transform if `self` is not
+    /// invertable.
+    #[inline]
+    #[must_use]
+    pub fn inverse_or_zero(&self) -> Self {
+        self.try_inverse().unwrap_or(Self::ZERO)
+    }
+
+    /// Returns `true` if the absolute difference of all elements between `self`
+    /// and `other` is less than or equal to `max_abs_diff`.
+    ///
+    /// This can be used to compare two affines that should be equal, but may
+    /// have a slight difference due to operations having rounding errors.
+    #[inline]
+    #[must_use]
+    pub fn abs_diff_eq(&self, other: &Self, max_abs_diff: T) -> bool {
+        self.matrix.abs_diff_eq(&other.matrix, max_abs_diff)
+            && self
+                .translation
+                .abs_diff_eq(other.translation, max_abs_diff)
     }
 
     /// Returns `true` if any element is NaN.
@@ -196,107 +297,6 @@ where
     pub fn is_finite(&self) -> bool {
         self.matrix.is_finite() && self.translation.is_finite()
     }
-
-    /// Returns the inverse of `self`.
-    ///
-    /// If `self` is not invertable the result is unspecified.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if the determinant is `0`.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn inverse(&self) -> Self {
-        let matrix = self.matrix.inverse();
-        let translation = -self.translation * matrix;
-
-        Self::from_matrix_translation(&matrix, translation)
-    }
-
-    /// Returns the inverse of `self` or `None` if `self` is not invertable.
-    #[inline]
-    #[must_use]
-    pub fn try_inverse(&self) -> Option<Self> {
-        let matrix = self.matrix.try_inverse()?;
-        let translation = -self.translation * matrix;
-
-        Some(Self::from_matrix_translation(&matrix, translation))
-    }
-
-    /// Returns the inverse of `self` or `fallback` if `self` is not invertable.
-    #[inline]
-    #[must_use]
-    pub fn inverse_or(&self, fallback: &Self) -> Self {
-        self.try_inverse().unwrap_or(*fallback)
-    }
-
-    /// Returns the inverse of `self` or the zero transform if `self` is not
-    /// invertable.
-    #[inline]
-    #[must_use]
-    pub fn inverse_or_zero(&self) -> Self {
-        self.try_inverse().unwrap_or(Self::ZERO)
-    }
-
-    /// Converts an affine transform to a non-uniform scale and a rotor.
-    ///
-    /// This assumes `self` only contains scale, rotation, and translation which
-    /// is ignored.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `self` contains anything but scale, rotation and translation.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    #[expect(private_bounds)]
-    pub fn to_scale_rotor(&self) -> (Vector<N, T, A>, Rotor<N, T, A>)
-    where
-        Dim<N>: Three,
-    {
-        self.matrix.to_scale_rotor()
-    }
-
-    /// Converts an affine transform to a non-uniform scale, a rotor and
-    /// translation.
-    ///
-    /// This assumes `self` only contains scale, rotation and translation.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `self` contains anything but scale, rotation and translation.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    #[expect(private_bounds)]
-    pub fn to_scale_rotor_translation(&self) -> (Vector<N, T, A>, Rotor<N, T, A>, Vector<N, T, A>)
-    where
-        Dim<N>: Three,
-    {
-        let (scale, rotor) = self.to_scale_rotor();
-        (scale, rotor, self.translation)
-    }
-
-    /// Returns `true` if the absolute difference of all elements between `self`
-    /// and `other` is less than or equal to `max_abs_diff`.
-    ///
-    /// This can be used to compare two affines that should be equal, but may
-    /// have a slight difference due to operations having rounding errors.
-    #[inline]
-    #[must_use]
-    pub fn abs_diff_eq(&self, other: &Self, max_abs_diff: T) -> bool {
-        self.matrix.abs_diff_eq(&other.matrix, max_abs_diff)
-            && self
-                .translation
-                .abs_diff_eq(other.translation, max_abs_diff)
-    }
 }
 
 impl<T, A: Alignment> Affine<2, T, A>
@@ -333,6 +333,22 @@ where
     #[track_caller]
     pub fn from_scale_rotation(scale: Vector<2, T, A>, rotation: Rotation2<T, A>) -> Self {
         Self::from_matrix(&Matrix::<2, T, A>::from_scale_rotation(scale, rotation))
+    }
+
+    /// Converts an affine transform to scale and rotation.
+    ///
+    /// This assumes `self` does not contain shear.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` contains shear or the determinant of `self` is zero.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_scale_rotation(&self) -> (Vector<2, T, A>, Rotation2<T, A>) {
+        self.matrix.to_scale_rotation()
     }
 
     /// Creates an affine transform from `rotation` and `translation`.
@@ -377,22 +393,31 @@ where
         )
     }
 
+    /// Converts an affine transform to scale, rotation and translation.
+    ///
+    /// This assumes `self` does not contain shear.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` contains shear or the determinant of `self` is zero.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_scale_rotation_translation(
+        &self,
+    ) -> (Vector<2, T, A>, Rotation2<T, A>, Vector<2, T, A>) {
+        let (scale, rotation) = self.matrix.to_scale_rotation();
+        (scale, rotation, self.translation)
+    }
+
     /// Creates an affine transform containing a rotation from an `angle`
     /// (in radians) rotating `+X` to `+Y`.
     #[inline]
     #[must_use]
     pub fn from_angle(angle: T) -> Self {
         Self::from_matrix(&Matrix::<2, T, A>::from_angle(angle))
-    }
-
-    /// Creates an affine transform containing a rotation of `angle`
-    /// (in radians) and `translation`.
-    ///
-    /// This rotates `+X` to `+Y`.
-    #[inline]
-    #[must_use]
-    pub fn from_angle_translation(angle: T, translation: Vector<2, T, A>) -> Self {
-        Self::from_matrix_translation(&Matrix::<2, T, A>::from_angle(angle), translation)
     }
 
     /// Creates an affine transform containing a non-uniform `scale` and
@@ -403,6 +428,33 @@ where
     #[must_use]
     pub fn from_scale_angle(scale: Vector<2, T, A>, angle: T) -> Self {
         Self::from_matrix(&Matrix::<2, T, A>::from_scale_angle(scale, angle))
+    }
+
+    /// Returns the `scale` and `angle` of `self`.
+    ///
+    /// `self` must be reversible and not contain shearing. Otherwise the result
+    /// is unspecified.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` contains shearing or the determinant of `self` is zero.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_scale_angle(&self) -> (Vector<2, T, A>, T) {
+        self.matrix.to_scale_angle()
+    }
+
+    /// Creates an affine transform containing a rotation of `angle`
+    /// (in radians) and `translation`.
+    ///
+    /// This rotates `+X` to `+Y`.
+    #[inline]
+    #[must_use]
+    pub fn from_angle_translation(angle: T, translation: Vector<2, T, A>) -> Self {
+        Self::from_matrix_translation(&Matrix::<2, T, A>::from_angle(angle), translation)
     }
 
     /// Creates an affine transform containing a non-uniform `scale`, rotation
@@ -420,6 +472,24 @@ where
             &Matrix::<2, T, A>::from_scale_angle(scale, angle),
             translation,
         )
+    }
+
+    /// Returns the `scale`, `angle` and `translation` of `self`.
+    ///
+    /// `self` must be reversible and not contain shearing. Otherwise the result
+    /// is unspecified.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` contains shearing or the determinant of `self` is zero.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_scale_angle_translation(&self) -> (Vector<2, T, A>, T, Vector<2, T, A>) {
+        let (scale, angle) = self.matrix.to_scale_angle();
+        (scale, angle, self.translation)
     }
 
     /// Takes the `N+1`x`N` affine transform part of an `N+1`x`N+1` homogeneous
@@ -469,76 +539,6 @@ where
             homogeneous.y_axis.truncate(),
             homogeneous.z_axis.truncate(),
         ])
-    }
-
-    /// Converts an affine transform to scale and rotation.
-    ///
-    /// This assumes `self` does not contain shear.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `self` contains shear or the determinant of `self` is zero.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn to_scale_rotation(&self) -> (Vector<2, T, A>, Rotation2<T, A>) {
-        self.matrix.to_scale_rotation()
-    }
-
-    /// Converts an affine transform to scale, rotation and translation.
-    ///
-    /// This assumes `self` does not contain shear.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `self` contains shear or the determinant of `self` is zero.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn to_scale_rotation_translation(
-        &self,
-    ) -> (Vector<2, T, A>, Rotation2<T, A>, Vector<2, T, A>) {
-        let (scale, rotation) = self.matrix.to_scale_rotation();
-        (scale, rotation, self.translation)
-    }
-
-    /// Returns the `scale` and `angle` of `self`.
-    ///
-    /// `self` must be reversible and not contain shearing. Otherwise the result
-    /// is unspecified.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `self` contains shearing or the determinant of `self` is zero.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn to_scale_angle(&self) -> (Vector<2, T, A>, T) {
-        self.matrix.to_scale_angle()
-    }
-
-    /// Returns the `scale`, `angle` and `translation` of `self`.
-    ///
-    /// `self` must be reversible and not contain shearing. Otherwise the result
-    /// is unspecified.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `self` contains shearing or the determinant of `self` is zero.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn to_scale_angle_translation(&self) -> (Vector<2, T, A>, T, Vector<2, T, A>) {
-        let (scale, angle) = self.matrix.to_scale_angle();
-        (scale, angle, self.translation)
     }
 
     #[inline(always)]
@@ -612,54 +612,22 @@ where
         Self::from_matrix(&Matrix::<3, T, A>::from_euler(order, a, b, c))
     }
 
-    /// Takes the `N+1`x`N` affine transform part of an `N+1`x`N+1` homogeneous
-    /// transformation matrix, removing the last column.
+    /// Returns the Euler angles forming `self` for the given Euler rotation
+    /// order/sequence.
     ///
-    /// This assumes `homogeneous` does not contain projections.
+    /// `self` must not contain any non-rotation transformations, excluding
+    /// translation. Otherwise the result is unspecified.
     ///
     /// # Panics
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if the last column of `homogeneous` is not approximately
-    /// `(0, 0, ..., 1)`.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::{Affine2, Mat3, Vec2, Vec3};
-    /// #
-    /// let homogeneous = Mat3::from_rows(&[
-    ///     Vec3::new(11.0, 12.0, 0.0),
-    ///     Vec3::new(21.0, 22.0, 0.0),
-    ///     Vec3::new(5.0, 8.0, 1.0),
-    /// ]);
-    ///
-    /// assert_eq!(
-    ///     Affine2::<f32>::from_homogeneous(&homogeneous),
-    ///     Affine2::from_rows(&[
-    ///         Vec2::new(11.0, 12.0),
-    ///         Vec2::new(21.0, 22.0),
-    ///         Vec2::new(5.0, 8.0),
-    ///     ]),
-    /// );
-    /// ```
+    /// Panics if `self` contains scaling or shearing.
     #[inline]
     #[must_use]
-    pub fn from_homogeneous(homogeneous: &Matrix<4, T, A>) -> Self {
-        debug_assert!(
-            homogeneous
-                .column(3)
-                .abs_diff_eq(Vector::<4, T, A>::W, T::as_from(1e-4)),
-            "input contains projection: Affine::from_homogeneous({homogeneous:?})"
-        );
-
-        Self::from_rows(&[
-            homogeneous.x_axis.truncate(),
-            homogeneous.y_axis.truncate(),
-            homogeneous.z_axis.truncate(),
-            homogeneous.w_axis.truncate(),
-        ])
+    #[track_caller]
+    pub fn to_euler(&self, order: EulerRot) -> (T, T, T) {
+        self.matrix.to_euler(order)
     }
 
     /// Creates a left-handed view transform from a camera position, a facing
@@ -838,22 +806,54 @@ where
         ])
     }
 
-    /// Returns the Euler angles forming `self` for the given Euler rotation
-    /// order/sequence.
+    /// Takes the `N+1`x`N` affine transform part of an `N+1`x`N+1` homogeneous
+    /// transformation matrix, removing the last column.
     ///
-    /// `self` must not contain any non-rotation transformations, excluding
-    /// translation. Otherwise the result is unspecified.
+    /// This assumes `homogeneous` does not contain projections.
     ///
     /// # Panics
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `self` contains scaling or shearing.
+    /// Panics if the last column of `homogeneous` is not approximately
+    /// `(0, 0, ..., 1)`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Affine2, Mat3, Vec2, Vec3};
+    /// #
+    /// let homogeneous = Mat3::from_rows(&[
+    ///     Vec3::new(11.0, 12.0, 0.0),
+    ///     Vec3::new(21.0, 22.0, 0.0),
+    ///     Vec3::new(5.0, 8.0, 1.0),
+    /// ]);
+    ///
+    /// assert_eq!(
+    ///     Affine2::<f32>::from_homogeneous(&homogeneous),
+    ///     Affine2::from_rows(&[
+    ///         Vec2::new(11.0, 12.0),
+    ///         Vec2::new(21.0, 22.0),
+    ///         Vec2::new(5.0, 8.0),
+    ///     ]),
+    /// );
+    /// ```
     #[inline]
     #[must_use]
-    #[track_caller]
-    pub fn to_euler(&self, order: EulerRot) -> (T, T, T) {
-        self.matrix.to_euler(order)
+    pub fn from_homogeneous(homogeneous: &Matrix<4, T, A>) -> Self {
+        debug_assert!(
+            homogeneous
+                .column(3)
+                .abs_diff_eq(Vector::<4, T, A>::W, T::as_from(1e-4)),
+            "input contains projection: Affine::from_homogeneous({homogeneous:?})"
+        );
+
+        Self::from_rows(&[
+            homogeneous.x_axis.truncate(),
+            homogeneous.y_axis.truncate(),
+            homogeneous.z_axis.truncate(),
+            homogeneous.w_axis.truncate(),
+        ])
     }
 
     #[inline(always)]

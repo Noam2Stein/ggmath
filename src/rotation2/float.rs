@@ -16,6 +16,27 @@ where
         Self::from_cos_sin(cos, sin)
     }
 
+    /// Converts a 2D rotation to an angle (in radians) rotating `+X` to `+Y`.
+    ///
+    /// This assumes `self` is normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` is not normalized.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_angle(self) -> T {
+        debug_assert!(
+            self.is_normalized(),
+            "rotation is not normalized: {self:?}.to_angle()"
+        );
+
+        self.sin.atan2(self.cos)
+    }
+
     /// Returns the rotation transforming `from` to `to`.
     ///
     /// This assumes `from` and `to` are normalized.
@@ -150,41 +171,6 @@ where
         );
 
         Self(projective.x_axis.truncate())
-    }
-
-    /// Converts a 2D rotation to an angle (in radians) rotating `+X` to `+Y`.
-    ///
-    /// This assumes `self` is normalized.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `self` is not normalized.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn to_angle(self) -> T {
-        debug_assert!(
-            self.is_normalized(),
-            "rotation is not normalized: {self:?}.to_angle()"
-        );
-
-        self.sin.atan2(self.cos)
-    }
-
-    /// Returns `true` if any element is NaN.
-    #[inline]
-    #[must_use]
-    pub fn is_nan(self) -> bool {
-        self.0.is_nan()
-    }
-
-    /// Returns `true` if all elements are neither infinite nor NaN.
-    #[inline]
-    #[must_use]
-    pub fn is_finite(self) -> bool {
-        self.0.is_finite()
     }
 
     /// Returns the inverse of a 2D rotation.
@@ -470,6 +456,20 @@ where
     #[must_use]
     pub fn abs_diff_eq(self, other: Self, max_abs_diff: T) -> bool {
         self.0.abs_diff_eq(other.0, max_abs_diff)
+    }
+
+    /// Returns `true` if any element is NaN.
+    #[inline]
+    #[must_use]
+    pub fn is_nan(self) -> bool {
+        self.0.is_nan()
+    }
+
+    /// Returns `true` if all elements are neither infinite nor NaN.
+    #[inline]
+    #[must_use]
+    pub fn is_finite(self) -> bool {
+        self.0.is_finite()
     }
 }
 
