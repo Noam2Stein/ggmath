@@ -199,11 +199,14 @@ pub type Mat4<T> = Matrix<4, T, Unaligned>;
 ///
 /// # SIMD alignment
 ///
-/// [`Mat2A<T>`] is stored as [`Vec4A<T>`]. This table shows for what `T` types
-/// and target configurations there is SIMD alignment. When there is SIMD
-/// alignment, appropriate functions use specialized SIMD implementations. For
-/// cases not mentioned in the table, the representation falls back to `[T; 4]`.
-/// Everything here can change between versions, so do not rely on any of it.
+/// [`Mat2A<T>`] is stored as [`Vec4A<T>`]. The following table shows for what
+/// `T` types and target configurations [`Mat2A<T>`] has SIMD alignment. When
+/// there is SIMD alignment, appropriate functions use specialized SIMD
+/// implementations. This table could be changed in future versions, so do not
+/// rely on the current representations.
+///
+/// For cases not mentioned in this table, the representation falls back to
+/// `[T; 4]`.
 ///
 /// | `T`   | `cfg` condition                                         | Representation      | Size (bytes) | Alignment (bytes) |
 /// | ----- | ------------------------------------------------------- | ------------------- | ------------ | ----------------- |
@@ -242,11 +245,14 @@ pub type Mat2A<T> = Matrix<2, T, Aligned>;
 ///
 /// # SIMD alignment
 ///
-/// [`Mat3A<T>`] is stored as `[Vec3A<T>; 3]`. This table shows for what `T`
-/// types and target configurations there is SIMD alignment. When there is SIMD
-/// alignment, appropriate functions use specialized SIMD implementations. For
-/// cases not mentioned in the table, the representation falls back to `[T; 9]`.
-/// Everything here can change between versions, so do not rely on any of it.
+/// [`Mat3A<T>`] is stored as `[Vec3A<T>; 3]`. The following table shows for
+/// what `T` types and target configurations [`Mat3A<T>`] has SIMD alignment.
+/// When there is SIMD alignment, appropriate functions use specialized SIMD
+/// implementations. This table could be changed in future versions, so do not
+/// rely on the current representations.
+///
+/// For cases not mentioned in this table, the representation falls back to
+/// `[T; 9]`.
 ///
 /// | `T`   | `cfg` condition                                         | Representation     | Size (bytes) | Alignment (bytes) |
 /// | ----- | ------------------------------------------------------- | ------------------ | ------------ | ----------------- |
@@ -289,12 +295,14 @@ pub type Mat3A<T> = Matrix<3, T, Aligned>;
 ///
 /// # SIMD alignment
 ///
-/// [`Mat4A<T>`] is stored as `[Vec4A<T>; 4]`. This table shows for what `T`
-/// types and target configurations there is SIMD alignment. When there is SIMD
-/// alignment, appropriate functions use specialized SIMD implementations. For
-/// cases not mentioned in the table, the representation falls back to
-/// `[T; 16]`. Everything here can change between versions, so do not rely on
-/// any of it.
+/// [`Mat4A<T>`] is stored as `[Vec4A<T>; 4]`. The following table shows for
+/// what `T` types and target configurations [`Mat4A<T>`] has SIMD alignment.
+/// When there is SIMD alignment, appropriate functions use specialized SIMD
+/// implementations. This table could be changed in future versions, so do not
+/// rely on the current representations.
+///
+/// For cases not mentioned in this table, the representation falls back to
+/// `[T; 16]`.
 ///
 /// | `T`   | `cfg` condition                                         | Representation     | Size (bytes) | Alignment (bytes) |
 /// | ----- | ------------------------------------------------------- | ------------------ | ------------ | ----------------- |

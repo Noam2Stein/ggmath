@@ -121,11 +121,13 @@ pub type Mask2A<T> = Mask<2, T, Aligned>;
 ///
 /// # SIMD alignment
 ///
-/// This table shows for what `T` types and target configurations there is SIMD
-/// alignment. When there is SIMD alignment, appropriate functions use
-/// specialized SIMD implementations. For cases not mentioned in the table, the
-/// representation falls back to `[bool; 3]`. Everything here can change between
-/// versions, so do not rely on any of it.
+/// The following table shows for what `T` types and target configurations
+/// [`Mask3A<T>`] has SIMD alignment. When there is SIMD alignment, appropriate
+/// functions use specialized SIMD implementations. This table could be changed
+/// in future versions, so do not rely on the current representations.
+///
+/// For cases not mentioned in this table, the representation falls back to
+/// `[bool; 3]`.
 ///
 /// | `T`   | `cfg` condition                                         | Representation | Size (bytes) | Alignment (bytes) |
 /// | ----- | ------------------------------------------------------- | -------------- | ------------ | ----------------- |
@@ -146,11 +148,13 @@ pub type Mask3A<T> = Mask<3, T, Aligned>;
 ///
 /// # SIMD alignment
 ///
-/// This table shows for what `T` types and target configurations there is SIMD
-/// alignment. When there is SIMD alignment, appropriate functions use
-/// specialized SIMD implementations. For cases not mentioned in the table, the
-/// representation falls back to `[bool; 4]`. Everything here can change between
-/// versions, so do not rely on any of it.
+/// The following table shows for what `T` types and target configurations
+/// [`Mask4A<T>`] has SIMD alignment. When there is SIMD alignment, appropriate
+/// functions use specialized SIMD implementations. This table could be changed
+/// in future versions, so do not rely on the current representations.
+///
+/// For cases not mentioned in this table, the representation falls back to
+/// `[bool; 4]`.
 ///
 /// | `T`   | `cfg` condition                                         | Representation | Size (bytes) | Alignment (bytes) |
 /// | ----- | ------------------------------------------------------- | -------------- | ------------ | ----------------- |

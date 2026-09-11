@@ -194,11 +194,14 @@ pub type Rotor3<T> = Rotor<3, T, Unaligned>;
 ///
 /// # SIMD alignment
 ///
-/// [`Rotor3A<T>`] is stored as [`Vec4A<T>`]. This table shows for what `T` types
-/// and target configurations there is SIMD alignment. When there is SIMD
-/// alignment, appropriate functions use specialized SIMD implementations. For
-/// cases not mentioned in the table, the representation falls back to `[T; 4]`.
-/// Everything here can change between versions, so do not rely on any of it.
+/// [`Rotor3A<T>`] is stored as [`Vec4A<T>`]. The following table shows for what
+/// `T` types and target configurations [`Rotor3A<T>`] has SIMD alignment. When
+/// there is SIMD alignment, appropriate functions use specialized SIMD
+/// implementations. This table could be changed in future versions, so do not
+/// rely on the current representations.
+///
+/// For cases not mentioned in this table, the representation falls back to
+/// `[T; 4]`.
 ///
 /// | `T`   | `cfg` condition                                         | Representation | Size (bytes) | Alignment (bytes) |
 /// | ----- | ------------------------------------------------------- | -------------- | ------------ | ----------------- |
