@@ -166,26 +166,12 @@ where
         Self::from_diagonal(scale)
     }
 
-    /// Conversion between [`Aligned`] and [`Unaligned`] storage.
+    /// Converts `self` to the specified SIMD-alignment mode.
     ///
-    /// See [`align`] and [`unalign`] for scenarios where the output alignment
-    /// is known.
+    /// If the output mode is known to always be [`Aligned`] or always be
+    /// [`Unaligned`], use methods [`align`] and [`unalign`] instead.
     ///
-    /// See [`Alignment`] for more details.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::{Aligned, Mat2, Mat2A, Unaligned, Vec2, Vec2A};
-    /// #
-    /// let unaligned = Mat2::from_rows(&[Vec2::new(1, 2), Vec2::new(3, 4)]);
-    /// let aligned = unaligned.to_alignment::<Aligned>();
-    /// assert_eq!(aligned, Mat2A::from_rows(&[Vec2A::new(1, 2), Vec2A::new(3, 4)]));
-    ///
-    /// let aligned = Mat2A::from_rows(&[Vec2A::new(1, 2), Vec2A::new(3, 4)]);
-    /// let unaligned = aligned.to_alignment::<Unaligned>();
-    /// assert_eq!(unaligned, Mat2::from_rows(&[Vec2::new(1, 2), Vec2::new(3, 4)]));
-    /// ```
+    /// See [`Alignment`] for more information about SIMD-aligned types.
     ///
     /// [`align`]: Self::align
     /// [`unalign`]: Self::unalign

@@ -170,26 +170,12 @@ where
         }
     }
 
-    /// Conversion between [`Aligned`] and [`Unaligned`] storage.
+    /// Converts `self` to the specified SIMD-alignment mode.
     ///
-    /// See [`align`] and [`unalign`] for scenarios where the output alignment
-    /// is known.
+    /// If the output mode is known to always be [`Aligned`] or always be
+    /// [`Unaligned`], use methods [`align`] and [`unalign`] instead.
     ///
-    /// See [`Alignment`] for more details.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::{Aligned, Unaligned, Vec3, Vec3A};
-    /// #
-    /// let unaligned = Vec3::new(1, 2, 3);
-    /// let aligned = unaligned.to_alignment::<Aligned>();
-    /// assert_eq!(aligned, Vec3A::new(1, 2, 3));
-    ///
-    /// let aligned = Vec3A::new(1, 2, 3);
-    /// let unaligned = aligned.to_alignment::<Unaligned>();
-    /// assert_eq!(unaligned, Vec3::new(1, 2, 3));
-    /// ```
+    /// See [`Alignment`] for more information about SIMD-aligned types.
     ///
     /// [`align`]: Self::align
     /// [`unalign`]: Self::unalign
