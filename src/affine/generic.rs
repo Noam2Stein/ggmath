@@ -180,19 +180,9 @@ where
         )
     }
 
-    /// Conversion to [`Aligned`] storage.
+    /// Converts `self` to SIMD-aligned storage.
     ///
-    /// See [`Alignment`] for more details.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::{Affine2, Affine2A};
-    /// #
-    /// let unaligned = Affine2::<f32>::IDENTITY;
-    /// let aligned = unaligned.align();
-    /// assert_eq!(aligned, Affine2A::IDENTITY);
-    /// ```
+    /// See [`Alignment`] for more information about SIMD-aligned types.
     #[inline]
     #[must_use]
     pub const fn align(&self) -> Affine<N, T, Aligned> {

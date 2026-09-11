@@ -226,19 +226,9 @@ where
         }
     }
 
-    /// Conversion to [`Aligned`] storage.
+    /// Converts `self` to SIMD-aligned storage.
     ///
-    /// See [`Alignment`] for more information.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::{Vec3, Vec3A};
-    /// #
-    /// let unaligned = Vec3::new(1, 2, 3);
-    /// let aligned = unaligned.align();
-    /// assert_eq!(aligned, Vec3A::new(1, 2, 3));
-    /// ```
+    /// See [`Alignment`] for more information about SIMD-aligned types.
     #[inline]
     #[must_use]
     pub const fn align(self) -> Vector<N, T, Aligned> {

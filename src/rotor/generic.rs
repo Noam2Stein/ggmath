@@ -82,9 +82,9 @@ where
         Rotor(self.0.to_alignment())
     }
 
-    /// Conversion to [`Aligned`] storage.
+    /// Converts `self` to SIMD-aligned storage.
     ///
-    /// See [`Alignment`] for more information.
+    /// See [`Alignment`] for more information about SIMD-aligned types.
     #[inline]
     #[must_use]
     pub const fn align(self) -> Rotor<N, T, Aligned> {

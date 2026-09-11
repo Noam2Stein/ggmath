@@ -193,9 +193,9 @@ where
         Rotation2(self.0.to_alignment())
     }
 
-    /// Conversion to [`Aligned`] storage.
+    /// Converts `self` to SIMD-aligned storage.
     ///
-    /// [`Aligned`]: crate::Aligned
+    /// See [`Alignment`] for more information about SIMD-aligned types.
     #[inline]
     #[must_use]
     pub const fn align(self) -> Rot2A<T> {

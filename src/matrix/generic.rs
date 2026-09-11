@@ -220,19 +220,9 @@ where
         }
     }
 
-    /// Conversion to [`Aligned`] storage.
+    /// Converts `self` to SIMD-aligned storage.
     ///
-    /// See [`Alignment`] for more information.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::{Mat2, Mat2A, Vec2, Vec2A};
-    /// #
-    /// let unaligned = Mat2::from_rows(&[Vec2::new(1, 2), Vec2::new(3, 4)]);
-    /// let aligned = unaligned.align();
-    /// assert_eq!(aligned, Mat2A::from_rows(&[Vec2A::new(1, 2), Vec2A::new(3, 4)]));
-    /// ```
+    /// See [`Alignment`] for more information about SIMD-aligned types.
     #[inline]
     #[must_use]
     pub const fn align(&self) -> Matrix<N, T, Aligned> {

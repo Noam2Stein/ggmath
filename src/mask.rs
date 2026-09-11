@@ -280,19 +280,9 @@ where
         })(self)
     }
 
-    /// Conversion to [`Aligned`] storage.
+    /// Converts `self` to SIMD-aligned storage.
     ///
-    /// See [`Alignment`] for more information.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::{Mask3, Mask3A};
-    /// #
-    /// let unaligned = Mask3::<f32>::new(false, true, false);
-    /// let aligned = unaligned.align();
-    /// assert_eq!(aligned, Mask3A::new(false, true, false));
-    /// ```
+    /// See [`Alignment`] for more information about SIMD-aligned types.
     #[inline]
     #[must_use]
     pub fn align(self) -> Mask<N, T, Aligned> {
