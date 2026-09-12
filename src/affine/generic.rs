@@ -83,6 +83,20 @@ where
         Self::from_matrix_translation(&Matrix::IDENTITY, translation)
     }
 
+    /// Creates an affine transform from a non-uniform scale and a translation
+    /// vector.
+    #[inline]
+    #[must_use]
+    pub const fn from_scale_translation(
+        scale: Vector<N, T, A>,
+        translation: Vector<N, T, A>,
+    ) -> Self
+    where
+        T: Zero + One,
+    {
+        Self::from_matrix_translation(&Matrix::from_scale(scale), translation)
+    }
+
     /// Creates an affine transform from `matrix` expressing rotation and
     /// scale, but not translation.
     #[inline]
