@@ -780,6 +780,24 @@ where
         Self::from_matrix(&Matrix::<3, T, A>::from_scaled_axis(scaled_axis))
     }
 
+    /// Converts a 3D affine transform to a scaled-axis rotation.
+    ///
+    /// This assumes `self` only contains rotation, and translation which is
+    /// ignored.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` does not approximately only contain rotation and
+    /// translation.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_scaled_axis(&self) -> Vector<3, T, A> {
+        self.matrix.to_scaled_axis()
+    }
+
     /// Creates an affine transform containing a rotation from an Euler rotation
     /// order/sequence and angles (in radians).
     #[inline]

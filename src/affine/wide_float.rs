@@ -493,6 +493,16 @@ macro_rules! items_3 {
             Self::from_matrix(&Matrix::<3, $Wide, A>::from_scaled_axis(scaled_axis))
         }
 
+        /// Converts a 3D affine transform to a scaled-axis rotation.
+        ///
+        /// This assumes `self` only contains rotation, and translation which is
+        /// ignored.
+        #[inline]
+        #[must_use]
+        pub fn to_scaled_axis(&self) -> Vector<3, $Wide, A> {
+            self.matrix.to_scaled_axis()
+        }
+
         /// Creates an affine transform containing a rotation from an Euler
         /// rotation order/sequence and angles (in radians).
         #[inline]
