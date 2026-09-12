@@ -383,6 +383,16 @@ macro_rules! items_2 {
             Self::from_matrix_translation(&Matrix::<2, $Wide, A>::from_angle(angle), translation)
         }
 
+        /// Converts a 2D affine transform to an angle (in radians) rotating
+        /// `+X` to `+Y` and a translation vector.
+        ///
+        /// This assumes `self` only contains rotation and translation.
+        #[inline]
+        #[must_use]
+        pub fn to_angle_translation(&self) -> ($Wide, Vector<2, $Wide, A>) {
+            (self.to_angle(), self.translation)
+        }
+
         /// Creates an affine transform containing a non-uniform `scale`,
         /// rotation of `angle` (in radians) and `translation`.
         ///
