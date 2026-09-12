@@ -111,6 +111,28 @@ where
         Self::from_matrix(&Matrix::<N, T, A>::from_rotor(rotor))
     }
 
+    /// Converts an affine transform to a rotor.
+    ///
+    /// This assumes `self` only contains rotation, and translation which is
+    /// ignored.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` does not approximately only contain rotation and
+    /// translation.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    #[expect(private_bounds)]
+    pub fn to_rotor(&self) -> Rotor<N, T, A>
+    where
+        Dim<N>: Three,
+    {
+        self.matrix.to_rotor()
+    }
+
     /// Creates an affine transform from a non-uniform scale and a rotor.
     ///
     /// This assumes `rotor` is normalized.
