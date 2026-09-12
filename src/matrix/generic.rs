@@ -1,7 +1,8 @@
 use core::ops::{Add, Mul, Neg, Sub};
 
 use crate::{
-    Aligned, Alignment, Dim, Element, Matrix, One, TwoThreeOrFour, Unaligned, Vector, Zero,
+    Affine, Aligned, Alignment, Dim, Element, Matrix, One, Projective, TwoOrThree, TwoThreeOrFour,
+    Unaligned, Vector, Zero,
     utils::{specialize, transmute_generic, transmute_mut, transmute_ref},
 };
 
@@ -243,6 +244,27 @@ where
         T: Zero,
     {
         Self::from_diagonal(scale)
+    }
+
+    /// Converts a matrix to an affine transform.
+    #[inline]
+    #[must_use]
+    pub const fn to_affine(&self) -> Affine<N, T, A>
+    where
+        T: Zero,
+    {
+        Affine::from_matrix(self)
+    }
+
+    /// Converts a matrix to a projective transform.
+    #[inline]
+    #[must_use]
+    pub fn to_projective(&self) -> Projective<N, T, A>
+    where
+        Dim<N>: TwoOrThree,
+        T: Zero + One,
+    {
+        Projective::from_matrix(self)
     }
 
     /// Returns the column at the given index.
