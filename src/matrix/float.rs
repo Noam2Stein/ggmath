@@ -13,6 +13,28 @@ where
     /// A matrix with all elements set to NaN (Not a Number).
     pub const NAN: Self = Self::from_rows(&[Vector::<N, T, A>::NAN; N]);
 
+    /// Converts a matrix to a non-uniform scale.
+    ///
+    /// This assumes `self` is a diagonal matrix.
+    ///
+    /// This is the same operation as [`diagonal`].
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` is not approximately a diagonal matrix.
+    ///
+    /// [`diagonal`]: Self::diagonal
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_scale(&self) -> Vector<N, T, A> {
+        debug_assert!(self.abs_diff_eq(&Self::from_diagonal(self.diagonal()), T::as_from(1e-4)));
+
+        self.diagonal()
+    }
+
     /// Converts a projective transform to a linear transformation matrix.
     ///
     /// This assumes `projective` does not contain projections. If there is

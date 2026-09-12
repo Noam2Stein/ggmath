@@ -11,6 +11,19 @@ macro_rules! items {
         /// A matrix with all elements set to NaN (Not a Number).
         pub const NAN: Self = Self::from_rows(&[Vector::<N, $Wide, A>::NAN; N]);
 
+        /// Converts a matrix to a non-uniform scale.
+        ///
+        /// This assumes `self` is a diagonal matrix.
+        ///
+        /// This is the same operation as [`diagonal`].
+        ///
+        /// [`diagonal`]: Self::diagonal
+        #[inline]
+        #[must_use]
+        pub fn to_scale(&self) -> Vector<N, $Wide, A> {
+            self.diagonal()
+        }
+
         /// Converts a projective transform to a linear transformation matrix.
         ///
         /// This assumes `projective` does not contain projections. If there is
