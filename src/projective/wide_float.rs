@@ -530,6 +530,16 @@ macro_rules! items_2 {
             ])
         }
 
+        /// Converts a 2D projective transform to an angle (in radians) rotating
+        /// `+X` to `+Y` and a translation vector.
+        ///
+        /// This assumes `self` only contains rotation and translation.
+        #[inline]
+        #[must_use]
+        pub fn to_angle_translation(&self) -> ($Wide, Vector<2, $Wide, A>) {
+            (self.to_angle(), self.translation())
+        }
+
         /// Creates a 2D projective transform containing a non-uniform `scale`,
         /// a rotation of `angle` (in radians) and `translation`.
         ///

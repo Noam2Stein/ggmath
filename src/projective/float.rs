@@ -803,6 +803,24 @@ where
         ])
     }
 
+    /// Converts a 2D projective transform to an angle (in radians) rotating
+    /// `+X` to `+Y` and a translation vector.
+    ///
+    /// This assumes `self` only contains rotation and translation.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` does not approximately only contain rotation and
+    /// translation.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_angle_translation(&self) -> (T, Vector<2, T, A>) {
+        (self.to_angle(), self.translation())
+    }
+
     /// Creates a 2D projective transform containing a non-uniform `scale`, a
     /// rotation of `angle` (in radians) and `translation`.
     ///
