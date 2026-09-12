@@ -50,6 +50,19 @@ macro_rules! items {
             specialize_3!(Matrix::<N, $Wide, A>::from_rotor_backend(rotor))
         }
 
+        /// Converts a matrix to a rotor.
+        ///
+        /// This assumes `self` is a rotation matrix.
+        #[inline]
+        #[must_use]
+        #[expect(private_bounds)]
+        pub fn to_rotor(&self) -> Rotor<N, $Wide, A>
+        where
+            Dim<N>: Three,
+        {
+            Rotor::<N, $Wide, A>::from_matrix(self)
+        }
+
         /// Creates a matrix from a non-uniform scale and a rotor.
         ///
         /// This assumes `rotor` is normalized.

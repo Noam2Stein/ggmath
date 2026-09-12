@@ -101,6 +101,26 @@ where
         specialize_3!(Matrix::<N, T, A>::from_rotor_backend(rotor))
     }
 
+    /// Converts a matrix to a rotor.
+    ///
+    /// This assumes `self` is a rotation matrix.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` is not a rotation matrix.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    #[expect(private_bounds)]
+    pub fn to_rotor(&self) -> Rotor<N, T, A>
+    where
+        Dim<N>: Three,
+    {
+        Rotor::<N, T, A>::from_matrix(self)
+    }
+
     /// Creates a matrix from a non-uniform scale and a rotor.
     ///
     /// This assumes `rotor` is normalized.
