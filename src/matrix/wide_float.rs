@@ -248,6 +248,15 @@ macro_rules! items_2 {
             ])
         }
 
+        /// Converts a matrix to an angle (in radians) rotating `+X` to `+Y`.
+        ///
+        /// This assumes `self` is a rotation matrix.
+        #[inline]
+        #[must_use]
+        pub fn to_angle(&self) -> $Wide {
+            self.x_axis.y.atan2(self.x_axis.x)
+        }
+
         /// Creates a matrix containing the non-uniform `scale` and a rotation
         /// of `angle` (in radians).
         ///
@@ -1231,6 +1240,23 @@ mod tests {
                     Mat2::<Wide>::from_angle(angle),
                     Mat2::from_lane_fn(|lane| Mat2::<T>::from_angle(angle.to_array()[lane])),
                     abs <= angle.abs() * 1e-4 + 1e-3,
+                    0.0 = -0.0
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_to_angle() {
+        for_types!(|Wide: WideFloat| {
+            for angle in random_iter::<Wide>() {
+                let angle = angle % 3.0;
+                let matrix = Mat2::<Wide>::from_angle(angle);
+
+                assert_test_eq!(
+                    matrix.to_angle(),
+                    angle,
+                    abs <= Wide::splat(1e-4),
                     0.0 = -0.0
                 );
             }

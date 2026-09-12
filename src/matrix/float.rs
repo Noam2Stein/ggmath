@@ -470,6 +470,37 @@ where
         ])
     }
 
+    /// Converts a matrix to an angle (in radians) rotating `+X` to `+Y`.
+    ///
+    /// This assumes `self` is a rotation matrix.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` is not approximately a rotation matrix.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_angle(&self) -> T {
+        debug_assert!(
+            self.x_axis
+                .length_squared()
+                .abs_diff_eq(T::ONE, T::as_from(1e-4))
+                && self
+                    .y_axis
+                    .length_squared()
+                    .abs_diff_eq(T::ONE, T::as_from(1e-4))
+                && self
+                    .x_axis
+                    .perp_dot(self.y_axis)
+                    .abs_diff_eq(T::ONE, T::as_from(1e-4)),
+            "not a rotation matrix: {self:?}"
+        );
+
+        self.x_axis.y.atan2(self.x_axis.x)
+    }
+
     /// Creates a matrix containing the non-uniform `scale` and a rotation of
     /// `angle` (in radians).
     ///
@@ -1773,6 +1804,18 @@ mod tests {
                     vector * Matrix::<2, T, A>::from_angle(angle),
                     vector.rotate(angle)
                 );
+            }
+        });
+    }
+
+    #[test]
+    fn test_to_angle() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for angle in random_iter::<T>() {
+                let angle = if angle.is_finite() { angle % 3.0 } else { 0.0 };
+                let matrix = Matrix::<2, T, A>::from_angle(angle);
+
+                assert_test_eq!(matrix.to_angle(), angle, abs <= 1e-4, 0.0 = -0.0);
             }
         });
     }
