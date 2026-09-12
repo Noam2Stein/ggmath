@@ -534,6 +534,25 @@ where
         Self::from_matrix(&Matrix::<2, T, A>::from_angle(angle))
     }
 
+    /// Converts a 2D affine transform to an angle (in radians) rotating `+X` to
+    /// `+Y`.
+    ///
+    /// This assumes `self` only contains rotation, and translation which is
+    /// ignored.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` does not approximately only contain rotation and
+    /// translation.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_angle(&self) -> T {
+        self.matrix.to_angle()
+    }
+
     /// Creates an affine transform containing a non-uniform `scale` and
     /// rotation of `angle` (in radians).
     ///
