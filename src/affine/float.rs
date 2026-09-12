@@ -14,6 +14,24 @@ where
     pub const NAN: Self =
         Self::from_matrix_translation(&Matrix::<N, T, A>::NAN, Vector::<N, T, A>::NAN);
 
+    /// Converts an affine transform to a non-uniform scale.
+    ///
+    /// This assumes `self` only contains scale, and translation which is
+    /// ignored.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` does not approximately only contain scale and
+    /// translation.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_scale(&self) -> Vector<N, T, A> {
+        self.matrix.to_scale()
+    }
+
     /// Creates an affine transform from a projective transform.
     ///
     /// This assumes `projective` does not contain projections.

@@ -12,6 +12,16 @@ macro_rules! items {
         pub const NAN: Self =
             Self::from_matrix_translation(&Matrix::<N, $Wide, A>::NAN, Vector::<N, $Wide, A>::NAN);
 
+        /// Converts an affine transform to a non-uniform scale.
+        ///
+        /// This assumes `self` only contains scale, and translation which is
+        /// ignored.
+        #[inline]
+        #[must_use]
+        pub fn to_scale(&self) -> Vector<N, $Wide, A> {
+            self.matrix.to_scale()
+        }
+
         /// Creates an affine transform from a projective transform.
         ///
         /// This assumes `projective` does not contain projections.
