@@ -246,6 +246,16 @@ macro_rules! items_2 {
             Self::from_matrix(&Matrix::<2, $Wide, A>::from_rotation(rotation))
         }
 
+        /// Converts an affine transform to a 2D rotation.
+        ///
+        /// This assumes `self` only contains rotation, and translation which is
+        /// ignored.
+        #[inline]
+        #[must_use]
+        pub fn to_rotation(&self) -> Rotation2<$Wide, A> {
+            self.matrix.to_rotation()
+        }
+
         /// Creates an affine transform from `scale` and 2D rotation.
         ///
         /// This assumes `rotation` is normalized.
