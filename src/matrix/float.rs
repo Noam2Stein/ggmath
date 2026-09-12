@@ -1,8 +1,8 @@
 use crate::{
-    Alignment, Dim, EulerRot, FloatExt, Matrix, PrimitiveFloat, Projective, Rotation2, Rotor,
-    TwoThreeOrFour, Vector,
-    dim::{Three, TwoOrThree},
-    utils::{specialize, specialize_3, specialize_23},
+    Alignment, Dim, EulerRot, FloatExt, Matrix, PrimitiveFloat, Rotation2, Rotor, TwoThreeOrFour,
+    Vector,
+    dim::Three,
+    utils::{specialize, specialize_3},
 };
 
 impl<const N: usize, T, A: Alignment> Matrix<N, T, A>
@@ -12,47 +12,6 @@ where
 {
     /// A matrix with all elements set to NaN (Not a Number).
     pub const NAN: Self = Self::from_rows(&[Vector::<N, T, A>::NAN; N]);
-
-    /// Converts a projective transform to a linear transformation matrix.
-    ///
-    /// This assumes `projective` does not contain projections. If there is
-    /// translation, it is ignored.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if the last column of `projective` is not approximately
-    /// `(0, 0, ..., 1)`.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::{Mat2, Proj2, Vec2, Vec3};
-    /// #
-    /// let projective = Proj2::from_rows(&[
-    ///     Vec3::new(11.0, 12.0, 0.0),
-    ///     Vec3::new(21.0, 22.0, 0.0),
-    ///     Vec3::new(5.0, 8.0, 1.0),
-    /// ]);
-    ///
-    /// assert_eq!(
-    ///     Mat2::<f32>::from_projective(&projective),
-    ///     Mat2::from_rows(&[
-    ///         Vec2::new(11.0, 12.0),
-    ///         Vec2::new(21.0, 22.0),
-    ///     ]),
-    /// );
-    /// ```
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn from_projective(projective: &Projective<N, T, A>) -> Self
-    where
-        Dim<N>: TwoOrThree,
-    {
-        specialize_23!(Matrix::<N, T, A>::from_projective_backend(projective))
-    }
 
     /// Creates a matrix from a rotor.
     ///
@@ -567,19 +526,6 @@ where
         );
 
         Self::from_rows(&[homogeneous.x_axis.truncate(), homogeneous.y_axis.truncate()])
-    }
-
-    #[inline(always)]
-    #[track_caller]
-    fn from_projective_backend(projective: &Projective<2, T, A>) -> Self {
-        debug_assert!(
-            projective
-                .column(2)
-                .abs_diff_eq(Vector::<3, T, A>::Z, T::as_from(1e-4)),
-            "input contains projection: Matrix::from_projective({projective:?})"
-        );
-
-        Self::from_rows(&[projective.x_axis.truncate(), projective.y_axis.truncate()])
     }
 
     #[inline(always)]
@@ -1129,23 +1075,6 @@ where
             homogeneous.x_axis.truncate(),
             homogeneous.y_axis.truncate(),
             homogeneous.z_axis.truncate(),
-        ])
-    }
-
-    #[inline(always)]
-    #[track_caller]
-    fn from_projective_backend(projective: &Projective<3, T, A>) -> Self {
-        debug_assert!(
-            projective
-                .column(3)
-                .abs_diff_eq(Vector::<4, T, A>::W, T::as_from(1e-4)),
-            "input contains projection: Matrix::from_projective({projective:?})"
-        );
-
-        Self::from_rows(&[
-            projective.x_axis.truncate(),
-            projective.y_axis.truncate(),
-            projective.z_axis.truncate(),
         ])
     }
 

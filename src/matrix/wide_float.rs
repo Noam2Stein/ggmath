@@ -1,28 +1,15 @@
 use wide::{f32x4, f32x8, f32x16, f64x2, f64x4, f64x8};
 
 use crate::{
-    Alignment, Dim, EulerRot, Matrix, Projective, Rotation2, Rotor, TwoThreeOrFour, Vector,
-    dim::{Three, TwoOrThree},
-    utils::{specialize, specialize_3, specialize_23},
+    Alignment, Dim, EulerRot, Matrix, Rotation2, Rotor, TwoThreeOrFour, Vector,
+    dim::Three,
+    utils::{specialize, specialize_3},
 };
 
 macro_rules! items {
     ($Wide:ident, $T:ident) => {
         /// A matrix with all elements set to NaN (Not a Number).
         pub const NAN: Self = Self::from_rows(&[Vector::<N, $Wide, A>::NAN; N]);
-
-        /// Converts a projective transform to a linear transformation matrix.
-        ///
-        /// This assumes `projective` does not contain projections. If there is
-        /// translation, it is ignored.
-        #[inline]
-        #[must_use]
-        pub fn from_projective(projective: &Projective<N, $Wide, A>) -> Self
-        where
-            Dim<N>: TwoOrThree,
-        {
-            specialize_23!(Matrix::<N, $Wide, A>::from_projective_backend(projective))
-        }
 
         /// Creates a matrix from a rotor.
         ///
@@ -671,11 +658,6 @@ macro_rules! impl_items {
             items_2!($Wide, $T);
 
             #[inline(always)]
-            fn from_projective_backend(projective: &Projective<2, $Wide, A>) -> Self {
-                Self::from_rows(&[projective.x_axis.truncate(), projective.y_axis.truncate()])
-            }
-
-            #[inline(always)]
             fn is_nan_backend(&self) -> $Wide {
                 self.x_axis.is_nan() | self.y_axis.is_nan()
             }
@@ -740,15 +722,6 @@ macro_rules! impl_items {
         #[cfg(not(doc))]
         impl<A: Alignment> Matrix<3, $Wide, A> {
             items_3!($Wide, $T);
-
-            #[inline(always)]
-            fn from_projective_backend(projective: &Projective<3, $Wide, A>) -> Self {
-                Self::from_rows(&[
-                    projective.x_axis.truncate(),
-                    projective.y_axis.truncate(),
-                    projective.z_axis.truncate(),
-                ])
-            }
 
             #[inline(always)]
             fn from_rotor_backend(rotor: Rotor<3, $Wide, A>) -> Self {

@@ -1,9 +1,12 @@
-use core::ops::{Add, Mul, Neg, Sub};
+use core::{
+    fmt::Debug,
+    ops::{Add, Mul, Neg, Sub},
+};
 
 use crate::{
     Affine, Aligned, Alignment, Dim, Element, EqTest, Matrix, One, Projective, TwoOrThree,
     TwoThreeOrFour, Unaligned, Vector, Zero,
-    utils::{specialize, transmute_generic, transmute_mut, transmute_ref},
+    utils::{specialize, specialize_23, transmute_generic, transmute_mut, transmute_ref},
 };
 
 impl<const N: usize, T, A: Alignment> Matrix<N, T, A>
@@ -282,6 +285,27 @@ where
         T: Zero,
     {
         Affine::from_matrix(self)
+    }
+
+    /// Converts a projective transform to a matrix.
+    ///
+    /// This assumes `projective` contains an affine transformation.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if the last column of `projective` is not `(0, 0, ..., 1)`
+    /// (according to [`EqTest`]).
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn from_projective(projective: &Projective<N, T, A>) -> Self
+    where
+        Dim<N>: TwoOrThree,
+        T: Debug + Zero + One + EqTest,
+    {
+        specialize_23!(Matrix::<N, T, A>::from_projective_backend(projective))
     }
 
     /// Converts a matrix to a projective transform.
@@ -633,6 +657,20 @@ where
     }
 
     #[inline(always)]
+    #[track_caller]
+    fn from_projective_backend(projective: &Projective<2, T, A>) -> Self
+    where
+        T: Debug + Zero + One + EqTest,
+    {
+        debug_assert!(
+            projective.column(2).eq_test(&Vector::<3, T, A>::Z),
+            "not an affine transformation: Matrix::from_projective({projective:?})"
+        );
+
+        Self::from_rows(&[projective.x_axis.truncate(), projective.y_axis.truncate()])
+    }
+
+    #[inline(always)]
     fn transpose_backend(&self) -> Self {
         Self(self.0.xzyw())
     }
@@ -771,6 +809,24 @@ where
             self.y_axis.extend(T::ZERO),
             self.z_axis.extend(T::ZERO),
             Vector::<4, T, A>::W,
+        ])
+    }
+
+    #[inline(always)]
+    #[track_caller]
+    fn from_projective_backend(projective: &Projective<3, T, A>) -> Self
+    where
+        T: Debug + Zero + One + EqTest,
+    {
+        debug_assert!(
+            projective.column(3).eq_test(&Vector::<4, T, A>::W),
+            "not an affine transformation: Matrix::from_projective({projective:?})"
+        );
+
+        Self::from_rows(&[
+            projective.x_axis.truncate(),
+            projective.y_axis.truncate(),
+            projective.z_axis.truncate(),
         ])
     }
 
