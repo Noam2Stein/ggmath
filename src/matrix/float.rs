@@ -754,6 +754,31 @@ where
         self.to_rotor().to_axis_angle()
     }
 
+    /// Creates a 3x3 matrix from a scaled-axis rotation.
+    #[inline]
+    #[must_use]
+    pub fn from_scaled_axis(scaled_axis: Vector<3, T, A>) -> Self {
+        let (axis, angle) = scaled_axis.normalize_and_length();
+        if angle == T::ZERO {
+            Self::IDENTITY
+        } else {
+            let (sin, cos) = angle.sin_cos();
+            let [xsin, ysin, zsin] = (axis * sin).to_array();
+            let [x, y, z] = axis.to_array();
+            let [x2, y2, z2] = (axis * axis).to_array();
+            let omc = T::ONE - cos;
+            let xyomc = x * y * omc;
+            let xzomc = x * z * omc;
+            let yzomc = y * z * omc;
+
+            Self::from_rows(&[
+                Vector::<3, T, A>::new(x2 * omc + cos, xyomc + zsin, xzomc - ysin),
+                Vector::<3, T, A>::new(xyomc - zsin, y2 * omc + cos, yzomc + xsin),
+                Vector::<3, T, A>::new(xzomc + ysin, yzomc - xsin, z2 * omc + cos),
+            ])
+        }
+    }
+
     /// Creates a 3D rotation matrix from an Euler rotation order/sequence and
     /// angles (in radians).
     #[inline]
@@ -2039,6 +2064,28 @@ mod tests {
                 assert_test_eq!(
                     Matrix::<3, T, A>::from_axis_angle(Vector::<3, T, A>::Z, angle),
                     Matrix::<3, T, A>::from_rotation_xy(angle),
+                    abs <= 1e-4,
+                    0.0 = -0.0
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_scaled_axis() {
+        for_types!(|T: PrimitiveFloat, A| {
+            assert_test_eq!(
+                Matrix::<3, T, A>::from_scaled_axis(Vector::ZERO),
+                Matrix::IDENTITY
+            );
+
+            for scaled_axis in random_iter::<Vector<3, T, A>>() {
+                let axis = scaled_axis.normalize_or(Vector::<3, T, A>::X).normalize();
+                let angle = scaled_axis.length();
+
+                assert_test_eq!(
+                    Matrix::<3, T, A>::from_scaled_axis(scaled_axis),
+                    Matrix::<3, T, A>::from_axis_angle(axis, angle),
                     abs <= 1e-4,
                     0.0 = -0.0
                 );
