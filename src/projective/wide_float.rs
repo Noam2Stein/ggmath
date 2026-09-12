@@ -653,6 +653,30 @@ macro_rules! items_3 {
             self.to_rotor().to_axis_angle()
         }
 
+        /// Creates a 3D projective transform from a scaled-axis rotation.
+        #[inline]
+        #[must_use]
+        pub fn from_scaled_axis(scaled_axis: Vector<3, $Wide, A>) -> Self {
+            let (axis, angle) = scaled_axis.normalize_and_length();
+            let axis = axis & angle.simd_ne($Wide::ZERO);
+
+            let (sin, cos) = angle.sin_cos();
+            let [xsin, ysin, zsin] = (axis * sin).to_array();
+            let [x, y, z] = axis.to_array();
+            let [x2, y2, z2] = (axis * axis).to_array();
+            let omc = $Wide::ONE - cos;
+            let xyomc = x * y * omc;
+            let xzomc = x * z * omc;
+            let yzomc = y * z * omc;
+
+            Self::from_rows(&[
+                Vector::<4, $Wide, A>::new(x2 * omc + cos, xyomc + zsin, xzomc - ysin, $Wide::ZERO),
+                Vector::<4, $Wide, A>::new(xyomc - zsin, y2 * omc + cos, yzomc + xsin, $Wide::ZERO),
+                Vector::<4, $Wide, A>::new(xzomc + ysin, yzomc - xsin, z2 * omc + cos, $Wide::ZERO),
+                Vector::<4, $Wide, A>::W,
+            ])
+        }
+
         /// Creates a 3D projective transform containing a rotation from an
         /// Euler rotation order/sequence and angles (in radians).
         #[inline]
@@ -2164,6 +2188,18 @@ mod tests {
                         * Wide::splat(1e-4)
                         + Proj3::from_row_array(&[Wide::splat(1e-3); 16]),
                     0.0 = -0.0
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_scaled_axis() {
+        for_types!(|Wide: WideFloat| {
+            for scaled_axis in random_iter::<Vec3<Wide>>() {
+                assert_test_eq!(
+                    Proj3::<Wide>::from_scaled_axis(scaled_axis),
+                    Proj3::<Wide>::from_matrix(&Mat3::<Wide>::from_scaled_axis(scaled_axis))
                 );
             }
         });

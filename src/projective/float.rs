@@ -1031,6 +1031,32 @@ where
         self.to_rotor().to_axis_angle()
     }
 
+    /// Creates a 3D projective transform from a scaled-axis rotation.
+    #[inline]
+    #[must_use]
+    pub fn from_scaled_axis(scaled_axis: Vector<3, T, A>) -> Self {
+        let (axis, angle) = scaled_axis.normalize_and_length();
+        if angle == T::ZERO {
+            Self::IDENTITY
+        } else {
+            let (sin, cos) = angle.sin_cos();
+            let [xsin, ysin, zsin] = (axis * sin).to_array();
+            let [x, y, z] = axis.to_array();
+            let [x2, y2, z2] = (axis * axis).to_array();
+            let omc = T::ONE - cos;
+            let xyomc = x * y * omc;
+            let xzomc = x * z * omc;
+            let yzomc = y * z * omc;
+
+            Self::from_rows(&[
+                Vector::<4, T, A>::new(x2 * omc + cos, xyomc + zsin, xzomc - ysin, T::ZERO),
+                Vector::<4, T, A>::new(xyomc - zsin, y2 * omc + cos, yzomc + xsin, T::ZERO),
+                Vector::<4, T, A>::new(xzomc + ysin, yzomc - xsin, z2 * omc + cos, T::ZERO),
+                Vector::<4, T, A>::W,
+            ])
+        }
+    }
+
     /// Creates a 3D projective transform containing a rotation from an Euler
     /// rotation order/sequence and angles (in radians).
     #[inline]
@@ -2627,6 +2653,20 @@ mod tests {
                     Projective::<3, T, A>::from_axis_angle(axis, angle),
                     Projective::<3, T, A>::from_matrix(&Matrix::<3, T, A>::from_axis_angle(
                         axis, angle
+                    ))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_scaled_axis() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for scaled_axis in random_iter::<Vector<3, T, A>>() {
+                assert_test_eq!(
+                    Projective::<3, T, A>::from_scaled_axis(scaled_axis),
+                    Projective::<3, T, A>::from_matrix(&Matrix::<3, T, A>::from_scaled_axis(
+                        scaled_axis
                     ))
                 );
             }
