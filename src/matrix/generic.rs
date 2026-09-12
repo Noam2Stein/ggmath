@@ -1,8 +1,8 @@
 use core::ops::{Add, Mul, Neg, Sub};
 
 use crate::{
-    Affine, Aligned, Alignment, Dim, Element, Matrix, One, Projective, TwoOrThree, TwoThreeOrFour,
-    Unaligned, Vector, Zero,
+    Affine, Aligned, Alignment, Dim, Element, EqTest, Matrix, One, Projective, TwoOrThree,
+    TwoThreeOrFour, Unaligned, Vector, Zero,
     utils::{specialize, transmute_generic, transmute_mut, transmute_ref},
 };
 
@@ -244,6 +244,34 @@ where
         T: Zero,
     {
         Self::from_diagonal(scale)
+    }
+
+    /// Converts a matrix to a non-uniform scale.
+    ///
+    /// This assumes `self` only contains scale.
+    ///
+    /// This is the same operation as [`diagonal`].
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` contains anything but scale (according to [`EqTest`]).
+    ///
+    /// [`diagonal`]: Self::diagonal
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_scale(&self) -> Vector<N, T, A>
+    where
+        T: Debug + Zero + EqTest,
+    {
+        debug_assert!(
+            self.eq_test(&Self::from_diagonal(self.diagonal())),
+            "matrix is not just a scale: {self:?}"
+        );
+
+        self.diagonal()
     }
 
     /// Converts a matrix to an affine transform.
