@@ -300,6 +300,15 @@ where
         ])
     }
 
+    /// Converts a row-major affine transform to a row-major array of elements.
+    #[inline]
+    #[must_use]
+    pub const fn to_row_array(&self) -> [T; 6] {
+        // SAFETY: Because 2 is a power of two, there is no padding, so elements
+        // are consecutive
+        unsafe { *transmute_ref::<Affine<2, T, A>, [T; 6]>(self) }
+    }
+
     /// Creates an `N+1`x`N+1` homogeneous transformation matrix from an
     /// `N+1`x`N` affine transform.
     ///
@@ -401,6 +410,35 @@ where
             Vector::<3, T, A>::new(array[6], array[7], array[8]),
             Vector::<3, T, A>::new(array[9], array[10], array[11]),
         ])
+    }
+
+    /// Converts a row-major affine transform to a row-major array of elements.
+    #[inline]
+    #[must_use]
+    pub const fn to_row_array(&self) -> [T; 12] {
+        if const {
+            let there_is_padding = size_of::<Vector<3, T, A>>() > size_of::<[T; 3]>();
+            there_is_padding
+        } {
+            [
+                self.as_rows()[0].as_array()[0],
+                self.as_rows()[0].as_array()[1],
+                self.as_rows()[0].as_array()[2],
+                self.as_rows()[1].as_array()[0],
+                self.as_rows()[1].as_array()[1],
+                self.as_rows()[1].as_array()[2],
+                self.as_rows()[2].as_array()[0],
+                self.as_rows()[2].as_array()[1],
+                self.as_rows()[2].as_array()[2],
+                self.as_rows()[3].as_array()[0],
+                self.as_rows()[3].as_array()[1],
+                self.as_rows()[3].as_array()[2],
+            ]
+        } else {
+            // SAFETY: This only runs if there is no padding, in which case
+            // elements are consecutive
+            unsafe { *transmute_ref::<Affine<3, T, A>, [T; 12]>(self) }
+        }
     }
 
     /// Creates an `N+1`x`N+1` homogeneous transformation matrix from an
@@ -509,6 +547,15 @@ where
             Vector::<4, T, A>::new(array[12], array[13], array[14], array[15]),
             Vector::<4, T, A>::new(array[16], array[17], array[18], array[19]),
         ])
+    }
+
+    /// Converts a row-major affine transform to a row-major array of elements.
+    #[inline]
+    #[must_use]
+    pub const fn to_row_array(&self) -> [T; 20] {
+        // SAFETY: Because 4 is a power of two, there is no padding, so elements
+        // are consecutive
+        unsafe { *transmute_ref::<Affine<4, T, A>, [T; 20]>(self) }
     }
 }
 
