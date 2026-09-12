@@ -69,6 +69,16 @@ macro_rules! items {
             Matrix::<N, $Wide, A>::from_projective(self)
         }
 
+        /// Converts a projective transform to a matrix and a translation
+        /// vector.
+        ///
+        /// This assumes `self` contains an affine transformation.
+        #[inline]
+        #[must_use]
+        pub fn to_matrix_translation(&self) -> (Matrix<N, $Wide, A>, Vector<N, $Wide, A>) {
+            (self.to_matrix(), self.translation())
+        }
+
         /// Creates a projective transform from a rotor.
         ///
         /// This assumes the rotor is normalized.

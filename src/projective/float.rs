@@ -90,6 +90,23 @@ where
         Matrix::<N, T, A>::from_projective(self)
     }
 
+    /// Converts a projective transform to a matrix and a translation vector.
+    ///
+    /// This assumes `self` contains an affine transformation.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` does not approximately contain an affine
+    /// transformation.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_matrix_translation(&self) -> (Matrix<N, T, A>, Vector<N, T, A>) {
+        (self.to_matrix(), self.translation())
+    }
+
     /// Creates a projective transform from a rotor.
     ///
     /// This assumes the rotor is normalized.
