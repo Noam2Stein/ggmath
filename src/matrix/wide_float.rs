@@ -400,6 +400,16 @@ macro_rules! items_3 {
             ])
         }
 
+        /// Converts a 3x3 matrix to a scaled-axis rotation.
+        ///
+        /// This assumes `self` is a rotation matrix.
+        #[inline]
+        #[must_use]
+        pub fn to_scaled_axis(&self) -> Vector<3, $Wide, A> {
+            // Looks like this cannot be optimized much
+            self.to_rotor().to_scaled_axis()
+        }
+
         /// Creates a 3D rotation matrix from an Euler rotation order/sequence
         /// and angles (in radians).
         #[inline]

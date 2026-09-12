@@ -779,6 +779,23 @@ where
         }
     }
 
+    /// Converts a 3x3 matrix to a scaled-axis rotation.
+    ///
+    /// This assumes `self` is a rotation matrix.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` is not approximately a rotation matrix.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_scaled_axis(&self) -> Vector<3, T, A> {
+        // Looks like this cannot be optimized much
+        self.to_rotor().to_scaled_axis()
+    }
+
     /// Creates a 3D rotation matrix from an Euler rotation order/sequence and
     /// angles (in radians).
     #[inline]
