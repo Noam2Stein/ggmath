@@ -1,7 +1,8 @@
 use core::ops::{Add, Mul, Neg, Sub};
 
 use crate::{
-    Aligned, Alignment, Dim, Element, Matrix, One, TwoThreeOrFour, Unaligned, Vector, Zero,
+    Affine, Aligned, Alignment, Dim, Element, Matrix, One, Projective, TwoOrThree, TwoThreeOrFour,
+    Unaligned, Vector, Zero,
     utils::{specialize, transmute_generic, transmute_mut, transmute_ref},
 };
 
@@ -42,6 +43,13 @@ where
         // SAFETY: `Matrix<N, T, A>` contains `N` consecutive values of
         // `Vector<N, T, A>` with no additional padding.
         unsafe { transmute_generic::<[Vector<N, T, A>; N], Matrix<N, T, A>>(*rows) }
+    }
+
+    /// Converts a row-major matrix to an array of row vectors.
+    #[inline]
+    #[must_use]
+    pub const fn to_rows(&self) -> [Vector<N, T, A>; N] {
+        *self.as_rows()
     }
 
     /// Returns a reference to the matrix's rows.
@@ -236,6 +244,27 @@ where
         T: Zero,
     {
         Self::from_diagonal(scale)
+    }
+
+    /// Converts a matrix to an affine transform.
+    #[inline]
+    #[must_use]
+    pub const fn to_affine(&self) -> Affine<N, T, A>
+    where
+        T: Zero,
+    {
+        Affine::from_matrix(self)
+    }
+
+    /// Converts a matrix to a projective transform.
+    #[inline]
+    #[must_use]
+    pub fn to_projective(&self) -> Projective<N, T, A>
+    where
+        Dim<N>: TwoOrThree,
+        T: Zero + One,
+    {
+        Projective::from_matrix(self)
     }
 
     /// Returns the column at the given index.
@@ -533,6 +562,13 @@ where
         ])
     }
 
+    /// Converts a row-major matrix to a row-major array of elements.
+    #[inline]
+    #[must_use]
+    pub const fn to_row_array(&self) -> [T; 4] {
+        self.0.to_array()
+    }
+
     /// Creates an `N+1`x`N+1` homogeneous transformation matrix from an `N`x`N`
     /// linear transformation matrix.
     ///
@@ -623,6 +659,32 @@ where
             Vector::<3, T, A>::new(array[3], array[4], array[5]),
             Vector::<3, T, A>::new(array[6], array[7], array[8]),
         ])
+    }
+
+    /// Converts a row-major matrix to a row-major array of elements.
+    #[inline]
+    #[must_use]
+    pub const fn to_row_array(&self) -> [T; 9] {
+        if const {
+            // Is there padding?
+            size_of::<Vector<3, T, A>>() > size_of::<[T; 3]>()
+        } {
+            [
+                self.as_rows()[0].as_array()[0],
+                self.as_rows()[0].as_array()[1],
+                self.as_rows()[0].as_array()[2],
+                self.as_rows()[1].as_array()[0],
+                self.as_rows()[1].as_array()[1],
+                self.as_rows()[1].as_array()[2],
+                self.as_rows()[2].as_array()[0],
+                self.as_rows()[2].as_array()[1],
+                self.as_rows()[2].as_array()[2],
+            ]
+        } else {
+            // SAFETY: This only runs if there is no padding, in which case
+            // `self` must contain exactly 9 consecutive elements of `T`
+            unsafe { *transmute_ref::<Matrix<3, T, A>, [T; 9]>(self) }
+        }
     }
 
     /// Returns a 2x2 matrix discarding the given `row` and `column`.
@@ -752,6 +814,15 @@ where
             Vector::<4, T, A>::new(array[8], array[9], array[10], array[11]),
             Vector::<4, T, A>::new(array[12], array[13], array[14], array[15]),
         ])
+    }
+
+    /// Converts a row-major matrix to a row-major array of elements.
+    #[inline]
+    #[must_use]
+    pub const fn to_row_array(&self) -> [T; 16] {
+        // SAFETY: Because 4 is a power of two, there is no padding, so there
+        // are 16 consecutive elements of `T`
+        unsafe { *transmute_ref::<Matrix<4, T, A>, [T; 16]>(self) }
     }
 
     /// Returns a 3x3 matrix discarding the given `row` and `column`.

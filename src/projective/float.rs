@@ -1,6 +1,6 @@
 use crate::{
-    Alignment, Dim, EulerRot, FloatExt, Matrix, PrimitiveFloat, Projective, Rotation2, Rotor,
-    Vector,
+    Affine, Alignment, Dim, EulerRot, FloatExt, Matrix, PrimitiveFloat, Projective, Rotation2,
+    Rotor, Vector,
     dim::{Three, TwoOrThree},
     utils::{specialize_3, specialize_23, transmute_generic},
 };
@@ -37,6 +37,93 @@ where
         _ => unreachable!(),
     };
 
+    /// Converts a projective transform to a non-uniform scale.
+    ///
+    /// This assumes `self` only contains scale, and translation which is
+    /// ignored.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` does not approximately only contain scale and
+    /// translation.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_scale(&self) -> Vector<N, T, A> {
+        Matrix::<N, T, A>::from_projective(self).to_scale()
+    }
+
+    /// Converts a projective transform to a non-uniform scale and a translation
+    /// vector.
+    ///
+    /// This assumes `self` only contains scale and translation.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` does not approximately only contain scale and
+    /// translation.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_scale_translation(&self) -> (Vector<N, T, A>, Vector<N, T, A>) {
+        (self.to_scale(), self.translation())
+    }
+
+    /// Converts a projective transform to a matrix.
+    ///
+    /// This assumes `self` contains an affine transformation.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` does not approximately contain an affine
+    /// transformation.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_matrix(&self) -> Matrix<N, T, A> {
+        Matrix::<N, T, A>::from_projective(self)
+    }
+
+    /// Converts a projective transform to a matrix and a translation vector.
+    ///
+    /// This assumes `self` contains an affine transformation.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` does not approximately contain an affine
+    /// transformation.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_matrix_translation(&self) -> (Matrix<N, T, A>, Vector<N, T, A>) {
+        (self.to_matrix(), self.translation())
+    }
+
+    /// Converts a projective transform to an affine transform.
+    ///
+    /// This assumes `self` contains an affine transformation.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` does not approximately contain an affine
+    /// transformation.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_affine(&self) -> Affine<N, T, A> {
+        Affine::<N, T, A>::from_projective(self)
+    }
+
     /// Creates a projective transform from a rotor.
     ///
     /// This assumes the rotor is normalized.
@@ -60,6 +147,28 @@ where
         );
 
         specialize_3!(Projective::<N, T, A>::from_rotor_backend(rotor))
+    }
+
+    /// Converts a projective transform to a rotor.
+    ///
+    /// This assumes `self` only contains rotation, and translation which is
+    /// ignored.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` does not approximately only contain rotation and
+    /// translation.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    #[expect(private_bounds)]
+    pub fn to_rotor(&self) -> Rotor<N, T, A>
+    where
+        Dim<N>: Three,
+    {
+        Rotor::<N, T, A>::from_projective(self)
     }
 
     /// Creates a projective transform from a non-uniform scale and a rotor.
@@ -136,6 +245,27 @@ where
             rotor,
             translation
         ))
+    }
+
+    /// Converts a projective transform to a rotor and a translation vector.
+    ///
+    /// This assumes `self` only contains rotation and translation.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` does not approximately only contain rotation and
+    /// translation.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    #[expect(private_bounds)]
+    pub fn to_rotor_translation(&self) -> (Rotor<N, T, A>, Vector<N, T, A>)
+    where
+        Dim<N>: Three,
+    {
+        (self.to_rotor(), self.translation())
     }
 
     /// Creates a projective transform from a non-uniform scale, a rotor and
@@ -412,6 +542,24 @@ where
         ])
     }
 
+    /// Converts a projective transform to a 2D rotation.
+    ///
+    /// This assumes `self` only contains rotation, and translation which is
+    /// ignored.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` does not approximately only contain rotation and
+    /// translation.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_rotation(&self) -> Rotation2<T, A> {
+        Rotation2::<T, A>::from_projective(self)
+    }
+
     /// Creates a projective transform from `scale` and 2D rotation.
     ///
     /// This assumes `rotation` is normalized.
@@ -507,6 +655,24 @@ where
         ])
     }
 
+    /// Converts a projective transform to a 2D rotation and a translation
+    /// vector.
+    ///
+    /// This assumes `self` only contains rotation and translation.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` does not approximately only contain rotation and
+    /// translation.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_rotation_translation(&self) -> (Rotation2<T, A>, Vector<2, T, A>) {
+        (self.to_rotation(), self.translation())
+    }
+
     /// Creates a projective transform from `scale`, 2D rotation and
     /// translation.
     ///
@@ -569,6 +735,25 @@ where
         ])
     }
 
+    /// Converts a 2D projective transform to an angle (in radians) rotating
+    /// `+X` to `+Y`.
+    ///
+    /// This assumes `self` only contains rotation, and translation which is
+    /// ignored.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` does not approximately only contain rotation and
+    /// translation.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_angle(&self) -> T {
+        self.to_matrix().to_angle()
+    }
+
     /// Creates a 2D projective transform containing a non-uniform `scale` and a
     /// rotation of `angle` (in radians).
     ///
@@ -616,6 +801,24 @@ where
             Vector::<3, T, A>::new(-sin, cos, T::ZERO),
             Vector::<3, T, A>::new(translation.x, translation.y, T::ONE),
         ])
+    }
+
+    /// Converts a 2D projective transform to an angle (in radians) rotating
+    /// `+X` to `+Y` and a translation vector.
+    ///
+    /// This assumes `self` only contains rotation and translation.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` does not approximately only contain rotation and
+    /// translation.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_angle_translation(&self) -> (T, Vector<2, T, A>) {
+        (self.to_angle(), self.translation())
     }
 
     /// Creates a 2D projective transform containing a non-uniform `scale`, a
@@ -807,6 +1010,70 @@ where
             Vector::<4, T, A>::new(xzomc + ysin, yzomc - xsin, z2 * omc + cos, T::ZERO),
             Vector::W,
         ])
+    }
+
+    /// Converts a 3D projective transform to an axis-angle rotation.
+    ///
+    /// This assumes `self` only contains rotation, and translation which is
+    /// ignored.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` does not approximately only contain rotation and
+    /// translation.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_axis_angle(&self) -> (Vector<3, T, A>, T) {
+        // Looks like this cannot be optimized much
+        self.to_rotor().to_axis_angle()
+    }
+
+    /// Creates a 3D projective transform from a scaled-axis rotation.
+    #[inline]
+    #[must_use]
+    pub fn from_scaled_axis(scaled_axis: Vector<3, T, A>) -> Self {
+        let (axis, angle) = scaled_axis.normalize_and_length();
+        if angle == T::ZERO {
+            Self::IDENTITY
+        } else {
+            let (sin, cos) = angle.sin_cos();
+            let [xsin, ysin, zsin] = (axis * sin).to_array();
+            let [x, y, z] = axis.to_array();
+            let [x2, y2, z2] = (axis * axis).to_array();
+            let omc = T::ONE - cos;
+            let xyomc = x * y * omc;
+            let xzomc = x * z * omc;
+            let yzomc = y * z * omc;
+
+            Self::from_rows(&[
+                Vector::<4, T, A>::new(x2 * omc + cos, xyomc + zsin, xzomc - ysin, T::ZERO),
+                Vector::<4, T, A>::new(xyomc - zsin, y2 * omc + cos, yzomc + xsin, T::ZERO),
+                Vector::<4, T, A>::new(xzomc + ysin, yzomc - xsin, z2 * omc + cos, T::ZERO),
+                Vector::<4, T, A>::W,
+            ])
+        }
+    }
+
+    /// Converts a 3D projective transform to a scaled-axis rotation.
+    ///
+    /// This assumes `self` only contains rotation, and translation which is
+    /// ignored.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` does not approximately only contain rotation and
+    /// translation.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_scaled_axis(&self) -> Vector<3, T, A> {
+        // Looks like this cannot be optimized much
+        self.to_rotor().to_scaled_axis()
     }
 
     /// Creates a 3D projective transform containing a rotation from an Euler
@@ -2405,6 +2672,20 @@ mod tests {
                     Projective::<3, T, A>::from_axis_angle(axis, angle),
                     Projective::<3, T, A>::from_matrix(&Matrix::<3, T, A>::from_axis_angle(
                         axis, angle
+                    ))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_scaled_axis() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for scaled_axis in random_iter::<Vector<3, T, A>>() {
+                assert_test_eq!(
+                    Projective::<3, T, A>::from_scaled_axis(scaled_axis),
+                    Projective::<3, T, A>::from_matrix(&Matrix::<3, T, A>::from_scaled_axis(
+                        scaled_axis
                     ))
                 );
             }

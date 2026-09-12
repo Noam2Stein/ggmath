@@ -11,6 +11,19 @@ macro_rules! items {
         /// A matrix with all elements set to NaN (Not a Number).
         pub const NAN: Self = Self::from_rows(&[Vector::<N, $Wide, A>::NAN; N]);
 
+        /// Converts a matrix to a non-uniform scale.
+        ///
+        /// This assumes `self` is a diagonal matrix.
+        ///
+        /// This is the same operation as [`diagonal`].
+        ///
+        /// [`diagonal`]: Self::diagonal
+        #[inline]
+        #[must_use]
+        pub fn to_scale(&self) -> Vector<N, $Wide, A> {
+            self.diagonal()
+        }
+
         /// Converts a projective transform to a linear transformation matrix.
         ///
         /// This assumes `projective` does not contain projections. If there is
@@ -35,6 +48,19 @@ macro_rules! items {
             Dim<N>: Three,
         {
             specialize_3!(Matrix::<N, $Wide, A>::from_rotor_backend(rotor))
+        }
+
+        /// Converts a matrix to a rotor.
+        ///
+        /// This assumes `self` is a rotation matrix.
+        #[inline]
+        #[must_use]
+        #[expect(private_bounds)]
+        pub fn to_rotor(&self) -> Rotor<N, $Wide, A>
+        where
+            Dim<N>: Three,
+        {
+            Rotor::<N, $Wide, A>::from_matrix(self)
         }
 
         /// Creates a matrix from a non-uniform scale and a rotor.
@@ -166,6 +192,15 @@ macro_rules! items_2 {
             ))
         }
 
+        /// Converts a matrix to a 2D rotation.
+        ///
+        /// This assumes `self` is a rotation matrix.
+        #[inline]
+        #[must_use]
+        pub fn to_rotation(&self) -> Rotation2<$Wide, A> {
+            Rotation2::<$Wide, A>::from_matrix(self)
+        }
+
         /// Creates a matrix from `scale` and 2D rotation.
         ///
         /// This assumes `rotation` is normalized.
@@ -211,6 +246,15 @@ macro_rules! items_2 {
                 Vector::<2, $Wide, A>::new(cos, sin),
                 Vector::<2, $Wide, A>::new(-sin, cos),
             ])
+        }
+
+        /// Converts a matrix to an angle (in radians) rotating `+X` to `+Y`.
+        ///
+        /// This assumes `self` is a rotation matrix.
+        #[inline]
+        #[must_use]
+        pub fn to_angle(&self) -> $Wide {
+            self.x_axis.y.atan2(self.x_axis.x)
         }
 
         /// Creates a matrix containing the non-uniform `scale` and a rotation
@@ -321,6 +365,49 @@ macro_rules! items_3 {
                 Vector::<3, $Wide, A>::new(xyomc - zsin, y2 * omc + cos, yzomc + xsin),
                 Vector::<3, $Wide, A>::new(xzomc + ysin, yzomc - xsin, z2 * omc + cos),
             ])
+        }
+
+        /// Converts a 3x3 matrix to an axis-angle rotation.
+        ///
+        /// This assumes `self` is a rotation matrix.
+        #[inline]
+        #[must_use]
+        pub fn to_axis_angle(&self) -> (Vector<3, $Wide, A>, $Wide) {
+            // Looks like this cannot be optimized much
+            self.to_rotor().to_axis_angle()
+        }
+
+        /// Creates a 3x3 matrix from a scaled-axis rotation.
+        #[inline]
+        #[must_use]
+        pub fn from_scaled_axis(scaled_axis: Vector<3, $Wide, A>) -> Self {
+            let (axis, angle) = scaled_axis.normalize_and_length();
+            let axis = axis & angle.simd_ne($Wide::ZERO);
+
+            let (sin, cos) = angle.sin_cos();
+            let [xsin, ysin, zsin] = (axis * sin).to_array();
+            let [x, y, z] = axis.to_array();
+            let [x2, y2, z2] = (axis * axis).to_array();
+            let omc = $Wide::ONE - cos;
+            let xyomc = x * y * omc;
+            let xzomc = x * z * omc;
+            let yzomc = y * z * omc;
+
+            Self::from_rows(&[
+                Vector::<3, $Wide, A>::new(x2 * omc + cos, xyomc + zsin, xzomc - ysin),
+                Vector::<3, $Wide, A>::new(xyomc - zsin, y2 * omc + cos, yzomc + xsin),
+                Vector::<3, $Wide, A>::new(xzomc + ysin, yzomc - xsin, z2 * omc + cos),
+            ])
+        }
+
+        /// Converts a 3x3 matrix to a scaled-axis rotation.
+        ///
+        /// This assumes `self` is a rotation matrix.
+        #[inline]
+        #[must_use]
+        pub fn to_scaled_axis(&self) -> Vector<3, $Wide, A> {
+            // Looks like this cannot be optimized much
+            self.to_rotor().to_scaled_axis()
         }
 
         /// Creates a 3D rotation matrix from an Euler rotation order/sequence
@@ -1203,6 +1290,23 @@ mod tests {
     }
 
     #[test]
+    fn test_to_angle() {
+        for_types!(|Wide: WideFloat| {
+            for angle in random_iter::<Wide>() {
+                let angle = angle % 3.0;
+                let matrix = Mat2::<Wide>::from_angle(angle);
+
+                assert_test_eq!(
+                    matrix.to_angle(),
+                    angle,
+                    abs <= Wide::splat(1e-4),
+                    0.0 = -0.0
+                );
+            }
+        });
+    }
+
+    #[test]
     fn test_from_scale_angle() {
         for_types!(|Wide: WideFloat| {
             for (scale, angle) in random_iter::<(Vec2<Wide>, Wide)>() {
@@ -1347,6 +1451,28 @@ mod tests {
                         * angle.abs().max(Wide::ONE)
                         * Wide::splat(1e-4)
                         + Mat3::from_row_array(&[Wide::splat(1e-3); 9]),
+                    0.0 = -0.0
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_scaled_axis() {
+        for_types!(|Wide: WideFloat| {
+            assert_test_eq!(
+                Mat3::<Wide>::from_scaled_axis(Vector::ZERO),
+                Matrix::IDENTITY
+            );
+
+            for scaled_axis in random_iter::<Vec3<Wide>>() {
+                let axis = scaled_axis.normalize_or(Vec3::X).normalize();
+                let angle = scaled_axis.length();
+
+                assert_test_eq!(
+                    Mat3::<Wide>::from_scaled_axis(scaled_axis),
+                    Mat3::<Wide>::from_axis_angle(axis, angle),
+                    abs <= Wide::splat(1e-4),
                     0.0 = -0.0
                 );
             }

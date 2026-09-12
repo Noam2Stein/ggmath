@@ -14,6 +14,42 @@ where
     pub const NAN: Self =
         Self::from_matrix_translation(&Matrix::<N, T, A>::NAN, Vector::<N, T, A>::NAN);
 
+    /// Converts an affine transform to a non-uniform scale.
+    ///
+    /// This assumes `self` only contains scale, and translation which is
+    /// ignored.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` does not approximately only contain scale and
+    /// translation.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_scale(&self) -> Vector<N, T, A> {
+        self.matrix.to_scale()
+    }
+
+    /// Converts an affine transform to a non-uniform scale and a translation
+    /// vector.
+    ///
+    /// This assumes `self` only contains scale and translation.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` does not approximately only contain scale and
+    /// translation.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_scale_translation(&self) -> (Vector<N, T, A>, Vector<N, T, A>) {
+        (self.to_scale(), self.translation)
+    }
+
     /// Creates an affine transform from a projective transform.
     ///
     /// This assumes `projective` does not contain projections.
@@ -75,6 +111,28 @@ where
         Self::from_matrix(&Matrix::<N, T, A>::from_rotor(rotor))
     }
 
+    /// Converts an affine transform to a rotor.
+    ///
+    /// This assumes `self` only contains rotation, and translation which is
+    /// ignored.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` does not approximately only contain rotation and
+    /// translation.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    #[expect(private_bounds)]
+    pub fn to_rotor(&self) -> Rotor<N, T, A>
+    where
+        Dim<N>: Three,
+    {
+        self.matrix.to_rotor()
+    }
+
     /// Creates an affine transform from a non-uniform scale and a rotor.
     ///
     /// This assumes `rotor` is normalized.
@@ -134,6 +192,27 @@ where
         Dim<N>: Three,
     {
         Self::from_matrix_translation(&Matrix::<N, T, A>::from_rotor(rotor), translation)
+    }
+
+    /// Converts an affine transform to a rotor and a translation vector.
+    ///
+    /// This assumes `self` only contains rotation and translation.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` does not approximately only contain rotation and
+    /// translation.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    #[expect(private_bounds)]
+    pub fn to_rotor_translation(&self) -> (Rotor<N, T, A>, Vector<N, T, A>)
+    where
+        Dim<N>: Three,
+    {
+        (self.to_rotor(), self.translation)
     }
 
     /// Creates an affine transform from a non-uniform scale, a rotor and
@@ -319,6 +398,24 @@ where
         Self::from_matrix(&Matrix::<2, T, A>::from_rotation(rotation))
     }
 
+    /// Converts an affine transform to a 2D rotation.
+    ///
+    /// This assumes `self` only contains rotation, and translation which is
+    /// ignored.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` does not approximately only contain rotation and
+    /// translation.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_rotation(&self) -> Rotation2<T, A> {
+        self.matrix.to_rotation()
+    }
+
     /// Creates an affine transform from `scale` and 2D rotation.
     ///
     /// This assumes `rotation` is normalized.
@@ -368,6 +465,23 @@ where
         translation: Vector<2, T, A>,
     ) -> Self {
         Self::from_matrix_translation(&Matrix::<2, T, A>::from_rotation(rotation), translation)
+    }
+
+    /// Converts an affine transform to a 2D rotation and a translation vector.
+    ///
+    /// This assumes `self` only contains rotation and translation.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` does not approximately only contain rotation and
+    /// translation.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_rotation_translation(&self) -> (Rotation2<T, A>, Vector<2, T, A>) {
+        (self.to_rotation(), self.translation)
     }
 
     /// Creates an affine transform from `scale`, 2D rotation and translation.
@@ -420,6 +534,25 @@ where
         Self::from_matrix(&Matrix::<2, T, A>::from_angle(angle))
     }
 
+    /// Converts a 2D affine transform to an angle (in radians) rotating `+X` to
+    /// `+Y`.
+    ///
+    /// This assumes `self` only contains rotation, and translation which is
+    /// ignored.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` does not approximately only contain rotation and
+    /// translation.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_angle(&self) -> T {
+        self.matrix.to_angle()
+    }
+
     /// Creates an affine transform containing a non-uniform `scale` and
     /// rotation of `angle` (in radians).
     ///
@@ -455,6 +588,24 @@ where
     #[must_use]
     pub fn from_angle_translation(angle: T, translation: Vector<2, T, A>) -> Self {
         Self::from_matrix_translation(&Matrix::<2, T, A>::from_angle(angle), translation)
+    }
+
+    /// Converts a 2D affine transform to an angle (in radians) rotating `+X` to
+    /// `+Y` and a translation vector.
+    ///
+    /// This assumes `self` only contains rotation and translation.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` does not approximately only contain rotation and
+    /// translation.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_angle_translation(&self) -> (T, Vector<2, T, A>) {
+        (self.to_angle(), self.translation)
     }
 
     /// Creates an affine transform containing a non-uniform `scale`, rotation
@@ -602,6 +753,49 @@ where
     #[track_caller]
     pub fn from_axis_angle(axis: Vector<3, T, A>, angle: T) -> Self {
         Self::from_matrix(&Matrix::<3, T, A>::from_axis_angle(axis, angle))
+    }
+
+    /// Converts a 3D affine transform to an axis-angle rotation.
+    ///
+    /// This assumes `self` only contains rotation, and translation which is
+    /// ignored.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` does not approximately only contain rotation and
+    /// translation.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_axis_angle(&self) -> (Vector<3, T, A>, T) {
+        self.matrix.to_axis_angle()
+    }
+
+    /// Creates a 3D affine transform from a scaled-axis rotation.
+    #[inline]
+    #[must_use]
+    pub fn from_scaled_axis(scaled_axis: Vector<3, T, A>) -> Self {
+        Self::from_matrix(&Matrix::<3, T, A>::from_scaled_axis(scaled_axis))
+    }
+
+    /// Converts a 3D affine transform to a scaled-axis rotation.
+    ///
+    /// This assumes `self` only contains rotation, and translation which is
+    /// ignored.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` does not approximately only contain rotation and
+    /// translation.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_scaled_axis(&self) -> Vector<3, T, A> {
+        self.matrix.to_scaled_axis()
     }
 
     /// Creates an affine transform containing a rotation from an Euler rotation

@@ -12,6 +12,26 @@ macro_rules! items {
         pub const NAN: Self =
             Self::from_matrix_translation(&Matrix::<N, $Wide, A>::NAN, Vector::<N, $Wide, A>::NAN);
 
+        /// Converts an affine transform to a non-uniform scale.
+        ///
+        /// This assumes `self` only contains scale, and translation which is
+        /// ignored.
+        #[inline]
+        #[must_use]
+        pub fn to_scale(&self) -> Vector<N, $Wide, A> {
+            self.matrix.to_scale()
+        }
+
+        /// Converts an affine transform to a non-uniform scale and a
+        /// translation vector.
+        ///
+        /// This assumes `self` only contains scale and translation.
+        #[inline]
+        #[must_use]
+        pub fn to_scale_translation(&self) -> (Vector<N, $Wide, A>, Vector<N, $Wide, A>) {
+            (self.to_scale(), self.translation)
+        }
+
         /// Creates an affine transform from a projective transform.
         ///
         /// This assumes `projective` does not contain projections.
@@ -36,6 +56,20 @@ macro_rules! items {
             Dim<N>: Three,
         {
             Self::from_matrix(&Matrix::<N, $Wide, A>::from_rotor(rotor))
+        }
+
+        /// Converts an affine transform to a rotor.
+        ///
+        /// This assumes `self` only contains rotation, and translation which is
+        /// ignored.
+        #[inline]
+        #[must_use]
+        #[expect(private_bounds)]
+        pub fn to_rotor(&self) -> Rotor<N, $Wide, A>
+        where
+            Dim<N>: Three,
+        {
+            self.matrix.to_rotor()
         }
 
         /// Creates an affine transform from a non-uniform scale and a rotor.
@@ -79,6 +113,19 @@ macro_rules! items {
             Dim<N>: Three,
         {
             Self::from_matrix_translation(&Matrix::<N, $Wide, A>::from_rotor(rotor), translation)
+        }
+
+        /// Converts an affine transform to a rotor and a translation vector.
+        ///
+        /// This assumes `self` only contains rotation and translation.
+        #[inline]
+        #[must_use]
+        #[expect(private_bounds)]
+        pub fn to_rotor_translation(&self) -> (Rotor<N, $Wide, A>, Vector<N, $Wide, A>)
+        where
+            Dim<N>: Three,
+        {
+            (self.to_rotor(), self.translation)
         }
 
         /// Creates an affine transform from a non-uniform scale, a rotor and
@@ -199,6 +246,16 @@ macro_rules! items_2 {
             Self::from_matrix(&Matrix::<2, $Wide, A>::from_rotation(rotation))
         }
 
+        /// Converts an affine transform to a 2D rotation.
+        ///
+        /// This assumes `self` only contains rotation, and translation which is
+        /// ignored.
+        #[inline]
+        #[must_use]
+        pub fn to_rotation(&self) -> Rotation2<$Wide, A> {
+            self.matrix.to_rotation()
+        }
+
         /// Creates an affine transform from `scale` and 2D rotation.
         ///
         /// This assumes `rotation` is normalized.
@@ -233,6 +290,16 @@ macro_rules! items_2 {
                 &Matrix::<2, $Wide, A>::from_rotation(rotation),
                 translation,
             )
+        }
+
+        /// Converts an affine transform to a 2D rotation and a translation
+        /// vector.
+        ///
+        /// This assumes `self` only contains rotation and translation.
+        #[inline]
+        #[must_use]
+        pub fn to_rotation_translation(&self) -> (Rotation2<$Wide, A>, Vector<2, $Wide, A>) {
+            (self.to_rotation(), self.translation)
         }
 
         /// Creates an affine transform from `scale`, 2D rotation and translation.
@@ -275,6 +342,17 @@ macro_rules! items_2 {
             Self::from_matrix(&Matrix::<2, $Wide, A>::from_angle(angle))
         }
 
+        /// Converts a 2D affine transform to an angle (in radians) rotating
+        /// `+X` to `+Y`.
+        ///
+        /// This assumes `self` only contains rotation, and translation which is
+        /// ignored.
+        #[inline]
+        #[must_use]
+        pub fn to_angle(&self) -> $Wide {
+            self.matrix.to_angle()
+        }
+
         /// Creates an affine transform containing a non-uniform `scale` and
         /// rotation of `angle` (in radians).
         ///
@@ -303,6 +381,16 @@ macro_rules! items_2 {
         #[must_use]
         pub fn from_angle_translation(angle: $Wide, translation: Vector<2, $Wide, A>) -> Self {
             Self::from_matrix_translation(&Matrix::<2, $Wide, A>::from_angle(angle), translation)
+        }
+
+        /// Converts a 2D affine transform to an angle (in radians) rotating
+        /// `+X` to `+Y` and a translation vector.
+        ///
+        /// This assumes `self` only contains rotation and translation.
+        #[inline]
+        #[must_use]
+        pub fn to_angle_translation(&self) -> ($Wide, Vector<2, $Wide, A>) {
+            (self.to_angle(), self.translation)
         }
 
         /// Creates an affine transform containing a non-uniform `scale`,
@@ -386,6 +474,33 @@ macro_rules! items_3 {
         #[must_use]
         pub fn from_axis_angle(axis: Vector<3, $Wide, A>, angle: $Wide) -> Self {
             Self::from_matrix(&Matrix::<3, $Wide, A>::from_axis_angle(axis, angle))
+        }
+
+        /// Converts a 3D affine transform to an axis-angle rotation.
+        ///
+        /// This assumes `self` only contains rotation, and translation which is
+        /// ignored.
+        #[inline]
+        #[must_use]
+        pub fn to_axis_angle(&self) -> (Vector<3, $Wide, A>, $Wide) {
+            self.matrix.to_axis_angle()
+        }
+
+        /// Creates a 3D affine transform from a scaled-axis rotation.
+        #[inline]
+        #[must_use]
+        pub fn from_scaled_axis(scaled_axis: Vector<3, $Wide, A>) -> Self {
+            Self::from_matrix(&Matrix::<3, $Wide, A>::from_scaled_axis(scaled_axis))
+        }
+
+        /// Converts a 3D affine transform to a scaled-axis rotation.
+        ///
+        /// This assumes `self` only contains rotation, and translation which is
+        /// ignored.
+        #[inline]
+        #[must_use]
+        pub fn to_scaled_axis(&self) -> Vector<3, $Wide, A> {
+            self.matrix.to_scaled_axis()
         }
 
         /// Creates an affine transform containing a rotation from an Euler

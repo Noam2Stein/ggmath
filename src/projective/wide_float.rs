@@ -1,7 +1,7 @@
 use wide::{f32x4, f32x8, f32x16, f64x2, f64x4, f64x8};
 
 use crate::{
-    Alignment, Dim, EulerRot, Matrix, Projective, Rotation2, Rotor, Vector,
+    Affine, Alignment, Dim, EulerRot, Matrix, Projective, Rotation2, Rotor, Vector,
     dim::{Three, TwoOrThree},
     utils::{specialize_3, specialize_23, transmute_generic},
 };
@@ -40,6 +40,54 @@ macro_rules! items {
                 _ => unreachable!(),
             };
 
+        /// Converts a projective transform to a non-uniform scale.
+        ///
+        /// This assumes `self` only contains scale, and translation which is
+        /// ignored.
+        #[inline]
+        #[must_use]
+        pub fn to_scale(&self) -> Vector<N, $Wide, A> {
+            Matrix::<N, $Wide, A>::from_projective(self).to_scale()
+        }
+
+        /// Converts a projective transform to a non-uniform scale and a
+        /// translation vector.
+        ///
+        /// This assumes `self` only contains scale and translation.
+        #[inline]
+        #[must_use]
+        pub fn to_scale_translation(&self) -> (Vector<N, $Wide, A>, Vector<N, $Wide, A>) {
+            (self.to_scale(), self.translation())
+        }
+
+        /// Converts a projective transform to a matrix.
+        ///
+        /// This assumes `self` contains an affine transformation.
+        #[inline]
+        #[must_use]
+        pub fn to_matrix(&self) -> Matrix<N, $Wide, A> {
+            Matrix::<N, $Wide, A>::from_projective(self)
+        }
+
+        /// Converts a projective transform to a matrix and a translation
+        /// vector.
+        ///
+        /// This assumes `self` contains an affine transformation.
+        #[inline]
+        #[must_use]
+        pub fn to_matrix_translation(&self) -> (Matrix<N, $Wide, A>, Vector<N, $Wide, A>) {
+            (self.to_matrix(), self.translation())
+        }
+
+        /// Converts a projective transform to an affine transform.
+        ///
+        /// This assumes `self` contains an affine transformation.
+        #[inline]
+        #[must_use]
+        pub fn to_affine(&self) -> Affine<N, $Wide, A> {
+            Affine::<N, $Wide, A>::from_projective(self)
+        }
+
         /// Creates a projective transform from a rotor.
         ///
         /// This assumes the rotor is normalized.
@@ -51,6 +99,20 @@ macro_rules! items {
             Dim<N>: Three,
         {
             specialize_3!(Projective::<N, $Wide, A>::from_rotor_backend(rotor))
+        }
+
+        /// Converts a projective transform to a rotor.
+        ///
+        /// This assumes `self` only contains rotation, and translation which is
+        /// ignored.
+        #[inline]
+        #[must_use]
+        #[expect(private_bounds)]
+        pub fn to_rotor(&self) -> Rotor<N, $Wide, A>
+        where
+            Dim<N>: Three,
+        {
+            Rotor::<N, $Wide, A>::from_projective(self)
         }
 
         /// Creates a projective transform from a non-uniform scale and a rotor.
@@ -99,6 +161,19 @@ macro_rules! items {
                 rotor,
                 translation
             ))
+        }
+
+        /// Converts a projective transform to a rotor and a translation vector.
+        ///
+        /// This assumes `self` only contains rotation and translation.
+        #[inline]
+        #[must_use]
+        #[expect(private_bounds)]
+        pub fn to_rotor_translation(&self) -> (Rotor<N, $Wide, A>, Vector<N, $Wide, A>)
+        where
+            Dim<N>: Three,
+        {
+            (self.to_rotor(), self.translation())
         }
 
         /// Creates a projective transform from a non-uniform scale, a rotor and
@@ -276,6 +351,16 @@ macro_rules! items_2 {
             ])
         }
 
+        /// Converts a projective transform to a 2D rotation.
+        ///
+        /// This assumes `self` only contains rotation, and translation which is
+        /// ignored.
+        #[inline]
+        #[must_use]
+        pub fn to_rotation(&self) -> Rotation2<$Wide, A> {
+            Rotation2::<$Wide, A>::from_projective(&self)
+        }
+
         /// Creates a projective transform from `scale` and 2D rotation.
         ///
         /// This assumes `rotation` is normalized.
@@ -331,6 +416,16 @@ macro_rules! items_2 {
             ])
         }
 
+        /// Converts a projective transform to a 2D rotation and a translation
+        /// vector.
+        ///
+        /// This assumes `self` only contains rotation and translation.
+        #[inline]
+        #[must_use]
+        pub fn to_rotation_translation(&self) -> (Rotation2<$Wide, A>, Vector<2, $Wide, A>) {
+            (self.to_rotation(), self.translation())
+        }
+
         /// Creates a projective transform from `scale`, 2D rotation and
         /// translation.
         ///
@@ -382,6 +477,17 @@ macro_rules! items_2 {
             ])
         }
 
+        /// Converts a 2D projective transform to an angle (in radians) rotating
+        /// `+X` to `+Y`.
+        ///
+        /// This assumes `self` only contains rotation, and translation which is
+        /// ignored.
+        #[inline]
+        #[must_use]
+        pub fn to_angle(&self) -> $Wide {
+            self.to_matrix().to_angle()
+        }
+
         /// Creates a 2D projective transform containing a non-uniform `scale`
         /// and a rotation of `angle` (in radians).
         ///
@@ -422,6 +528,16 @@ macro_rules! items_2 {
                 Vector::<3, $Wide, A>::new(-sin, cos, $Wide::ZERO),
                 Vector::<3, $Wide, A>::new(translation.x, translation.y, $Wide::ONE),
             ])
+        }
+
+        /// Converts a 2D projective transform to an angle (in radians) rotating
+        /// `+X` to `+Y` and a translation vector.
+        ///
+        /// This assumes `self` only contains rotation and translation.
+        #[inline]
+        #[must_use]
+        pub fn to_angle_translation(&self) -> ($Wide, Vector<2, $Wide, A>) {
+            (self.to_angle(), self.translation())
         }
 
         /// Creates a 2D projective transform containing a non-uniform `scale`,
@@ -524,6 +640,52 @@ macro_rules! items_3 {
                 Vector::<4, $Wide, A>::new(xzomc + ysin, yzomc - xsin, z2 * omc + cos, $Wide::ZERO),
                 Vector::W,
             ])
+        }
+
+        /// Converts a 3D projective transform to an axis-angle rotation.
+        ///
+        /// This assumes `self` only contains rotation, and translation which is
+        /// ignored.
+        #[inline]
+        #[must_use]
+        pub fn to_axis_angle(&self) -> (Vector<3, $Wide, A>, $Wide) {
+            // Looks like this cannot be optimized much
+            self.to_rotor().to_axis_angle()
+        }
+
+        /// Creates a 3D projective transform from a scaled-axis rotation.
+        #[inline]
+        #[must_use]
+        pub fn from_scaled_axis(scaled_axis: Vector<3, $Wide, A>) -> Self {
+            let (axis, angle) = scaled_axis.normalize_and_length();
+            let axis = axis & angle.simd_ne($Wide::ZERO);
+
+            let (sin, cos) = angle.sin_cos();
+            let [xsin, ysin, zsin] = (axis * sin).to_array();
+            let [x, y, z] = axis.to_array();
+            let [x2, y2, z2] = (axis * axis).to_array();
+            let omc = $Wide::ONE - cos;
+            let xyomc = x * y * omc;
+            let xzomc = x * z * omc;
+            let yzomc = y * z * omc;
+
+            Self::from_rows(&[
+                Vector::<4, $Wide, A>::new(x2 * omc + cos, xyomc + zsin, xzomc - ysin, $Wide::ZERO),
+                Vector::<4, $Wide, A>::new(xyomc - zsin, y2 * omc + cos, yzomc + xsin, $Wide::ZERO),
+                Vector::<4, $Wide, A>::new(xzomc + ysin, yzomc - xsin, z2 * omc + cos, $Wide::ZERO),
+                Vector::<4, $Wide, A>::W,
+            ])
+        }
+
+        /// Converts a 3D projective transform to a scaled-axis rotation.
+        ///
+        /// This assumes `self` only contains rotation, and translation which is
+        /// ignored.
+        #[inline]
+        #[must_use]
+        pub fn to_scaled_axis(&self) -> Vector<3, $Wide, A> {
+            // Looks like this cannot be optimized much
+            self.to_rotor().to_scaled_axis()
         }
 
         /// Creates a 3D projective transform containing a rotation from an
@@ -2037,6 +2199,18 @@ mod tests {
                         * Wide::splat(1e-4)
                         + Proj3::from_row_array(&[Wide::splat(1e-3); 16]),
                     0.0 = -0.0
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_scaled_axis() {
+        for_types!(|Wide: WideFloat| {
+            for scaled_axis in random_iter::<Vec3<Wide>>() {
+                assert_test_eq!(
+                    Proj3::<Wide>::from_scaled_axis(scaled_axis),
+                    Proj3::<Wide>::from_matrix(&Mat3::<Wide>::from_scaled_axis(scaled_axis))
                 );
             }
         });

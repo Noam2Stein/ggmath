@@ -4,7 +4,8 @@ use core::{
 };
 
 use crate::{
-    Affine, Aligned, Alignment, Dim, Element, Matrix, One, TwoThreeOrFour, Unaligned, Vector, Zero,
+    Affine, Aligned, Alignment, Dim, Element, Matrix, One, Projective, TwoOrThree, TwoThreeOrFour,
+    Unaligned, Vector, Zero,
     affine::AffineFields,
     utils::{transmute_generic, transmute_mut, transmute_ref},
 };
@@ -83,6 +84,20 @@ where
         Self::from_matrix_translation(&Matrix::IDENTITY, translation)
     }
 
+    /// Creates an affine transform from a non-uniform scale and a translation
+    /// vector.
+    #[inline]
+    #[must_use]
+    pub const fn from_scale_translation(
+        scale: Vector<N, T, A>,
+        translation: Vector<N, T, A>,
+    ) -> Self
+    where
+        T: Zero + One,
+    {
+        Self::from_matrix_translation(&Matrix::from_scale(scale), translation)
+    }
+
     /// Creates an affine transform from `matrix` expressing rotation and
     /// scale, but not translation.
     #[inline]
@@ -143,6 +158,26 @@ where
         } else {
             unreachable!()
         }
+    }
+
+    /// Converts an affine transform to a matrix and a translation vector.
+    ///
+    /// This is a no-op.
+    #[inline]
+    #[must_use]
+    pub fn to_matrix_translation(&self) -> (Matrix<N, T, A>, Vector<N, T, A>) {
+        (self.matrix, self.translation)
+    }
+
+    /// Converts an affine transform to a projective transform.
+    #[inline]
+    #[must_use]
+    pub fn to_projective(&self) -> Projective<N, T, A>
+    where
+        Dim<N>: TwoOrThree,
+        T: Zero + One,
+    {
+        Projective::from_affine(self)
     }
 
     /// Transforms the given vector applying scale, rotation and translation.
@@ -223,6 +258,13 @@ where
         Self::from_matrix_translation(&Matrix::from_rows(&[rows[0], rows[1]]), rows[2])
     }
 
+    /// Converts a row-major affine transform to an array of row vectors.
+    #[inline]
+    #[must_use]
+    pub const fn to_rows(&self) -> [Vector<2, T, A>; 3] {
+        *self.as_rows()
+    }
+
     /// Returns a reference to the affine transform's rows.
     #[inline]
     #[must_use]
@@ -268,6 +310,15 @@ where
             Vector::<2, T, A>::new(array[2], array[3]),
             Vector::<2, T, A>::new(array[4], array[5]),
         ])
+    }
+
+    /// Converts a row-major affine transform to a row-major array of elements.
+    #[inline]
+    #[must_use]
+    pub const fn to_row_array(&self) -> [T; 6] {
+        // SAFETY: Because 2 is a power of two, there is no padding, so elements
+        // are consecutive
+        unsafe { *transmute_ref::<Affine<2, T, A>, [T; 6]>(self) }
     }
 
     /// Creates an `N+1`x`N+1` homogeneous transformation matrix from an
@@ -318,6 +369,13 @@ where
         Self::from_matrix_translation(&Matrix::from_rows(&[rows[0], rows[1], rows[2]]), rows[3])
     }
 
+    /// Converts a row-major affine transform to an array of row vectors.
+    #[inline]
+    #[must_use]
+    pub const fn to_rows(&self) -> [Vector<3, T, A>; 4] {
+        *self.as_rows()
+    }
+
     /// Returns a reference to the affine transform's rows.
     #[inline]
     #[must_use]
@@ -364,6 +422,35 @@ where
             Vector::<3, T, A>::new(array[6], array[7], array[8]),
             Vector::<3, T, A>::new(array[9], array[10], array[11]),
         ])
+    }
+
+    /// Converts a row-major affine transform to a row-major array of elements.
+    #[inline]
+    #[must_use]
+    pub const fn to_row_array(&self) -> [T; 12] {
+        if const {
+            // Is there padding?
+            size_of::<Vector<3, T, A>>() > size_of::<[T; 3]>()
+        } {
+            [
+                self.as_rows()[0].as_array()[0],
+                self.as_rows()[0].as_array()[1],
+                self.as_rows()[0].as_array()[2],
+                self.as_rows()[1].as_array()[0],
+                self.as_rows()[1].as_array()[1],
+                self.as_rows()[1].as_array()[2],
+                self.as_rows()[2].as_array()[0],
+                self.as_rows()[2].as_array()[1],
+                self.as_rows()[2].as_array()[2],
+                self.as_rows()[3].as_array()[0],
+                self.as_rows()[3].as_array()[1],
+                self.as_rows()[3].as_array()[2],
+            ]
+        } else {
+            // SAFETY: This only runs if there is no padding, in which case
+            // elements are consecutive
+            unsafe { *transmute_ref::<Affine<3, T, A>, [T; 12]>(self) }
+        }
     }
 
     /// Creates an `N+1`x`N+1` homogeneous transformation matrix from an
@@ -418,6 +505,13 @@ where
         )
     }
 
+    /// Converts a row-major affine transform to an array of row vectors.
+    #[inline]
+    #[must_use]
+    pub const fn to_rows(&self) -> [Vector<4, T, A>; 5] {
+        *self.as_rows()
+    }
+
     /// Returns a reference to the affine transform's rows.
     #[inline]
     #[must_use]
@@ -465,6 +559,15 @@ where
             Vector::<4, T, A>::new(array[12], array[13], array[14], array[15]),
             Vector::<4, T, A>::new(array[16], array[17], array[18], array[19]),
         ])
+    }
+
+    /// Converts a row-major affine transform to a row-major array of elements.
+    #[inline]
+    #[must_use]
+    pub const fn to_row_array(&self) -> [T; 20] {
+        // SAFETY: Because 4 is a power of two, there is no padding, so elements
+        // are consecutive
+        unsafe { *transmute_ref::<Affine<4, T, A>, [T; 20]>(self) }
     }
 }
 

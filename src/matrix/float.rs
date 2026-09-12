@@ -13,6 +13,28 @@ where
     /// A matrix with all elements set to NaN (Not a Number).
     pub const NAN: Self = Self::from_rows(&[Vector::<N, T, A>::NAN; N]);
 
+    /// Converts a matrix to a non-uniform scale.
+    ///
+    /// This assumes `self` is a diagonal matrix.
+    ///
+    /// This is the same operation as [`diagonal`].
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` is not approximately a diagonal matrix.
+    ///
+    /// [`diagonal`]: Self::diagonal
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_scale(&self) -> Vector<N, T, A> {
+        debug_assert!(self.abs_diff_eq(&Self::from_diagonal(self.diagonal()), T::as_from(1e-4)));
+
+        self.diagonal()
+    }
+
     /// Converts a projective transform to a linear transformation matrix.
     ///
     /// This assumes `projective` does not contain projections. If there is
@@ -77,6 +99,26 @@ where
         );
 
         specialize_3!(Matrix::<N, T, A>::from_rotor_backend(rotor))
+    }
+
+    /// Converts a matrix to a rotor.
+    ///
+    /// This assumes `self` is a rotation matrix.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` is not a rotation matrix.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    #[expect(private_bounds)]
+    pub fn to_rotor(&self) -> Rotor<N, T, A>
+    where
+        Dim<N>: Three,
+    {
+        Rotor::<N, T, A>::from_matrix(self)
     }
 
     /// Creates a matrix from a non-uniform scale and a rotor.
@@ -340,6 +382,22 @@ where
         ))
     }
 
+    /// Converts a matrix to a 2D rotation.
+    ///
+    /// This assumes `self` is a rotation matrix.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` is not approximately a rotation matrix.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_rotation(&self) -> Rotation2<T, A> {
+        Rotation2::<T, A>::from_matrix(self)
+    }
+
     /// Creates a matrix from `scale` and 2D rotation.
     ///
     /// This assumes `rotation` is normalized.
@@ -410,6 +468,37 @@ where
             Vector::<2, T, A>::new(cos, sin),
             Vector::<2, T, A>::new(-sin, cos),
         ])
+    }
+
+    /// Converts a matrix to an angle (in radians) rotating `+X` to `+Y`.
+    ///
+    /// This assumes `self` is a rotation matrix.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` is not approximately a rotation matrix.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_angle(&self) -> T {
+        debug_assert!(
+            self.x_axis
+                .length_squared()
+                .abs_diff_eq(T::ONE, T::as_from(1e-4))
+                && self
+                    .y_axis
+                    .length_squared()
+                    .abs_diff_eq(T::ONE, T::as_from(1e-4))
+                && self
+                    .x_axis
+                    .perp_dot(self.y_axis)
+                    .abs_diff_eq(T::ONE, T::as_from(1e-4)),
+            "not a rotation matrix: {self:?}"
+        );
+
+        self.x_axis.y.atan2(self.x_axis.x)
     }
 
     /// Creates a matrix containing the non-uniform `scale` and a rotation of
@@ -646,6 +735,65 @@ where
             Vector::<3, T, A>::new(xyomc - zsin, y2 * omc + cos, yzomc + xsin),
             Vector::<3, T, A>::new(xzomc + ysin, yzomc - xsin, z2 * omc + cos),
         ])
+    }
+
+    /// Converts a 3x3 matrix to an axis-angle rotation.
+    ///
+    /// This assumes `self` is a rotation matrix.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` is not approximately a rotation matrix.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_axis_angle(&self) -> (Vector<3, T, A>, T) {
+        // Looks like this cannot be optimized much
+        self.to_rotor().to_axis_angle()
+    }
+
+    /// Creates a 3x3 matrix from a scaled-axis rotation.
+    #[inline]
+    #[must_use]
+    pub fn from_scaled_axis(scaled_axis: Vector<3, T, A>) -> Self {
+        let (axis, angle) = scaled_axis.normalize_and_length();
+        if angle == T::ZERO {
+            Self::IDENTITY
+        } else {
+            let (sin, cos) = angle.sin_cos();
+            let [xsin, ysin, zsin] = (axis * sin).to_array();
+            let [x, y, z] = axis.to_array();
+            let [x2, y2, z2] = (axis * axis).to_array();
+            let omc = T::ONE - cos;
+            let xyomc = x * y * omc;
+            let xzomc = x * z * omc;
+            let yzomc = y * z * omc;
+
+            Self::from_rows(&[
+                Vector::<3, T, A>::new(x2 * omc + cos, xyomc + zsin, xzomc - ysin),
+                Vector::<3, T, A>::new(xyomc - zsin, y2 * omc + cos, yzomc + xsin),
+                Vector::<3, T, A>::new(xzomc + ysin, yzomc - xsin, z2 * omc + cos),
+            ])
+        }
+    }
+
+    /// Converts a 3x3 matrix to a scaled-axis rotation.
+    ///
+    /// This assumes `self` is a rotation matrix.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` is not approximately a rotation matrix.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_scaled_axis(&self) -> Vector<3, T, A> {
+        // Looks like this cannot be optimized much
+        self.to_rotor().to_scaled_axis()
     }
 
     /// Creates a 3D rotation matrix from an Euler rotation order/sequence and
@@ -1720,6 +1868,18 @@ mod tests {
     }
 
     #[test]
+    fn test_to_angle() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for angle in random_iter::<T>() {
+                let angle = if angle.is_finite() { angle % 3.0 } else { 0.0 };
+                let matrix = Matrix::<2, T, A>::from_angle(angle);
+
+                assert_test_eq!(matrix.to_angle(), angle, abs <= 1e-4, 0.0 = -0.0);
+            }
+        });
+    }
+
+    #[test]
     fn test_from_scale_angle() {
         for_types!(|T: PrimitiveFloat, A| {
             for (scale, angle) in random_iter::<(Vector<2, T, A>, T)>() {
@@ -1921,6 +2081,28 @@ mod tests {
                 assert_test_eq!(
                     Matrix::<3, T, A>::from_axis_angle(Vector::<3, T, A>::Z, angle),
                     Matrix::<3, T, A>::from_rotation_xy(angle),
+                    abs <= 1e-4,
+                    0.0 = -0.0
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_scaled_axis() {
+        for_types!(|T: PrimitiveFloat, A| {
+            assert_test_eq!(
+                Matrix::<3, T, A>::from_scaled_axis(Vector::ZERO),
+                Matrix::IDENTITY
+            );
+
+            for scaled_axis in random_iter::<Vector<3, T, A>>() {
+                let axis = scaled_axis.normalize_or(Vector::<3, T, A>::X).normalize();
+                let angle = scaled_axis.length();
+
+                assert_test_eq!(
+                    Matrix::<3, T, A>::from_scaled_axis(scaled_axis),
+                    Matrix::<3, T, A>::from_axis_angle(axis, angle),
                     abs <= 1e-4,
                     0.0 = -0.0
                 );
