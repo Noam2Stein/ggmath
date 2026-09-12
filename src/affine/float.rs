@@ -467,6 +467,23 @@ where
         Self::from_matrix_translation(&Matrix::<2, T, A>::from_rotation(rotation), translation)
     }
 
+    /// Converts an affine transform to a 2D rotation and a translation vector.
+    ///
+    /// This assumes `self` only contains rotation and translation.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` does not approximately only contain rotation and
+    /// translation.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_rotation_translation(&self) -> (Rotation2<T, A>, Vector<2, T, A>) {
+        (self.to_rotation(), self.translation)
+    }
+
     /// Creates an affine transform from `scale`, 2D rotation and translation.
     ///
     /// This assumes `rotation` is normalized.
