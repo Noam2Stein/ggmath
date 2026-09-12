@@ -735,6 +735,25 @@ where
         ])
     }
 
+    /// Converts a 2D projective transform to an angle (in radians) rotating
+    /// `+X` to `+Y`.
+    ///
+    /// This assumes `self` only contains rotation, and translation which is
+    /// ignored.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` does not approximately only contain rotation and
+    /// translation.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_angle(&self) -> T {
+        self.to_matrix().to_angle()
+    }
+
     /// Creates a 2D projective transform containing a non-uniform `scale` and a
     /// rotation of `angle` (in radians).
     ///
