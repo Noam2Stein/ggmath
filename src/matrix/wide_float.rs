@@ -192,6 +192,15 @@ macro_rules! items_2 {
             ))
         }
 
+        /// Converts a matrix to a 2D rotation.
+        ///
+        /// This assumes `self` is a rotation matrix.
+        #[inline]
+        #[must_use]
+        pub fn to_rotation(&self) -> Rotation2<$Wide, A> {
+            Rotation2::<$Wide, A>::from_matrix(self)
+        }
+
         /// Creates a matrix from `scale` and 2D rotation.
         ///
         /// This assumes `rotation` is normalized.

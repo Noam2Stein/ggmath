@@ -382,6 +382,22 @@ where
         ))
     }
 
+    /// Converts a matrix to a 2D rotation.
+    ///
+    /// This assumes `self` is a rotation matrix.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` is not approximately a rotation matrix.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_rotation(&self) -> Rotation2<T, A> {
+        Rotation2::<T, A>::from_matrix(self)
+    }
+
     /// Creates a matrix from `scale` and 2D rotation.
     ///
     /// This assumes `rotation` is normalized.
