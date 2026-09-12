@@ -557,7 +557,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn to_rotation(&self) -> Rotation2<T, A> {
-        Rotation2::<T, A>::from_projective(&self)
+        Rotation2::<T, A>::from_projective(self)
     }
 
     /// Creates a projective transform from `scale` and 2D rotation.

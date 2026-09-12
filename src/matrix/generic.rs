@@ -666,8 +666,8 @@ where
     #[must_use]
     pub const fn to_row_array(&self) -> [T; 9] {
         if const {
-            let there_is_padding = size_of::<Vector<3, T, A>>() > size_of::<[T; 3]>();
-            there_is_padding
+            // Is there padding?
+            size_of::<Vector<3, T, A>>() > size_of::<[T; 3]>()
         } {
             [
                 self.as_rows()[0].as_array()[0],
