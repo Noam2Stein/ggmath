@@ -642,6 +642,17 @@ macro_rules! items_3 {
             ])
         }
 
+        /// Converts a 3D projective transform to an axis-angle rotation.
+        ///
+        /// This assumes `self` only contains rotation, and translation which is
+        /// ignored.
+        #[inline]
+        #[must_use]
+        pub fn to_axis_angle(&self) -> (Vector<3, $Wide, A>, $Wide) {
+            // Looks like this cannot be optimized much
+            self.to_rotor().to_axis_angle()
+        }
+
         /// Creates a 3D projective transform containing a rotation from an
         /// Euler rotation order/sequence and angles (in radians).
         #[inline]
