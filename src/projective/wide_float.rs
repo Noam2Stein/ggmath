@@ -368,6 +368,16 @@ macro_rules! items_2 {
             ])
         }
 
+        /// Converts a projective transform to a 2D rotation and a translation
+        /// vector.
+        ///
+        /// This assumes `self` only contains rotation and translation.
+        #[inline]
+        #[must_use]
+        pub fn to_rotation_translation(&self) -> (Rotation2<$Wide, A>, Vector<2, $Wide, A>) {
+            (self.to_rotation(), self.translation())
+        }
+
         /// Creates a projective transform from `scale`, 2D rotation and
         /// translation.
         ///

@@ -568,6 +568,24 @@ where
         ])
     }
 
+    /// Converts a projective transform to a 2D rotation and a translation
+    /// vector.
+    ///
+    /// This assumes `self` only contains rotation and translation.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` does not approximately only contain rotation and
+    /// translation.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_rotation_translation(&self) -> (Rotation2<T, A>, Vector<2, T, A>) {
+        (self.to_rotation(), self.translation())
+    }
+
     /// Creates a projective transform from `scale`, 2D rotation and
     /// translation.
     ///
