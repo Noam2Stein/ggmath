@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- [#88](https://github.com/Noam2Stein/ggmath/pull/88): Many convenience
+  conversion functions
+
 - [#85](https://github.com/Noam2Stein/ggmath/pull/85): Cargo feature `half` that
   implements `Element` for `half::f16` and `half::bf16`
 
