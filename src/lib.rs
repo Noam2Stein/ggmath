@@ -246,6 +246,7 @@ pub use crate::{
     constants::{NegOne, One, Zero},
     dim::{Dim, TwoOrThree, TwoThreeOrFour},
     element::{CustomElement, Element},
+    eq_test::EqTest,
     euler_rot::EulerRot,
     float_ext::FloatExt,
     mask::{Mask, Mask2, Mask2A, Mask3, Mask3A, Mask4, Mask4A},
@@ -263,6 +264,7 @@ mod backend;
 mod constants;
 mod dim;
 mod element;
+mod eq_test;
 mod euler_rot;
 mod float_ext;
 mod mask;
