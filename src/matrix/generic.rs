@@ -44,6 +44,13 @@ where
         unsafe { transmute_generic::<[Vector<N, T, A>; N], Matrix<N, T, A>>(*rows) }
     }
 
+    /// Converts a row-major matrix to an array of row vectors.
+    #[inline]
+    #[must_use]
+    pub const fn to_rows(&self) -> [Vector<N, T, A>; N] {
+        *self.as_rows()
+    }
+
     /// Returns a reference to the matrix's rows.
     #[inline]
     #[must_use]
