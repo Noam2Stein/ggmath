@@ -115,6 +115,19 @@ macro_rules! items {
             Self::from_matrix_translation(&Matrix::<N, $Wide, A>::from_rotor(rotor), translation)
         }
 
+        /// Converts an affine transform to a rotor and a translation vector.
+        ///
+        /// This assumes `self` only contains rotation and translation.
+        #[inline]
+        #[must_use]
+        #[expect(private_bounds)]
+        pub fn to_rotor_translation(&self) -> (Rotor<N, $Wide, A>, Vector<N, $Wide, A>)
+        where
+            Dim<N>: Three,
+        {
+            (self.to_rotor(), self.translation)
+        }
+
         /// Creates an affine transform from a non-uniform scale, a rotor and
         /// translation.
         ///
