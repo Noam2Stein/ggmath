@@ -159,6 +159,15 @@ where
         }
     }
 
+    /// Converts an affine transform to a matrix and a translation vector.
+    ///
+    /// This is a no-op.
+    #[inline]
+    #[must_use]
+    pub fn to_matrix_translation(&self) -> (Matrix<N, T, A>, Vector<N, T, A>) {
+        (self.matrix, self.translation)
+    }
+
     /// Transforms the given vector applying scale, rotation and translation.
     #[inline]
     #[must_use]
