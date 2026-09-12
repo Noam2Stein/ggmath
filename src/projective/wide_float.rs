@@ -50,6 +50,16 @@ macro_rules! items {
             Matrix::<N, $Wide, A>::from_projective(self).to_scale()
         }
 
+        /// Converts a projective transform to a non-uniform scale and a
+        /// translation vector.
+        ///
+        /// This assumes `self` only contains scale and translation.
+        #[inline]
+        #[must_use]
+        pub fn to_scale_translation(&self) -> (Vector<N, $Wide, A>, Vector<N, $Wide, A>) {
+            (self.to_scale(), self.translation())
+        }
+
         /// Creates a projective transform from a rotor.
         ///
         /// This assumes the rotor is normalized.
