@@ -737,6 +737,23 @@ where
         ])
     }
 
+    /// Converts a 3x3 matrix to an axis-angle rotation.
+    ///
+    /// This assumes `self` is a rotation matrix.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` is not approximately a rotation matrix.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_axis_angle(&self) -> (Vector<3, T, A>, T) {
+        // Looks like this cannot be optimized much
+        self.to_rotor().to_axis_angle()
+    }
+
     /// Creates a 3D rotation matrix from an Euler rotation order/sequence and
     /// angles (in radians).
     #[inline]

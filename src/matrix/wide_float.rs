@@ -367,6 +367,16 @@ macro_rules! items_3 {
             ])
         }
 
+        /// Converts a 3x3 matrix to an axis-angle rotation.
+        ///
+        /// This assumes `self` is a rotation matrix.
+        #[inline]
+        #[must_use]
+        pub fn to_axis_angle(&self) -> (Vector<3, $Wide, A>, $Wide) {
+            // Looks like this cannot be optimized much
+            self.to_rotor().to_axis_angle()
+        }
+
         /// Creates a 3D rotation matrix from an Euler rotation order/sequence
         /// and angles (in radians).
         #[inline]
