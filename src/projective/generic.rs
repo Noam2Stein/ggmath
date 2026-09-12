@@ -263,6 +263,13 @@ where
         Self(Matrix::from_rows(rows))
     }
 
+    /// Converts a row-major projective transform to an array of row vectors.
+    #[inline]
+    #[must_use]
+    pub const fn to_rows(&self) -> [Vector<3, T, A>; 3] {
+        self.0.to_rows()
+    }
+
     /// Returns a reference to the projective transform's rows.
     #[inline]
     #[must_use]
@@ -560,6 +567,13 @@ where
     #[must_use]
     pub const fn from_rows(rows: &[Vector<4, T, A>; 4]) -> Self {
         Self(Matrix::from_rows(rows))
+    }
+
+    /// Converts a row-major projective transform to an array of row vectors.
+    #[inline]
+    #[must_use]
+    pub const fn to_rows(&self) -> [Vector<4, T, A>; 4] {
+        self.0.to_rows()
     }
 
     /// Returns a reference to the projective transform's rows.
