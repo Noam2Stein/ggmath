@@ -677,6 +677,17 @@ macro_rules! items_3 {
             ])
         }
 
+        /// Converts a 3D projective transform to a scaled-axis rotation.
+        ///
+        /// This assumes `self` only contains rotation, and translation which is
+        /// ignored.
+        #[inline]
+        #[must_use]
+        pub fn to_scaled_axis(&self) -> Vector<3, $Wide, A> {
+            // Looks like this cannot be optimized much
+            self.to_rotor().to_scaled_axis()
+        }
+
         /// Creates a 3D projective transform containing a rotation from an
         /// Euler rotation order/sequence and angles (in radians).
         #[inline]
