@@ -4,7 +4,8 @@ use core::{
 };
 
 use crate::{
-    Affine, Aligned, Alignment, Dim, Element, Matrix, One, TwoThreeOrFour, Unaligned, Vector, Zero,
+    Affine, Aligned, Alignment, Dim, Element, Matrix, One, Projective, TwoOrThree, TwoThreeOrFour,
+    Unaligned, Vector, Zero,
     affine::AffineFields,
     utils::{transmute_generic, transmute_mut, transmute_ref},
 };
@@ -166,6 +167,17 @@ where
     #[must_use]
     pub fn to_matrix_translation(&self) -> (Matrix<N, T, A>, Vector<N, T, A>) {
         (self.matrix, self.translation)
+    }
+
+    /// Converts an affine transform to a projective transform.
+    #[inline]
+    #[must_use]
+    pub fn to_projective(&self) -> Projective<N, T, A>
+    where
+        Dim<N>: TwoOrThree,
+        T: Zero + One,
+    {
+        Projective::from_affine(self)
     }
 
     /// Transforms the given vector applying scale, rotation and translation.
