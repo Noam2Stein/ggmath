@@ -773,6 +773,13 @@ where
         self.matrix.to_axis_angle()
     }
 
+    /// Creates a 3D affine transform from a scaled-axis rotation.
+    #[inline]
+    #[must_use]
+    pub fn from_scaled_axis(scaled_axis: Vector<3, T, A>) -> Self {
+        Self::from_matrix(&Matrix::<3, T, A>::from_scaled_axis(scaled_axis))
+    }
+
     /// Creates an affine transform containing a rotation from an Euler rotation
     /// order/sequence and angles (in radians).
     #[inline]
