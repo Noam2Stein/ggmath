@@ -755,6 +755,24 @@ where
         Self::from_matrix(&Matrix::<3, T, A>::from_axis_angle(axis, angle))
     }
 
+    /// Converts a 3D affine transform to an axis-angle rotation.
+    ///
+    /// This assumes `self` only contains rotation, and translation which is
+    /// ignored.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` does not approximately only contain rotation and
+    /// translation.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_axis_angle(&self) -> (Vector<3, T, A>, T) {
+        self.matrix.to_axis_angle()
+    }
+
     /// Creates an affine transform containing a rotation from an Euler rotation
     /// order/sequence and angles (in radians).
     #[inline]

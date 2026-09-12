@@ -476,6 +476,16 @@ macro_rules! items_3 {
             Self::from_matrix(&Matrix::<3, $Wide, A>::from_axis_angle(axis, angle))
         }
 
+        /// Converts a 3D affine transform to an axis-angle rotation.
+        ///
+        /// This assumes `self` only contains rotation, and translation which is
+        /// ignored.
+        #[inline]
+        #[must_use]
+        pub fn to_axis_angle(&self) -> (Vector<3, $Wide, A>, $Wide) {
+            self.matrix.to_axis_angle()
+        }
+
         /// Creates an affine transform containing a rotation from an Euler
         /// rotation order/sequence and angles (in radians).
         #[inline]
