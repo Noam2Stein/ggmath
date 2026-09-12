@@ -37,6 +37,24 @@ where
         _ => unreachable!(),
     };
 
+    /// Converts a projective transform to a non-uniform scale.
+    ///
+    /// This assumes `self` only contains scale, and translation which is
+    /// ignored.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` does not approximately only contain scale and
+    /// translation.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_scale(&self) -> Vector<N, T, A> {
+        Matrix::<N, T, A>::from_projective(self).to_scale()
+    }
+
     /// Creates a projective transform from a rotor.
     ///
     /// This assumes the rotor is normalized.
