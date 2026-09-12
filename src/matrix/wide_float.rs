@@ -263,17 +263,6 @@ macro_rules! items_2 {
 
             (scale, angle)
         }
-
-        /// Takes the `N`x`N` linear transformation part of an `N+1`x`N+1`
-        /// homogeneous transformation matrix, removing the last row and column.
-        ///
-        /// This assumes `homogeneous` does not contain projections. If there is
-        /// translation, it is ignored.
-        #[inline]
-        #[must_use]
-        pub fn from_homogeneous(homogeneous: &Matrix<3, $Wide, A>) -> Self {
-            Self::from_rows(&[homogeneous.x_axis.truncate(), homogeneous.y_axis.truncate()])
-        }
     };
 }
 
@@ -559,21 +548,6 @@ macro_rules! items_3 {
             up: Vector<3, $Wide, A>,
         ) -> Self {
             Self::look_to_rh((center - eye).normalize(), up)
-        }
-
-        /// Takes the `N`x`N` linear transformation part of an `N+1`x`N+1`
-        /// homogeneous transformation matrix, removing the last row and column.
-        ///
-        /// This assumes `homogeneous` does not contain projections. If there is
-        /// translation, it is ignored.
-        #[inline]
-        #[must_use]
-        pub fn from_homogeneous(homogeneous: &Matrix<4, $Wide, A>) -> Self {
-            Self::from_rows(&[
-                homogeneous.x_axis.truncate(),
-                homogeneous.y_axis.truncate(),
-                homogeneous.z_axis.truncate(),
-            ])
         }
     };
 }

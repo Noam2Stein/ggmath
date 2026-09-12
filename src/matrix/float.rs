@@ -485,49 +485,6 @@ where
         (scale, angle)
     }
 
-    /// Takes the `N`x`N` linear transformation part of an `N+1`x`N+1`
-    /// homogeneous transformation matrix, removing the last row and column.
-    ///
-    /// This assumes `homogeneous` does not contain projections. If there is
-    /// translation, it is ignored.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the last column of `homogeneous` is not approximately
-    /// `(0, 0, ..., 1)`.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::{Mat2, Mat3, Vec2, Vec3};
-    /// #
-    /// let homogeneous = Mat3::from_rows(&[
-    ///     Vec3::new(11.0, 12.0, 0.0),
-    ///     Vec3::new(21.0, 22.0, 0.0),
-    ///     Vec3::new(5.0, 8.0, 1.0),
-    /// ]);
-    ///
-    /// assert_eq!(
-    ///     Mat2::<f32>::from_homogeneous(&homogeneous),
-    ///     Mat2::from_rows(&[
-    ///         Vec2::new(11.0, 12.0),
-    ///         Vec2::new(21.0, 22.0),
-    ///     ]),
-    /// );
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn from_homogeneous(homogeneous: &Matrix<3, T, A>) -> Self {
-        debug_assert!(
-            homogeneous
-                .column(2)
-                .abs_diff_eq(Vector::<3, T, A>::Z, T::as_from(1e-4)),
-            "input contains projection: Matrix::from_homogeneous({homogeneous:?})"
-        );
-
-        Self::from_rows(&[homogeneous.x_axis.truncate(), homogeneous.y_axis.truncate()])
-    }
-
     #[inline(always)]
     fn is_nan_backend(&self) -> bool {
         self.0.is_nan()
@@ -1028,53 +985,6 @@ where
             Vector::<3, T, A>::new(right.x, up.x, -forward.x),
             Vector::<3, T, A>::new(right.y, up.y, -forward.y),
             Vector::<3, T, A>::new(right.z, up.z, -forward.z),
-        ])
-    }
-
-    /// Takes the `N`x`N` linear transformation part of an `N+1`x`N+1`
-    /// homogeneous transformation matrix, removing the last row and column.
-    ///
-    /// This assumes `homogeneous` does not contain projections. If there is
-    /// translation, it is ignored.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the last column of `homogeneous` is not approximately
-    /// `(0, 0, ..., 1)`.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::{Mat2, Mat3, Vec2, Vec3};
-    /// #
-    /// let homogeneous = Mat3::from_rows(&[
-    ///     Vec3::new(11.0, 12.0, 0.0),
-    ///     Vec3::new(21.0, 22.0, 0.0),
-    ///     Vec3::new(5.0, 8.0, 1.0),
-    /// ]);
-    ///
-    /// assert_eq!(
-    ///     Mat2::<f32>::from_homogeneous(&homogeneous),
-    ///     Mat2::from_rows(&[
-    ///         Vec2::new(11.0, 12.0),
-    ///         Vec2::new(21.0, 22.0),
-    ///     ]),
-    /// );
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn from_homogeneous(homogeneous: &Matrix<4, T, A>) -> Self {
-        debug_assert!(
-            homogeneous
-                .column(3)
-                .abs_diff_eq(Vector::<4, T, A>::W, T::as_from(1e-4)),
-            "input contains projection: Matrix::from_homogeneous({homogeneous:?})"
-        );
-
-        Self::from_rows(&[
-            homogeneous.x_axis.truncate(),
-            homogeneous.y_axis.truncate(),
-            homogeneous.z_axis.truncate(),
         ])
     }
 
