@@ -53,6 +53,20 @@ macro_rules! items {
             specialize_3!(Projective::<N, $Wide, A>::from_rotor_backend(rotor))
         }
 
+        /// Converts a projective transform to a rotor.
+        ///
+        /// This assumes `self` only contains rotation, and translation which is
+        /// ignored.
+        #[inline]
+        #[must_use]
+        #[expect(private_bounds)]
+        pub fn to_rotor(&self) -> Rotor<N, $Wide, A>
+        where
+            Dim<N>: Three,
+        {
+            Rotor::<N, $Wide, A>::from_projective(self)
+        }
+
         /// Creates a projective transform from a non-uniform scale and a rotor.
         ///
         /// This assumes `rotor` is normalized.
