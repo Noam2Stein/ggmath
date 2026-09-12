@@ -246,6 +246,13 @@ where
         Self::from_matrix_translation(&Matrix::from_rows(&[rows[0], rows[1]]), rows[2])
     }
 
+    /// Converts a row-major affine transform to an array of row vectors.
+    #[inline]
+    #[must_use]
+    pub const fn to_rows(&self) -> [Vector<2, T, A>; 3] {
+        *self.as_rows()
+    }
+
     /// Returns a reference to the affine transform's rows.
     #[inline]
     #[must_use]
@@ -339,6 +346,13 @@ where
     #[must_use]
     pub const fn from_rows(rows: &[Vector<3, T, A>; 4]) -> Self {
         Self::from_matrix_translation(&Matrix::from_rows(&[rows[0], rows[1], rows[2]]), rows[3])
+    }
+
+    /// Converts a row-major affine transform to an array of row vectors.
+    #[inline]
+    #[must_use]
+    pub const fn to_rows(&self) -> [Vector<3, T, A>; 4] {
+        *self.as_rows()
     }
 
     /// Returns a reference to the affine transform's rows.
@@ -439,6 +453,13 @@ where
             &Matrix::from_rows(&[rows[0], rows[1], rows[2], rows[3]]),
             rows[4],
         )
+    }
+
+    /// Converts a row-major affine transform to an array of row vectors.
+    #[inline]
+    #[must_use]
+    pub const fn to_rows(&self) -> [Vector<4, T, A>; 5] {
+        *self.as_rows()
     }
 
     /// Returns a reference to the affine transform's rows.
