@@ -5,7 +5,8 @@ use core::{
 };
 
 use crate::{
-    Affine, Aligned, Alignment, Dim, Element, Matrix, One, Projective, Unaligned, Vector, Zero,
+    Affine, Aligned, Alignment, Dim, Element, EqTest, Matrix, One, Projective, Unaligned, Vector,
+    Zero,
     dim::TwoOrThree,
     utils::{specialize_23, transmute_generic, transmute_ref},
 };
@@ -88,6 +89,27 @@ where
         T: Zero + One,
     {
         specialize_23!(Projective::<N, T, A>::from_scale_backend(scale))
+    }
+
+    /// Converts a projective transform to a non-uniform scale.
+    ///
+    /// This assumes `self` only contains scale, and translation which is
+    /// ignored.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` contains anything but scale and translation (according
+    /// to [`EqTest`]).
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_scale(&self) -> Vector<N, T, A>
+    where
+        T: Debug + Zero + One + EqTest,
+    {
+        Matrix::<N, T, A>::from_projective(self).to_scale()
     }
 
     /// Creates a projective transform from a `translation` vector.
