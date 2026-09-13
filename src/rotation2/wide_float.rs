@@ -1,6 +1,6 @@
 use wide::{f32x4, f32x8, f32x16, f64x2, f64x4, f64x8};
 
-use crate::{Alignment, Projective, Rotation2, Vector, utils::FloatUtils};
+use crate::{Alignment, Rotation2, Vector, utils::FloatUtils};
 
 macro_rules! items {
     ($Wide:ident) => {
@@ -46,17 +46,6 @@ macro_rules! items {
         ) -> Self {
             let dot = from.dot(to);
             Self::from_cos_sin(dot, from.perp_dot(to)) * dot.signum()
-        }
-
-        /// Converts a projective transform to a 2D rotation represented by a
-        /// complex number.
-        ///
-        /// This assumes `projective` only contains rotation, and translation which
-        /// is ignored.
-        #[inline]
-        #[must_use]
-        pub fn from_projective(projective: &Projective<2, $Wide, A>) -> Self {
-            Self(projective.x_axis.truncate())
         }
 
         /// Returns the inverse of a 2D rotation.
@@ -298,7 +287,7 @@ impl_items!(f64x8);
 #[cfg(test)]
 mod tests {
     use crate::{
-        Proj2, Rot2, Vec2,
+        Rot2, Vec2,
         test_utils::{assert_test_eq, assert_test_eq_or_panic, for_types, random_iter},
     };
 
@@ -331,21 +320,6 @@ mod tests {
                         from.lane(lane),
                         to.lane(lane)
                     ))
-                );
-            }
-        });
-    }
-
-    #[test]
-    fn test_from_projective() {
-        for_types!(|Wide: WideFloat| {
-            for projective in random_iter::<Wide>()
-                .map(Proj2::<Wide>::from_angle)
-                .chain(random_iter())
-            {
-                assert_test_eq_or_panic!(
-                    Rot2::<Wide>::from_projective(&projective),
-                    Rot2::from_lane_fn(|lane| Rot2::<T>::from_projective(&projective.lane(lane)))
                 );
             }
         });

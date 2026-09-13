@@ -1,4 +1,4 @@
-use crate::{Alignment, FloatExt, PrimitiveFloat, Projective, Rotation2, Vector};
+use crate::{Alignment, PrimitiveFloat, Rotation2, Vector};
 
 impl<T, A: Alignment> Rotation2<T, A>
 where
@@ -80,46 +80,6 @@ where
         let dot = from.dot(to);
 
         Self::from_cos_sin(dot, from.perp_dot(to)) * dot.signum()
-    }
-
-    /// Converts a projective transform to a 2D rotation represented by a
-    /// complex number.
-    ///
-    /// This assumes `projective` only contains rotation, and translation which
-    /// is ignored.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `projective` is not approximately a rotation matrix.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn from_projective(projective: &Projective<2, T, A>) -> Self {
-        debug_assert!(
-            projective
-                .x_axis
-                .truncate()
-                .length_squared()
-                .abs_diff_eq(T::ONE, T::as_from(1e-4))
-                && projective
-                    .y_axis
-                    .truncate()
-                    .length_squared()
-                    .abs_diff_eq(T::ONE, T::as_from(1e-4))
-                && projective
-                    .x_axis
-                    .truncate()
-                    .perp_dot(projective.y_axis.truncate())
-                    .abs_diff_eq(T::ONE, T::as_from(1e-4))
-                && projective
-                    .z_axis
-                    .abs_diff_eq(Vector::<3, T, A>::Z, T::as_from(1e-4)),
-            "not a rotation: Rot2::from_projective({projective:?})"
-        );
-
-        Self(projective.x_axis.truncate())
     }
 
     /// Returns the inverse of a 2D rotation.
@@ -425,7 +385,7 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{
-        Projective, Rotation2, Vector,
+        Rotation2, Vector,
         test_utils::{assert_debug_panic, assert_test_eq, for_types, random_iter},
     };
 
@@ -460,23 +420,6 @@ mod tests {
                     } else {
                         Rotation2::<T, A>::from_rotation_arc(from, -to)
                     },
-                    0.0 = -0.0
-                );
-            }
-        });
-    }
-
-    #[test]
-    fn test_from_projective() {
-        for_types!(|T: PrimitiveFloat, A| {
-            for (vector, angle) in
-                random_iter::<(Vector<2, T, A>, T)>().filter(|(_, angle)| angle.is_finite())
-            {
-                let projective = Projective::<2, T, A>::from_angle(angle);
-
-                assert_test_eq!(
-                    vector * Rotation2::<T, A>::from_projective(&projective),
-                    projective.transform_point(vector),
                     0.0 = -0.0
                 );
             }

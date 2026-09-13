@@ -4,7 +4,8 @@ use core::{
 };
 
 use crate::{
-    Affine, Alignment, Element, EqTest, Matrix, One, Rot2, Rot2A, Rotation2, Vector, Zero,
+    Affine, Alignment, Element, EqTest, Matrix, One, Projective, Rot2, Rot2A, Rotation2, Vector,
+    Zero,
 };
 
 impl<T, A: Alignment> Rotation2<T, A>
@@ -162,6 +163,42 @@ where
         T: Debug + Neg<Output = T> + Add<Output = T> + Mul<Output = T> + One + EqTest,
     {
         Self::from_matrix(&affine.matrix)
+    }
+
+    /// Converts a projective transform to a 2D rotation represented by a
+    /// complex number.
+    ///
+    /// This assumes `projective` only contains rotation, and translation which
+    /// is ignored.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `projective` contains anything but rotation and translation
+    /// (according to [`EqTest`]).
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn from_projective(projective: &Projective<2, T, A>) -> Self
+    where
+        T: Debug + Neg<Output = T> + Add<Output = T> + Mul<Output = T> + Zero + One + EqTest,
+    {
+        debug_assert!(
+            projective
+                .y_axis
+                .truncate()
+                .eq_test(&projective.x_axis.truncate().perp())
+                && projective
+                    .x_axis
+                    .truncate()
+                    .length_squared()
+                    .eq_test(&T::ONE)
+                && projective.z_axis.eq_test(&Vector::<3, T, A>::Z),
+            "not a rotation: Rot2::from_projective({projective:?})"
+        );
+
+        Self(projective.x_axis.truncate())
     }
 
     /// Negates the sine element.
