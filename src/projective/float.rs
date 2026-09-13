@@ -1,6 +1,6 @@
 use crate::{
-    Affine, Alignment, Dim, EulerRot, FloatExt, Matrix, PrimitiveFloat, Projective, Rotation2,
-    Rotor, Vector,
+    Alignment, Dim, EulerRot, FloatExt, Matrix, PrimitiveFloat, Projective, Rotation2, Rotor,
+    Vector,
     dim::{Three, TwoOrThree},
     utils::{specialize_3, specialize_23, transmute_generic},
 };
@@ -36,23 +36,6 @@ where
         },
         _ => unreachable!(),
     };
-
-    /// Converts a projective transform to an affine transform.
-    ///
-    /// This assumes `self` contains an affine transformation.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `self` does not approximately contain an affine
-    /// transformation.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn to_affine(&self) -> Affine<N, T, A> {
-        Affine::<N, T, A>::from_projective(self)
-    }
 
     /// Creates a projective transform from a rotor.
     ///

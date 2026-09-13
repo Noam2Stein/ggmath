@@ -274,6 +274,26 @@ where
         specialize_23!(Projective::<N, T, A>::from_affine_backend(affine))
     }
 
+    /// Converts a projective transform to an affine transform.
+    ///
+    /// This assumes `self` contains an affine transformation.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` does not contain an affine transformation (according to
+    /// [`EqTest`]).
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_affine(&self) -> Affine<N, T, A>
+    where
+        T: Debug + Zero + One + EqTest,
+    {
+        Affine::<N, T, A>::from_projective(self)
+    }
+
     /// Converts `self` to SIMD-aligned storage.
     ///
     /// See [`Alignment`] for more information about SIMD-aligned types.
