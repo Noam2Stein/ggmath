@@ -769,9 +769,25 @@ mod tests {
     use std::format;
 
     use crate::{
-        Rotation2, Vector,
+        Matrix, Rotation2, Vector,
         test_utils::{assert_test_eq, for_types, random_iter},
     };
+
+    #[test]
+    fn test_from_matrix() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for (vector, angle) in
+                random_iter::<(Vector<2, T, A>, T)>().filter(|(_, angle)| angle.is_finite())
+            {
+                let matrix = Matrix::<2, T, A>::from_angle(angle);
+
+                assert_test_eq!(
+                    vector * Rotation2::<T, A>::from_matrix(&matrix),
+                    vector * matrix
+                );
+            }
+        });
+    }
 
     #[test]
     fn test_deref() {

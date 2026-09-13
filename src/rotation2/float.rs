@@ -1,4 +1,4 @@
-use crate::{Affine, Alignment, FloatExt, Matrix, PrimitiveFloat, Projective, Rotation2, Vector};
+use crate::{Affine, Alignment, FloatExt, PrimitiveFloat, Projective, Rotation2, Vector};
 
 impl<T, A: Alignment> Rotation2<T, A>
 where
@@ -80,39 +80,6 @@ where
         let dot = from.dot(to);
 
         Self::from_cos_sin(dot, from.perp_dot(to)) * dot.signum()
-    }
-
-    /// Converts a rotation matrix to a 2D rotation represented by a complex
-    /// number.
-    ///
-    /// This assumes `matrix` only contains rotation.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `matrix` is not approximately a rotation matrix.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn from_matrix(matrix: &Matrix<2, T, A>) -> Self {
-        debug_assert!(
-            matrix
-                .x_axis
-                .length_squared()
-                .abs_diff_eq(T::ONE, T::as_from(1e-4))
-                && matrix
-                    .y_axis
-                    .length_squared()
-                    .abs_diff_eq(T::ONE, T::as_from(1e-4))
-                && matrix
-                    .x_axis
-                    .perp_dot(matrix.y_axis)
-                    .abs_diff_eq(T::ONE, T::as_from(1e-4)),
-            "not a rotation matrix: Rot2::from_matrix({matrix:?})"
-        );
-
-        Self(matrix.x_axis)
     }
 
     /// Converts an affine transform to a 2D rotation represented by a complex
@@ -476,7 +443,7 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{
-        Matrix, Projective, Rotation2, Vector,
+        Projective, Rotation2, Vector,
         test_utils::{assert_debug_panic, assert_test_eq, for_types, random_iter},
     };
 
@@ -512,22 +479,6 @@ mod tests {
                         Rotation2::<T, A>::from_rotation_arc(from, -to)
                     },
                     0.0 = -0.0
-                );
-            }
-        });
-    }
-
-    #[test]
-    fn test_from_matrix() {
-        for_types!(|T: PrimitiveFloat, A| {
-            for (vector, angle) in
-                random_iter::<(Vector<2, T, A>, T)>().filter(|(_, angle)| angle.is_finite())
-            {
-                let matrix = Matrix::<2, T, A>::from_angle(angle);
-
-                assert_test_eq!(
-                    vector * Rotation2::<T, A>::from_matrix(&matrix),
-                    vector * matrix
                 );
             }
         });

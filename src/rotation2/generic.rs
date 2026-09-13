@@ -1,6 +1,9 @@
-use core::ops::{Add, Mul, Neg, Sub};
+use core::{
+    fmt::Debug,
+    ops::{Add, Mul, Neg, Sub},
+};
 
-use crate::{Alignment, Element, One, Rot2, Rot2A, Rotation2, Vector, Zero};
+use crate::{Alignment, Element, EqTest, Matrix, One, Rot2, Rot2A, Rotation2, Vector, Zero};
 
 impl<T, A: Alignment> Rotation2<T, A>
 where
@@ -108,6 +111,33 @@ where
     #[must_use]
     pub const fn as_mut_vector(&mut self) -> &mut Vector<2, T, A> {
         &mut self.0
+    }
+
+    /// Converts a rotation matrix to a 2D rotation represented by a complex
+    /// number.
+    ///
+    /// This assumes `matrix` only contains rotation.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `matrix` contains anything but rotation (according to
+    /// [`EqTest`]).
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn from_matrix(matrix: &Matrix<2, T, A>) -> Self
+    where
+        T: Debug + Neg<Output = T> + Add<Output = T> + Mul<Output = T> + One + EqTest,
+    {
+        debug_assert!(
+            matrix.y_axis.eq_test(&matrix.x_axis.perp())
+                && matrix.x_axis.length_squared().eq_test(&T::ONE),
+            "not a rotation: Rot2::from_matrix({matrix:?})"
+        );
+
+        Self(matrix.x_axis)
     }
 
     /// Negates the sine element.

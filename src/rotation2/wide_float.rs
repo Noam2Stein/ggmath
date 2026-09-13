@@ -1,6 +1,6 @@
 use wide::{f32x4, f32x8, f32x16, f64x2, f64x4, f64x8};
 
-use crate::{Affine, Alignment, Matrix, Projective, Rotation2, Vector, utils::FloatUtils};
+use crate::{Affine, Alignment, Projective, Rotation2, Vector, utils::FloatUtils};
 
 macro_rules! items {
     ($Wide:ident) => {
@@ -46,16 +46,6 @@ macro_rules! items {
         ) -> Self {
             let dot = from.dot(to);
             Self::from_cos_sin(dot, from.perp_dot(to)) * dot.signum()
-        }
-
-        /// Converts a rotation matrix to a 2D rotation represented by a complex
-        /// number.
-        ///
-        /// This assumes `matrix` only contains rotation.
-        #[inline]
-        #[must_use]
-        pub fn from_matrix(matrix: &Matrix<2, $Wide, A>) -> Self {
-            Self(matrix.x_axis)
         }
 
         /// Converts an affine transform to a 2D rotation represented by a complex
@@ -319,7 +309,7 @@ impl_items!(f64x8);
 #[cfg(test)]
 mod tests {
     use crate::{
-        Mat2, Proj2, Rot2, Vec2,
+        Proj2, Rot2, Vec2,
         test_utils::{assert_test_eq, assert_test_eq_or_panic, for_types, random_iter},
     };
 
@@ -352,21 +342,6 @@ mod tests {
                         from.lane(lane),
                         to.lane(lane)
                     ))
-                );
-            }
-        });
-    }
-
-    #[test]
-    fn test_from_matrix() {
-        for_types!(|Wide: WideFloat| {
-            for matrix in random_iter::<Wide>()
-                .map(Mat2::<Wide>::from_angle)
-                .chain(random_iter())
-            {
-                assert_test_eq_or_panic!(
-                    Rot2::<Wide>::from_matrix(&matrix),
-                    Rot2::from_lane_fn(|lane| Rot2::<T>::from_matrix(&matrix.lane(lane)))
                 );
             }
         });
