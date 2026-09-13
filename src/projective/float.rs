@@ -237,25 +237,6 @@ where
         (scale, rotor, self.translation())
     }
 
-    /// Transforms the given vector as a point.
-    ///
-    /// Equivalent to `(point, 1) * self` but is faster.
-    ///
-    /// This function assumes `self` contains an affine transformation, with no
-    /// projections, meaning the last column must be `(0, 0, ..., 1)`.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if the last column of `self` is not `(0, 0, ..., 1)`.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn transform_point(&self, point: Vector<N, T, A>) -> Vector<N, T, A> {
-        specialize_23!(Projective::<N, T, A>::transform_point_backend(self, point))
-    }
-
     /// Transforms the given vector without applying translation.
     ///
     /// Equivalent to `(vector, 0) * self` but is faster.
@@ -799,18 +780,6 @@ where
     #[inline(always)]
     fn inverse_or_zero_backend(&self) -> Self {
         Self(self.0.inverse_or_zero())
-    }
-
-    #[inline(always)]
-    #[track_caller]
-    fn transform_point_backend(&self, point: Vector<2, T, A>) -> Vector<2, T, A> {
-        debug_assert!(
-            self.column(2)
-                .abs_diff_eq(Vector::<3, T, A>::Z, T::as_from(1e-6)),
-            "matrix contains projection (which transform_point does not handle)"
-        );
-
-        self.x_axis.xy() * point.x + self.y_axis.xy() * point.y + self.z_axis.xy()
     }
 
     #[inline(always)]
@@ -1764,21 +1733,6 @@ where
 
     #[inline(always)]
     #[track_caller]
-    fn transform_point_backend(&self, point: Vector<3, T, A>) -> Vector<3, T, A> {
-        debug_assert!(
-            self.column(3)
-                .abs_diff_eq(Vector::<4, T, A>::W, T::as_from(1e-6)),
-            "matrix contains projection (which transform_point does not handle)"
-        );
-
-        self.x_axis.xyz() * point.x
-            + self.y_axis.xyz() * point.y
-            + self.z_axis.xyz() * point.z
-            + self.w_axis.xyz()
-    }
-
-    #[inline(always)]
-    #[track_caller]
     fn transform_vector_backend(&self, vector: Vector<3, T, A>) -> Vector<3, T, A> {
         debug_assert!(
             self.column(3)
@@ -2070,47 +2024,6 @@ mod tests {
                 );
             }
         });
-    }
-
-    #[test]
-    fn test_transform_point() {
-        assert_eq!(
-            Proj2A::from_rows(&[
-                Vec3A::new(2.0, 3.0, 0.0),
-                Vec3A::new(4.0, 5.0, 0.0),
-                Vec3A::new(6.0, 7.0, 1.0)
-            ])
-            .transform_point(Vec2A::new(-1.0, -2.0)),
-            Vec2A::new(-4.0, -6.0)
-        );
-        assert_eq!(
-            Proj3A::from_rows(&[
-                Vec4A::new(2.0, 3.0, 4.0, 0.0),
-                Vec4A::new(5.0, 6.0, 7.0, 0.0),
-                Vec4A::new(8.0, 9.0, 10.0, 0.0),
-                Vec4A::new(11.0, 12.0, 13.0, 1.0)
-            ])
-            .transform_point(Vec3A::new(-1.0, -2.0, -3.0)),
-            Vec3A::new(-25.0, -30.0, -35.0)
-        );
-
-        assert_debug_panic!(
-            Proj2A::from_rows(&[
-                Vec3A::new(2.0, 3.0, 0.0),
-                Vec3A::new(4.0, 5.0, 1.0),
-                Vec3A::new(6.0, 7.0, 1.0)
-            ])
-            .transform_point(Vec2A::new(-1.0, -2.0))
-        );
-        assert_debug_panic!(
-            Proj3A::from_rows(&[
-                Vec4A::new(2.0, 3.0, 4.0, 0.0),
-                Vec4A::new(5.0, 6.0, 7.0, 0.0),
-                Vec4A::new(8.0, 9.0, 10.0, 1.0),
-                Vec4A::new(11.0, 12.0, 13.0, 1.0)
-            ])
-            .transform_point(Vec3A::new(-1.0, -2.0, -3.0))
-        );
     }
 
     #[test]

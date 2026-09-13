@@ -169,20 +169,6 @@ macro_rules! items {
             (scale, rotor, self.translation())
         }
 
-        /// Transforms the given vector as a point.
-        ///
-        /// Equivalent to `(point, 1) * self` but is faster.
-        ///
-        /// This function assumes `self` contains an affine transformation, with
-        /// no projections, meaning the last column must be `(0, 0, ..., 1)`.
-        #[inline]
-        #[must_use]
-        pub fn transform_point(&self, point: Vector<N, $Wide, A>) -> Vector<N, $Wide, A> {
-            specialize_23!(Projective::<N, $Wide, A>::transform_point_backend(
-                self, point
-            ))
-        }
-
         /// Transforms the given vector without applying translation.
         ///
         /// Equivalent to `(vector, 0) * self` but is faster.
@@ -1293,11 +1279,6 @@ macro_rules! impl_items {
             }
 
             #[inline(always)]
-            fn transform_point_backend(&self, point: Vector<2, $Wide, A>) -> Vector<2, $Wide, A> {
-                self.x_axis.xy() * point.x + self.y_axis.xy() * point.y + self.z_axis.xy()
-            }
-
-            #[inline(always)]
             fn transform_vector_backend(&self, vector: Vector<2, $Wide, A>) -> Vector<2, $Wide, A> {
                 self.x_axis.xy() * vector.x + self.y_axis.xy() * vector.y
             }
@@ -1489,14 +1470,6 @@ macro_rules! impl_items {
             #[inline(always)]
             fn inverse_or_zero_backend(&self) -> Self {
                 Self(self.0.inverse_or_zero())
-            }
-
-            #[inline(always)]
-            fn transform_point_backend(&self, point: Vector<3, $Wide, A>) -> Vector<3, $Wide, A> {
-                self.x_axis.xyz() * point.x
-                    + self.y_axis.xyz() * point.y
-                    + self.z_axis.xyz() * point.z
-                    + self.w_axis.xyz()
             }
 
             #[inline(always)]
@@ -1717,33 +1690,6 @@ mod tests {
                 assert_test_eq!(
                     projective.inverse_or_zero(),
                     Projective::from_lane_fn(|lane| projective.lane(lane).inverse_or_zero())
-                );
-            }
-        });
-    }
-
-    #[test]
-    fn test_transform_point() {
-        for_types!(|N: TwoOrThree, Wide: WideFloat| {
-            for (projective, point) in
-                random_iter::<(Projective<N, Wide, Unaligned>, Vector<N, Wide, Unaligned>)>()
-                    .flat_map(|(projective, point)| {
-                        [
-                            (projective, point),
-                            (
-                                Projective::from_affine(
-                                    &Affine::<N, Wide, Unaligned>::from_projective(&projective),
-                                ),
-                                point,
-                            ),
-                        ]
-                    })
-            {
-                assert_test_eq_or_panic!(
-                    projective.transform_point(point),
-                    Vector::from_lane_fn(|lane| projective
-                        .lane(lane)
-                        .transform_point(point.lane(lane)))
                 );
             }
         });

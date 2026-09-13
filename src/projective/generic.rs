@@ -294,6 +294,28 @@ where
         Affine::<N, T, A>::from_projective(self)
     }
 
+    /// Transforms the given vector as a point.
+    ///
+    /// Equivalent to `(point, 1) * self` but is faster.
+    ///
+    /// This function assumes `self` contains an affine transformation.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if the last column of `self` is not `(0, 0, ..., 1)` (according
+    /// to [`EqTest`]).
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn transform_point(&self, point: Vector<N, T, A>) -> Vector<N, T, A>
+    where
+        T: Debug + Add<Output = T> + Mul<Output = T> + Zero + One + EqTest,
+    {
+        specialize_23!(Projective::<N, T, A>::transform_point_backend(self, point))
+    }
+
     /// Converts `self` to SIMD-aligned storage.
     ///
     /// See [`Alignment`] for more information about SIMD-aligned types.
@@ -582,6 +604,20 @@ where
     #[inline(always)]
     fn translation_backend(&self) -> Vector<2, T, A> {
         self.0.z_axis.truncate()
+    }
+
+    #[inline(always)]
+    #[track_caller]
+    fn transform_point_backend(&self, point: Vector<2, T, A>) -> Vector<2, T, A>
+    where
+        T: Debug + Add<Output = T> + Mul<Output = T> + Zero + One + EqTest,
+    {
+        debug_assert!(
+            self.column(2).eq_test(&Vector::<3, T, A>::Z),
+            "not an affine transformation: {self:?}.transform_point({point:?})"
+        );
+
+        self.x_axis.truncate() * point.x + self.y_axis.truncate() * point.y + self.z_axis.truncate()
     }
 
     #[inline(always)]
@@ -901,6 +937,23 @@ where
     #[inline(always)]
     fn translation_backend(&self) -> Vector<3, T, A> {
         self.0.w_axis.truncate()
+    }
+
+    #[inline(always)]
+    #[track_caller]
+    fn transform_point_backend(&self, point: Vector<3, T, A>) -> Vector<3, T, A>
+    where
+        T: Debug + Add<Output = T> + Mul<Output = T> + Zero + One + EqTest,
+    {
+        debug_assert!(
+            self.column(3).eq_test(&Vector::<4, T, A>::W),
+            "not an affine transformation: {self:?}.transform_point({point:?})"
+        );
+
+        self.x_axis.truncate() * point.x
+            + self.y_axis.truncate() * point.y
+            + self.z_axis.truncate() * point.z
+            + self.w_axis.truncate()
     }
 
     #[inline(always)]
