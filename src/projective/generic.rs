@@ -316,6 +316,30 @@ where
         specialize_23!(Projective::<N, T, A>::transform_point_backend(self, point))
     }
 
+    /// Transforms the given vector without applying translation.
+    ///
+    /// Equivalent to `(vector, 0) * self` but is faster.
+    ///
+    /// This function assumes `self` contains an affine transformation.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if the last column of `self` is not `(0, 0, ..., 1)` (according
+    /// to [`EqTest`]).
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn transform_vector(&self, vector: Vector<N, T, A>) -> Vector<N, T, A>
+    where
+        T: Debug + Add<Output = T> + Mul<Output = T> + Zero + One + EqTest,
+    {
+        specialize_23!(Projective::<N, T, A>::transform_vector_backend(
+            self, vector
+        ))
+    }
+
     /// Converts `self` to SIMD-aligned storage.
     ///
     /// See [`Alignment`] for more information about SIMD-aligned types.
@@ -618,6 +642,20 @@ where
         );
 
         self.x_axis.truncate() * point.x + self.y_axis.truncate() * point.y + self.z_axis.truncate()
+    }
+
+    #[inline(always)]
+    #[track_caller]
+    fn transform_vector_backend(&self, vector: Vector<2, T, A>) -> Vector<2, T, A>
+    where
+        T: Debug + Add<Output = T> + Mul<Output = T> + Zero + One + EqTest,
+    {
+        debug_assert!(
+            self.column(2).eq_test(&Vector::<3, T, A>::Z),
+            "not an affine transformation: {self:?}.transform_vector({vector:?})"
+        );
+
+        self.x_axis.truncate() * vector.x + self.y_axis.truncate() * vector.y
     }
 
     #[inline(always)]
@@ -954,6 +992,22 @@ where
             + self.y_axis.truncate() * point.y
             + self.z_axis.truncate() * point.z
             + self.w_axis.truncate()
+    }
+
+    #[inline(always)]
+    #[track_caller]
+    fn transform_vector_backend(&self, vector: Vector<3, T, A>) -> Vector<3, T, A>
+    where
+        T: Debug + Add<Output = T> + Mul<Output = T> + Zero + One + EqTest,
+    {
+        debug_assert!(
+            self.column(3).eq_test(&Vector::<4, T, A>::W),
+            "not an affine transformation: {self:?}.transform_vector({vector:?})"
+        );
+
+        self.x_axis.truncate() * vector.x
+            + self.y_axis.truncate() * vector.y
+            + self.z_axis.truncate() * vector.z
     }
 
     #[inline(always)]

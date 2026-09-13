@@ -1481,6 +1481,47 @@ mod tests {
     }
 
     #[test]
+    fn test_transform_vector() {
+        assert_eq!(
+            Proj2A::from_rows(&[
+                Vec3A::new(2.0, 3.0, 0.0),
+                Vec3A::new(4.0, 5.0, 0.0),
+                Vec3A::new(6.0, 7.0, 1.0)
+            ])
+            .transform_vector(Vec2A::new(-1.0, -2.0)),
+            Vec2A::new(-10.0, -13.0)
+        );
+        assert_eq!(
+            Proj3A::from_rows(&[
+                Vec4A::new(2.0, 3.0, 4.0, 0.0),
+                Vec4A::new(5.0, 6.0, 7.0, 0.0),
+                Vec4A::new(8.0, 9.0, 10.0, 0.0),
+                Vec4A::new(11.0, 12.0, 13.0, 1.0)
+            ])
+            .transform_vector(Vec3A::new(-1.0, -2.0, -3.0)),
+            Vec3A::new(-36.0, -42.0, -48.0)
+        );
+
+        assert_debug_panic!(
+            Proj2A::from_rows(&[
+                Vec3A::new(2.0, 3.0, 0.0),
+                Vec3A::new(4.0, 5.0, 1.0),
+                Vec3A::new(6.0, 7.0, 1.0)
+            ])
+            .transform_vector(Vec2A::new(-1.0, -2.0))
+        );
+        assert_debug_panic!(
+            Proj3A::from_rows(&[
+                Vec4A::new(2.0, 3.0, 4.0, 0.0),
+                Vec4A::new(5.0, 6.0, 7.0, 0.0),
+                Vec4A::new(8.0, 9.0, 10.0, 1.0),
+                Vec4A::new(11.0, 12.0, 13.0, 1.0)
+            ])
+            .transform_vector(Vec3A::new(-1.0, -2.0, -3.0))
+        );
+    }
+
+    #[test]
     fn test_to_alignment() {
         for_types!(|T: PrimitiveNumber, A| {
             let projective =

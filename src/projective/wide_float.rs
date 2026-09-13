@@ -169,20 +169,6 @@ macro_rules! items {
             (scale, rotor, self.translation())
         }
 
-        /// Transforms the given vector without applying translation.
-        ///
-        /// Equivalent to `(vector, 0) * self` but is faster.
-        ///
-        /// This function assumes `self` contains an affine transformation, with
-        /// no projections, meaning the last column must be `(0, 0, ..., 1)`.
-        #[inline]
-        #[must_use]
-        pub fn transform_vector(&self, vector: Vector<N, $Wide, A>) -> Vector<N, $Wide, A> {
-            specialize_23!(Projective::<N, $Wide, A>::transform_vector_backend(
-                self, vector
-            ))
-        }
-
         /// Transforms the given vector as a point, applying perspective divide.
         #[inline]
         #[must_use]
@@ -1279,11 +1265,6 @@ macro_rules! impl_items {
             }
 
             #[inline(always)]
-            fn transform_vector_backend(&self, vector: Vector<2, $Wide, A>) -> Vector<2, $Wide, A> {
-                self.x_axis.xy() * vector.x + self.y_axis.xy() * vector.y
-            }
-
-            #[inline(always)]
             fn project_point_backend(&self, point: Vector<2, $Wide, A>) -> Vector<2, $Wide, A> {
                 let result = self.x_axis * point.x + self.y_axis * point.y + self.z_axis;
 
@@ -1473,13 +1454,6 @@ macro_rules! impl_items {
             }
 
             #[inline(always)]
-            fn transform_vector_backend(&self, vector: Vector<3, $Wide, A>) -> Vector<3, $Wide, A> {
-                self.x_axis.xyz() * vector.x
-                    + self.y_axis.xyz() * vector.y
-                    + self.z_axis.xyz() * vector.z
-            }
-
-            #[inline(always)]
             fn project_point_backend(&self, point: Vector<3, $Wide, A>) -> Vector<3, $Wide, A> {
                 let result = self.x_axis * point.x
                     + self.y_axis * point.y
@@ -1542,8 +1516,8 @@ impl_items!(f64x8, f64);
 #[cfg(test)]
 mod tests {
     use crate::{
-        Affine, Affine2, EulerRot, Mat3, Mat4, Matrix, Proj2, Proj3, Projective, Rot2, Rotor3,
-        Unaligned, Vec2, Vec3, Vector,
+        Affine2, EulerRot, Mat3, Mat4, Matrix, Proj2, Proj3, Projective, Rot2, Rotor3, Unaligned,
+        Vec2, Vec3, Vector,
         test_utils::{assert_test_eq, assert_test_eq_or_panic, for_types, random_iter},
     };
 
@@ -1690,33 +1664,6 @@ mod tests {
                 assert_test_eq!(
                     projective.inverse_or_zero(),
                     Projective::from_lane_fn(|lane| projective.lane(lane).inverse_or_zero())
-                );
-            }
-        });
-    }
-
-    #[test]
-    fn test_transform_vector() {
-        for_types!(|N: TwoOrThree, Wide: WideFloat| {
-            for (projective, vector) in
-                random_iter::<(Projective<N, Wide, Unaligned>, Vector<N, Wide, Unaligned>)>()
-                    .flat_map(|(projective, vector)| {
-                        [
-                            (projective, vector),
-                            (
-                                Projective::from_affine(
-                                    &Affine::<N, Wide, Unaligned>::from_projective(&projective),
-                                ),
-                                vector,
-                            ),
-                        ]
-                    })
-            {
-                assert_test_eq_or_panic!(
-                    projective.transform_vector(vector),
-                    Vector::from_lane_fn(|lane| projective
-                        .lane(lane)
-                        .transform_vector(vector.lane(lane)))
                 );
             }
         });

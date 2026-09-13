@@ -237,27 +237,6 @@ where
         (scale, rotor, self.translation())
     }
 
-    /// Transforms the given vector without applying translation.
-    ///
-    /// Equivalent to `(vector, 0) * self` but is faster.
-    ///
-    /// This function assumes `self` contains an affine transformation, with no
-    /// projections, meaning the last column must be `(0, 0, ..., 1)`.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if the last column of `self` is not `(0, 0, ..., 1)`.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn transform_vector(&self, vector: Vector<N, T, A>) -> Vector<N, T, A> {
-        specialize_23!(Projective::<N, T, A>::transform_vector_backend(
-            self, vector
-        ))
-    }
-
     /// Transforms the given vector as a point, applying perspective divide.
     #[inline]
     #[must_use]
@@ -780,18 +759,6 @@ where
     #[inline(always)]
     fn inverse_or_zero_backend(&self) -> Self {
         Self(self.0.inverse_or_zero())
-    }
-
-    #[inline(always)]
-    #[track_caller]
-    fn transform_vector_backend(&self, vector: Vector<2, T, A>) -> Vector<2, T, A> {
-        debug_assert!(
-            self.column(2)
-                .abs_diff_eq(Vector::<3, T, A>::Z, T::as_from(1e-6)),
-            "matrix contains projection (which transform_vector does not handle)"
-        );
-
-        self.x_axis.xy() * vector.x + self.y_axis.xy() * vector.y
     }
 
     #[inline(always)]
@@ -1732,18 +1699,6 @@ where
     }
 
     #[inline(always)]
-    #[track_caller]
-    fn transform_vector_backend(&self, vector: Vector<3, T, A>) -> Vector<3, T, A> {
-        debug_assert!(
-            self.column(3)
-                .abs_diff_eq(Vector::<4, T, A>::W, T::as_from(1e-6)),
-            "matrix contains projection (which transform_vector does not handle)"
-        );
-
-        self.x_axis.xyz() * vector.x + self.y_axis.xyz() * vector.y + self.z_axis.xyz() * vector.z
-    }
-
-    #[inline(always)]
     fn project_point_backend(&self, point: Vector<3, T, A>) -> Vector<3, T, A> {
         let result =
             self.x_axis * point.x + self.y_axis * point.y + self.z_axis * point.z + self.w_axis;
@@ -1817,8 +1772,7 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{
-        Affine, EulerRot, Matrix, Proj2A, Proj3A, Projective, Rotation2, Rotor, Vec2A, Vec3A,
-        Vec4A, Vector,
+        Affine, EulerRot, Matrix, Projective, Rotation2, Rotor, Vector,
         test_utils::{
             assert_debug_panic, assert_panic_test_eq, assert_test_eq, for_types, random_iter,
         },
@@ -2024,47 +1978,6 @@ mod tests {
                 );
             }
         });
-    }
-
-    #[test]
-    fn test_transform_vector() {
-        assert_eq!(
-            Proj2A::from_rows(&[
-                Vec3A::new(2.0, 3.0, 0.0),
-                Vec3A::new(4.0, 5.0, 0.0),
-                Vec3A::new(6.0, 7.0, 1.0)
-            ])
-            .transform_vector(Vec2A::new(-1.0, -2.0)),
-            Vec2A::new(-10.0, -13.0)
-        );
-        assert_eq!(
-            Proj3A::from_rows(&[
-                Vec4A::new(2.0, 3.0, 4.0, 0.0),
-                Vec4A::new(5.0, 6.0, 7.0, 0.0),
-                Vec4A::new(8.0, 9.0, 10.0, 0.0),
-                Vec4A::new(11.0, 12.0, 13.0, 1.0)
-            ])
-            .transform_vector(Vec3A::new(-1.0, -2.0, -3.0)),
-            Vec3A::new(-36.0, -42.0, -48.0)
-        );
-
-        assert_debug_panic!(
-            Proj2A::from_rows(&[
-                Vec3A::new(2.0, 3.0, 0.0),
-                Vec3A::new(4.0, 5.0, 1.0),
-                Vec3A::new(6.0, 7.0, 1.0)
-            ])
-            .transform_vector(Vec2A::new(-1.0, -2.0))
-        );
-        assert_debug_panic!(
-            Proj3A::from_rows(&[
-                Vec4A::new(2.0, 3.0, 4.0, 0.0),
-                Vec4A::new(5.0, 6.0, 7.0, 0.0),
-                Vec4A::new(8.0, 9.0, 10.0, 1.0),
-                Vec4A::new(11.0, 12.0, 13.0, 1.0)
-            ])
-            .transform_vector(Vec3A::new(-1.0, -2.0, -3.0))
-        );
     }
 
     #[test]
