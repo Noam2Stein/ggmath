@@ -1,11 +1,12 @@
 use core::{
+    fmt::Debug,
     mem::MaybeUninit,
     ops::{Add, Mul},
 };
 
 use crate::{
-    Affine, Aligned, Alignment, Dim, Element, Matrix, One, Projective, TwoOrThree, TwoThreeOrFour,
-    Unaligned, Vector, Zero,
+    Affine, Aligned, Alignment, Dim, Element, EqTest, Matrix, One, Projective, TwoOrThree,
+    TwoThreeOrFour, Unaligned, Vector, Zero,
     affine::AffineFields,
     utils::{transmute_generic, transmute_mut, transmute_ref},
 };
@@ -72,6 +73,27 @@ where
         T: Zero,
     {
         Self::from_matrix(&Matrix::from_scale(scale))
+    }
+
+    /// Converts an affine transform to a non-uniform scale.
+    ///
+    /// This assumes `self` only contains scale, and translation which is
+    /// ignored.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` contains anything but scale and translation (according
+    /// to [`EqTest`]).
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_scale(&self) -> Vector<N, T, A>
+    where
+        T: Debug + Zero + EqTest,
+    {
+        self.matrix.to_scale()
     }
 
     /// Creates an affine transform from a `translation` vector.
