@@ -37,23 +37,6 @@ where
         _ => unreachable!(),
     };
 
-    /// Converts a projective transform to a matrix.
-    ///
-    /// This assumes `self` contains an affine transformation.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `self` does not approximately contain an affine
-    /// transformation.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn to_matrix(&self) -> Matrix<N, T, A> {
-        Matrix::<N, T, A>::from_projective(self)
-    }
-
     /// Converts a projective transform to a matrix and a translation vector.
     ///
     /// This assumes `self` contains an affine transformation.

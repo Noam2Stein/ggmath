@@ -40,15 +40,6 @@ macro_rules! items {
                 _ => unreachable!(),
             };
 
-        /// Converts a projective transform to a matrix.
-        ///
-        /// This assumes `self` contains an affine transformation.
-        #[inline]
-        #[must_use]
-        pub fn to_matrix(&self) -> Matrix<N, $Wide, A> {
-            Matrix::<N, $Wide, A>::from_projective(self)
-        }
-
         /// Converts a projective transform to a matrix and a translation
         /// vector.
         ///

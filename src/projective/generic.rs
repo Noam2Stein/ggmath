@@ -189,6 +189,26 @@ where
         specialize_23!(Projective::<N, T, A>::from_matrix_backend(matrix))
     }
 
+    /// Converts a projective transform to a matrix.
+    ///
+    /// This assumes `self` contains an affine transformation.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` does not contain an affine transformation (according to
+    /// [`EqTest`]).
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_matrix(&self) -> Matrix<N, T, A>
+    where
+        T: Debug + Zero + One + EqTest,
+    {
+        Matrix::<N, T, A>::from_projective(self)
+    }
+
     /// Creates a projective transform from a linear transformation `matrix` and
     /// a `translation` vector.
     #[inline]
