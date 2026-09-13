@@ -120,6 +120,27 @@ where
         Self::from_matrix_translation(&Matrix::from_scale(scale), translation)
     }
 
+    /// Converts an affine transform to a non-uniform scale and a translation
+    /// vector.
+    ///
+    /// This assumes `self` only contains scale and translation.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` contains anything but scale and translation (according
+    /// to [`EqTest`]).
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_scale_translation(&self) -> (Vector<N, T, A>, Vector<N, T, A>)
+    where
+        T: Debug + Zero + EqTest,
+    {
+        (self.to_scale(), self.translation)
+    }
+
     /// Creates an affine transform from `matrix` expressing rotation and
     /// scale, but not translation.
     #[inline]
