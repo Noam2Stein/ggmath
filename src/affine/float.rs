@@ -1,8 +1,6 @@
 use crate::{
-    Affine, Alignment, Dim, EulerRot, Matrix, PrimitiveFloat, Projective, Rotation2, Rotor,
-    TwoThreeOrFour, Vector,
-    dim::{Three, TwoOrThree},
-    utils::specialize_23,
+    Affine, Alignment, Dim, EulerRot, Matrix, PrimitiveFloat, Rotation2, Rotor, TwoThreeOrFour,
+    Vector, dim::Three,
 };
 
 impl<const N: usize, T, A: Alignment> Affine<N, T, A>
@@ -13,47 +11,6 @@ where
     /// An affine transform with all elements set to NaN (Not a Number).
     pub const NAN: Self =
         Self::from_matrix_translation(&Matrix::<N, T, A>::NAN, Vector::<N, T, A>::NAN);
-
-    /// Creates an affine transform from a projective transform.
-    ///
-    /// This assumes `projective` does not contain projections.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if the last column of `projective` is not approximately
-    /// `(0, 0, ..., 1)`.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::{Affine2, Proj2, Vec2, Vec3};
-    /// #
-    /// let projective = Proj2::from_rows(&[
-    ///     Vec3::new(11.0, 12.0, 0.0),
-    ///     Vec3::new(21.0, 22.0, 0.0),
-    ///     Vec3::new(5.0, 8.0, 1.0),
-    /// ]);
-    ///
-    /// assert_eq!(
-    ///     Affine2::<f32>::from_projective(&projective),
-    ///     Affine2::from_rows(&[
-    ///         Vec2::new(11.0, 12.0),
-    ///         Vec2::new(21.0, 22.0),
-    ///         Vec2::new(5.0, 8.0),
-    ///     ]),
-    /// );
-    /// ```
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn from_projective(projective: &Projective<N, T, A>) -> Self
-    where
-        Dim<N>: TwoOrThree,
-    {
-        specialize_23!(Affine::<N, T, A>::from_projective_backend(projective))
-    }
 
     /// Creates an affine transform from a rotor.
     ///
@@ -655,23 +612,6 @@ where
             homogeneous.z_axis.truncate(),
         ])
     }
-
-    #[inline(always)]
-    #[track_caller]
-    fn from_projective_backend(projective: &Projective<2, T, A>) -> Self {
-        debug_assert!(
-            projective
-                .column(2)
-                .abs_diff_eq(Vector::<3, T, A>::Z, T::as_from(1e-4)),
-            "input contains projection: Affine::from_projective({projective:?})"
-        );
-
-        Self::from_rows(&[
-            projective[0].truncate(),
-            projective[1].truncate(),
-            projective[2].truncate(),
-        ])
-    }
 }
 
 impl<T, A: Alignment> Affine<3, T, A>
@@ -1011,24 +951,6 @@ where
             homogeneous.y_axis.truncate(),
             homogeneous.z_axis.truncate(),
             homogeneous.w_axis.truncate(),
-        ])
-    }
-
-    #[inline(always)]
-    #[track_caller]
-    fn from_projective_backend(projective: &Projective<3, T, A>) -> Self {
-        debug_assert!(
-            projective
-                .column(3)
-                .abs_diff_eq(Vector::<4, T, A>::W, T::as_from(1e-4)),
-            "input contains projection: Affine::from_projective({projective:?})"
-        );
-
-        Self::from_rows(&[
-            projective[0].truncate(),
-            projective[1].truncate(),
-            projective[2].truncate(),
-            projective[3].truncate(),
         ])
     }
 }

@@ -8,7 +8,7 @@ use crate::{
     Affine, Aligned, Alignment, Dim, Element, EqTest, Matrix, One, Projective, TwoOrThree,
     TwoThreeOrFour, Unaligned, Vector, Zero,
     affine::AffineFields,
-    utils::{transmute_generic, transmute_mut, transmute_ref},
+    utils::{specialize_23, transmute_generic, transmute_mut, transmute_ref},
 };
 
 impl<const N: usize, T, A: Alignment> Affine<N, T, A>
@@ -212,6 +212,48 @@ where
         (self.matrix, self.translation)
     }
 
+    /// Creates an affine transform from a projective transform.
+    ///
+    /// This assumes `projective` contains an affine transformation.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if the last column of `projective` is not `(0, 0, ..., 1)`
+    /// (according to [`EqTest`]).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Affine2, Proj2, Vec2, Vec3};
+    /// #
+    /// let projective = Proj2::from_rows(&[
+    ///     Vec3::new(11, 12, 0),
+    ///     Vec3::new(21, 22, 0),
+    ///     Vec3::new(5, 8, 1),
+    /// ]);
+    ///
+    /// assert_eq!(
+    ///     Affine2::<f32>::from_projective(&projective),
+    ///     Affine2::from_rows(&[
+    ///         Vec2::new(11, 12),
+    ///         Vec2::new(21, 22),
+    ///         Vec2::new(5, 8),
+    ///     ]),
+    /// );
+    /// ```
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn from_projective(projective: &Projective<N, T, A>) -> Self
+    where
+        Dim<N>: TwoOrThree,
+        T: Debug + Zero + One + EqTest,
+    {
+        specialize_23!(Affine::<N, T, A>::from_projective_backend(projective))
+    }
+
     /// Converts an affine transform to a projective transform.
     #[inline]
     #[must_use]
@@ -399,6 +441,24 @@ where
             self.translation.to_homogeneous(),
         ])
     }
+
+    #[inline(always)]
+    #[track_caller]
+    fn from_projective_backend(projective: &Projective<2, T, A>) -> Self
+    where
+        T: Debug + Zero + One + EqTest,
+    {
+        debug_assert!(
+            projective.column(2).eq_test(&Vector::<3, T, A>::Z),
+            "not an affine transformation: Affine::from_projective({projective:?})"
+        );
+
+        Self::from_rows(&[
+            projective[0].truncate(),
+            projective[1].truncate(),
+            projective[2].truncate(),
+        ])
+    }
 }
 
 impl<T, A: Alignment> Affine<3, T, A>
@@ -530,6 +590,25 @@ where
             self.matrix.y_axis.extend(T::ZERO),
             self.matrix.z_axis.extend(T::ZERO),
             self.translation.to_homogeneous(),
+        ])
+    }
+
+    #[inline(always)]
+    #[track_caller]
+    fn from_projective_backend(projective: &Projective<3, T, A>) -> Self
+    where
+        T: Debug + Zero + One + EqTest,
+    {
+        debug_assert!(
+            projective.column(3).eq_test(&Vector::<4, T, A>::W),
+            "not an affine transformation: Affine::from_projective({projective:?})"
+        );
+
+        Self::from_rows(&[
+            projective[0].truncate(),
+            projective[1].truncate(),
+            projective[2].truncate(),
+            projective[3].truncate(),
         ])
     }
 }
