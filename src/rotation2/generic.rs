@@ -3,7 +3,9 @@ use core::{
     ops::{Add, Mul, Neg, Sub},
 };
 
-use crate::{Alignment, Element, EqTest, Matrix, One, Rot2, Rot2A, Rotation2, Vector, Zero};
+use crate::{
+    Affine, Alignment, Element, EqTest, Matrix, One, Rot2, Rot2A, Rotation2, Vector, Zero,
+};
 
 impl<T, A: Alignment> Rotation2<T, A>
 where
@@ -138,6 +140,28 @@ where
         );
 
         Self(matrix.x_axis)
+    }
+
+    /// Converts an affine transform to a 2D rotation represented by a complex
+    /// number.
+    ///
+    /// This assumes `affine` only contains rotation, and translation which is
+    /// ignored.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `affine` contains anything but rotation and translation
+    /// (according to [`EqTest`]).
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn from_affine(affine: &Affine<2, T, A>) -> Self
+    where
+        T: Debug + Neg<Output = T> + Add<Output = T> + Mul<Output = T> + One + EqTest,
+    {
+        Self::from_matrix(&affine.matrix)
     }
 
     /// Negates the sine element.

@@ -1,6 +1,6 @@
 use wide::{f32x4, f32x8, f32x16, f64x2, f64x4, f64x8};
 
-use crate::{Affine, Alignment, Projective, Rotation2, Vector, utils::FloatUtils};
+use crate::{Alignment, Projective, Rotation2, Vector, utils::FloatUtils};
 
 macro_rules! items {
     ($Wide:ident) => {
@@ -46,17 +46,6 @@ macro_rules! items {
         ) -> Self {
             let dot = from.dot(to);
             Self::from_cos_sin(dot, from.perp_dot(to)) * dot.signum()
-        }
-
-        /// Converts an affine transform to a 2D rotation represented by a complex
-        /// number.
-        ///
-        /// This assumes `affine` only contains rotation, and translation which is
-        /// ignored.
-        #[inline]
-        #[must_use]
-        pub fn from_affine(affine: &Affine<2, $Wide, A>) -> Self {
-            Self::from_matrix(&affine.matrix)
         }
 
         /// Converts a projective transform to a 2D rotation represented by a

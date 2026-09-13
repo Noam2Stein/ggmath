@@ -1,4 +1,4 @@
-use crate::{Affine, Alignment, FloatExt, PrimitiveFloat, Projective, Rotation2, Vector};
+use crate::{Alignment, FloatExt, PrimitiveFloat, Projective, Rotation2, Vector};
 
 impl<T, A: Alignment> Rotation2<T, A>
 where
@@ -80,24 +80,6 @@ where
         let dot = from.dot(to);
 
         Self::from_cos_sin(dot, from.perp_dot(to)) * dot.signum()
-    }
-
-    /// Converts an affine transform to a 2D rotation represented by a complex
-    /// number.
-    ///
-    /// This assumes `affine` only contains rotation, and translation which is
-    /// ignored.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `affine.matrix` is not approximately a rotation matrix.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn from_affine(affine: &Affine<2, T, A>) -> Self {
-        Self::from_matrix(&affine.matrix)
     }
 
     /// Converts a projective transform to a 2D rotation represented by a
