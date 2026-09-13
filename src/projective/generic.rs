@@ -223,6 +223,26 @@ where
         ))
     }
 
+    /// Converts a projective transform to a matrix and a translation vector.
+    ///
+    /// This assumes `self` contains an affine transformation.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` does not contain an affine transformation (according to
+    /// [`EqTest`]).
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_matrix_translation(&self) -> (Matrix<N, T, A>, Vector<N, T, A>)
+    where
+        T: Debug + Zero + One + EqTest,
+    {
+        (self.to_matrix(), self.translation())
+    }
+
     /// Creates a projective transform from an affine transform.
     ///
     /// # Examples
