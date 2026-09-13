@@ -159,6 +159,26 @@ where
         ))
     }
 
+    /// Converts a projective transform to a non-uniform scale and a translation
+    /// vector.
+    ///
+    /// This assumes `self` only contains scale and translation.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` contains anything but scale and translation (according
+    /// to [`EqTest`]).
+    #[inline]
+    #[must_use]
+    pub fn to_scale_translation(&self) -> (Vector<N, T, A>, Vector<N, T, A>)
+    where
+        T: Debug + Zero + One + EqTest,
+    {
+        (self.to_scale(), self.translation())
+    }
+
     /// Creates a projective transform from a linear transformation matrix.
     #[inline]
     #[must_use]

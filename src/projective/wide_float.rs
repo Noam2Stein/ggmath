@@ -40,16 +40,6 @@ macro_rules! items {
                 _ => unreachable!(),
             };
 
-        /// Converts a projective transform to a non-uniform scale and a
-        /// translation vector.
-        ///
-        /// This assumes `self` only contains scale and translation.
-        #[inline]
-        #[must_use]
-        pub fn to_scale_translation(&self) -> (Vector<N, $Wide, A>, Vector<N, $Wide, A>) {
-            (self.to_scale(), self.translation())
-        }
-
         /// Converts a projective transform to a matrix.
         ///
         /// This assumes `self` contains an affine transformation.
