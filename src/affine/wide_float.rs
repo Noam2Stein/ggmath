@@ -389,20 +389,6 @@ macro_rules! items_2 {
             let (scale, angle) = self.matrix.to_scale_angle();
             (scale, angle, self.translation)
         }
-
-        /// Takes the `N+1`x`N` affine transform part of an `N+1`x`N+1`
-        /// homogeneous transformation matrix, removing the last column.
-        ///
-        /// This assumes `homogeneous` does not contain projections.
-        #[inline]
-        #[must_use]
-        pub fn from_homogeneous(homogeneous: &Matrix<3, $Wide, A>) -> Self {
-            Self::from_rows(&[
-                homogeneous.x_axis.truncate(),
-                homogeneous.y_axis.truncate(),
-                homogeneous.z_axis.truncate(),
-            ])
-        }
     };
 }
 
@@ -562,21 +548,6 @@ macro_rules! items_3 {
             up: Vector<3, $Wide, A>,
         ) -> Self {
             Self::look_to_rh(eye, (center - eye).normalize(), up)
-        }
-
-        /// Takes the `N+1`x`N` affine transform part of an `N+1`x`N+1`
-        /// homogeneous transformation matrix, removing the last column.
-        ///
-        /// This assumes `homogeneous` does not contain projections.
-        #[inline]
-        #[must_use]
-        pub fn from_homogeneous(homogeneous: &Matrix<4, $Wide, A>) -> Self {
-            Self::from_rows(&[
-                homogeneous.x_axis.truncate(),
-                homogeneous.y_axis.truncate(),
-                homogeneous.z_axis.truncate(),
-                homogeneous.w_axis.truncate(),
-            ])
         }
     };
 }

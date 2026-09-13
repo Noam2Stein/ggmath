@@ -563,55 +563,6 @@ where
         let (scale, angle) = self.matrix.to_scale_angle();
         (scale, angle, self.translation)
     }
-
-    /// Takes the `N+1`x`N` affine transform part of an `N+1`x`N+1` homogeneous
-    /// transformation matrix, removing the last column.
-    ///
-    /// This assumes `homogeneous` does not contain projections.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if the last column of `homogeneous` is not approximately
-    /// `(0, 0, ..., 1)`.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::{Affine2, Mat3, Vec2, Vec3};
-    /// #
-    /// let homogeneous = Mat3::from_rows(&[
-    ///     Vec3::new(11.0, 12.0, 0.0),
-    ///     Vec3::new(21.0, 22.0, 0.0),
-    ///     Vec3::new(5.0, 8.0, 1.0),
-    /// ]);
-    ///
-    /// assert_eq!(
-    ///     Affine2::<f32>::from_homogeneous(&homogeneous),
-    ///     Affine2::from_rows(&[
-    ///         Vec2::new(11.0, 12.0),
-    ///         Vec2::new(21.0, 22.0),
-    ///         Vec2::new(5.0, 8.0),
-    ///     ]),
-    /// );
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn from_homogeneous(homogeneous: &Matrix<3, T, A>) -> Self {
-        debug_assert!(
-            homogeneous
-                .column(2)
-                .abs_diff_eq(Vector::<3, T, A>::Z, T::as_from(1e-4)),
-            "input contains projection: Affine::from_homogeneous({homogeneous:?})"
-        );
-
-        Self::from_rows(&[
-            homogeneous.x_axis.truncate(),
-            homogeneous.y_axis.truncate(),
-            homogeneous.z_axis.truncate(),
-        ])
-    }
 }
 
 impl<T, A: Alignment> Affine<3, T, A>
@@ -901,56 +852,6 @@ where
             Vector::<3, T, A>::new(right.y, up.y, -forward.y),
             Vector::<3, T, A>::new(right.z, up.z, -forward.z),
             Vector::<3, T, A>::new(-eye.dot(right), -eye.dot(up), eye.dot(forward)),
-        ])
-    }
-
-    /// Takes the `N+1`x`N` affine transform part of an `N+1`x`N+1` homogeneous
-    /// transformation matrix, removing the last column.
-    ///
-    /// This assumes `homogeneous` does not contain projections.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if the last column of `homogeneous` is not approximately
-    /// `(0, 0, ..., 1)`.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::{Affine2, Mat3, Vec2, Vec3};
-    /// #
-    /// let homogeneous = Mat3::from_rows(&[
-    ///     Vec3::new(11.0, 12.0, 0.0),
-    ///     Vec3::new(21.0, 22.0, 0.0),
-    ///     Vec3::new(5.0, 8.0, 1.0),
-    /// ]);
-    ///
-    /// assert_eq!(
-    ///     Affine2::<f32>::from_homogeneous(&homogeneous),
-    ///     Affine2::from_rows(&[
-    ///         Vec2::new(11.0, 12.0),
-    ///         Vec2::new(21.0, 22.0),
-    ///         Vec2::new(5.0, 8.0),
-    ///     ]),
-    /// );
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn from_homogeneous(homogeneous: &Matrix<4, T, A>) -> Self {
-        debug_assert!(
-            homogeneous
-                .column(3)
-                .abs_diff_eq(Vector::<4, T, A>::W, T::as_from(1e-4)),
-            "input contains projection: Affine::from_homogeneous({homogeneous:?})"
-        );
-
-        Self::from_rows(&[
-            homogeneous.x_axis.truncate(),
-            homogeneous.y_axis.truncate(),
-            homogeneous.z_axis.truncate(),
-            homogeneous.w_axis.truncate(),
         ])
     }
 }

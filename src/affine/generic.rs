@@ -406,6 +406,56 @@ where
         unsafe { *transmute_ref::<Affine<2, T, A>, [T; 6]>(self) }
     }
 
+    /// Takes the `N+1`x`N` affine transform part of an `N+1`x`N+1` homogeneous
+    /// transformation matrix, removing the last column.
+    ///
+    /// This assumes `homogeneous` contains an affine transformation.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if the last column of `homogeneous` is not `(0, 0, ..., 1)`
+    /// (according to [`EqTest`]).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Affine2, Mat3, Vec2, Vec3};
+    /// #
+    /// let homogeneous = Mat3::from_rows(&[
+    ///     Vec3::new(11, 12, 0),
+    ///     Vec3::new(21, 22, 0),
+    ///     Vec3::new(5, 8, 1),
+    /// ]);
+    ///
+    /// assert_eq!(
+    ///     Affine2::<f32>::from_homogeneous(&homogeneous),
+    ///     Affine2::from_rows(&[
+    ///         Vec2::new(11, 12),
+    ///         Vec2::new(21, 22),
+    ///         Vec2::new(5, 8),
+    ///     ]),
+    /// );
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn from_homogeneous(homogeneous: &Matrix<3, T, A>) -> Self
+    where
+        T: Debug + Zero + One + EqTest,
+    {
+        debug_assert!(
+            homogeneous.column(2).eq_test(&Vector::<3, T, A>::Z),
+            "not an affine transformation: Affine::from_homogeneous({homogeneous:?})"
+        );
+
+        Self::from_rows(&[
+            homogeneous.x_axis.truncate(),
+            homogeneous.y_axis.truncate(),
+            homogeneous.z_axis.truncate(),
+        ])
+    }
+
     /// Creates an `N+1`x`N+1` homogeneous transformation matrix from an
     /// `N+1`x`N` affine transform.
     ///
@@ -554,6 +604,57 @@ where
             // elements are consecutive
             unsafe { *transmute_ref::<Affine<3, T, A>, [T; 12]>(self) }
         }
+    }
+
+    /// Takes the `N+1`x`N` affine transform part of an `N+1`x`N+1` homogeneous
+    /// transformation matrix, removing the last column.
+    ///
+    /// This assumes `homogeneous` contains an affine transformation.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if the last column of `homogeneous` is not `(0, 0, ..., 1)`
+    /// (according to [`EqTest`]).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Affine2, Mat3, Vec2, Vec3};
+    /// #
+    /// let homogeneous = Mat3::from_rows(&[
+    ///     Vec3::new(11, 12, 0),
+    ///     Vec3::new(21, 22, 0),
+    ///     Vec3::new(5, 8, 1),
+    /// ]);
+    ///
+    /// assert_eq!(
+    ///     Affine2::<f32>::from_homogeneous(&homogeneous),
+    ///     Affine2::from_rows(&[
+    ///         Vec2::new(11, 12),
+    ///         Vec2::new(21, 22),
+    ///         Vec2::new(5, 8),
+    ///     ]),
+    /// );
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn from_homogeneous(homogeneous: &Matrix<4, T, A>) -> Self
+    where
+        T: Debug + Zero + One + EqTest,
+    {
+        debug_assert!(
+            homogeneous.column(3).eq_test(&Vector::<4, T, A>::W),
+            "not an affine transformation: Affine::from_homogeneous({homogeneous:?})"
+        );
+
+        Self::from_rows(&[
+            homogeneous.x_axis.truncate(),
+            homogeneous.y_axis.truncate(),
+            homogeneous.z_axis.truncate(),
+            homogeneous.w_axis.truncate(),
+        ])
     }
 
     /// Creates an `N+1`x`N+1` homogeneous transformation matrix from an
