@@ -1,41 +1,15 @@
 use wide::{f32x4, f32x8, f32x16, f64x2, f64x4, f64x8};
 
 use crate::{
-    Alignment, Dim, EulerRot, Matrix, Projective, Rotation2, Rotor, TwoThreeOrFour, Vector,
-    dim::{Three, TwoOrThree},
-    utils::{specialize, specialize_3, specialize_23},
+    Alignment, Dim, EulerRot, Matrix, Rotation2, Rotor, TwoThreeOrFour, Vector,
+    dim::Three,
+    utils::{specialize, specialize_3},
 };
 
 macro_rules! items {
     ($Wide:ident, $T:ident) => {
         /// A matrix with all elements set to NaN (Not a Number).
         pub const NAN: Self = Self::from_rows(&[Vector::<N, $Wide, A>::NAN; N]);
-
-        /// Converts a matrix to a non-uniform scale.
-        ///
-        /// This assumes `self` is a diagonal matrix.
-        ///
-        /// This is the same operation as [`diagonal`].
-        ///
-        /// [`diagonal`]: Self::diagonal
-        #[inline]
-        #[must_use]
-        pub fn to_scale(&self) -> Vector<N, $Wide, A> {
-            self.diagonal()
-        }
-
-        /// Converts a projective transform to a linear transformation matrix.
-        ///
-        /// This assumes `projective` does not contain projections. If there is
-        /// translation, it is ignored.
-        #[inline]
-        #[must_use]
-        pub fn from_projective(projective: &Projective<N, $Wide, A>) -> Self
-        where
-            Dim<N>: TwoOrThree,
-        {
-            specialize_23!(Matrix::<N, $Wide, A>::from_projective_backend(projective))
-        }
 
         /// Creates a matrix from a rotor.
         ///
@@ -288,17 +262,6 @@ macro_rules! items_2 {
             let angle = (-self.y_axis.x).atan2(self.y_axis.y);
 
             (scale, angle)
-        }
-
-        /// Takes the `N`x`N` linear transformation part of an `N+1`x`N+1`
-        /// homogeneous transformation matrix, removing the last row and column.
-        ///
-        /// This assumes `homogeneous` does not contain projections. If there is
-        /// translation, it is ignored.
-        #[inline]
-        #[must_use]
-        pub fn from_homogeneous(homogeneous: &Matrix<3, $Wide, A>) -> Self {
-            Self::from_rows(&[homogeneous.x_axis.truncate(), homogeneous.y_axis.truncate()])
         }
     };
 }
@@ -586,21 +549,6 @@ macro_rules! items_3 {
         ) -> Self {
             Self::look_to_rh((center - eye).normalize(), up)
         }
-
-        /// Takes the `N`x`N` linear transformation part of an `N+1`x`N+1`
-        /// homogeneous transformation matrix, removing the last row and column.
-        ///
-        /// This assumes `homogeneous` does not contain projections. If there is
-        /// translation, it is ignored.
-        #[inline]
-        #[must_use]
-        pub fn from_homogeneous(homogeneous: &Matrix<4, $Wide, A>) -> Self {
-            Self::from_rows(&[
-                homogeneous.x_axis.truncate(),
-                homogeneous.y_axis.truncate(),
-                homogeneous.z_axis.truncate(),
-            ])
-        }
     };
 }
 
@@ -684,11 +632,6 @@ macro_rules! impl_items {
             items_2!($Wide, $T);
 
             #[inline(always)]
-            fn from_projective_backend(projective: &Projective<2, $Wide, A>) -> Self {
-                Self::from_rows(&[projective.x_axis.truncate(), projective.y_axis.truncate()])
-            }
-
-            #[inline(always)]
             fn is_nan_backend(&self) -> $Wide {
                 self.x_axis.is_nan() | self.y_axis.is_nan()
             }
@@ -753,15 +696,6 @@ macro_rules! impl_items {
         #[cfg(not(doc))]
         impl<A: Alignment> Matrix<3, $Wide, A> {
             items_3!($Wide, $T);
-
-            #[inline(always)]
-            fn from_projective_backend(projective: &Projective<3, $Wide, A>) -> Self {
-                Self::from_rows(&[
-                    projective.x_axis.truncate(),
-                    projective.y_axis.truncate(),
-                    projective.z_axis.truncate(),
-                ])
-            }
 
             #[inline(always)]
             fn from_rotor_backend(rotor: Rotor<3, $Wide, A>) -> Self {
@@ -1052,11 +986,8 @@ impl_items!(f64x8, f64);
 mod tests {
     extern crate std;
 
-    use wide::f32x4;
-
     use crate::{
-        EulerRot, Mat2, Mat3, Mat4, Matrix, Projective, Rot2, Rotor3, Unaligned, Vec2, Vec3,
-        Vector,
+        EulerRot, Mat2, Mat3, Mat4, Matrix, Rot2, Rotor3, Unaligned, Vec2, Vec3, Vector,
         test_utils::{assert_test_eq, assert_test_eq_or_panic, for_types, random_iter},
     };
 
@@ -1067,20 +998,6 @@ mod tests {
                 Matrix::<N, Wide, Unaligned>::NAN,
                 Matrix::from_rows(&[Vector::<N, Wide, Unaligned>::NAN; N])
             );
-        });
-    }
-
-    #[test]
-    fn test_from_projective() {
-        for_types!(|N: TwoOrThree| {
-            for projective in random_iter::<Projective<N, f32x4, Unaligned>>() {
-                assert_test_eq_or_panic!(
-                    Matrix::<N, f32x4, Unaligned>::from_projective(&projective),
-                    Matrix::from_lane_fn(|lane| Matrix::<N, f32, Unaligned>::from_projective(
-                        &projective.lane(lane)
-                    ))
-                );
-            }
         });
     }
 
@@ -1324,22 +1241,6 @@ mod tests {
                 );
             }
         });
-    }
-
-    #[test]
-    fn test_from_homogeneous() {
-        for homogeneous in random_iter::<Mat3<f32x4>>() {
-            assert_test_eq_or_panic!(
-                Mat2::<f32x4>::from_homogeneous(&homogeneous),
-                Matrix::from_lane_fn(|lane| Mat2::<f32>::from_homogeneous(&homogeneous.lane(lane)))
-            );
-        }
-        for homogeneous in random_iter::<Mat4<f32x4>>() {
-            assert_test_eq_or_panic!(
-                Mat3::<f32x4>::from_homogeneous(&homogeneous),
-                Matrix::from_lane_fn(|lane| Mat3::<f32>::from_homogeneous(&homogeneous.lane(lane)))
-            );
-        }
     }
 
     #[test]

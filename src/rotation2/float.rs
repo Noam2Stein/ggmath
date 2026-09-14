@@ -1,4 +1,4 @@
-use crate::{Affine, Alignment, FloatExt, Matrix, PrimitiveFloat, Projective, Rotation2, Vector};
+use crate::{Alignment, PrimitiveFloat, Rotation2, Vector};
 
 impl<T, A: Alignment> Rotation2<T, A>
 where
@@ -37,27 +37,6 @@ where
         self.sin.atan2(self.cos)
     }
 
-    /// Returns the rotation transforming `from` to `to`.
-    ///
-    /// This assumes `from` and `to` are normalized.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `from` or `to` are not normalized.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn from_rotation_arc(from: Vector<2, T, A>, to: Vector<2, T, A>) -> Self {
-        debug_assert!(
-            from.is_normalized() && to.is_normalized(),
-            "vectors are not normalized: from_rotation_arc({from:?}, {to:?})"
-        );
-
-        Self::from_cos_sin(from.dot(to), from.perp_dot(to))
-    }
-
     /// Returns the rotation transforming `from` to either `to` or `-to`,
     /// rotating up to 90 degrees.
     ///
@@ -80,123 +59,6 @@ where
         let dot = from.dot(to);
 
         Self::from_cos_sin(dot, from.perp_dot(to)) * dot.signum()
-    }
-
-    /// Converts a rotation matrix to a 2D rotation represented by a complex
-    /// number.
-    ///
-    /// This assumes `matrix` only contains rotation.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `matrix` is not approximately a rotation matrix.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn from_matrix(matrix: &Matrix<2, T, A>) -> Self {
-        debug_assert!(
-            matrix
-                .x_axis
-                .length_squared()
-                .abs_diff_eq(T::ONE, T::as_from(1e-4))
-                && matrix
-                    .y_axis
-                    .length_squared()
-                    .abs_diff_eq(T::ONE, T::as_from(1e-4))
-                && matrix
-                    .x_axis
-                    .perp_dot(matrix.y_axis)
-                    .abs_diff_eq(T::ONE, T::as_from(1e-4)),
-            "not a rotation matrix: Rot2::from_matrix({matrix:?})"
-        );
-
-        Self(matrix.x_axis)
-    }
-
-    /// Converts an affine transform to a 2D rotation represented by a complex
-    /// number.
-    ///
-    /// This assumes `affine` only contains rotation, and translation which is
-    /// ignored.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `affine.matrix` is not approximately a rotation matrix.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn from_affine(affine: &Affine<2, T, A>) -> Self {
-        Self::from_matrix(&affine.matrix)
-    }
-
-    /// Converts a projective transform to a 2D rotation represented by a
-    /// complex number.
-    ///
-    /// This assumes `projective` only contains rotation, and translation which
-    /// is ignored.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `projective` is not approximately a rotation matrix.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn from_projective(projective: &Projective<2, T, A>) -> Self {
-        debug_assert!(
-            projective
-                .x_axis
-                .truncate()
-                .length_squared()
-                .abs_diff_eq(T::ONE, T::as_from(1e-4))
-                && projective
-                    .y_axis
-                    .truncate()
-                    .length_squared()
-                    .abs_diff_eq(T::ONE, T::as_from(1e-4))
-                && projective
-                    .x_axis
-                    .truncate()
-                    .perp_dot(projective.y_axis.truncate())
-                    .abs_diff_eq(T::ONE, T::as_from(1e-4))
-                && projective
-                    .z_axis
-                    .abs_diff_eq(Vector::<3, T, A>::Z, T::as_from(1e-4)),
-            "not a rotation: Rot2::from_projective({projective:?})"
-        );
-
-        Self(projective.x_axis.truncate())
-    }
-
-    /// Returns the inverse of a 2D rotation.
-    ///
-    /// This assumes `self` is normalized.
-    ///
-    /// This is the same as [`conjugate`], but asserts that `self` is
-    /// normalized.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `self` is not normalized.
-    ///
-    /// [`conjugate`]: Self::conjugate
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn inverse(self) -> Self {
-        debug_assert!(
-            self.is_normalized(),
-            "2D rotation is not normalized: {self:?}.inverse()"
-        );
-
-        self.conjugate()
     }
 
     /// Returns the absolute angle (in radians) between two rotations.
@@ -476,26 +338,9 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{
-        Matrix, Projective, Rotation2, Vector,
+        Rotation2, Vector,
         test_utils::{assert_debug_panic, assert_test_eq, for_types, random_iter},
     };
-
-    #[test]
-    fn test_from_rotation_arc() {
-        for_types!(|T: PrimitiveFloat, A| {
-            for [from, to] in random_iter::<[Vector<2, T, A>; 2]>() {
-                let [from, to] =
-                    [from, to].map(|v| v.normalize_or(Vector::<2, T, A>::X).normalize());
-
-                assert_test_eq!(
-                    from * Rotation2::<T, A>::from_rotation_arc(from, to),
-                    to,
-                    abs <= 1e-5,
-                    0.0 = -0.0
-                );
-            }
-        });
-    }
 
     #[test]
     fn test_from_rotation_arc_colinear() {
@@ -518,39 +363,6 @@ mod tests {
     }
 
     #[test]
-    fn test_from_matrix() {
-        for_types!(|T: PrimitiveFloat, A| {
-            for (vector, angle) in
-                random_iter::<(Vector<2, T, A>, T)>().filter(|(_, angle)| angle.is_finite())
-            {
-                let matrix = Matrix::<2, T, A>::from_angle(angle);
-
-                assert_test_eq!(
-                    vector * Rotation2::<T, A>::from_matrix(&matrix),
-                    vector * matrix
-                );
-            }
-        });
-    }
-
-    #[test]
-    fn test_from_projective() {
-        for_types!(|T: PrimitiveFloat, A| {
-            for (vector, angle) in
-                random_iter::<(Vector<2, T, A>, T)>().filter(|(_, angle)| angle.is_finite())
-            {
-                let projective = Projective::<2, T, A>::from_angle(angle);
-
-                assert_test_eq!(
-                    vector * Rotation2::<T, A>::from_projective(&projective),
-                    projective.transform_point(vector),
-                    0.0 = -0.0
-                );
-            }
-        });
-    }
-
-    #[test]
     fn test_to_angle() {
         for_types!(|T: PrimitiveFloat, A| {
             for angle in random_iter::<T>().filter(|angle| angle.is_finite()) {
@@ -560,22 +372,6 @@ mod tests {
                     Rotation2::<T, A>::from_angle(angle).to_angle(),
                     angle,
                     abs <= 1e-4
-                );
-            }
-        });
-    }
-
-    #[test]
-    fn test_inverse() {
-        for_types!(|T: PrimitiveFloat, A| {
-            for rotation in random_iter::<Rotation2<T, A>>() {
-                let rotation = rotation.normalize_or(Rotation2::IDENTITY).normalize();
-
-                assert_test_eq!(
-                    rotation * rotation.inverse(),
-                    Rotation2::IDENTITY,
-                    abs <= 1e-4,
-                    0.0 = -0.0
                 );
             }
         });

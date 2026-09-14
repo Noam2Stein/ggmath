@@ -5,7 +5,8 @@ use core::{
 };
 
 use crate::{
-    Affine, Aligned, Alignment, Dim, Element, Matrix, One, Projective, Unaligned, Vector, Zero,
+    Affine, Aligned, Alignment, Dim, Element, EqTest, Matrix, One, Projective, Unaligned, Vector,
+    Zero,
     dim::TwoOrThree,
     utils::{specialize_23, transmute_generic, transmute_ref},
 };
@@ -90,6 +91,27 @@ where
         specialize_23!(Projective::<N, T, A>::from_scale_backend(scale))
     }
 
+    /// Converts a projective transform to a non-uniform scale.
+    ///
+    /// This assumes `self` only contains scale, and translation which is
+    /// ignored.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` contains anything but scale and translation (according
+    /// to [`EqTest`]).
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_scale(&self) -> Vector<N, T, A>
+    where
+        T: Debug + Zero + One + EqTest,
+    {
+        Matrix::<N, T, A>::from_projective(self).to_scale()
+    }
+
     /// Creates a projective transform from a `translation` vector.
     #[inline]
     #[must_use]
@@ -137,6 +159,26 @@ where
         ))
     }
 
+    /// Converts a projective transform to a non-uniform scale and a translation
+    /// vector.
+    ///
+    /// This assumes `self` only contains scale and translation.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` contains anything but scale and translation (according
+    /// to [`EqTest`]).
+    #[inline]
+    #[must_use]
+    pub fn to_scale_translation(&self) -> (Vector<N, T, A>, Vector<N, T, A>)
+    where
+        T: Debug + Zero + One + EqTest,
+    {
+        (self.to_scale(), self.translation())
+    }
+
     /// Creates a projective transform from a linear transformation matrix.
     #[inline]
     #[must_use]
@@ -145,6 +187,26 @@ where
         T: Zero + One,
     {
         specialize_23!(Projective::<N, T, A>::from_matrix_backend(matrix))
+    }
+
+    /// Converts a projective transform to a matrix.
+    ///
+    /// This assumes `self` contains an affine transformation.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` does not contain an affine transformation (according to
+    /// [`EqTest`]).
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_matrix(&self) -> Matrix<N, T, A>
+    where
+        T: Debug + Zero + One + EqTest,
+    {
+        Matrix::<N, T, A>::from_projective(self)
     }
 
     /// Creates a projective transform from a linear transformation `matrix` and
@@ -159,6 +221,26 @@ where
             matrix,
             translation
         ))
+    }
+
+    /// Converts a projective transform to a matrix and a translation vector.
+    ///
+    /// This assumes `self` contains an affine transformation.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` does not contain an affine transformation (according to
+    /// [`EqTest`]).
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_matrix_translation(&self) -> (Matrix<N, T, A>, Vector<N, T, A>)
+    where
+        T: Debug + Zero + One + EqTest,
+    {
+        (self.to_matrix(), self.translation())
     }
 
     /// Creates a projective transform from an affine transform.
@@ -190,6 +272,72 @@ where
         T: Zero + One,
     {
         specialize_23!(Projective::<N, T, A>::from_affine_backend(affine))
+    }
+
+    /// Converts a projective transform to an affine transform.
+    ///
+    /// This assumes `self` contains an affine transformation.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` does not contain an affine transformation (according to
+    /// [`EqTest`]).
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_affine(&self) -> Affine<N, T, A>
+    where
+        T: Debug + Zero + One + EqTest,
+    {
+        Affine::<N, T, A>::from_projective(self)
+    }
+
+    /// Transforms the given vector as a point.
+    ///
+    /// Equivalent to `(point, 1) * self` but is faster.
+    ///
+    /// This function assumes `self` contains an affine transformation.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if the last column of `self` is not `(0, 0, ..., 1)` (according
+    /// to [`EqTest`]).
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn transform_point(&self, point: Vector<N, T, A>) -> Vector<N, T, A>
+    where
+        T: Debug + Add<Output = T> + Mul<Output = T> + Zero + One + EqTest,
+    {
+        specialize_23!(Projective::<N, T, A>::transform_point_backend(self, point))
+    }
+
+    /// Transforms the given vector without applying translation.
+    ///
+    /// Equivalent to `(vector, 0) * self` but is faster.
+    ///
+    /// This function assumes `self` contains an affine transformation.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if the last column of `self` is not `(0, 0, ..., 1)` (according
+    /// to [`EqTest`]).
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn transform_vector(&self, vector: Vector<N, T, A>) -> Vector<N, T, A>
+    where
+        T: Debug + Add<Output = T> + Mul<Output = T> + Zero + One + EqTest,
+    {
+        specialize_23!(Projective::<N, T, A>::transform_vector_backend(
+            self, vector
+        ))
     }
 
     /// Converts `self` to SIMD-aligned storage.
@@ -480,6 +628,34 @@ where
     #[inline(always)]
     fn translation_backend(&self) -> Vector<2, T, A> {
         self.0.z_axis.truncate()
+    }
+
+    #[inline(always)]
+    #[track_caller]
+    fn transform_point_backend(&self, point: Vector<2, T, A>) -> Vector<2, T, A>
+    where
+        T: Debug + Add<Output = T> + Mul<Output = T> + Zero + One + EqTest,
+    {
+        debug_assert!(
+            self.column(2).eq_test(&Vector::<3, T, A>::Z),
+            "not an affine transformation: {self:?}.transform_point({point:?})"
+        );
+
+        self.x_axis.truncate() * point.x + self.y_axis.truncate() * point.y + self.z_axis.truncate()
+    }
+
+    #[inline(always)]
+    #[track_caller]
+    fn transform_vector_backend(&self, vector: Vector<2, T, A>) -> Vector<2, T, A>
+    where
+        T: Debug + Add<Output = T> + Mul<Output = T> + Zero + One + EqTest,
+    {
+        debug_assert!(
+            self.column(2).eq_test(&Vector::<3, T, A>::Z),
+            "not an affine transformation: {self:?}.transform_vector({vector:?})"
+        );
+
+        self.x_axis.truncate() * vector.x + self.y_axis.truncate() * vector.y
     }
 
     #[inline(always)]
@@ -799,6 +975,39 @@ where
     #[inline(always)]
     fn translation_backend(&self) -> Vector<3, T, A> {
         self.0.w_axis.truncate()
+    }
+
+    #[inline(always)]
+    #[track_caller]
+    fn transform_point_backend(&self, point: Vector<3, T, A>) -> Vector<3, T, A>
+    where
+        T: Debug + Add<Output = T> + Mul<Output = T> + Zero + One + EqTest,
+    {
+        debug_assert!(
+            self.column(3).eq_test(&Vector::<4, T, A>::W),
+            "not an affine transformation: {self:?}.transform_point({point:?})"
+        );
+
+        self.x_axis.truncate() * point.x
+            + self.y_axis.truncate() * point.y
+            + self.z_axis.truncate() * point.z
+            + self.w_axis.truncate()
+    }
+
+    #[inline(always)]
+    #[track_caller]
+    fn transform_vector_backend(&self, vector: Vector<3, T, A>) -> Vector<3, T, A>
+    where
+        T: Debug + Add<Output = T> + Mul<Output = T> + Zero + One + EqTest,
+    {
+        debug_assert!(
+            self.column(3).eq_test(&Vector::<4, T, A>::W),
+            "not an affine transformation: {self:?}.transform_vector({vector:?})"
+        );
+
+        self.x_axis.truncate() * vector.x
+            + self.y_axis.truncate() * vector.y
+            + self.z_axis.truncate() * vector.z
     }
 
     #[inline(always)]

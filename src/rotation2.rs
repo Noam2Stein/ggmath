@@ -769,9 +769,75 @@ mod tests {
     use std::format;
 
     use crate::{
-        Rotation2, Vector,
+        Matrix, Projective, Rotation2, Vector,
         test_utils::{assert_test_eq, for_types, random_iter},
     };
+
+    #[test]
+    fn test_from_matrix() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for (vector, angle) in
+                random_iter::<(Vector<2, T, A>, T)>().filter(|(_, angle)| angle.is_finite())
+            {
+                let matrix = Matrix::<2, T, A>::from_angle(angle);
+
+                assert_test_eq!(
+                    vector * Rotation2::<T, A>::from_matrix(&matrix),
+                    vector * matrix
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_projective() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for (vector, angle) in
+                random_iter::<(Vector<2, T, A>, T)>().filter(|(_, angle)| angle.is_finite())
+            {
+                let projective = Projective::<2, T, A>::from_angle(angle);
+
+                assert_test_eq!(
+                    vector * Rotation2::<T, A>::from_projective(&projective),
+                    projective.transform_point(vector),
+                    0.0 = -0.0
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_rotation_arc() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for [from, to] in random_iter::<[Vector<2, T, A>; 2]>() {
+                let [from, to] =
+                    [from, to].map(|v| v.normalize_or(Vector::<2, T, A>::X).normalize());
+
+                assert_test_eq!(
+                    from * Rotation2::<T, A>::from_rotation_arc(from, to),
+                    to,
+                    abs <= 1e-5,
+                    0.0 = -0.0
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_inverse() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for rotation in random_iter::<Rotation2<T, A>>() {
+                let rotation = rotation.normalize_or(Rotation2::IDENTITY).normalize();
+
+                assert_test_eq!(
+                    rotation * rotation.inverse(),
+                    Rotation2::IDENTITY,
+                    abs <= 1e-4,
+                    0.0 = -0.0
+                );
+            }
+        });
+    }
 
     #[test]
     fn test_deref() {

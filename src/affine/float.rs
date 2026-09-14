@@ -1,8 +1,6 @@
 use crate::{
-    Affine, Alignment, Dim, EulerRot, Matrix, PrimitiveFloat, Projective, Rotation2, Rotor,
-    TwoThreeOrFour, Vector,
-    dim::{Three, TwoOrThree},
-    utils::specialize_23,
+    Affine, Alignment, Dim, EulerRot, Matrix, PrimitiveFloat, Rotation2, Rotor, TwoThreeOrFour,
+    Vector, dim::Three,
 };
 
 impl<const N: usize, T, A: Alignment> Affine<N, T, A>
@@ -13,83 +11,6 @@ where
     /// An affine transform with all elements set to NaN (Not a Number).
     pub const NAN: Self =
         Self::from_matrix_translation(&Matrix::<N, T, A>::NAN, Vector::<N, T, A>::NAN);
-
-    /// Converts an affine transform to a non-uniform scale.
-    ///
-    /// This assumes `self` only contains scale, and translation which is
-    /// ignored.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `self` does not approximately only contain scale and
-    /// translation.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn to_scale(&self) -> Vector<N, T, A> {
-        self.matrix.to_scale()
-    }
-
-    /// Converts an affine transform to a non-uniform scale and a translation
-    /// vector.
-    ///
-    /// This assumes `self` only contains scale and translation.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `self` does not approximately only contain scale and
-    /// translation.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn to_scale_translation(&self) -> (Vector<N, T, A>, Vector<N, T, A>) {
-        (self.to_scale(), self.translation)
-    }
-
-    /// Creates an affine transform from a projective transform.
-    ///
-    /// This assumes `projective` does not contain projections.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if the last column of `projective` is not approximately
-    /// `(0, 0, ..., 1)`.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::{Affine2, Proj2, Vec2, Vec3};
-    /// #
-    /// let projective = Proj2::from_rows(&[
-    ///     Vec3::new(11.0, 12.0, 0.0),
-    ///     Vec3::new(21.0, 22.0, 0.0),
-    ///     Vec3::new(5.0, 8.0, 1.0),
-    /// ]);
-    ///
-    /// assert_eq!(
-    ///     Affine2::<f32>::from_projective(&projective),
-    ///     Affine2::from_rows(&[
-    ///         Vec2::new(11.0, 12.0),
-    ///         Vec2::new(21.0, 22.0),
-    ///         Vec2::new(5.0, 8.0),
-    ///     ]),
-    /// );
-    /// ```
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn from_projective(projective: &Projective<N, T, A>) -> Self
-    where
-        Dim<N>: TwoOrThree,
-    {
-        specialize_23!(Affine::<N, T, A>::from_projective_backend(projective))
-    }
 
     /// Creates an affine transform from a rotor.
     ///
@@ -642,72 +563,6 @@ where
         let (scale, angle) = self.matrix.to_scale_angle();
         (scale, angle, self.translation)
     }
-
-    /// Takes the `N+1`x`N` affine transform part of an `N+1`x`N+1` homogeneous
-    /// transformation matrix, removing the last column.
-    ///
-    /// This assumes `homogeneous` does not contain projections.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if the last column of `homogeneous` is not approximately
-    /// `(0, 0, ..., 1)`.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::{Affine2, Mat3, Vec2, Vec3};
-    /// #
-    /// let homogeneous = Mat3::from_rows(&[
-    ///     Vec3::new(11.0, 12.0, 0.0),
-    ///     Vec3::new(21.0, 22.0, 0.0),
-    ///     Vec3::new(5.0, 8.0, 1.0),
-    /// ]);
-    ///
-    /// assert_eq!(
-    ///     Affine2::<f32>::from_homogeneous(&homogeneous),
-    ///     Affine2::from_rows(&[
-    ///         Vec2::new(11.0, 12.0),
-    ///         Vec2::new(21.0, 22.0),
-    ///         Vec2::new(5.0, 8.0),
-    ///     ]),
-    /// );
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn from_homogeneous(homogeneous: &Matrix<3, T, A>) -> Self {
-        debug_assert!(
-            homogeneous
-                .column(2)
-                .abs_diff_eq(Vector::<3, T, A>::Z, T::as_from(1e-4)),
-            "input contains projection: Affine::from_homogeneous({homogeneous:?})"
-        );
-
-        Self::from_rows(&[
-            homogeneous.x_axis.truncate(),
-            homogeneous.y_axis.truncate(),
-            homogeneous.z_axis.truncate(),
-        ])
-    }
-
-    #[inline(always)]
-    #[track_caller]
-    fn from_projective_backend(projective: &Projective<2, T, A>) -> Self {
-        debug_assert!(
-            projective
-                .column(2)
-                .abs_diff_eq(Vector::<3, T, A>::Z, T::as_from(1e-4)),
-            "input contains projection: Affine::from_projective({projective:?})"
-        );
-
-        Self::from_rows(&[
-            projective[0].truncate(),
-            projective[1].truncate(),
-            projective[2].truncate(),
-        ])
-    }
 }
 
 impl<T, A: Alignment> Affine<3, T, A>
@@ -999,74 +854,6 @@ where
             Vector::<3, T, A>::new(-eye.dot(right), -eye.dot(up), eye.dot(forward)),
         ])
     }
-
-    /// Takes the `N+1`x`N` affine transform part of an `N+1`x`N+1` homogeneous
-    /// transformation matrix, removing the last column.
-    ///
-    /// This assumes `homogeneous` does not contain projections.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if the last column of `homogeneous` is not approximately
-    /// `(0, 0, ..., 1)`.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::{Affine2, Mat3, Vec2, Vec3};
-    /// #
-    /// let homogeneous = Mat3::from_rows(&[
-    ///     Vec3::new(11.0, 12.0, 0.0),
-    ///     Vec3::new(21.0, 22.0, 0.0),
-    ///     Vec3::new(5.0, 8.0, 1.0),
-    /// ]);
-    ///
-    /// assert_eq!(
-    ///     Affine2::<f32>::from_homogeneous(&homogeneous),
-    ///     Affine2::from_rows(&[
-    ///         Vec2::new(11.0, 12.0),
-    ///         Vec2::new(21.0, 22.0),
-    ///         Vec2::new(5.0, 8.0),
-    ///     ]),
-    /// );
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn from_homogeneous(homogeneous: &Matrix<4, T, A>) -> Self {
-        debug_assert!(
-            homogeneous
-                .column(3)
-                .abs_diff_eq(Vector::<4, T, A>::W, T::as_from(1e-4)),
-            "input contains projection: Affine::from_homogeneous({homogeneous:?})"
-        );
-
-        Self::from_rows(&[
-            homogeneous.x_axis.truncate(),
-            homogeneous.y_axis.truncate(),
-            homogeneous.z_axis.truncate(),
-            homogeneous.w_axis.truncate(),
-        ])
-    }
-
-    #[inline(always)]
-    #[track_caller]
-    fn from_projective_backend(projective: &Projective<3, T, A>) -> Self {
-        debug_assert!(
-            projective
-                .column(3)
-                .abs_diff_eq(Vector::<4, T, A>::W, T::as_from(1e-4)),
-            "input contains projection: Affine::from_projective({projective:?})"
-        );
-
-        Self::from_rows(&[
-            projective[0].truncate(),
-            projective[1].truncate(),
-            projective[2].truncate(),
-            projective[3].truncate(),
-        ])
-    }
 }
 
 #[cfg(test)]
@@ -1087,57 +874,6 @@ mod tests {
                 Affine::<N, T, A>::NAN,
                 Affine::from_matrix_translation(&Matrix::<N, T, A>::NAN, Vector::<N, T, A>::NAN)
             );
-        });
-    }
-
-    #[test]
-    fn test_from_projective() {
-        for_types!(|T: PrimitiveFloat, A| {
-            let projective = Projective::<2, T, A>::from_rows(&[
-                Vector::<3, T, A>::new(0.9, 0.2, 1e-5),
-                Vector::<3, T, A>::new(0.1, 0.8, 1e-5),
-                Vector::<3, T, A>::new(5.3, 3.2, 1.0 + 1e-5),
-            ]);
-            assert_eq!(
-                Affine::<2, T, A>::from_projective(&projective),
-                Affine::<2, T, A>::from_rows(&[
-                    projective.x_axis.truncate(),
-                    projective.y_axis.truncate(),
-                    projective.z_axis.truncate(),
-                ])
-            );
-
-            let projective = Projective::<3, T, A>::from_rows(&[
-                Vector::<4, T, A>::new(0.9, 0.2, 0.1, 1e-5),
-                Vector::<4, T, A>::new(0.1, 0.8, 0.3, 1e-5),
-                Vector::<4, T, A>::new(0.2, 0.1, 0.8, 1e-5),
-                Vector::<4, T, A>::new(5.3, 3.2, 9.8, 1.0 + 1e-5),
-            ]);
-            assert_eq!(
-                Affine::<3, T, A>::from_projective(&projective),
-                Affine::<3, T, A>::from_rows(&[
-                    projective.x_axis.truncate(),
-                    projective.y_axis.truncate(),
-                    projective.z_axis.truncate(),
-                    projective.w_axis.truncate(),
-                ])
-            );
-
-            assert_debug_panic!(Affine::<2, T, A>::from_projective(
-                &Projective::<2, T, A>::from_rows(&[
-                    Vector::<3, T, A>::new(0.9, 0.2, 2.0),
-                    Vector::<3, T, A>::new(0.1, 0.8, 0.0),
-                    Vector::<3, T, A>::new(5.3, 3.2, 1.0),
-                ])
-            ));
-            assert_debug_panic!(Affine::<3, T, A>::from_projective(
-                &Projective::<3, T, A>::from_rows(&[
-                    Vector::<4, T, A>::new(0.9, 0.2, 0.1, 2.0),
-                    Vector::<4, T, A>::new(0.1, 0.8, 0.3, 3.1),
-                    Vector::<4, T, A>::new(0.2, 0.1, 0.8, 0.0),
-                    Vector::<4, T, A>::new(5.3, 3.2, 9.8, 1.0),
-                ])
-            ));
         });
     }
 
@@ -1412,53 +1148,6 @@ mod tests {
                     )
                 );
             }
-        });
-    }
-
-    #[test]
-    fn test_from_homogeneous() {
-        for_types!(|T: PrimitiveFloat, A| {
-            let homogeneous = Matrix::from_rows(&[
-                Vector::<3, T, A>::new(0.9, 0.2, 1e-5),
-                Vector::<3, T, A>::new(0.1, 0.8, 1e-5),
-                Vector::<3, T, A>::new(5.3, 3.2, 1.0 + 1e-5),
-            ]);
-            assert_eq!(
-                Affine::<2, T, A>::from_homogeneous(&homogeneous),
-                Affine::<2, T, A>::from_rows(&[
-                    homogeneous.x_axis.truncate(),
-                    homogeneous.y_axis.truncate(),
-                    homogeneous.z_axis.truncate(),
-                ])
-            );
-
-            let homogeneous = Matrix::from_rows(&[
-                Vector::<4, T, A>::new(0.9, 0.2, 0.1, 1e-5),
-                Vector::<4, T, A>::new(0.1, 0.8, 0.3, 1e-5),
-                Vector::<4, T, A>::new(0.2, 0.1, 0.8, 1e-5),
-                Vector::<4, T, A>::new(5.3, 3.2, 9.8, 1.0 + 1e-5),
-            ]);
-            assert_eq!(
-                Affine::<3, T, A>::from_homogeneous(&homogeneous),
-                Affine::<3, T, A>::from_rows(&[
-                    homogeneous.x_axis.truncate(),
-                    homogeneous.y_axis.truncate(),
-                    homogeneous.z_axis.truncate(),
-                    homogeneous.w_axis.truncate(),
-                ])
-            );
-
-            assert_debug_panic!(Affine::<2, T, A>::from_homogeneous(&Matrix::from_rows(&[
-                Vector::<3, T, A>::new(0.9, 0.2, 2.0),
-                Vector::<3, T, A>::new(0.1, 0.8, 0.0),
-                Vector::<3, T, A>::new(5.3, 3.2, 1.0),
-            ])));
-            assert_debug_panic!(Affine::<3, T, A>::from_homogeneous(&Matrix::from_rows(&[
-                Vector::<4, T, A>::new(0.9, 0.2, 0.1, 2.0),
-                Vector::<4, T, A>::new(0.1, 0.8, 0.3, 3.1),
-                Vector::<4, T, A>::new(0.2, 0.1, 0.8, 0.0),
-                Vector::<4, T, A>::new(5.3, 3.2, 9.8, 1.0),
-            ])));
         });
     }
 

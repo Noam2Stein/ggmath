@@ -1,6 +1,6 @@
 use wide::{f32x4, f32x8, f32x16, f64x2, f64x4, f64x8};
 
-use crate::{Affine, Alignment, Matrix, Projective, Rotation2, Vector, utils::FloatUtils};
+use crate::{Alignment, Rotation2, Vector, utils::FloatUtils};
 
 macro_rules! items {
     ($Wide:ident) => {
@@ -25,15 +25,6 @@ macro_rules! items {
             self.sin.atan2(self.cos)
         }
 
-        /// Returns the rotation transforming `from` to `to`.
-        ///
-        /// This assumes `from` and `to` are normalized.
-        #[inline]
-        #[must_use]
-        pub fn from_rotation_arc(from: Vector<2, $Wide, A>, to: Vector<2, $Wide, A>) -> Self {
-            Self::from_cos_sin(from.dot(to), from.perp_dot(to))
-        }
-
         /// Returns the rotation transforming `from` to either `to` or `-to`,
         /// rotating up to 90 degrees.
         ///
@@ -46,51 +37,6 @@ macro_rules! items {
         ) -> Self {
             let dot = from.dot(to);
             Self::from_cos_sin(dot, from.perp_dot(to)) * dot.signum()
-        }
-
-        /// Converts a rotation matrix to a 2D rotation represented by a complex
-        /// number.
-        ///
-        /// This assumes `matrix` only contains rotation.
-        #[inline]
-        #[must_use]
-        pub fn from_matrix(matrix: &Matrix<2, $Wide, A>) -> Self {
-            Self(matrix.x_axis)
-        }
-
-        /// Converts an affine transform to a 2D rotation represented by a complex
-        /// number.
-        ///
-        /// This assumes `affine` only contains rotation, and translation which is
-        /// ignored.
-        #[inline]
-        #[must_use]
-        pub fn from_affine(affine: &Affine<2, $Wide, A>) -> Self {
-            Self::from_matrix(&affine.matrix)
-        }
-
-        /// Converts a projective transform to a 2D rotation represented by a
-        /// complex number.
-        ///
-        /// This assumes `projective` only contains rotation, and translation which
-        /// is ignored.
-        #[inline]
-        #[must_use]
-        pub fn from_projective(projective: &Projective<2, $Wide, A>) -> Self {
-            Self(projective.x_axis.truncate())
-        }
-
-        /// Returns the inverse of a 2D rotation.
-        ///
-        /// This assumes `self` is normalized.
-        ///
-        /// This is the same as [`conjugate`].
-        ///
-        /// [`conjugate`]: Self::conjugate
-        #[inline]
-        #[must_use]
-        pub fn inverse(self) -> Self {
-            self.conjugate()
         }
 
         /// Returns the absolute angle (in radians) between two rotations.
@@ -319,26 +265,9 @@ impl_items!(f64x8);
 #[cfg(test)]
 mod tests {
     use crate::{
-        Mat2, Proj2, Rot2, Vec2,
+        Rot2, Vec2,
         test_utils::{assert_test_eq, assert_test_eq_or_panic, for_types, random_iter},
     };
-
-    #[test]
-    fn test_from_rotation_arc() {
-        for_types!(|Wide: WideFloat| {
-            for [from, to] in random_iter::<[Vec2<Wide>; 2]>() {
-                let [from, to] = [from, to].map(|v| v.normalize_or(Vec2::<Wide>::X).normalize());
-
-                assert_test_eq_or_panic!(
-                    Rot2::<Wide>::from_rotation_arc(from, to),
-                    Rot2::from_lane_fn(|lane| Rot2::<T>::from_rotation_arc(
-                        from.lane(lane),
-                        to.lane(lane)
-                    ))
-                );
-            }
-        });
-    }
 
     #[test]
     fn test_from_rotation_arc_colinear() {
@@ -358,36 +287,6 @@ mod tests {
     }
 
     #[test]
-    fn test_from_matrix() {
-        for_types!(|Wide: WideFloat| {
-            for matrix in random_iter::<Wide>()
-                .map(Mat2::<Wide>::from_angle)
-                .chain(random_iter())
-            {
-                assert_test_eq_or_panic!(
-                    Rot2::<Wide>::from_matrix(&matrix),
-                    Rot2::from_lane_fn(|lane| Rot2::<T>::from_matrix(&matrix.lane(lane)))
-                );
-            }
-        });
-    }
-
-    #[test]
-    fn test_from_projective() {
-        for_types!(|Wide: WideFloat| {
-            for projective in random_iter::<Wide>()
-                .map(Proj2::<Wide>::from_angle)
-                .chain(random_iter())
-            {
-                assert_test_eq_or_panic!(
-                    Rot2::<Wide>::from_projective(&projective),
-                    Rot2::from_lane_fn(|lane| Rot2::<T>::from_projective(&projective.lane(lane)))
-                );
-            }
-        });
-    }
-
-    #[test]
     fn test_to_angle() {
         for_types!(|Wide: WideFloat| {
             for angle in random_iter::<Wide>() {
@@ -397,22 +296,6 @@ mod tests {
                     Rot2::<Wide>::from_angle(angle).to_angle(),
                     angle,
                     abs <= Wide::splat(1e-4)
-                );
-            }
-        });
-    }
-
-    #[test]
-    fn test_inverse() {
-        for_types!(|Wide: WideFloat| {
-            for rotation in random_iter::<Rot2<Wide>>() {
-                let rotation = rotation.normalize_or(Rot2::IDENTITY).normalize();
-
-                assert_test_eq!(
-                    rotation * rotation.inverse(),
-                    Rot2::IDENTITY,
-                    abs <= Wide::splat(1e-4),
-                    0.0 = -0.0
                 );
             }
         });

@@ -1,9 +1,8 @@
 use wide::{f32x4, f32x8, f32x16, f64x2, f64x4, f64x8};
 
 use crate::{
-    Affine, Alignment, Dim, EulerRot, Matrix, Projective, Rotation2, Rotor, TwoThreeOrFour, Vector,
-    dim::{Three, TwoOrThree},
-    utils::{specialize, specialize_23},
+    Affine, Alignment, Dim, EulerRot, Matrix, Rotation2, Rotor, TwoThreeOrFour, Vector, dim::Three,
+    utils::specialize,
 };
 
 macro_rules! items {
@@ -11,39 +10,6 @@ macro_rules! items {
         /// An affine transform with all elements set to NaN (Not a Number).
         pub const NAN: Self =
             Self::from_matrix_translation(&Matrix::<N, $Wide, A>::NAN, Vector::<N, $Wide, A>::NAN);
-
-        /// Converts an affine transform to a non-uniform scale.
-        ///
-        /// This assumes `self` only contains scale, and translation which is
-        /// ignored.
-        #[inline]
-        #[must_use]
-        pub fn to_scale(&self) -> Vector<N, $Wide, A> {
-            self.matrix.to_scale()
-        }
-
-        /// Converts an affine transform to a non-uniform scale and a
-        /// translation vector.
-        ///
-        /// This assumes `self` only contains scale and translation.
-        #[inline]
-        #[must_use]
-        pub fn to_scale_translation(&self) -> (Vector<N, $Wide, A>, Vector<N, $Wide, A>) {
-            (self.to_scale(), self.translation)
-        }
-
-        /// Creates an affine transform from a projective transform.
-        ///
-        /// This assumes `projective` does not contain projections.
-        #[inline]
-        #[must_use]
-        #[track_caller]
-        pub fn from_projective(projective: &Projective<N, $Wide, A>) -> Self
-        where
-            Dim<N>: TwoOrThree,
-        {
-            specialize_23!(Affine::<N, $Wide, A>::from_projective_backend(projective))
-        }
 
         /// Creates an affine transform from a rotor.
         ///
@@ -423,20 +389,6 @@ macro_rules! items_2 {
             let (scale, angle) = self.matrix.to_scale_angle();
             (scale, angle, self.translation)
         }
-
-        /// Takes the `N+1`x`N` affine transform part of an `N+1`x`N+1`
-        /// homogeneous transformation matrix, removing the last column.
-        ///
-        /// This assumes `homogeneous` does not contain projections.
-        #[inline]
-        #[must_use]
-        pub fn from_homogeneous(homogeneous: &Matrix<3, $Wide, A>) -> Self {
-            Self::from_rows(&[
-                homogeneous.x_axis.truncate(),
-                homogeneous.y_axis.truncate(),
-                homogeneous.z_axis.truncate(),
-            ])
-        }
     };
 }
 
@@ -597,21 +549,6 @@ macro_rules! items_3 {
         ) -> Self {
             Self::look_to_rh(eye, (center - eye).normalize(), up)
         }
-
-        /// Takes the `N+1`x`N` affine transform part of an `N+1`x`N+1`
-        /// homogeneous transformation matrix, removing the last column.
-        ///
-        /// This assumes `homogeneous` does not contain projections.
-        #[inline]
-        #[must_use]
-        pub fn from_homogeneous(homogeneous: &Matrix<4, $Wide, A>) -> Self {
-            Self::from_rows(&[
-                homogeneous.x_axis.truncate(),
-                homogeneous.y_axis.truncate(),
-                homogeneous.z_axis.truncate(),
-                homogeneous.w_axis.truncate(),
-            ])
-        }
     };
 }
 
@@ -695,16 +632,6 @@ macro_rules! impl_items {
             items_2!($Wide);
 
             #[inline(always)]
-            #[track_caller]
-            fn from_projective_backend(projective: &Projective<2, $Wide, A>) -> Self {
-                Self::from_rows(&[
-                    projective.x_axis.truncate(),
-                    projective.y_axis.truncate(),
-                    projective.z_axis.truncate(),
-                ])
-            }
-
-            #[inline(always)]
             fn inverse_or_backend(&self, fallback: &Self) -> Self {
                 let (matrix, determinant) = self.matrix.inverse_and_determinant();
                 let translation = -self.translation * matrix;
@@ -735,17 +662,6 @@ macro_rules! impl_items {
         #[cfg(not(doc))]
         impl<A: Alignment> Affine<3, $Wide, A> {
             items_3!($Wide);
-
-            #[inline(always)]
-            #[track_caller]
-            fn from_projective_backend(projective: &Projective<3, $Wide, A>) -> Self {
-                Self::from_rows(&[
-                    projective.x_axis.truncate(),
-                    projective.y_axis.truncate(),
-                    projective.z_axis.truncate(),
-                    projective.w_axis.truncate(),
-                ])
-            }
 
             #[inline(always)]
             fn inverse_or_backend(&self, fallback: &Self) -> Self {
@@ -837,11 +753,8 @@ impl_items!(f64x8);
 mod tests {
     extern crate std;
 
-    use wide::f32x4;
-
     use crate::{
-        Affine, Affine2, Affine3, EulerRot, Mat3, Mat4, Matrix, Projective, Unaligned, Vec2, Vec3,
-        Vector,
+        Affine, Affine2, Affine3, EulerRot, Mat3, Matrix, Unaligned, Vec2, Vec3, Vector,
         test_utils::{assert_test_eq, assert_test_eq_or_panic, for_types, random_iter},
     };
 
@@ -855,20 +768,6 @@ mod tests {
                     Vector::<N, Wide, Unaligned>::NAN
                 )
             );
-        });
-    }
-
-    #[test]
-    fn test_from_projective() {
-        for_types!(|N: TwoOrThree| {
-            for projective in random_iter::<Projective<N, f32x4, Unaligned>>() {
-                assert_test_eq_or_panic!(
-                    Affine::<N, f32x4, Unaligned>::from_projective(&projective),
-                    Affine::from_lane_fn(|lane| Affine::<N, f32, Unaligned>::from_projective(
-                        &projective.lane(lane)
-                    ))
-                );
-            }
         });
     }
 
@@ -1021,26 +920,6 @@ mod tests {
                 );
             }
         });
-    }
-
-    #[test]
-    fn test_from_homogeneous() {
-        for homogeneous in random_iter::<Mat3<f32x4>>() {
-            assert_test_eq_or_panic!(
-                Affine2::<f32x4>::from_homogeneous(&homogeneous),
-                Affine::from_lane_fn(|lane| Affine2::<f32>::from_homogeneous(
-                    &homogeneous.lane(lane)
-                ))
-            );
-        }
-        for homogeneous in random_iter::<Mat4<f32x4>>() {
-            assert_test_eq_or_panic!(
-                Affine3::<f32x4>::from_homogeneous(&homogeneous),
-                Affine::from_lane_fn(|lane| Affine3::<f32>::from_homogeneous(
-                    &homogeneous.lane(lane)
-                ))
-            );
-        }
     }
 
     #[test]

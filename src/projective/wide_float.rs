@@ -1,7 +1,7 @@
 use wide::{f32x4, f32x8, f32x16, f64x2, f64x4, f64x8};
 
 use crate::{
-    Affine, Alignment, Dim, EulerRot, Matrix, Projective, Rotation2, Rotor, Vector,
+    Alignment, Dim, EulerRot, Matrix, Projective, Rotation2, Rotor, Vector,
     dim::{Three, TwoOrThree},
     utils::{specialize_3, specialize_23, transmute_generic},
 };
@@ -39,54 +39,6 @@ macro_rules! items {
                 },
                 _ => unreachable!(),
             };
-
-        /// Converts a projective transform to a non-uniform scale.
-        ///
-        /// This assumes `self` only contains scale, and translation which is
-        /// ignored.
-        #[inline]
-        #[must_use]
-        pub fn to_scale(&self) -> Vector<N, $Wide, A> {
-            Matrix::<N, $Wide, A>::from_projective(self).to_scale()
-        }
-
-        /// Converts a projective transform to a non-uniform scale and a
-        /// translation vector.
-        ///
-        /// This assumes `self` only contains scale and translation.
-        #[inline]
-        #[must_use]
-        pub fn to_scale_translation(&self) -> (Vector<N, $Wide, A>, Vector<N, $Wide, A>) {
-            (self.to_scale(), self.translation())
-        }
-
-        /// Converts a projective transform to a matrix.
-        ///
-        /// This assumes `self` contains an affine transformation.
-        #[inline]
-        #[must_use]
-        pub fn to_matrix(&self) -> Matrix<N, $Wide, A> {
-            Matrix::<N, $Wide, A>::from_projective(self)
-        }
-
-        /// Converts a projective transform to a matrix and a translation
-        /// vector.
-        ///
-        /// This assumes `self` contains an affine transformation.
-        #[inline]
-        #[must_use]
-        pub fn to_matrix_translation(&self) -> (Matrix<N, $Wide, A>, Vector<N, $Wide, A>) {
-            (self.to_matrix(), self.translation())
-        }
-
-        /// Converts a projective transform to an affine transform.
-        ///
-        /// This assumes `self` contains an affine transformation.
-        #[inline]
-        #[must_use]
-        pub fn to_affine(&self) -> Affine<N, $Wide, A> {
-            Affine::<N, $Wide, A>::from_projective(self)
-        }
 
         /// Creates a projective transform from a rotor.
         ///
@@ -215,34 +167,6 @@ macro_rules! items {
         {
             let (scale, rotor) = self.to_scale_rotor();
             (scale, rotor, self.translation())
-        }
-
-        /// Transforms the given vector as a point.
-        ///
-        /// Equivalent to `(point, 1) * self` but is faster.
-        ///
-        /// This function assumes `self` contains an affine transformation, with
-        /// no projections, meaning the last column must be `(0, 0, ..., 1)`.
-        #[inline]
-        #[must_use]
-        pub fn transform_point(&self, point: Vector<N, $Wide, A>) -> Vector<N, $Wide, A> {
-            specialize_23!(Projective::<N, $Wide, A>::transform_point_backend(
-                self, point
-            ))
-        }
-
-        /// Transforms the given vector without applying translation.
-        ///
-        /// Equivalent to `(vector, 0) * self` but is faster.
-        ///
-        /// This function assumes `self` contains an affine transformation, with
-        /// no projections, meaning the last column must be `(0, 0, ..., 1)`.
-        #[inline]
-        #[must_use]
-        pub fn transform_vector(&self, vector: Vector<N, $Wide, A>) -> Vector<N, $Wide, A> {
-            specialize_23!(Projective::<N, $Wide, A>::transform_vector_backend(
-                self, vector
-            ))
         }
 
         /// Transforms the given vector as a point, applying perspective divide.
@@ -1341,16 +1265,6 @@ macro_rules! impl_items {
             }
 
             #[inline(always)]
-            fn transform_point_backend(&self, point: Vector<2, $Wide, A>) -> Vector<2, $Wide, A> {
-                self.x_axis.xy() * point.x + self.y_axis.xy() * point.y + self.z_axis.xy()
-            }
-
-            #[inline(always)]
-            fn transform_vector_backend(&self, vector: Vector<2, $Wide, A>) -> Vector<2, $Wide, A> {
-                self.x_axis.xy() * vector.x + self.y_axis.xy() * vector.y
-            }
-
-            #[inline(always)]
             fn project_point_backend(&self, point: Vector<2, $Wide, A>) -> Vector<2, $Wide, A> {
                 let result = self.x_axis * point.x + self.y_axis * point.y + self.z_axis;
 
@@ -1540,21 +1454,6 @@ macro_rules! impl_items {
             }
 
             #[inline(always)]
-            fn transform_point_backend(&self, point: Vector<3, $Wide, A>) -> Vector<3, $Wide, A> {
-                self.x_axis.xyz() * point.x
-                    + self.y_axis.xyz() * point.y
-                    + self.z_axis.xyz() * point.z
-                    + self.w_axis.xyz()
-            }
-
-            #[inline(always)]
-            fn transform_vector_backend(&self, vector: Vector<3, $Wide, A>) -> Vector<3, $Wide, A> {
-                self.x_axis.xyz() * vector.x
-                    + self.y_axis.xyz() * vector.y
-                    + self.z_axis.xyz() * vector.z
-            }
-
-            #[inline(always)]
             fn project_point_backend(&self, point: Vector<3, $Wide, A>) -> Vector<3, $Wide, A> {
                 let result = self.x_axis * point.x
                     + self.y_axis * point.y
@@ -1617,8 +1516,8 @@ impl_items!(f64x8, f64);
 #[cfg(test)]
 mod tests {
     use crate::{
-        Affine, Affine2, EulerRot, Mat3, Mat4, Matrix, Proj2, Proj3, Projective, Rot2, Rotor3,
-        Unaligned, Vec2, Vec3, Vector,
+        Affine2, EulerRot, Mat3, Mat4, Matrix, Proj2, Proj3, Projective, Rot2, Rotor3, Unaligned,
+        Vec2, Vec3, Vector,
         test_utils::{assert_test_eq, assert_test_eq_or_panic, for_types, random_iter},
     };
 
@@ -1765,60 +1664,6 @@ mod tests {
                 assert_test_eq!(
                     projective.inverse_or_zero(),
                     Projective::from_lane_fn(|lane| projective.lane(lane).inverse_or_zero())
-                );
-            }
-        });
-    }
-
-    #[test]
-    fn test_transform_point() {
-        for_types!(|N: TwoOrThree, Wide: WideFloat| {
-            for (projective, point) in
-                random_iter::<(Projective<N, Wide, Unaligned>, Vector<N, Wide, Unaligned>)>()
-                    .flat_map(|(projective, point)| {
-                        [
-                            (projective, point),
-                            (
-                                Projective::from_affine(
-                                    &Affine::<N, Wide, Unaligned>::from_projective(&projective),
-                                ),
-                                point,
-                            ),
-                        ]
-                    })
-            {
-                assert_test_eq_or_panic!(
-                    projective.transform_point(point),
-                    Vector::from_lane_fn(|lane| projective
-                        .lane(lane)
-                        .transform_point(point.lane(lane)))
-                );
-            }
-        });
-    }
-
-    #[test]
-    fn test_transform_vector() {
-        for_types!(|N: TwoOrThree, Wide: WideFloat| {
-            for (projective, vector) in
-                random_iter::<(Projective<N, Wide, Unaligned>, Vector<N, Wide, Unaligned>)>()
-                    .flat_map(|(projective, vector)| {
-                        [
-                            (projective, vector),
-                            (
-                                Projective::from_affine(
-                                    &Affine::<N, Wide, Unaligned>::from_projective(&projective),
-                                ),
-                                vector,
-                            ),
-                        ]
-                    })
-            {
-                assert_test_eq_or_panic!(
-                    projective.transform_vector(vector),
-                    Vector::from_lane_fn(|lane| projective
-                        .lane(lane)
-                        .transform_vector(vector.lane(lane)))
                 );
             }
         });

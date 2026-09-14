@@ -1,13 +1,14 @@
 use core::{
+    fmt::Debug,
     mem::MaybeUninit,
     ops::{Add, Mul},
 };
 
 use crate::{
-    Affine, Aligned, Alignment, Dim, Element, Matrix, One, Projective, TwoOrThree, TwoThreeOrFour,
-    Unaligned, Vector, Zero,
+    Affine, Aligned, Alignment, Dim, Element, EqTest, Matrix, One, Projective, TwoOrThree,
+    TwoThreeOrFour, Unaligned, Vector, Zero,
     affine::AffineFields,
-    utils::{transmute_generic, transmute_mut, transmute_ref},
+    utils::{specialize_23, transmute_generic, transmute_mut, transmute_ref},
 };
 
 impl<const N: usize, T, A: Alignment> Affine<N, T, A>
@@ -74,6 +75,27 @@ where
         Self::from_matrix(&Matrix::from_scale(scale))
     }
 
+    /// Converts an affine transform to a non-uniform scale.
+    ///
+    /// This assumes `self` only contains scale, and translation which is
+    /// ignored.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` contains anything but scale and translation (according
+    /// to [`EqTest`]).
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_scale(&self) -> Vector<N, T, A>
+    where
+        T: Debug + Zero + EqTest,
+    {
+        self.matrix.to_scale()
+    }
+
     /// Creates an affine transform from a `translation` vector.
     #[inline]
     #[must_use]
@@ -96,6 +118,27 @@ where
         T: Zero + One,
     {
         Self::from_matrix_translation(&Matrix::from_scale(scale), translation)
+    }
+
+    /// Converts an affine transform to a non-uniform scale and a translation
+    /// vector.
+    ///
+    /// This assumes `self` only contains scale and translation.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` contains anything but scale and translation (according
+    /// to [`EqTest`]).
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_scale_translation(&self) -> (Vector<N, T, A>, Vector<N, T, A>)
+    where
+        T: Debug + Zero + EqTest,
+    {
+        (self.to_scale(), self.translation)
     }
 
     /// Creates an affine transform from `matrix` expressing rotation and
@@ -167,6 +210,48 @@ where
     #[must_use]
     pub fn to_matrix_translation(&self) -> (Matrix<N, T, A>, Vector<N, T, A>) {
         (self.matrix, self.translation)
+    }
+
+    /// Creates an affine transform from a projective transform.
+    ///
+    /// This assumes `projective` contains an affine transformation.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if the last column of `projective` is not `(0, 0, ..., 1)`
+    /// (according to [`EqTest`]).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Affine2, Proj2, Vec2, Vec3};
+    /// #
+    /// let projective = Proj2::from_rows(&[
+    ///     Vec3::new(11, 12, 0),
+    ///     Vec3::new(21, 22, 0),
+    ///     Vec3::new(5, 8, 1),
+    /// ]);
+    ///
+    /// assert_eq!(
+    ///     Affine2::from_projective(&projective),
+    ///     Affine2::from_rows(&[
+    ///         Vec2::new(11, 12),
+    ///         Vec2::new(21, 22),
+    ///         Vec2::new(5, 8),
+    ///     ]),
+    /// );
+    /// ```
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn from_projective(projective: &Projective<N, T, A>) -> Self
+    where
+        Dim<N>: TwoOrThree,
+        T: Debug + Zero + One + EqTest,
+    {
+        specialize_23!(Affine::<N, T, A>::from_projective_backend(projective))
     }
 
     /// Converts an affine transform to a projective transform.
@@ -321,6 +406,56 @@ where
         unsafe { *transmute_ref::<Affine<2, T, A>, [T; 6]>(self) }
     }
 
+    /// Takes the `N+1`x`N` affine transform part of an `N+1`x`N+1` homogeneous
+    /// transformation matrix, removing the last column.
+    ///
+    /// This assumes `homogeneous` contains an affine transformation.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if the last column of `homogeneous` is not `(0, 0, ..., 1)`
+    /// (according to [`EqTest`]).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Affine2, Mat3, Vec2, Vec3};
+    /// #
+    /// let homogeneous = Mat3::from_rows(&[
+    ///     Vec3::new(11, 12, 0),
+    ///     Vec3::new(21, 22, 0),
+    ///     Vec3::new(5, 8, 1),
+    /// ]);
+    ///
+    /// assert_eq!(
+    ///     Affine2::from_homogeneous(&homogeneous),
+    ///     Affine2::from_rows(&[
+    ///         Vec2::new(11, 12),
+    ///         Vec2::new(21, 22),
+    ///         Vec2::new(5, 8),
+    ///     ]),
+    /// );
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn from_homogeneous(homogeneous: &Matrix<3, T, A>) -> Self
+    where
+        T: Debug + Zero + One + EqTest,
+    {
+        debug_assert!(
+            homogeneous.column(2).eq_test(&Vector::<3, T, A>::Z),
+            "not an affine transformation: Affine::from_homogeneous({homogeneous:?})"
+        );
+
+        Self::from_rows(&[
+            homogeneous.x_axis.truncate(),
+            homogeneous.y_axis.truncate(),
+            homogeneous.z_axis.truncate(),
+        ])
+    }
+
     /// Creates an `N+1`x`N+1` homogeneous transformation matrix from an
     /// `N+1`x`N` affine transform.
     ///
@@ -354,6 +489,24 @@ where
             self.matrix.x_axis.extend(T::ZERO),
             self.matrix.y_axis.extend(T::ZERO),
             self.translation.to_homogeneous(),
+        ])
+    }
+
+    #[inline(always)]
+    #[track_caller]
+    fn from_projective_backend(projective: &Projective<2, T, A>) -> Self
+    where
+        T: Debug + Zero + One + EqTest,
+    {
+        debug_assert!(
+            projective.column(2).eq_test(&Vector::<3, T, A>::Z),
+            "not an affine transformation: Affine::from_projective({projective:?})"
+        );
+
+        Self::from_rows(&[
+            projective[0].truncate(),
+            projective[1].truncate(),
+            projective[2].truncate(),
         ])
     }
 }
@@ -453,6 +606,57 @@ where
         }
     }
 
+    /// Takes the `N+1`x`N` affine transform part of an `N+1`x`N+1` homogeneous
+    /// transformation matrix, removing the last column.
+    ///
+    /// This assumes `homogeneous` contains an affine transformation.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if the last column of `homogeneous` is not `(0, 0, ..., 1)`
+    /// (according to [`EqTest`]).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Affine2, Mat3, Vec2, Vec3};
+    /// #
+    /// let homogeneous = Mat3::from_rows(&[
+    ///     Vec3::new(11, 12, 0),
+    ///     Vec3::new(21, 22, 0),
+    ///     Vec3::new(5, 8, 1),
+    /// ]);
+    ///
+    /// assert_eq!(
+    ///     Affine2::from_homogeneous(&homogeneous),
+    ///     Affine2::from_rows(&[
+    ///         Vec2::new(11, 12),
+    ///         Vec2::new(21, 22),
+    ///         Vec2::new(5, 8),
+    ///     ]),
+    /// );
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn from_homogeneous(homogeneous: &Matrix<4, T, A>) -> Self
+    where
+        T: Debug + Zero + One + EqTest,
+    {
+        debug_assert!(
+            homogeneous.column(3).eq_test(&Vector::<4, T, A>::W),
+            "not an affine transformation: Affine::from_homogeneous({homogeneous:?})"
+        );
+
+        Self::from_rows(&[
+            homogeneous.x_axis.truncate(),
+            homogeneous.y_axis.truncate(),
+            homogeneous.z_axis.truncate(),
+            homogeneous.w_axis.truncate(),
+        ])
+    }
+
     /// Creates an `N+1`x`N+1` homogeneous transformation matrix from an
     /// `N+1`x`N` affine transform.
     ///
@@ -487,6 +691,25 @@ where
             self.matrix.y_axis.extend(T::ZERO),
             self.matrix.z_axis.extend(T::ZERO),
             self.translation.to_homogeneous(),
+        ])
+    }
+
+    #[inline(always)]
+    #[track_caller]
+    fn from_projective_backend(projective: &Projective<3, T, A>) -> Self
+    where
+        T: Debug + Zero + One + EqTest,
+    {
+        debug_assert!(
+            projective.column(3).eq_test(&Vector::<4, T, A>::W),
+            "not an affine transformation: Affine::from_projective({projective:?})"
+        );
+
+        Self::from_rows(&[
+            projective[0].truncate(),
+            projective[1].truncate(),
+            projective[2].truncate(),
+            projective[3].truncate(),
         ])
     }
 }

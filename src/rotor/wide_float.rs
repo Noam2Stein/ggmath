@@ -81,20 +81,6 @@ macro_rules! items {
             specialize_3!(Rotor::<N, $Wide, A>::from_projective_backend(projective))
         }
 
-        /// Returns the inverse of a rotor.
-        ///
-        /// This assumes `self` is normalized.
-        ///
-        /// This performs the same operation as [`conjugate`]. Use whichever
-        /// function makes your intentions clearer.
-        ///
-        /// [`conjugate`]: Self::conjugate
-        #[inline]
-        #[must_use]
-        pub fn inverse(self) -> Self {
-            self.conjugate()
-        }
-
         /// Returns the angle (in radians) for the minimal rotation for
         /// transforming `self` into `other`.
         ///

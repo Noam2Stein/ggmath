@@ -1,6 +1,12 @@
-use core::ops::{Add, Mul, Neg, Sub};
+use core::{
+    fmt::Debug,
+    ops::{Add, Mul, Neg, Sub},
+};
 
-use crate::{Alignment, Element, One, Rot2, Rot2A, Rotation2, Vector, Zero};
+use crate::{
+    Affine, Alignment, Element, EqTest, Matrix, One, Projective, Rot2, Rot2A, Rotation2, Vector,
+    Zero,
+};
 
 impl<T, A: Alignment> Rotation2<T, A>
 where
@@ -110,10 +116,124 @@ where
         &mut self.0
     }
 
+    /// Converts a rotation matrix to a 2D rotation represented by a complex
+    /// number.
+    ///
+    /// This assumes `matrix` only contains rotation.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `matrix` contains anything but rotation (according to
+    /// [`EqTest`]).
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn from_matrix(matrix: &Matrix<2, T, A>) -> Self
+    where
+        T: Debug + Neg<Output = T> + Add<Output = T> + Mul<Output = T> + One + EqTest,
+    {
+        debug_assert!(
+            matrix.y_axis.eq_test(&matrix.x_axis.perp())
+                && matrix.x_axis.length_squared().eq_test(&T::ONE),
+            "not a rotation: Rot2::from_matrix({matrix:?})"
+        );
+
+        Self(matrix.x_axis)
+    }
+
+    /// Converts an affine transform to a 2D rotation represented by a complex
+    /// number.
+    ///
+    /// This assumes `affine` only contains rotation, and translation which is
+    /// ignored.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `affine` contains anything but rotation and translation
+    /// (according to [`EqTest`]).
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn from_affine(affine: &Affine<2, T, A>) -> Self
+    where
+        T: Debug + Neg<Output = T> + Add<Output = T> + Mul<Output = T> + One + EqTest,
+    {
+        Self::from_matrix(&affine.matrix)
+    }
+
+    /// Converts a projective transform to a 2D rotation represented by a
+    /// complex number.
+    ///
+    /// This assumes `projective` only contains rotation, and translation which
+    /// is ignored.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `projective` contains anything but rotation and translation
+    /// (according to [`EqTest`]).
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn from_projective(projective: &Projective<2, T, A>) -> Self
+    where
+        T: Debug + Neg<Output = T> + Add<Output = T> + Mul<Output = T> + Zero + One + EqTest,
+    {
+        debug_assert!(
+            projective
+                .y_axis
+                .truncate()
+                .eq_test(&projective.x_axis.truncate().perp())
+                && projective
+                    .x_axis
+                    .truncate()
+                    .length_squared()
+                    .eq_test(&T::ONE)
+                && projective.z_axis.eq_test(&Vector::<3, T, A>::Z),
+            "not a rotation: Rot2::from_projective({projective:?})"
+        );
+
+        Self(projective.x_axis.truncate())
+    }
+
+    /// Returns the rotation transforming `from` to `to`.
+    ///
+    /// This assumes `from` and `to` are normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `from` or `to` are not normalized (according to [`EqTest`]).
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn from_rotation_arc(from: Vector<2, T, A>, to: Vector<2, T, A>) -> Self
+    where
+        T: Debug
+            + Neg<Output = T>
+            + Add<Output = T>
+            + Sub<Output = T>
+            + Mul<Output = T>
+            + One
+            + EqTest,
+    {
+        debug_assert!(
+            from.length_squared().eq_test(&T::ONE) && to.length_squared().eq_test(&T::ONE),
+            "vectors are not normalized: from_rotation_arc({from:?}, {to:?})"
+        );
+
+        Self::from_cos_sin(from.dot(to), from.perp_dot(to))
+    }
+
     /// Negates the sine element.
     ///
-    /// This affectively inverts the rotation, though consider using [`inverse`]
-    /// for that.
+    /// This is the same operation as [`inverse`].
     ///
     /// [`inverse`]: Rotation2::inverse
     #[inline]
@@ -124,6 +244,34 @@ where
         T: Neg<Output = T>,
     {
         Self::from_cos_sin(self.cos, -self.sin)
+    }
+
+    /// Returns the inverse of a 2D rotation.
+    ///
+    /// This assumes `self` is normalized.
+    ///
+    /// This is the same operation as [`conjugate`].
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` is not normalized (according to [`EqTest`]).
+    ///
+    /// [`conjugate`]: Self::conjugate
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn inverse(self) -> Self
+    where
+        T: Debug + Neg<Output = T> + Add<Output = T> + Mul<Output = T> + One + EqTest,
+    {
+        debug_assert!(
+            self.length_squared().eq_test(&T::ONE),
+            "2D rotation is not normalized: {self:?}.inverse()"
+        );
+
+        self.conjugate()
     }
 
     /// Rotates a complex number by a quarter of a turn, adding 90 degrees to
