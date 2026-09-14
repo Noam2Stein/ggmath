@@ -243,9 +243,8 @@
 pub use crate::{
     affine::{Affine, Affine2, Affine2A, Affine3, Affine3A},
     alignment::{Aligned, Alignment, Unaligned},
-    constants::{NegOne, One, Zero},
     dim::{Dim, TwoOrThree, TwoThreeOrFour},
-    element::{CustomElement, Element},
+    element::{CustomElement, Element, NegOne, One, Zero},
     eq_test::EqTest,
     euler_rot::EulerRot,
     float_ext::FloatExt,
@@ -261,7 +260,6 @@ pub use crate::{
 mod affine;
 mod alignment;
 mod backend;
-mod constants;
 mod dim;
 mod element;
 mod eq_test;

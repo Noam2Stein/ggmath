@@ -1,5 +1,5 @@
 use crate::{
-    Aligned, Alignment, Unaligned,
+    Aligned, Alignment, EqTest, FloatExt, PrimitiveFloat, Unaligned,
     backend::{AffineBackend, DefaultBackend, MaskBackend, RotorBackend, VectorBackend},
 };
 
@@ -47,6 +47,38 @@ pub trait Element:
 {
 }
 
+/// A trait for types with a `0` value.
+///
+/// This is used for generic functions that require `0`, like
+/// [`Matrix::from_diagonal`].
+///
+/// [`Matrix::from_diagonal`]: crate::Matrix::from_diagonal
+pub trait Zero {
+    /// `0`.
+    const ZERO: Self;
+}
+
+/// A trait for types with a `1` value.
+///
+/// This is used for generic functions that require `1`, like
+/// [`Affine::from_translation`].
+///
+/// [`Affine::from_translation`]: crate::Affine::from_translation
+pub trait One {
+    /// `1`.
+    const ONE: Self;
+}
+
+/// A trait for types with a `-1` value.
+///
+/// Currently this is used by vector constants, like [`Vector::NEG_ONE`].
+///
+/// [`Vector::NEG_ONE`]: crate::Vector::NEG_ONE
+pub trait NegOne {
+    /// `-1`.
+    const NEG_ONE: Self;
+}
+
 /// A trait to implement [`Element`] for downstream types.
 ///
 /// Due to type system limitations, the [`Element`] trait cannot be implemented
@@ -71,35 +103,111 @@ impl<T> Element for T where T: CustomElement {}
 #[diagnostic::do_not_recommend]
 impl<T, const N: usize, A: Alignment> DefaultBackend<N, A> for T where T: CustomElement {}
 
-impl Element for f32 {}
+macro_rules! float_impl {
+    ($T:ident) => {
+        impl Element for $T {}
 
-impl Element for f64 {}
+        impl Zero for $T {
+            const ZERO: Self = 0.0;
+        }
 
-impl Element for i8 {}
+        impl One for $T {
+            const ONE: Self = 1.0;
+        }
 
-impl Element for i16 {}
+        impl NegOne for $T {
+            const NEG_ONE: Self = -1.0;
+        }
+    };
+}
+float_impl!(f32);
+float_impl!(f64);
 
-impl Element for i32 {}
+impl<T: PrimitiveFloat> EqTest for T {
+    #[inline]
+    fn eq_test(&self, other: &Self) -> bool {
+        self.abs_diff_eq(*other, T::as_from(2e-4))
+    }
+}
 
-impl Element for i64 {}
+macro_rules! integer_impl {
+    ($T:ident) => {
+        impl Element for $T {}
 
-impl Element for i128 {}
+        impl Zero for $T {
+            const ZERO: Self = 0;
+        }
 
-impl Element for isize {}
+        impl One for $T {
+            const ONE: Self = 1;
+        }
 
-impl Element for u8 {}
+        impl EqTest for $T {
+            #[inline]
+            fn eq_test(&self, other: &Self) -> bool {
+                self == other
+            }
+        }
+    };
+}
+integer_impl!(i8);
+integer_impl!(i16);
+integer_impl!(i32);
+integer_impl!(i64);
+integer_impl!(i128);
+integer_impl!(isize);
+integer_impl!(u8);
+integer_impl!(u16);
+integer_impl!(u32);
+integer_impl!(u64);
+integer_impl!(u128);
+integer_impl!(usize);
 
-impl Element for u16 {}
-
-impl Element for u32 {}
-
-impl Element for u64 {}
-
-impl Element for u128 {}
-
-impl Element for usize {}
+macro_rules! signed_impl {
+    ($T:ident) => {
+        impl NegOne for $T {
+            const NEG_ONE: Self = -1;
+        }
+    };
+}
+signed_impl!(i8);
+signed_impl!(i16);
+signed_impl!(i32);
+signed_impl!(i64);
+signed_impl!(i128);
+signed_impl!(isize);
 
 impl Element for bool {}
+
+#[cfg(feature = "fixed")]
+mod fixed_impl {
+    use fixed::{
+        FixedI8, FixedI16, FixedI32, FixedI64, FixedI128, FixedU8, FixedU16, FixedU32, FixedU64,
+        FixedU128,
+    };
+
+    use crate::{CustomElement, Zero};
+
+    macro_rules! fixed_impl {
+        ($Fixed:ident) => {
+            impl<Frac> CustomElement for $Fixed<Frac> {}
+
+            impl<Frac> Zero for $Fixed<Frac> {
+                const ZERO: Self = Self::ZERO;
+            }
+        };
+    }
+    fixed_impl!(FixedI8);
+    fixed_impl!(FixedI16);
+    fixed_impl!(FixedI32);
+    fixed_impl!(FixedI64);
+    fixed_impl!(FixedI128);
+    fixed_impl!(FixedU8);
+    fixed_impl!(FixedU16);
+    fixed_impl!(FixedU32);
+    fixed_impl!(FixedU64);
+    fixed_impl!(FixedU128);
+}
 
 #[cfg(feature = "half")]
 mod half_impl {
@@ -107,7 +215,143 @@ mod half_impl {
 
     use crate::CustomElement;
 
-    impl CustomElement for f16 {}
+    macro_rules! half_impl {
+        ($T:ident) => {
+            impl CustomElement for $T {}
+        };
+    }
+    half_impl!(f16);
+    half_impl!(bf16);
+}
 
-    impl CustomElement for bf16 {}
+#[cfg(feature = "wide")]
+mod wide_impl {
+    use wide::{
+        f32x4, f32x8, f32x16, f64x2, f64x4, f64x8, i8x16, i8x32, i8x64, i16x8, i16x16, i16x32,
+        i32x4, i32x8, i32x16, i64x2, i64x4, i64x8, u8x16, u8x32, u8x64, u16x8, u16x16, u16x32,
+        u32x4, u32x8, u32x16, u64x2, u64x4, u64x8,
+    };
+
+    use crate::{CustomElement, EqTest, NegOne, One, Zero};
+
+    macro_rules! wide_impl {
+        ($T:ident, $N:literal, $Simd:ident) => {
+            impl CustomElement for $Simd {}
+
+            impl EqTest for $Simd {
+                #[inline(always)]
+                fn eq_test(&self, _other: &Self) -> bool {
+                    true
+                }
+            }
+        };
+    }
+    wide_impl!(f32, 4, f32x4);
+    wide_impl!(f32, 8, f32x8);
+    wide_impl!(f32, 16, f32x16);
+    wide_impl!(f64, 2, f64x2);
+    wide_impl!(f64, 4, f64x4);
+    wide_impl!(f64, 8, f64x8);
+    wide_impl!(i8, 16, i8x16);
+    wide_impl!(i8, 32, i8x32);
+    wide_impl!(i8, 64, i8x64);
+    wide_impl!(i16, 8, i16x8);
+    wide_impl!(i16, 16, i16x16);
+    wide_impl!(i16, 32, i16x32);
+    wide_impl!(i32, 4, i32x4);
+    wide_impl!(i32, 8, i32x8);
+    wide_impl!(i32, 16, i32x16);
+    wide_impl!(i64, 2, i64x2);
+    wide_impl!(i64, 4, i64x4);
+    wide_impl!(i64, 8, i64x8);
+    wide_impl!(u8, 16, u8x16);
+    wide_impl!(u8, 32, u8x32);
+    wide_impl!(u8, 64, u8x64);
+    wide_impl!(u16, 8, u16x8);
+    wide_impl!(u16, 16, u16x16);
+    wide_impl!(u16, 32, u16x32);
+    wide_impl!(u32, 4, u32x4);
+    wide_impl!(u32, 8, u32x8);
+    wide_impl!(u32, 16, u32x16);
+    wide_impl!(u64, 2, u64x2);
+    wide_impl!(u64, 4, u64x4);
+    wide_impl!(u64, 8, u64x8);
+
+    macro_rules! wide_float_impl {
+        ($T:ident, $N:literal, $Simd:ident) => {
+            impl Zero for $Simd {
+                const ZERO: Self = Self::ZERO;
+            }
+
+            impl One for $Simd {
+                const ONE: Self = Self::ONE;
+            }
+
+            impl NegOne for $Simd {
+                const NEG_ONE: Self = Self::splat(-1.0);
+            }
+        };
+    }
+    wide_float_impl!(f32, 4, f32x4);
+    wide_float_impl!(f32, 8, f32x8);
+    wide_float_impl!(f32, 16, f32x16);
+    wide_float_impl!(f64, 2, f64x2);
+    wide_float_impl!(f64, 4, f64x4);
+    wide_float_impl!(f64, 8, f64x8);
+
+    macro_rules! wide_integer_impl {
+        ($T:ident, $N:literal, $Simd:ident) => {
+            impl Zero for $Simd {
+                const ZERO: Self = Self::ZERO;
+            }
+
+            impl One for $Simd {
+                const ONE: Self = Self::ONE;
+            }
+        };
+    }
+    wide_integer_impl!(i8, 16, i8x16);
+    wide_integer_impl!(i8, 32, i8x32);
+    wide_integer_impl!(i8, 64, i8x64);
+    wide_integer_impl!(i16, 8, i16x8);
+    wide_integer_impl!(i16, 16, i16x16);
+    wide_integer_impl!(i16, 32, i16x32);
+    wide_integer_impl!(i32, 4, i32x4);
+    wide_integer_impl!(i32, 8, i32x8);
+    wide_integer_impl!(i32, 16, i32x16);
+    wide_integer_impl!(i64, 2, i64x2);
+    wide_integer_impl!(i64, 4, i64x4);
+    wide_integer_impl!(i64, 8, i64x8);
+    wide_integer_impl!(u8, 16, u8x16);
+    wide_integer_impl!(u8, 32, u8x32);
+    wide_integer_impl!(u8, 64, u8x64);
+    wide_integer_impl!(u16, 8, u16x8);
+    wide_integer_impl!(u16, 16, u16x16);
+    wide_integer_impl!(u16, 32, u16x32);
+    wide_integer_impl!(u32, 4, u32x4);
+    wide_integer_impl!(u32, 8, u32x8);
+    wide_integer_impl!(u32, 16, u32x16);
+    wide_integer_impl!(u64, 2, u64x2);
+    wide_integer_impl!(u64, 4, u64x4);
+    wide_integer_impl!(u64, 8, u64x8);
+
+    macro_rules! wide_signed_impl {
+        ($T:ident, $N:literal, $Simd:ident) => {
+            impl NegOne for $Simd {
+                const NEG_ONE: Self = Self::splat(-1);
+            }
+        };
+    }
+    wide_signed_impl!(i8, 16, i8x16);
+    wide_signed_impl!(i8, 32, i8x32);
+    wide_signed_impl!(i8, 64, i8x64);
+    wide_signed_impl!(i16, 8, i16x8);
+    wide_signed_impl!(i16, 16, i16x16);
+    wide_signed_impl!(i16, 32, i16x32);
+    wide_signed_impl!(i32, 4, i32x4);
+    wide_signed_impl!(i32, 8, i32x8);
+    wide_signed_impl!(i32, 16, i32x16);
+    wide_signed_impl!(i64, 2, i64x2);
+    wide_signed_impl!(i64, 4, i64x4);
+    wide_signed_impl!(i64, 8, i64x8);
 }
