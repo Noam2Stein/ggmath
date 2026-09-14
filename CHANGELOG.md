@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#85](https://github.com/Noam2Stein/ggmath/pull/85): Cargo feature `half` that
   implements `Element` for `half::f16` and `half::bf16`
 
+- [#91](https://github.com/Noam2Stein/ggmath/pull/91): Implement traits `One` and `NegOne` for `fixed` types
+
 ### Changed
 
 - [#89](https://github.com/Noam2Stein/ggmath/pull/89): Generalize float-only and
