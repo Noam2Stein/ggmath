@@ -1,5 +1,5 @@
 use crate::{
-    Aligned, Alignment, Unaligned,
+    Aligned, Alignment, EqTest, FloatExt, Unaligned,
     backend::{AffineBackend, DefaultBackend, MaskBackend, RotorBackend, VectorBackend},
 };
 
@@ -118,6 +118,13 @@ macro_rules! float_impl {
         impl NegOne for $T {
             const NEG_ONE: Self = -1.0;
         }
+
+        impl EqTest for $T {
+            #[inline]
+            fn eq_test(&self, other: &Self) -> bool {
+                self.abs_diff_eq(*other, 2e-4)
+            }
+        }
     };
 }
 float_impl!(f32);
@@ -133,6 +140,13 @@ macro_rules! integer_impl {
 
         impl One for $T {
             const ONE: Self = 1;
+        }
+
+        impl EqTest for $T {
+            #[inline]
+            fn eq_test(&self, other: &Self) -> bool {
+                self == other
+            }
         }
     };
 }
@@ -218,12 +232,53 @@ mod wide_impl {
         u32x4, u32x8, u32x16, u64x2, u64x4, u64x8,
     };
 
-    use crate::{CustomElement, NegOne, One, Zero};
+    use crate::{CustomElement, EqTest, NegOne, One, Zero};
 
-    macro_rules! wide_float_impl {
+    macro_rules! wide_impl {
         ($T:ident, $N:literal, $Simd:ident) => {
             impl CustomElement for $Simd {}
 
+            impl EqTest for $Simd {
+                #[inline(always)]
+                fn eq_test(&self, _other: &Self) -> bool {
+                    true
+                }
+            }
+        };
+    }
+    wide_impl!(f32, 4, f32x4);
+    wide_impl!(f32, 8, f32x8);
+    wide_impl!(f32, 16, f32x16);
+    wide_impl!(f64, 2, f64x2);
+    wide_impl!(f64, 4, f64x4);
+    wide_impl!(f64, 8, f64x8);
+    wide_impl!(i8, 16, i8x16);
+    wide_impl!(i8, 32, i8x32);
+    wide_impl!(i8, 64, i8x64);
+    wide_impl!(i16, 8, i16x8);
+    wide_impl!(i16, 16, i16x16);
+    wide_impl!(i16, 32, i16x32);
+    wide_impl!(i32, 4, i32x4);
+    wide_impl!(i32, 8, i32x8);
+    wide_impl!(i32, 16, i32x16);
+    wide_impl!(i64, 2, i64x2);
+    wide_impl!(i64, 4, i64x4);
+    wide_impl!(i64, 8, i64x8);
+    wide_impl!(u8, 16, u8x16);
+    wide_impl!(u8, 32, u8x32);
+    wide_impl!(u8, 64, u8x64);
+    wide_impl!(u16, 8, u16x8);
+    wide_impl!(u16, 16, u16x16);
+    wide_impl!(u16, 32, u16x32);
+    wide_impl!(u32, 4, u32x4);
+    wide_impl!(u32, 8, u32x8);
+    wide_impl!(u32, 16, u32x16);
+    wide_impl!(u64, 2, u64x2);
+    wide_impl!(u64, 4, u64x4);
+    wide_impl!(u64, 8, u64x8);
+
+    macro_rules! wide_float_impl {
+        ($T:ident, $N:literal, $Simd:ident) => {
             impl Zero for $Simd {
                 const ZERO: Self = Self::ZERO;
             }
@@ -246,8 +301,6 @@ mod wide_impl {
 
     macro_rules! wide_integer_impl {
         ($T:ident, $N:literal, $Simd:ident) => {
-            impl CustomElement for $Simd {}
-
             impl Zero for $Simd {
                 const ZERO: Self = Self::ZERO;
             }

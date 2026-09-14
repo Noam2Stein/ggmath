@@ -1,4 +1,4 @@
-use crate::{Alignment, Dim, Element, FloatExt, Matrix, PrimitiveFloat, TwoThreeOrFour, Vector};
+use crate::{Alignment, Dim, Element, Matrix, TwoThreeOrFour, Vector};
 
 /// Defines an equality test used by assertions in generic functions.
 ///
@@ -26,35 +26,7 @@ pub trait EqTest {
     fn eq_test(&self, other: &Self) -> bool;
 }
 
-impl<T: PrimitiveFloat> EqTest for T {
-    #[inline]
-    fn eq_test(&self, other: &Self) -> bool {
-        self.abs_diff_eq(*other, T::as_from(2e-4))
-    }
-}
-
-macro_rules! integer_impl {
-    ($T:ident) => {
-        impl EqTest for $T {
-            #[inline]
-            fn eq_test(&self, other: &Self) -> bool {
-                self == other
-            }
-        }
-    };
-}
-integer_impl!(i8);
-integer_impl!(i16);
-integer_impl!(i32);
-integer_impl!(i64);
-integer_impl!(i128);
-integer_impl!(isize);
-integer_impl!(u8);
-integer_impl!(u16);
-integer_impl!(u32);
-integer_impl!(u64);
-integer_impl!(u128);
-integer_impl!(usize);
+// Element implementations of `EqTest` are placed in `src/element.rs`.
 
 impl<const N: usize, T, A: Alignment> EqTest for Vector<N, T, A>
 where
@@ -76,50 +48,4 @@ where
     fn eq_test(&self, other: &Self) -> bool {
         (0..N).all(|i| self[i].eq_test(&other[i]))
     }
-}
-
-#[cfg(feature = "wide")]
-mod wide_impl {
-    use crate::EqTest;
-
-    macro_rules! wide_impl {
-        ($Wide:ident) => {
-            impl EqTest for wide::$Wide {
-                #[inline(always)]
-                fn eq_test(&self, _other: &Self) -> bool {
-                    true
-                }
-            }
-        };
-    }
-    wide_impl!(f32x4);
-    wide_impl!(f32x8);
-    wide_impl!(f32x16);
-    wide_impl!(f64x2);
-    wide_impl!(f64x4);
-    wide_impl!(f64x8);
-    wide_impl!(i8x16);
-    wide_impl!(i8x32);
-    wide_impl!(i8x64);
-    wide_impl!(i16x8);
-    wide_impl!(i16x16);
-    wide_impl!(i16x32);
-    wide_impl!(i32x4);
-    wide_impl!(i32x8);
-    wide_impl!(i32x16);
-    wide_impl!(i64x2);
-    wide_impl!(i64x4);
-    wide_impl!(i64x8);
-    wide_impl!(u8x16);
-    wide_impl!(u8x32);
-    wide_impl!(u8x64);
-    wide_impl!(u16x8);
-    wide_impl!(u16x16);
-    wide_impl!(u16x32);
-    wide_impl!(u32x4);
-    wide_impl!(u32x8);
-    wide_impl!(u32x16);
-    wide_impl!(u64x2);
-    wide_impl!(u64x4);
-    wide_impl!(u64x8);
 }
