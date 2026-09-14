@@ -5,7 +5,7 @@ use core::{
 };
 
 use crate::{
-    Aligned, Element, NegOne, One, Unaligned, Zero,
+    Aligned, Element, EqTest, NegOne, One, Unaligned, Zero,
     backend::{FloatVectorBackend, IntegerVectorBackend, SignedVectorBackend},
     utils::{FloatUtils, PrimitiveFloatUtils, PrimitiveIntegerUtils, PrimitiveSignedUtils},
 };
@@ -52,6 +52,7 @@ pub trait PrimitiveFloat:
     + Zero
     + One
     + NegOne
+    + EqTest
     + PrimitiveFloatUtils<Bits = <Self as PrimitiveFloat>::Bits>
     + FloatVectorBackend<2, Aligned>
     + FloatVectorBackend<3, Aligned>
@@ -118,6 +119,7 @@ pub trait PrimitiveInteger:
     + Element
     + Zero
     + One
+    + EqTest
     + PrimitiveIntegerUtils
     + IntegerVectorBackend<2, Aligned>
     + IntegerVectorBackend<3, Aligned>
