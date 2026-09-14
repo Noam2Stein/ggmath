@@ -1,5 +1,5 @@
 use crate::{
-    Aligned, Alignment, EqTest, FloatExt, Unaligned,
+    Aligned, Alignment, EqTest, FloatExt, PrimitiveFloat, Unaligned,
     backend::{AffineBackend, DefaultBackend, MaskBackend, RotorBackend, VectorBackend},
 };
 
@@ -118,17 +118,17 @@ macro_rules! float_impl {
         impl NegOne for $T {
             const NEG_ONE: Self = -1.0;
         }
-
-        impl EqTest for $T {
-            #[inline]
-            fn eq_test(&self, other: &Self) -> bool {
-                self.abs_diff_eq(*other, 2e-4)
-            }
-        }
     };
 }
 float_impl!(f32);
 float_impl!(f64);
+
+impl<T: PrimitiveFloat> EqTest for T {
+    #[inline]
+    fn eq_test(&self, other: &Self) -> bool {
+        self.abs_diff_eq(*other, T::as_from(2e-4))
+    }
+}
 
 macro_rules! integer_impl {
     ($T:ident) => {
