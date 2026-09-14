@@ -25,15 +25,6 @@ macro_rules! items {
             self.sin.atan2(self.cos)
         }
 
-        /// Returns the rotation transforming `from` to `to`.
-        ///
-        /// This assumes `from` and `to` are normalized.
-        #[inline]
-        #[must_use]
-        pub fn from_rotation_arc(from: Vector<2, $Wide, A>, to: Vector<2, $Wide, A>) -> Self {
-            Self::from_cos_sin(from.dot(to), from.perp_dot(to))
-        }
-
         /// Returns the rotation transforming `from` to either `to` or `-to`,
         /// rotating up to 90 degrees.
         ///
@@ -277,23 +268,6 @@ mod tests {
         Rot2, Vec2,
         test_utils::{assert_test_eq, assert_test_eq_or_panic, for_types, random_iter},
     };
-
-    #[test]
-    fn test_from_rotation_arc() {
-        for_types!(|Wide: WideFloat| {
-            for [from, to] in random_iter::<[Vec2<Wide>; 2]>() {
-                let [from, to] = [from, to].map(|v| v.normalize_or(Vec2::<Wide>::X).normalize());
-
-                assert_test_eq_or_panic!(
-                    Rot2::<Wide>::from_rotation_arc(from, to),
-                    Rot2::from_lane_fn(|lane| Rot2::<T>::from_rotation_arc(
-                        from.lane(lane),
-                        to.lane(lane)
-                    ))
-                );
-            }
-        });
-    }
 
     #[test]
     fn test_from_rotation_arc_colinear() {

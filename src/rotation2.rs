@@ -807,6 +807,23 @@ mod tests {
     }
 
     #[test]
+    fn test_from_rotation_arc() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for [from, to] in random_iter::<[Vector<2, T, A>; 2]>() {
+                let [from, to] =
+                    [from, to].map(|v| v.normalize_or(Vector::<2, T, A>::X).normalize());
+
+                assert_test_eq!(
+                    from * Rotation2::<T, A>::from_rotation_arc(from, to),
+                    to,
+                    abs <= 1e-5,
+                    0.0 = -0.0
+                );
+            }
+        });
+    }
+
+    #[test]
     fn test_inverse() {
         for_types!(|T: PrimitiveFloat, A| {
             for rotation in random_iter::<Rotation2<T, A>>() {

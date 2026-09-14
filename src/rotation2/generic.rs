@@ -201,6 +201,36 @@ where
         Self(projective.x_axis.truncate())
     }
 
+    /// Returns the rotation transforming `from` to `to`.
+    ///
+    /// This assumes `from` and `to` are normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `from` or `to` are not normalized (according to [`EqTest`]).
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn from_rotation_arc(from: Vector<2, T, A>, to: Vector<2, T, A>) -> Self
+    where
+        T: Debug
+            + Neg<Output = T>
+            + Add<Output = T>
+            + Sub<Output = T>
+            + Mul<Output = T>
+            + One
+            + EqTest,
+    {
+        debug_assert!(
+            from.length_squared().eq_test(&T::ONE) && to.length_squared().eq_test(&T::ONE),
+            "vectors are not normalized: from_rotation_arc({from:?}, {to:?})"
+        );
+
+        Self::from_cos_sin(from.dot(to), from.perp_dot(to))
+    }
+
     /// Negates the sine element.
     ///
     /// This is the same operation as [`inverse`].

@@ -37,27 +37,6 @@ where
         self.sin.atan2(self.cos)
     }
 
-    /// Returns the rotation transforming `from` to `to`.
-    ///
-    /// This assumes `from` and `to` are normalized.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `from` or `to` are not normalized.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn from_rotation_arc(from: Vector<2, T, A>, to: Vector<2, T, A>) -> Self {
-        debug_assert!(
-            from.is_normalized() && to.is_normalized(),
-            "vectors are not normalized: from_rotation_arc({from:?}, {to:?})"
-        );
-
-        Self::from_cos_sin(from.dot(to), from.perp_dot(to))
-    }
-
     /// Returns the rotation transforming `from` to either `to` or `-to`,
     /// rotating up to 90 degrees.
     ///
@@ -362,23 +341,6 @@ mod tests {
         Rotation2, Vector,
         test_utils::{assert_debug_panic, assert_test_eq, for_types, random_iter},
     };
-
-    #[test]
-    fn test_from_rotation_arc() {
-        for_types!(|T: PrimitiveFloat, A| {
-            for [from, to] in random_iter::<[Vector<2, T, A>; 2]>() {
-                let [from, to] =
-                    [from, to].map(|v| v.normalize_or(Vector::<2, T, A>::X).normalize());
-
-                assert_test_eq!(
-                    from * Rotation2::<T, A>::from_rotation_arc(from, to),
-                    to,
-                    abs <= 1e-5,
-                    0.0 = -0.0
-                );
-            }
-        });
-    }
 
     #[test]
     fn test_from_rotation_arc_colinear() {
