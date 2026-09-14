@@ -235,7 +235,7 @@ where
     /// ]);
     ///
     /// assert_eq!(
-    ///     Affine2::<f32>::from_projective(&projective),
+    ///     Affine2::from_projective(&projective),
     ///     Affine2::from_rows(&[
     ///         Vec2::new(11, 12),
     ///         Vec2::new(21, 22),
@@ -430,7 +430,7 @@ where
     /// ]);
     ///
     /// assert_eq!(
-    ///     Affine2::<f32>::from_homogeneous(&homogeneous),
+    ///     Affine2::from_homogeneous(&homogeneous),
     ///     Affine2::from_rows(&[
     ///         Vec2::new(11, 12),
     ///         Vec2::new(21, 22),
@@ -630,7 +630,7 @@ where
     /// ]);
     ///
     /// assert_eq!(
-    ///     Affine2::<f32>::from_homogeneous(&homogeneous),
+    ///     Affine2::from_homogeneous(&homogeneous),
     ///     Affine2::from_rows(&[
     ///         Vec2::new(11, 12),
     ///         Vec2::new(21, 22),

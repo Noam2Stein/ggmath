@@ -645,7 +645,7 @@ where
     /// ]);
     ///
     /// assert_eq!(
-    ///     Mat2::<f32>::from_homogeneous(&homogeneous),
+    ///     Mat2::from_homogeneous(&homogeneous),
     ///     Mat2::from_rows(&[
     ///         Vec2::new(11, 12),
     ///         Vec2::new(21, 22),
@@ -843,7 +843,7 @@ where
     /// ]);
     ///
     /// assert_eq!(
-    ///     Mat2::<f32>::from_homogeneous(&homogeneous),
+    ///     Mat2::from_homogeneous(&homogeneous),
     ///     Mat2::from_rows(&[
     ///         Vec2::new(11, 12),
     ///         Vec2::new(21, 22),
