@@ -1,5 +1,5 @@
 use crate::{
-    Aligned, Alignment, EqTest, FloatExt, PrimitiveFloat, Unaligned,
+    Aligned, Alignment, EqTest, FloatExt, Unaligned,
     backend::{AffineBackend, DefaultBackend, MaskBackend, RotorBackend, VectorBackend},
 };
 
@@ -118,17 +118,17 @@ macro_rules! float_impl {
         impl NegOne for $T {
             const NEG_ONE: Self = -1.0;
         }
+
+        impl EqTest for $T {
+            #[inline]
+            fn eq_test(&self, other: &Self) -> bool {
+                self.abs_diff_eq(*other, 2e-4)
+            }
+        }
     };
 }
 float_impl!(f32);
 float_impl!(f64);
-
-impl<T: PrimitiveFloat> EqTest for T {
-    #[inline]
-    fn eq_test(&self, other: &Self) -> bool {
-        self.abs_diff_eq(*other, T::as_from(2e-4))
-    }
-}
 
 macro_rules! integer_impl {
     ($T:ident) => {
@@ -184,9 +184,12 @@ mod fixed_impl {
     use fixed::{
         FixedI8, FixedI16, FixedI32, FixedI64, FixedI128, FixedU8, FixedU16, FixedU32, FixedU64,
         FixedU128,
+        types::extra::{
+            IsLessOrEqual, True, U6, U7, U14, U15, U30, U31, U62, U63, U126, U127, Unsigned,
+        },
     };
 
-    use crate::{CustomElement, Zero};
+    use crate::{CustomElement, EqTest, NegOne, One, Zero};
 
     macro_rules! fixed_impl {
         ($Fixed:ident) => {
@@ -194,6 +197,16 @@ mod fixed_impl {
 
             impl<Frac> Zero for $Fixed<Frac> {
                 const ZERO: Self = Self::ZERO;
+            }
+
+            impl<Frac> EqTest for $Fixed<Frac>
+            where
+                Frac: Unsigned,
+            {
+                #[inline]
+                fn eq_test(&self, other: &Self) -> bool {
+                    *self == *other
+                }
             }
         };
     }
@@ -207,17 +220,68 @@ mod fixed_impl {
     fixed_impl!(FixedU32);
     fixed_impl!(FixedU64);
     fixed_impl!(FixedU128);
+
+    macro_rules! fixed_signed_impl {
+        ($Fixed:ident, $UBitsM1:ident, $UBitsM2:ident) => {
+            impl<Frac> One for $Fixed<Frac>
+            where
+                Frac: IsLessOrEqual<$UBitsM2, Output = True> + Unsigned,
+            {
+                const ONE: Self = Self::ONE;
+            }
+
+            impl<Frac> NegOne for $Fixed<Frac>
+            where
+                Frac: IsLessOrEqual<$UBitsM1, Output = True> + Unsigned,
+            {
+                const NEG_ONE: Self = Self::NEG_ONE;
+            }
+        };
+    }
+    fixed_signed_impl!(FixedI8, U7, U6);
+    fixed_signed_impl!(FixedI16, U15, U14);
+    fixed_signed_impl!(FixedI32, U31, U30);
+    fixed_signed_impl!(FixedI64, U63, U62);
+    fixed_signed_impl!(FixedI128, U127, U126);
+
+    macro_rules! fixed_unsigned_impl {
+        ($Fixed:ident, $UBitsM1:ident) => {
+            impl<Frac> One for $Fixed<Frac>
+            where
+                Frac: IsLessOrEqual<$UBitsM1, Output = True> + Unsigned,
+            {
+                const ONE: Self = Self::ONE;
+            }
+        };
+    }
+    fixed_unsigned_impl!(FixedU8, U7);
+    fixed_unsigned_impl!(FixedU16, U15);
+    fixed_unsigned_impl!(FixedU32, U31);
+    fixed_unsigned_impl!(FixedU64, U63);
+    fixed_unsigned_impl!(FixedU128, U127);
 }
 
 #[cfg(feature = "half")]
 mod half_impl {
     use half::{bf16, f16};
 
-    use crate::CustomElement;
+    use crate::{CustomElement, NegOne, One, Zero};
 
     macro_rules! half_impl {
         ($T:ident) => {
             impl CustomElement for $T {}
+
+            impl Zero for $T {
+                const ZERO: Self = Self::ZERO;
+            }
+
+            impl One for $T {
+                const ONE: Self = Self::ONE;
+            }
+
+            impl NegOne for $T {
+                const NEG_ONE: Self = Self::NEG_ONE;
+            }
         };
     }
     half_impl!(f16);
