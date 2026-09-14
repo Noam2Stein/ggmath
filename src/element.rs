@@ -47,6 +47,38 @@ pub trait Element:
 {
 }
 
+/// A trait for types with a `0` value.
+///
+/// This is used for generic functions that require `0`, like
+/// [`Matrix::from_diagonal`].
+///
+/// [`Matrix::from_diagonal`]: crate::Matrix::from_diagonal
+pub trait Zero {
+    /// `0`.
+    const ZERO: Self;
+}
+
+/// A trait for types with a `1` value.
+///
+/// This is used for generic functions that require `1`, like
+/// [`Affine::from_translation`].
+///
+/// [`Affine::from_translation`]: crate::Affine::from_translation
+pub trait One {
+    /// `1`.
+    const ONE: Self;
+}
+
+/// A trait for types with a `-1` value.
+///
+/// Currently this is used by vector constants, like [`Vector::NEG_ONE`].
+///
+/// [`Vector::NEG_ONE`]: crate::Vector::NEG_ONE
+pub trait NegOne {
+    /// `-1`.
+    const NEG_ONE: Self;
+}
+
 /// A trait to implement [`Element`] for downstream types.
 ///
 /// Due to type system limitations, the [`Element`] trait cannot be implemented
@@ -74,6 +106,18 @@ impl<T, const N: usize, A: Alignment> DefaultBackend<N, A> for T where T: Custom
 macro_rules! float_impl {
     ($T:ident) => {
         impl Element for $T {}
+
+        impl Zero for $T {
+            const ZERO: Self = 0.0;
+        }
+
+        impl One for $T {
+            const ONE: Self = 1.0;
+        }
+
+        impl NegOne for $T {
+            const NEG_ONE: Self = -1.0;
+        }
     };
 }
 float_impl!(f32);
@@ -82,6 +126,14 @@ float_impl!(f64);
 macro_rules! integer_impl {
     ($T:ident) => {
         impl Element for $T {}
+
+        impl Zero for $T {
+            const ZERO: Self = 0;
+        }
+
+        impl One for $T {
+            const ONE: Self = 1;
+        }
     };
 }
 integer_impl!(i8);
@@ -97,6 +149,20 @@ integer_impl!(u64);
 integer_impl!(u128);
 integer_impl!(usize);
 
+macro_rules! signed_impl {
+    ($T:ident) => {
+        impl NegOne for $T {
+            const NEG_ONE: Self = -1;
+        }
+    };
+}
+signed_impl!(i8);
+signed_impl!(i16);
+signed_impl!(i32);
+signed_impl!(i64);
+signed_impl!(i128);
+signed_impl!(isize);
+
 impl Element for bool {}
 
 #[cfg(feature = "fixed")]
@@ -106,11 +172,15 @@ mod fixed_impl {
         FixedU128,
     };
 
-    use crate::CustomElement;
+    use crate::{CustomElement, Zero};
 
     macro_rules! fixed_impl {
         ($Fixed:ident) => {
             impl<Frac> CustomElement for $Fixed<Frac> {}
+
+            impl<Frac> Zero for $Fixed<Frac> {
+                const ZERO: Self = Self::ZERO;
+            }
         };
     }
     fixed_impl!(FixedI8);
@@ -148,11 +218,23 @@ mod wide_impl {
         u32x4, u32x8, u32x16, u64x2, u64x4, u64x8,
     };
 
-    use crate::CustomElement;
+    use crate::{CustomElement, NegOne, One, Zero};
 
     macro_rules! wide_float_impl {
         ($T:ident, $N:literal, $Simd:ident) => {
             impl CustomElement for $Simd {}
+
+            impl Zero for $Simd {
+                const ZERO: Self = Self::ZERO;
+            }
+
+            impl One for $Simd {
+                const ONE: Self = Self::ONE;
+            }
+
+            impl NegOne for $Simd {
+                const NEG_ONE: Self = Self::splat(-1.0);
+            }
         };
     }
     wide_float_impl!(f32, 4, f32x4);
@@ -165,6 +247,14 @@ mod wide_impl {
     macro_rules! wide_integer_impl {
         ($T:ident, $N:literal, $Simd:ident) => {
             impl CustomElement for $Simd {}
+
+            impl Zero for $Simd {
+                const ZERO: Self = Self::ZERO;
+            }
+
+            impl One for $Simd {
+                const ONE: Self = Self::ONE;
+            }
         };
     }
     wide_integer_impl!(i8, 16, i8x16);
@@ -191,4 +281,24 @@ mod wide_impl {
     wide_integer_impl!(u64, 2, u64x2);
     wide_integer_impl!(u64, 4, u64x4);
     wide_integer_impl!(u64, 8, u64x8);
+
+    macro_rules! wide_signed_impl {
+        ($T:ident, $N:literal, $Simd:ident) => {
+            impl NegOne for $Simd {
+                const NEG_ONE: Self = Self::splat(-1);
+            }
+        };
+    }
+    wide_signed_impl!(i8, 16, i8x16);
+    wide_signed_impl!(i8, 32, i8x32);
+    wide_signed_impl!(i8, 64, i8x64);
+    wide_signed_impl!(i16, 8, i16x8);
+    wide_signed_impl!(i16, 16, i16x16);
+    wide_signed_impl!(i16, 32, i16x32);
+    wide_signed_impl!(i32, 4, i32x4);
+    wide_signed_impl!(i32, 8, i32x8);
+    wide_signed_impl!(i32, 16, i32x16);
+    wide_signed_impl!(i64, 2, i64x2);
+    wide_signed_impl!(i64, 4, i64x4);
+    wide_signed_impl!(i64, 8, i64x8);
 }
