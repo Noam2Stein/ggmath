@@ -124,32 +124,6 @@ where
         specialize_3!(Rotor::<N, T, A>::from_projective_backend(projective))
     }
 
-    /// Returns the inverse of a rotor.
-    ///
-    /// This assumes `self` is normalized.
-    ///
-    /// This performs the same operation as [`conjugate`]. Use whichever
-    /// function makes your intentions clearer.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `self` is not normalized.
-    ///
-    /// [`conjugate`]: Self::conjugate
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn inverse(self) -> Self {
-        debug_assert!(
-            self.is_normalized(),
-            "rotor is not normalized: {self:?}.inverse()"
-        );
-
-        self.conjugate()
-    }
-
     /// Returns the angle (in radians) for the minimal rotation for transforming
     /// `self` into `other`.
     ///

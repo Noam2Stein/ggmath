@@ -1,8 +1,11 @@
-use core::ops::{Add, Mul, Neg};
+use core::{
+    fmt::Debug,
+    ops::{Add, Mul, Neg},
+};
 
 use crate::{
-    Aligned, Alignment, Dim, Element, One, Rotor, Unaligned, Vector, Zero, backend::RotorBackend,
-    dim::Three, utils::specialize_3,
+    Aligned, Alignment, Dim, Element, EqTest, One, Rotor, Unaligned, Vector, Zero,
+    backend::RotorBackend, dim::Three, utils::specialize_3,
 };
 
 #[expect(private_bounds)]
@@ -31,10 +34,9 @@ where
 {
     /// Returns the conjugate of a rotor.
     ///
-    /// This performs the same operation as [`inverse`]. Use whichever function
-    /// makes your intentions clearer.
+    /// This performs the same operation as [`inverse`].
     ///
-    /// [`inverse`]: Rotor#method.inverse
+    /// [`inverse`]: Self::inverse
     #[inline]
     #[must_use]
     #[track_caller]
@@ -43,6 +45,34 @@ where
         T: Neg<Output = T>,
     {
         specialize_3!(<T as RotorBackend<N, A>>::rotor_conjugate(self))
+    }
+
+    /// Returns the inverse of a rotor.
+    ///
+    /// This assumes `self` is normalized.
+    ///
+    /// This performs the same operation as [`conjugate`].
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` is not normalized (according to [`EqTest`]).
+    ///
+    /// [`conjugate`]: Self::conjugate
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn inverse(self) -> Self
+    where
+        T: Debug + Neg<Output = T> + Add<Output = T> + Mul<Output = T> + One + EqTest,
+    {
+        debug_assert!(
+            self.length_squared().eq_test(&T::ONE),
+            "rotor is not normalized: {self:?}.inverse()"
+        );
+
+        self.conjugate()
     }
 
     /// Computes the dot product of two rotors.
