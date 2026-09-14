@@ -17,7 +17,7 @@ use crate::{Alignment, Dim, Element, Matrix, TwoThreeOrFour, Vector};
 ///
 /// [`Rotor::inverse`]: crate::Rotor::inverse
 /// [`eq_test`]: Self::eq_test
-/// [`abs_diff_eq`]: FloatExt::abs_diff_eq
+/// [`abs_diff_eq`]: crate::FloatExt::abs_diff_eq
 /// [`wide`]: crate#soa
 pub trait EqTest {
     /// Returns whether `self` and `other` pass an equality test.
