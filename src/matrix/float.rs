@@ -1250,7 +1250,7 @@ mod tests {
     extern crate std;
 
     use crate::{
-        EulerRot, FloatExt, Matrix, Projective, Rotation2, Rotor, Vector,
+        EulerRot, FloatExt, Matrix, Rotation2, Rotor, Vector,
         test_utils::{assert_debug_panic, assert_test_eq, for_types, random_iter},
     };
 
@@ -1261,55 +1261,6 @@ mod tests {
                 Matrix::<N, T, A>::NAN,
                 Matrix::from_rows(&[Vector::<N, T, A>::NAN; N])
             );
-        });
-    }
-
-    #[test]
-    fn test_from_projective() {
-        for_types!(|T: PrimitiveFloat, A| {
-            let projective = Projective::<2, T, A>::from_rows(&[
-                Vector::<3, T, A>::new(0.9, 0.2, 1e-5),
-                Vector::<3, T, A>::new(0.1, 0.8, 1e-5),
-                Vector::<3, T, A>::new(5.3, 3.2, 1.0 + 1e-5),
-            ]);
-            assert_eq!(
-                Matrix::<2, T, A>::from_projective(&projective),
-                Matrix::<2, T, A>::from_rows(&[
-                    projective.x_axis.truncate(),
-                    projective.y_axis.truncate(),
-                ])
-            );
-
-            let projective = Projective::<3, T, A>::from_rows(&[
-                Vector::<4, T, A>::new(0.9, 0.2, 0.1, 1e-5),
-                Vector::<4, T, A>::new(0.1, 0.8, 0.3, 1e-5),
-                Vector::<4, T, A>::new(0.2, 0.1, 0.8, 1e-5),
-                Vector::<4, T, A>::new(5.3, 3.2, 9.8, 1.0 + 1e-5),
-            ]);
-            assert_eq!(
-                Matrix::<3, T, A>::from_projective(&projective),
-                Matrix::<3, T, A>::from_rows(&[
-                    projective.x_axis.truncate(),
-                    projective.y_axis.truncate(),
-                    projective.z_axis.truncate(),
-                ])
-            );
-
-            assert_debug_panic!(Matrix::<2, T, A>::from_projective(
-                &Projective::<2, T, A>::from_rows(&[
-                    Vector::<3, T, A>::new(0.9, 0.2, 2.0),
-                    Vector::<3, T, A>::new(0.1, 0.8, 0.0),
-                    Vector::<3, T, A>::new(5.3, 3.2, 1.0),
-                ])
-            ));
-            assert_debug_panic!(Matrix::<3, T, A>::from_projective(
-                &Projective::<3, T, A>::from_rows(&[
-                    Vector::<4, T, A>::new(0.9, 0.2, 0.1, 2.0),
-                    Vector::<4, T, A>::new(0.1, 0.8, 0.3, 3.1),
-                    Vector::<4, T, A>::new(0.2, 0.1, 0.8, 0.0),
-                    Vector::<4, T, A>::new(5.3, 3.2, 9.8, 1.0),
-                ])
-            ));
         });
     }
 
@@ -1710,51 +1661,6 @@ mod tests {
                     0.0 = -0.0
                 );
             }
-        });
-    }
-
-    #[test]
-    fn test_from_homogeneous() {
-        for_types!(|T: PrimitiveFloat, A| {
-            let homogeneous = Matrix::from_rows(&[
-                Vector::<3, T, A>::new(0.9, 0.2, 1e-5),
-                Vector::<3, T, A>::new(0.1, 0.8, 1e-5),
-                Vector::<3, T, A>::new(5.3, 3.2, 1.0 + 1e-5),
-            ]);
-            assert_eq!(
-                Matrix::<2, T, A>::from_homogeneous(&homogeneous),
-                Matrix::<2, T, A>::from_rows(&[
-                    homogeneous.x_axis.truncate(),
-                    homogeneous.y_axis.truncate(),
-                ])
-            );
-
-            let homogeneous = Matrix::from_rows(&[
-                Vector::<4, T, A>::new(0.9, 0.2, 0.1, 1e-5),
-                Vector::<4, T, A>::new(0.1, 0.8, 0.3, 1e-5),
-                Vector::<4, T, A>::new(0.2, 0.1, 0.8, 1e-5),
-                Vector::<4, T, A>::new(5.3, 3.2, 9.8, 1.0 + 1e-5),
-            ]);
-            assert_eq!(
-                Matrix::<3, T, A>::from_homogeneous(&homogeneous),
-                Matrix::<3, T, A>::from_rows(&[
-                    homogeneous.x_axis.truncate(),
-                    homogeneous.y_axis.truncate(),
-                    homogeneous.z_axis.truncate(),
-                ])
-            );
-
-            assert_debug_panic!(Matrix::<2, T, A>::from_homogeneous(&Matrix::from_rows(&[
-                Vector::<3, T, A>::new(0.9, 0.2, 2.0),
-                Vector::<3, T, A>::new(0.1, 0.8, 0.0),
-                Vector::<3, T, A>::new(5.3, 3.2, 1.0),
-            ])));
-            assert_debug_panic!(Matrix::<3, T, A>::from_homogeneous(&Matrix::from_rows(&[
-                Vector::<4, T, A>::new(0.9, 0.2, 0.1, 2.0),
-                Vector::<4, T, A>::new(0.1, 0.8, 0.3, 3.1),
-                Vector::<4, T, A>::new(0.2, 0.1, 0.8, 0.0),
-                Vector::<4, T, A>::new(5.3, 3.2, 9.8, 1.0),
-            ])));
         });
     }
 

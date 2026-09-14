@@ -986,11 +986,8 @@ impl_items!(f64x8, f64);
 mod tests {
     extern crate std;
 
-    use wide::f32x4;
-
     use crate::{
-        EulerRot, Mat2, Mat3, Mat4, Matrix, Projective, Rot2, Rotor3, Unaligned, Vec2, Vec3,
-        Vector,
+        EulerRot, Mat2, Mat3, Mat4, Matrix, Rot2, Rotor3, Unaligned, Vec2, Vec3, Vector,
         test_utils::{assert_test_eq, assert_test_eq_or_panic, for_types, random_iter},
     };
 
@@ -1001,20 +998,6 @@ mod tests {
                 Matrix::<N, Wide, Unaligned>::NAN,
                 Matrix::from_rows(&[Vector::<N, Wide, Unaligned>::NAN; N])
             );
-        });
-    }
-
-    #[test]
-    fn test_from_projective() {
-        for_types!(|N: TwoOrThree| {
-            for projective in random_iter::<Projective<N, f32x4, Unaligned>>() {
-                assert_test_eq_or_panic!(
-                    Matrix::<N, f32x4, Unaligned>::from_projective(&projective),
-                    Matrix::from_lane_fn(|lane| Matrix::<N, f32, Unaligned>::from_projective(
-                        &projective.lane(lane)
-                    ))
-                );
-            }
         });
     }
 
@@ -1258,22 +1241,6 @@ mod tests {
                 );
             }
         });
-    }
-
-    #[test]
-    fn test_from_homogeneous() {
-        for homogeneous in random_iter::<Mat3<f32x4>>() {
-            assert_test_eq_or_panic!(
-                Mat2::<f32x4>::from_homogeneous(&homogeneous),
-                Matrix::from_lane_fn(|lane| Mat2::<f32>::from_homogeneous(&homogeneous.lane(lane)))
-            );
-        }
-        for homogeneous in random_iter::<Mat4<f32x4>>() {
-            assert_test_eq_or_panic!(
-                Mat3::<f32x4>::from_homogeneous(&homogeneous),
-                Matrix::from_lane_fn(|lane| Mat3::<f32>::from_homogeneous(&homogeneous.lane(lane)))
-            );
-        }
     }
 
     #[test]

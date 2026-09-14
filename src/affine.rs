@@ -564,9 +564,9 @@ mod tests {
     use std::format;
 
     use crate::{
-        Affine, Affine2, Affine2A, Affine3, Affine3A, Aligned, Mask, Mat2A, Matrix, Unaligned,
-        Vec3A, Vec4A, Vector,
-        test_utils::{assert_panic, assert_test_eq, for_types, random_iter},
+        Affine, Affine2, Affine2A, Affine3, Affine3A, Aligned, Mask, Mat2A, Matrix, Projective,
+        Unaligned, Vec3A, Vec4A, Vector,
+        test_utils::{assert_debug_panic, assert_panic, assert_test_eq, for_types, random_iter},
     };
 
     #[test]
@@ -672,6 +672,104 @@ mod tests {
                 Affine::<N, T, A>::from_matrix(&matrix),
                 Affine::from_matrix_translation(&matrix, Vector::ZERO)
             );
+        });
+    }
+
+    #[test]
+    fn test_from_projective() {
+        for_types!(|T: PrimitiveFloat, A| {
+            let projective = Projective::<2, T, A>::from_rows(&[
+                Vector::<3, T, A>::new(0.9, 0.2, 1e-5),
+                Vector::<3, T, A>::new(0.1, 0.8, 1e-5),
+                Vector::<3, T, A>::new(5.3, 3.2, 1.0 + 1e-5),
+            ]);
+            assert_eq!(
+                Affine::<2, T, A>::from_projective(&projective),
+                Affine::<2, T, A>::from_rows(&[
+                    projective.x_axis.truncate(),
+                    projective.y_axis.truncate(),
+                    projective.z_axis.truncate(),
+                ])
+            );
+
+            let projective = Projective::<3, T, A>::from_rows(&[
+                Vector::<4, T, A>::new(0.9, 0.2, 0.1, 1e-5),
+                Vector::<4, T, A>::new(0.1, 0.8, 0.3, 1e-5),
+                Vector::<4, T, A>::new(0.2, 0.1, 0.8, 1e-5),
+                Vector::<4, T, A>::new(5.3, 3.2, 9.8, 1.0 + 1e-5),
+            ]);
+            assert_eq!(
+                Affine::<3, T, A>::from_projective(&projective),
+                Affine::<3, T, A>::from_rows(&[
+                    projective.x_axis.truncate(),
+                    projective.y_axis.truncate(),
+                    projective.z_axis.truncate(),
+                    projective.w_axis.truncate(),
+                ])
+            );
+
+            assert_debug_panic!(Affine::<2, T, A>::from_projective(
+                &Projective::<2, T, A>::from_rows(&[
+                    Vector::<3, T, A>::new(0.9, 0.2, 2.0),
+                    Vector::<3, T, A>::new(0.1, 0.8, 0.0),
+                    Vector::<3, T, A>::new(5.3, 3.2, 1.0),
+                ])
+            ));
+            assert_debug_panic!(Affine::<3, T, A>::from_projective(
+                &Projective::<3, T, A>::from_rows(&[
+                    Vector::<4, T, A>::new(0.9, 0.2, 0.1, 2.0),
+                    Vector::<4, T, A>::new(0.1, 0.8, 0.3, 3.1),
+                    Vector::<4, T, A>::new(0.2, 0.1, 0.8, 0.0),
+                    Vector::<4, T, A>::new(5.3, 3.2, 9.8, 1.0),
+                ])
+            ));
+        });
+    }
+
+    #[test]
+    fn test_from_homogeneous() {
+        for_types!(|T: PrimitiveFloat, A| {
+            let homogeneous = Matrix::from_rows(&[
+                Vector::<3, T, A>::new(0.9, 0.2, 1e-5),
+                Vector::<3, T, A>::new(0.1, 0.8, 1e-5),
+                Vector::<3, T, A>::new(5.3, 3.2, 1.0 + 1e-5),
+            ]);
+            assert_eq!(
+                Affine::<2, T, A>::from_homogeneous(&homogeneous),
+                Affine::<2, T, A>::from_rows(&[
+                    homogeneous.x_axis.truncate(),
+                    homogeneous.y_axis.truncate(),
+                    homogeneous.z_axis.truncate(),
+                ])
+            );
+
+            let homogeneous = Matrix::from_rows(&[
+                Vector::<4, T, A>::new(0.9, 0.2, 0.1, 1e-5),
+                Vector::<4, T, A>::new(0.1, 0.8, 0.3, 1e-5),
+                Vector::<4, T, A>::new(0.2, 0.1, 0.8, 1e-5),
+                Vector::<4, T, A>::new(5.3, 3.2, 9.8, 1.0 + 1e-5),
+            ]);
+            assert_eq!(
+                Affine::<3, T, A>::from_homogeneous(&homogeneous),
+                Affine::<3, T, A>::from_rows(&[
+                    homogeneous.x_axis.truncate(),
+                    homogeneous.y_axis.truncate(),
+                    homogeneous.z_axis.truncate(),
+                    homogeneous.w_axis.truncate(),
+                ])
+            );
+
+            assert_debug_panic!(Affine::<2, T, A>::from_homogeneous(&Matrix::from_rows(&[
+                Vector::<3, T, A>::new(0.9, 0.2, 2.0),
+                Vector::<3, T, A>::new(0.1, 0.8, 0.0),
+                Vector::<3, T, A>::new(5.3, 3.2, 1.0),
+            ])));
+            assert_debug_panic!(Affine::<3, T, A>::from_homogeneous(&Matrix::from_rows(&[
+                Vector::<4, T, A>::new(0.9, 0.2, 0.1, 2.0),
+                Vector::<4, T, A>::new(0.1, 0.8, 0.3, 3.1),
+                Vector::<4, T, A>::new(0.2, 0.1, 0.8, 0.0),
+                Vector::<4, T, A>::new(5.3, 3.2, 9.8, 1.0),
+            ])));
         });
     }
 
