@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- [#89](https://github.com/Noam2Stein/ggmath/pull/88): Generalize float-only and
+- [#89](https://github.com/Noam2Stein/ggmath/pull/89): Generalize float-only and
   wide-float-only functions into arbitrary `T` types using added `EqTest` trait
 
 - [#86](https://github.com/Noam2Stein/ggmath/pull/86): Improve documentation
