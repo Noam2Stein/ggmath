@@ -6,14 +6,10 @@ use wide::{
     u32x16, u64x2, u64x4, u64x8,
 };
 
-use crate::{Alignment, Element, NegOne, One, Zero, backend::DefaultBackend};
+use crate::{NegOne, One, Zero};
 
 macro_rules! float_impl {
     ($T:ident, $F:ident, $N:literal) => {
-        impl Element for $T {}
-
-        impl<const N: usize, A: Alignment> DefaultBackend<N, A> for $T {}
-
         impl Zero for $T {
             const ZERO: Self = unsafe { transmute::<[$F; $N], $T>([0.0; $N]) };
         }
@@ -36,10 +32,6 @@ float_impl!(f64x8, f64, 8);
 
 macro_rules! int_impl {
     ($T:ident) => {
-        impl Element for $T {}
-
-        impl<const N: usize, A: Alignment> DefaultBackend<N, A> for $T {}
-
         impl Zero for $T {
             const ZERO: Self = Self::ZERO;
         }
@@ -68,10 +60,6 @@ int_impl!(i64x8);
 
 macro_rules! uint_impl {
     ($T:ident) => {
-        impl Element for $T {}
-
-        impl<const N: usize, A: Alignment> DefaultBackend<N, A> for $T {}
-
         impl Zero for $T {
             const ZERO: Self = Self::ZERO;
         }

@@ -71,35 +71,59 @@ impl<T> Element for T where T: CustomElement {}
 #[diagnostic::do_not_recommend]
 impl<T, const N: usize, A: Alignment> DefaultBackend<N, A> for T where T: CustomElement {}
 
-impl Element for f32 {}
+macro_rules! float_impl {
+    ($T:ident) => {
+        impl Element for $T {}
+    };
+}
+float_impl!(f32);
+float_impl!(f64);
 
-impl Element for f64 {}
-
-impl Element for i8 {}
-
-impl Element for i16 {}
-
-impl Element for i32 {}
-
-impl Element for i64 {}
-
-impl Element for i128 {}
-
-impl Element for isize {}
-
-impl Element for u8 {}
-
-impl Element for u16 {}
-
-impl Element for u32 {}
-
-impl Element for u64 {}
-
-impl Element for u128 {}
-
-impl Element for usize {}
+macro_rules! integer_impl {
+    ($T:ident) => {
+        impl Element for $T {}
+    };
+}
+integer_impl!(i8);
+integer_impl!(i16);
+integer_impl!(i32);
+integer_impl!(i64);
+integer_impl!(i128);
+integer_impl!(isize);
+integer_impl!(u8);
+integer_impl!(u16);
+integer_impl!(u32);
+integer_impl!(u64);
+integer_impl!(u128);
+integer_impl!(usize);
 
 impl Element for bool {}
+
+#[cfg(feature = "fixed")]
+mod fixed_impl {
+    use fixed::{
+        FixedI8, FixedI16, FixedI32, FixedI64, FixedI128, FixedU8, FixedU16, FixedU32, FixedU64,
+        FixedU128,
+    };
+
+    use crate::CustomElement;
+
+    macro_rules! fixed_impl {
+        ($Fixed:ident) => {
+            impl<Frac> CustomElement for $Fixed<Frac> {}
+        };
+    }
+    fixed_impl!(FixedI8);
+    fixed_impl!(FixedI16);
+    fixed_impl!(FixedI32);
+    fixed_impl!(FixedI64);
+    fixed_impl!(FixedI128);
+    fixed_impl!(FixedU8);
+    fixed_impl!(FixedU16);
+    fixed_impl!(FixedU32);
+    fixed_impl!(FixedU64);
+    fixed_impl!(FixedU128);
+}
 
 #[cfg(feature = "half")]
 mod half_impl {
@@ -107,7 +131,64 @@ mod half_impl {
 
     use crate::CustomElement;
 
-    impl CustomElement for f16 {}
+    macro_rules! half_impl {
+        ($T:ident) => {
+            impl CustomElement for $T {}
+        };
+    }
+    half_impl!(f16);
+    half_impl!(bf16);
+}
 
-    impl CustomElement for bf16 {}
+#[cfg(feature = "wide")]
+mod wide_impl {
+    use wide::{
+        f32x4, f32x8, f32x16, f64x2, f64x4, f64x8, i8x16, i8x32, i8x64, i16x8, i16x16, i16x32,
+        i32x4, i32x8, i32x16, i64x2, i64x4, i64x8, u8x16, u8x32, u8x64, u16x8, u16x16, u16x32,
+        u32x4, u32x8, u32x16, u64x2, u64x4, u64x8,
+    };
+
+    use crate::CustomElement;
+
+    macro_rules! wide_float_impl {
+        ($T:ident, $N:literal, $Simd:ident) => {
+            impl CustomElement for $Simd {}
+        };
+    }
+    wide_float_impl!(f32, 4, f32x4);
+    wide_float_impl!(f32, 8, f32x8);
+    wide_float_impl!(f32, 16, f32x16);
+    wide_float_impl!(f64, 2, f64x2);
+    wide_float_impl!(f64, 4, f64x4);
+    wide_float_impl!(f64, 8, f64x8);
+
+    macro_rules! wide_integer_impl {
+        ($T:ident, $N:literal, $Simd:ident) => {
+            impl CustomElement for $Simd {}
+        };
+    }
+    wide_integer_impl!(i8, 16, i8x16);
+    wide_integer_impl!(i8, 32, i8x32);
+    wide_integer_impl!(i8, 64, i8x64);
+    wide_integer_impl!(i16, 8, i16x8);
+    wide_integer_impl!(i16, 16, i16x16);
+    wide_integer_impl!(i16, 32, i16x32);
+    wide_integer_impl!(i32, 4, i32x4);
+    wide_integer_impl!(i32, 8, i32x8);
+    wide_integer_impl!(i32, 16, i32x16);
+    wide_integer_impl!(i64, 2, i64x2);
+    wide_integer_impl!(i64, 4, i64x4);
+    wide_integer_impl!(i64, 8, i64x8);
+    wide_integer_impl!(u8, 16, u8x16);
+    wide_integer_impl!(u8, 32, u8x32);
+    wide_integer_impl!(u8, 64, u8x64);
+    wide_integer_impl!(u16, 8, u16x8);
+    wide_integer_impl!(u16, 16, u16x16);
+    wide_integer_impl!(u16, 32, u16x32);
+    wide_integer_impl!(u32, 4, u32x4);
+    wide_integer_impl!(u32, 8, u32x8);
+    wide_integer_impl!(u32, 16, u32x16);
+    wide_integer_impl!(u64, 2, u64x2);
+    wide_integer_impl!(u64, 4, u64x4);
+    wide_integer_impl!(u64, 8, u64x8);
 }

@@ -3,14 +3,10 @@ use fixed::{
     FixedU128,
 };
 
-use crate::{Alignment, Element, Zero, backend::DefaultBackend};
+use crate::Zero;
 
 macro_rules! impl_fixed {
     ($Fixed:ident) => {
-        impl<Frac> Element for $Fixed<Frac> {}
-
-        impl<const N: usize, Frac, A: Alignment> DefaultBackend<N, A> for $Fixed<Frac> {}
-
         impl<Frac> Zero for $Fixed<Frac> {
             const ZERO: Self = Self::ZERO;
         }
