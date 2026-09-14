@@ -807,6 +807,22 @@ mod tests {
     }
 
     #[test]
+    fn test_inverse() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for rotation in random_iter::<Rotation2<T, A>>() {
+                let rotation = rotation.normalize_or(Rotation2::IDENTITY).normalize();
+
+                assert_test_eq!(
+                    rotation * rotation.inverse(),
+                    Rotation2::IDENTITY,
+                    abs <= 1e-4,
+                    0.0 = -0.0
+                );
+            }
+        });
+    }
+
+    #[test]
     fn test_deref() {
         for_types!(|T: PrimitiveNumber, A| {
             let cos = T::as_from(7);

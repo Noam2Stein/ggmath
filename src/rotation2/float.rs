@@ -82,32 +82,6 @@ where
         Self::from_cos_sin(dot, from.perp_dot(to)) * dot.signum()
     }
 
-    /// Returns the inverse of a 2D rotation.
-    ///
-    /// This assumes `self` is normalized.
-    ///
-    /// This is the same as [`conjugate`], but asserts that `self` is
-    /// normalized.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `self` is not normalized.
-    ///
-    /// [`conjugate`]: Self::conjugate
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn inverse(self) -> Self {
-        debug_assert!(
-            self.is_normalized(),
-            "2D rotation is not normalized: {self:?}.inverse()"
-        );
-
-        self.conjugate()
-    }
-
     /// Returns the absolute angle (in radians) between two rotations.
     ///
     /// This assumes `self` and `other` are normalized.
@@ -436,22 +410,6 @@ mod tests {
                     Rotation2::<T, A>::from_angle(angle).to_angle(),
                     angle,
                     abs <= 1e-4
-                );
-            }
-        });
-    }
-
-    #[test]
-    fn test_inverse() {
-        for_types!(|T: PrimitiveFloat, A| {
-            for rotation in random_iter::<Rotation2<T, A>>() {
-                let rotation = rotation.normalize_or(Rotation2::IDENTITY).normalize();
-
-                assert_test_eq!(
-                    rotation * rotation.inverse(),
-                    Rotation2::IDENTITY,
-                    abs <= 1e-4,
-                    0.0 = -0.0
                 );
             }
         });

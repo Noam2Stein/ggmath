@@ -48,19 +48,6 @@ macro_rules! items {
             Self::from_cos_sin(dot, from.perp_dot(to)) * dot.signum()
         }
 
-        /// Returns the inverse of a 2D rotation.
-        ///
-        /// This assumes `self` is normalized.
-        ///
-        /// This is the same as [`conjugate`].
-        ///
-        /// [`conjugate`]: Self::conjugate
-        #[inline]
-        #[must_use]
-        pub fn inverse(self) -> Self {
-            self.conjugate()
-        }
-
         /// Returns the absolute angle (in radians) between two rotations.
         ///
         /// This assumes `self` and `other` are normalized.
@@ -335,22 +322,6 @@ mod tests {
                     Rot2::<Wide>::from_angle(angle).to_angle(),
                     angle,
                     abs <= Wide::splat(1e-4)
-                );
-            }
-        });
-    }
-
-    #[test]
-    fn test_inverse() {
-        for_types!(|Wide: WideFloat| {
-            for rotation in random_iter::<Rot2<Wide>>() {
-                let rotation = rotation.normalize_or(Rot2::IDENTITY).normalize();
-
-                assert_test_eq!(
-                    rotation * rotation.inverse(),
-                    Rot2::IDENTITY,
-                    abs <= Wide::splat(1e-4),
-                    0.0 = -0.0
                 );
             }
         });

@@ -203,8 +203,7 @@ where
 
     /// Negates the sine element.
     ///
-    /// This affectively inverts the rotation, though consider using [`inverse`]
-    /// for that.
+    /// This is the same operation as [`inverse`].
     ///
     /// [`inverse`]: Rotation2::inverse
     #[inline]
@@ -215,6 +214,34 @@ where
         T: Neg<Output = T>,
     {
         Self::from_cos_sin(self.cos, -self.sin)
+    }
+
+    /// Returns the inverse of a 2D rotation.
+    ///
+    /// This assumes `self` is normalized.
+    ///
+    /// This is the same operation as [`conjugate`].
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` is not normalized (according to [`EqTest`]).
+    ///
+    /// [`conjugate`]: Self::conjugate
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn inverse(self) -> Self
+    where
+        T: Debug + Neg<Output = T> + Add<Output = T> + Mul<Output = T> + One + EqTest,
+    {
+        debug_assert!(
+            self.length_squared().eq_test(&T::ONE),
+            "2D rotation is not normalized: {self:?}.inverse()"
+        );
+
+        self.conjugate()
     }
 
     /// Rotates a complex number by a quarter of a turn, adding 90 degrees to
