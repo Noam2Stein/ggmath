@@ -18,8 +18,10 @@ where
 {
     /// An affine transform with all elements set to `0`.
     ///
-    /// This transforms all vectors to a zero vector. See [`IDENTITY`] for
-    /// an affine transform with no transformation.
+    /// This transforms all vectors to the zero vector.
+    ///
+    /// See [`IDENTITY`] for an affine transform that leaves all vectors
+    /// unchanged.
     ///
     /// [`IDENTITY`]: Self::IDENTITY
     pub const ZERO: Self = Self::from_matrix_translation(&Matrix::ZERO, Vector::ZERO);
@@ -30,7 +32,7 @@ where
     Dim<N>: TwoThreeOrFour,
     T: Element + Zero + One,
 {
-    /// An affine transform with no transformation.
+    /// An affine transform that leaves all vectors unchanged.
     pub const IDENTITY: Self = Self::from_matrix_translation(&Matrix::IDENTITY, Vector::ZERO);
 }
 
@@ -65,7 +67,7 @@ where
         Self::from_matrix_translation(&Matrix::from_row_fn(&mut f), f(N))
     }
 
-    /// Creates an affine transform from a non-uniform `scale`.
+    /// Creates an affine transform from a non-uniform scale.
     #[inline]
     #[must_use]
     pub const fn from_scale(scale: Vector<N, T, A>) -> Self
@@ -96,7 +98,7 @@ where
         self.matrix.to_scale()
     }
 
-    /// Creates an affine transform from a `translation` vector.
+    /// Creates an affine transform from a translation vector.
     #[inline]
     #[must_use]
     pub const fn from_translation(translation: Vector<N, T, A>) -> Self
@@ -141,8 +143,7 @@ where
         (self.to_scale(), self.translation)
     }
 
-    /// Creates an affine transform from `matrix` expressing rotation and
-    /// scale, but not translation.
+    /// Creates an affine transform from a matrix.
     #[inline]
     #[must_use]
     pub const fn from_matrix(matrix: &Matrix<N, T, A>) -> Self
@@ -152,8 +153,7 @@ where
         Self::from_matrix_translation(matrix, Vector::ZERO)
     }
 
-    /// Creates an affine transform from `translation` and `matrix`
-    /// expressing rotation and scale.
+    /// Creates an affine transform from a matrix and a translation vector.
     #[inline]
     #[must_use]
     pub const fn from_matrix_translation(
@@ -205,7 +205,7 @@ where
 
     /// Converts an affine transform to a matrix and a translation vector.
     ///
-    /// This is a no-op.
+    /// This is a no-op since affine transforms are stored like this.
     #[inline]
     #[must_use]
     pub fn to_matrix_translation(&self) -> (Matrix<N, T, A>, Vector<N, T, A>) {
@@ -220,7 +220,7 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if the last column of `projective` is not `(0, 0, ..., 1)`
+    /// Panics if `projective` does not contain an affine transformation
     /// (according to [`EqTest`]).
     ///
     /// # Examples
@@ -265,7 +265,11 @@ where
         Projective::from_affine(self)
     }
 
-    /// Transforms the given vector applying scale, rotation and translation.
+    /// Transforms a vector applying the linear transformation and translation.
+    ///
+    /// See [`transform_vector`] for not applying translation.
+    ///
+    /// [`transform_vector`]: Self::transform_vector
     #[inline]
     #[must_use]
     #[track_caller]
@@ -276,7 +280,7 @@ where
         point * self.matrix + self.translation
     }
 
-    /// Transforms the given vector applying scale and rotation, but not
+    /// Transforms a vector applying the linear transformation, but not
     /// translation.
     ///
     /// See [`transform_point`] for also applying translation.
@@ -336,7 +340,7 @@ impl<T, A: Alignment> Affine<2, T, A>
 where
     T: Element,
 {
-    /// Creates a 2D affine transform from three row vectors.
+    /// Creates a row-major affine transform from an array of row vectors.
     #[inline]
     #[must_use]
     pub const fn from_rows(rows: &[Vector<2, T, A>; 3]) -> Self {
@@ -350,7 +354,7 @@ where
         *self.as_rows()
     }
 
-    /// Returns a reference to the affine transform's rows.
+    /// Returns a reference to a row-major affine transform's rows.
     #[inline]
     #[must_use]
     pub const fn as_rows(&self) -> &[Vector<2, T, A>; 3] {
@@ -360,7 +364,7 @@ where
         unsafe { transmute_ref::<Affine<2, T, A>, [Vector<2, T, A>; 3]>(self) }
     }
 
-    /// Returns a mutable reference to the affine transform's rows.
+    /// Returns a mutable reference to a row-major affine transform's rows.
     #[inline]
     #[must_use]
     pub const fn as_mut_rows(&mut self) -> &mut [Vector<2, T, A>; 3] {
@@ -370,7 +374,7 @@ where
         unsafe { transmute_mut::<Affine<2, T, A>, [Vector<2, T, A>; 3]>(self) }
     }
 
-    /// Creates an affine transform from a row-major array of elements.
+    /// Creates a row-major affine transform from a row-major array of elements.
     ///
     /// # Examples
     ///
@@ -406,8 +410,8 @@ where
         unsafe { *transmute_ref::<Affine<2, T, A>, [T; 6]>(self) }
     }
 
-    /// Takes the `N+1`x`N` affine transform part of an `N+1`x`N+1` homogeneous
-    /// transformation matrix, removing the last column.
+    /// Creates an affine transform from a higher-dimensional homogeneous matrix
+    /// by removing the last column.
     ///
     /// This assumes `homogeneous` contains an affine transformation.
     ///
@@ -415,7 +419,7 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if the last column of `homogeneous` is not `(0, 0, ..., 1)`
+    /// Panics if `homogeneous` does not contain an affine transformation
     /// (according to [`EqTest`]).
     ///
     /// # Examples
@@ -456,8 +460,10 @@ where
         ])
     }
 
-    /// Creates an `N+1`x`N+1` homogeneous transformation matrix from an
-    /// `N+1`x`N` affine transform.
+    /// Creates a higher-dimensional homogeneous matrix from an affine transform
+    /// by adding another column.
+    ///
+    /// The added column is set to `(0, 0, ..., 1)`.
     ///
     /// # Examples
     ///
@@ -515,7 +521,7 @@ impl<T, A: Alignment> Affine<3, T, A>
 where
     T: Element,
 {
-    /// Creates a 3D affine transform from four row vectors.
+    /// Creates a row-major affine transform from an array of row vectors.
     #[inline]
     #[must_use]
     pub const fn from_rows(rows: &[Vector<3, T, A>; 4]) -> Self {
@@ -529,7 +535,7 @@ where
         *self.as_rows()
     }
 
-    /// Returns a reference to the affine transform's rows.
+    /// Returns a reference to a row-major affine transform's rows.
     #[inline]
     #[must_use]
     pub const fn as_rows(&self) -> &[Vector<3, T, A>; 4] {
@@ -539,7 +545,7 @@ where
         unsafe { transmute_ref::<Affine<3, T, A>, [Vector<3, T, A>; 4]>(self) }
     }
 
-    /// Returns a mutable reference to the affine transform's rows.
+    /// Returns a mutable reference to a row-major affine transform's rows.
     #[inline]
     #[must_use]
     pub const fn as_mut_rows(&mut self) -> &mut [Vector<3, T, A>; 4] {
@@ -549,7 +555,7 @@ where
         unsafe { transmute_mut::<Affine<3, T, A>, [Vector<3, T, A>; 4]>(self) }
     }
 
-    /// Creates an affine transform from a row-major array of elements.
+    /// Creates a row-major affine transform from a row-major array of elements.
     ///
     /// # Examples
     ///
@@ -606,8 +612,8 @@ where
         }
     }
 
-    /// Takes the `N+1`x`N` affine transform part of an `N+1`x`N+1` homogeneous
-    /// transformation matrix, removing the last column.
+    /// Creates an affine transform from a higher-dimensional homogeneous matrix
+    /// by removing the last column.
     ///
     /// This assumes `homogeneous` contains an affine transformation.
     ///
@@ -615,7 +621,7 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if the last column of `homogeneous` is not `(0, 0, ..., 1)`
+    /// Panics if `homogeneous` does not contain an affine transformation
     /// (according to [`EqTest`]).
     ///
     /// # Examples
@@ -657,8 +663,10 @@ where
         ])
     }
 
-    /// Creates an `N+1`x`N+1` homogeneous transformation matrix from an
-    /// `N+1`x`N` affine transform.
+    /// Creates a higher-dimensional homogeneous matrix from an affine transform
+    /// by adding another column.
+    ///
+    /// The added column is set to `(0, 0, ..., 1)`.
     ///
     /// # Examples
     ///
@@ -718,7 +726,7 @@ impl<T, A: Alignment> Affine<4, T, A>
 where
     T: Element,
 {
-    /// Creates a 4D affine transform from five row vectors.
+    /// Creates a row-major affine transform from an array of row vectors.
     #[inline]
     #[must_use]
     pub const fn from_rows(rows: &[Vector<4, T, A>; 5]) -> Self {
@@ -735,7 +743,7 @@ where
         *self.as_rows()
     }
 
-    /// Returns a reference to the affine transform's rows.
+    /// Returns a reference to a row-major affine transform's rows.
     #[inline]
     #[must_use]
     pub const fn as_rows(&self) -> &[Vector<4, T, A>; 5] {
@@ -745,7 +753,7 @@ where
         unsafe { transmute_ref::<Affine<4, T, A>, [Vector<4, T, A>; 5]>(self) }
     }
 
-    /// Returns a mutable reference to the affine transform's rows.
+    /// Returns a mutable reference to a row-major affine transform's rows.
     #[inline]
     #[must_use]
     pub const fn as_mut_rows(&mut self) -> &mut [Vector<4, T, A>; 5] {
@@ -755,7 +763,7 @@ where
         unsafe { transmute_mut::<Affine<4, T, A>, [Vector<4, T, A>; 5]>(self) }
     }
 
-    /// Creates an affine transform from a row-major array of elements.
+    /// Creates a row-major affine transform from a row-major array of elements.
     ///
     /// # Examples
     ///
