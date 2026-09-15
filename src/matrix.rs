@@ -119,9 +119,8 @@ pub type Mat2<T> = Matrix<2, T, Unaligned>;
 ///
 /// Use `vector * matrix` to transform vectors.
 ///
-/// Unlike many other libraries, here [`Mat3`] is not used for 2D affine and
-/// projective transformations. For that use the [`Affine2`] and [`Proj2`]
-/// types.
+/// Unlike in traditional APIs, here [`Mat3`] is not used for 2D affine and
+/// projective transformations. For that use [`Affine2`] and [`Proj2`].
 ///
 /// # Fields
 ///
@@ -147,13 +146,10 @@ pub type Mat3<T> = Matrix<3, T, Unaligned>;
 ///
 /// Use `vector * matrix` to transform vectors.
 ///
-/// Unlike many other libraries, here [`Mat4`] is not used for 3D affine and
-/// projective transformations. For that use the [`Affine3`] and [`Proj3`]
-/// types.
-///
-/// This represents a 4D linear transformation, applied using `vec4 * self`.
-/// Even though this type does not have many use cases, it is still useful for
-/// raw matrix operations and interop with other libraries.
+/// Unlike in traditional APIs, here [`Mat4`] is not used for 3D affine and
+/// projective transformations. For that use [`Affine3`] and [`Proj3`]. Here
+/// [`Mat4`] is mostly used for raw matrix operations and interop with other
+/// libraries.
 ///
 /// # Fields
 ///
@@ -223,9 +219,8 @@ pub type Mat2A<T> = Matrix<2, T, Aligned>;
 ///
 /// Use `vector * matrix` to transform vectors.
 ///
-/// Unlike many other libraries, here [`Mat3A`] is not used for 2D affine and
-/// projective transformations. For that use the [`Affine2A`] and [`Proj2A`]
-/// types.
+/// Unlike in traditional APIs, here [`Mat3A`] is not used for 2D affine and
+/// projective transformations. For that use [`Affine2A`] and [`Proj2A`].
 ///
 /// # Fields
 ///
@@ -267,13 +262,10 @@ pub type Mat3A<T> = Matrix<3, T, Aligned>;
 ///
 /// Use `vector * matrix` to transform vectors.
 ///
-/// Unlike many other libraries, here [`Mat4A`] is not used for 3D affine and
-/// projective transformations. For that use the [`Affine3A`] and [`Proj3A`]
-/// types.
-///
-/// This represents a 4D linear transformation, applied using `vec4 * self`.
-/// Even though this type does not have many use cases, it is still useful for
-/// raw matrix operations and interop with other libraries.
+/// Unlike in traditional APIs, here [`Mat4A`] is not used for 3D affine and
+/// projective transformations. For that use [`Affine3A`] and [`Proj3A`]. Here
+/// [`Mat4A`] is mostly used for raw matrix operations and interop with other
+/// libraries.
 ///
 /// # Fields
 ///
