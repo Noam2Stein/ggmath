@@ -68,6 +68,8 @@ macro_rules! conflicting_items {
         /// Equivalent to
         /// `(self.x.clamp(min.x, max.x), self.y.clamp(min.y, max.y), ...)`.
         ///
+        /// This assumes `min <= max`.
+        ///
         /// # Panics
         ///
         /// When debug assertions are enabled:

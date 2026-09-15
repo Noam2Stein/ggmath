@@ -30,15 +30,16 @@ macro_rules! items {
         /// [`NEG_INFINITY`]: f32::NEG_INFINITY
         pub const NEG_INFINITY: Self = Self::splat($Wide::NEG_INFINITY);
 
-        /// Returns the length/magnitude of `self`.
+        /// Returns the length/magnitude of a vector.
         #[inline]
         #[must_use]
         pub fn length(self) -> $Wide {
             self.dot(self).sqrt()
         }
 
-        /// For each lane, returns a vector with the direction of `self` and
-        /// length `1`.
+        /// Returns a vector with the direction of `self` and length `1`.
+        ///
+        /// This assumes `self` is not the zero vector.
         #[inline]
         #[must_use]
         pub fn normalize(self) -> Self {
@@ -48,11 +49,11 @@ macro_rules! items {
         // `try_normalize` is exluded on purpose. It would not be useful because
         // it would only return `Some` if all lanes succeed.
 
-        /// Returns [`normalize`] for each lane, or `fallback` if `self` is zero
-        /// or if the result is non finite or zero.
+        /// Returns [`normalize`], or `fallback` if `self` is zero or if the
+        /// result is non finite or zero.
         ///
-        /// The fallback is only applied for invalid lanes. Other lanes are not
-        /// affected.
+        /// The fallback is only applied for invalid lanes. Valid lanes are
+        /// unaffected.
         ///
         /// [`normalize`]: Self::normalize
         #[inline]
@@ -64,11 +65,11 @@ macro_rules! items {
                 .select(self * length_recip, fallback)
         }
 
-        /// Returns [`normalize`] for each lane, or a zero vector if `self` is
-        /// zero or if the result is non finite.
+        /// Returns [`normalize`], or the zero vector if `self` is zero or if
+        /// the result is non finite.
         ///
-        /// The fallback is only applied for invalid lanes. Other lanes are not
-        /// affected.
+        /// The fallback is only applied for invalid lanes. Valid lanes are
+        /// unaffected.
         ///
         /// [`normalize`]: Self::normalize
         #[inline]
@@ -82,9 +83,8 @@ macro_rules! items {
 
         /// Simultaneously computes [`normalize`] and [`length`].
         ///
-        /// If `self` is a zero vector, the result for that lane is length `0`
-        /// and an unspecified vector. Consider manually checking for
-        /// `length == 0.0`.
+        /// If `self` is the zero vector, the result is length `0` and an
+        /// unspecified vector. Consider manually checking for `length == 0.0`.
         ///
         /// [`normalize`]: Self::normalize
         /// [`length`]: Self::length
@@ -95,9 +95,11 @@ macro_rules! items {
             (self / length, length)
         }
 
-        /// For each lane, returns whether the vector has the length `1` or not.
+        /// Returns a [mask] that is `true` if `self` has the length `1`.
         ///
         /// This uses a precision threshold of approximately `1e-4`.
+        ///
+        /// [mask]: wide#masks
         #[inline]
         #[must_use]
         pub fn is_normalized(self) -> $Wide {
@@ -106,18 +108,18 @@ macro_rules! items {
                 .simd_le($Wide::splat(2e-4))
         }
 
-        /// Computes the Euclidean distance between `self` and `other`.
+        /// Computes the Euclidean distance between two vectors.
         #[inline]
         #[must_use]
         pub fn distance(self, other: Self) -> $Wide {
             (self - other).length()
         }
 
-        /// For each lane, returns the angle (in radians) between `self` and
-        /// `other` in the range `0..=+π`.
+        /// Returns the angle (in radians) between two vectors in the range
+        /// `0..=+π`.
         ///
-        /// The vectors do not need to be unit vectors but they do need to be
-        /// non-zero.
+        /// This does not assume `self` and `other` are normalized, but this
+        /// does assume they are not the zero vector.
         ///
         /// # Unspecified precision
         ///
@@ -143,10 +145,9 @@ macro_rules! items {
             self * ($Wide::ONE - t) + other * t
         }
 
-        /// Computes the middle point between `self` and `other`.
+        /// Computes the middle point between two vectors.
         ///
-        /// Equivalent to `self.lerp(other, 0.5)`, but is cheaper to compute.
-        /// This may return a slightly different value.
+        /// Equivalent to `self.lerp(other, 0.5)`.
         #[inline]
         #[must_use]
         pub fn midpoint(self, other: Self) -> Self {
@@ -168,31 +169,30 @@ macro_rules! items {
                 .select(target, self + delta / delta_length * max_delta)
         }
 
-        /// For each lane, computes the spherical linear interpolation between
-        /// `self` and `other` based on the value `t`.
+        /// Computes the spherical linear interpolation between `self` and
+        /// `other` based on the value `t`.
         ///
         /// When `t` is `0`, the result is `self`.  When `t` is `1`, the result
         /// is `other`. When `t` is outside of the range `0..=1`, the result is
         /// spherically linearly extrapolated.
         ///
-        /// The vectors do not need to be unit vectors but they do need to be
-        /// non-zero.
+        /// This does not assume `self` and `other` are normalized, but this
+        /// does assume they are not the zero vector.
         #[inline]
         #[must_use]
         pub fn slerp(self, other: Self, t: $Wide) -> Self {
             specialize!(Vector::<N, $Wide, A>::slerp_backend(self, other, t))
         }
 
-        /// For each lane, rotates `self` towards `target` by at most
-        /// `max_angle` (in radians).
+        /// Rotates `self` towards `target` by at most `max_angle` (in radians).
         ///
         /// When `max_angle` is `0`, the result is `self`. When `max_angle` is
         /// equal to or greater than `self.angle_between(target)`, the result is
         /// `target`. When `max_angle` is negative, this rotates towards
         /// `-target`.
         ///
-        /// The vectors do not need to be unit vectors but `target` does need to
-        /// be non-zero.
+        /// This does not assume `self` and `other` are normalized, but this
+        /// does assume `target` is not the zero vector.
         #[inline]
         #[must_use]
         pub fn rotate_towards(self, target: Self, max_angle: $Wide) -> Self {
@@ -203,7 +203,7 @@ macro_rules! items {
 
         /// Returns the vector projection of `self` onto `other`.
         ///
-        /// `other` must not be a zero vector.
+        /// This assumes `other` is not the zero vector.
         #[inline]
         #[must_use]
         pub fn project_onto(self, other: Self) -> Self {
@@ -214,7 +214,7 @@ macro_rules! items {
 
         /// Returns the vector projection of `self` onto `other`.
         ///
-        /// `other` must be normalized.
+        /// This assumes `other` is normalized.
         #[inline]
         #[must_use]
         pub fn project_onto_normalized(self, other: Self) -> Self {
@@ -225,7 +225,7 @@ macro_rules! items {
         ///
         /// Equivalent to `self - self.project_onto(other)`.
         ///
-        /// `other` must not be a zero vector.
+        /// This assumes `other` is not the zero vector.
         #[inline]
         #[must_use]
         pub fn reject_from(self, other: Self) -> Self {
@@ -236,7 +236,7 @@ macro_rules! items {
         ///
         /// Equivalent to `self - self.project_onto(other)`.
         ///
-        /// `other` must be normalized.
+        /// This assumes `other` is normalized.
         #[inline]
         #[must_use]
         pub fn reject_from_normalized(self, other: Self) -> Self {
@@ -245,7 +245,7 @@ macro_rules! items {
 
         /// Returns the reflection of `self` through `normal`.
         ///
-        /// `normal` must be normalized.
+        /// This assumes `normal` is normalized.
         #[inline]
         #[must_use]
         pub fn reflect(self, normal: Self) -> Self {
@@ -257,9 +257,10 @@ macro_rules! items {
         /// `eta` is the incident refraction-index divided by the transmitted
         /// refraction-index.
         ///
-        /// When total internal reflection occurs, the result is a zero vector.
+        /// When total internal reflection occurs, the result is the zero
+        /// vector.
         ///
-        /// `self` and `normal` must be normalized.
+        /// This assumes `self` and `normal` are normalized.
         #[inline]
         #[must_use]
         pub fn refract(self, normal: Self, eta: $Wide) -> Self {
@@ -272,11 +273,11 @@ macro_rules! items {
             )
         }
 
-        /// For each lane, returns some vector that is orthogonal to `self`.
+        /// Returns some vector that is orthogonal to `self`.
         ///
         /// The result is not necessarily normalized.
         ///
-        /// For 2D vectors this is equivalent to [`perp`].
+        /// For 2D vectors this performs [`perp`].
         ///
         /// [`perp`]: Vector::perp
         #[inline]
@@ -285,12 +286,11 @@ macro_rules! items {
             specialize!(Vector::<N, $Wide, A>::any_orthogonal_vector_backend(self))
         }
 
-        /// For each lane, returns some unit vector that is orthogonal to
-        /// `self`.
+        /// Returns some normalized vector that is orthogonal to `self`.
         ///
-        /// `self` must normalized.
+        /// This assumes `self` is normalized.
         ///
-        /// For 2D vectors this is equivalent to [`perp`].
+        /// For 2D vectors this performs [`perp`].
         ///
         /// [`perp`]: Self::perp
         #[inline]
@@ -342,63 +342,73 @@ macro_rules! items {
             unsafe { transmute_generic::<Vector<N, $Wide, A>, Vector<N, $UnsignedWide, A>>(self) }
         }
 
-        /// For each lane, returns `true` if any element is NaN.
+        /// Returns a [mask] that is `true` if any element is NaN.
+        ///
+        /// [mask]: wide#masks
         #[inline]
         #[must_use]
         pub fn is_nan(self) -> $Wide {
             self.nan_mask().any()
         }
 
-        /// For each lane, returns a vector mask where each element is `true` if
-        /// the corresponding element of `self` is NaN.
+        /// Returns a vector of [masks] where each element is `true` if the
+        /// corresponding element of `self` is NaN.
         ///
         /// Equivalent to `(self.x.is_nan(), self.y.is_nan(), ...)` for each
         /// lane.
+        ///
+        /// [masks]: wide#masks
         #[inline]
         #[must_use]
         pub fn nan_mask(self) -> Self {
             specialize!(Vector::<N, $Wide, A>::nan_mask_backend(self))
         }
 
-        /// For each lane, returns `true` if all elements are neither infinite
+        /// Returns a [mask] that is `true` if all elements are neither infinite
         /// nor NaN.
+        ///
+        /// [mask]: wide#masks
         #[inline]
         #[must_use]
         pub fn is_finite(self) -> $Wide {
             self.finite_mask().all()
         }
 
-        /// For each lane, returns a vector mask where each element is `true` if
+        /// Returns a vector of [masks] where each element is `true` if
         /// the corresponding element of `self` is neither infinite nor NaN.
         ///
         /// Equivalent to `(self.x.is_finite(), self.y.is_finite(), ...)` for
         /// each lane.
+        ///
+        /// [masks]: wide#masks
         #[inline]
         #[must_use]
         pub fn finite_mask(self) -> Self {
             specialize!(Vector::<N, $Wide, A>::finite_mask_backend(self))
         }
 
-        /// For each lane, returns a vector mask where each element is `true` if
+        /// Returns a vector of [masks] where each element is `true` if
         /// the corresponding element of `self` has a positive sign, including
         /// `+0.0`, NaNs with positive sign bit and positive infinity.
         ///
         /// Equivalent to
-        /// `(self.x.is_sign_positive(), self.y.is_sign_positive(), ...)`
-        /// for each lane.
+        /// `(self.x.is_sign_positive(), self.y.is_sign_positive(), ...)`.
+        ///
+        /// [masks]: wide#masks
         #[inline]
         #[must_use]
         pub fn sign_positive_mask(self) -> Self {
             specialize!(Vector::<N, $Wide, A>::sign_positive_mask_backend(self))
         }
 
-        /// For each lane, returns a vector mask where each element is `true` if
+        /// Returns a vector of [masks] where each element is `true` if
         /// the corresponding element of `self` has a negative sign, including
         /// `-0.0`, NaNs with negative sign bit and negative infinity.
         ///
         /// Equivalent to
-        /// `(self.x.is_sign_negative(), self.y.is_sign_negative(), ...)`
-        /// for each lane.
+        /// `(self.x.is_sign_negative(), self.y.is_sign_negative(), ...)`.
+        ///
+        /// [masks]: wide#masks
         #[inline]
         #[must_use]
         pub fn sign_negative_mask(self) -> Self {
@@ -429,8 +439,8 @@ macro_rules! items {
             specialize!(Vector::<N, $Wide, A>::min_backend(self, other))
         }
 
-        /// For each lane, clamps the elements of `self` between the elements of
-        /// `min` and `max`.
+        /// Clamps the elements of `self` between the elements of `min` and
+        /// `max`.
         ///
         /// Equivalent to
         /// `(self.x.clamp(min.x, max.x), self.y.clamp(min.y, max.y), ...)`.
@@ -443,9 +453,9 @@ macro_rules! items {
             self.max(min).min(max)
         }
 
-        /// For each lane, returns the maximum between the elements of `self`.
+        /// Returns the maximum between the elements of `self`.
         ///
-        /// Equivalent to `self.x.max(self.y).max(self.z)...` for each lane.
+        /// Equivalent to `self.x.max(self.y).max(self.z)...`.
         ///
         /// This is not consistent with IEEE semantics in regards to NaN
         /// propagation and handling of `-0.0`.
@@ -455,9 +465,9 @@ macro_rules! items {
             specialize!(Vector::<N, $Wide, A>::max_element_backend(self))
         }
 
-        /// For each lane, returns the minimum between the elements of `self`.
+        /// Returns the minimum between the elements of `self`.
         ///
-        /// Equivalent to `self.x.min(self.y).min(self.z)...` for each lane.
+        /// Equivalent to `self.x.min(self.y).min(self.z)...`.
         ///
         /// This is not consistent with IEEE semantics in regards to NaN
         /// propagation and handling of `-0.0`.
@@ -467,7 +477,7 @@ macro_rules! items {
             specialize!(Vector::<N, $Wide, A>::min_element_backend(self))
         }
 
-        /// For each lane, returns `self` with a length of no more than `max`.
+        /// Returns `self` with a length of no more than `max`.
         #[inline]
         #[must_use]
         pub fn with_max_length(self, max: $Wide) -> Self {
@@ -477,7 +487,7 @@ macro_rules! items {
                 .select(self / length_squared.sqrt() * max, self)
         }
 
-        /// For any lane, returns `self` with a length of no less than `min`.
+        /// Returns `self` with a length of no less than `min`.
         ///
         /// If `min` is negative, this returns `self` for that lane.
         #[inline]
@@ -489,8 +499,8 @@ macro_rules! items {
                 .select(self / length_squared.sqrt() * min, self)
         }
 
-        /// For each lane, returns `self` with a length of no less than `min`
-        /// and no more than `max`.
+        /// Returns `self` with a length of no less than `min` and no more than
+        /// `max`.
         ///
         /// If `min` is negative it is ignored.
         #[inline]
@@ -823,21 +833,21 @@ macro_rules! items {
 
 macro_rules! items_2 {
     ($Wide:ident, $UnsignedWide:ty) => {
-        /// For each lane, creates a 2D vector from homogeneous coordinates by
-        /// performing perspective divide.
+        /// Creates a vector from homogeneous coordinates by performing
+        /// perspective divide.
         ///
-        /// Equivalent to `homogeneous.xy / homogeneous.z`.
+        /// Equivalent to `homogeneous.truncate() / homogeneous.last()`.
         #[inline]
         #[must_use]
         pub fn from_homogeneous(homogeneous: Vector<3, $Wide, A>) -> Self {
             homogeneous.xy() / homogeneous.z
         }
 
-        /// For each lane, returns the angle (in radians) that rotates `self` to
-        /// `other` in the range `-π..=+π`.
+        /// Returns the angle (in radians) that rotates `self` to `other` in the
+        /// range `-π..=+π`.
         ///
-        /// The vectors do not need to be unit vectors but they do need to be
-        /// non-zero.
+        /// This does not assume `self` and `other` are normalized, but this
+        /// does assume they are not the zero vector.
         ///
         /// Equivalent to `other.angle_from(self)`.
         ///
@@ -853,11 +863,11 @@ macro_rules! items_2 {
             self.angle_between(other) * outer_product.signum()
         }
 
-        /// For each lane, returns the angle (in radians) that rotates `other`
-        /// to `self` in the range `-π..=+π`.
+        /// Returns the angle (in radians) that rotates `other` to `self` in the
+        /// range `-π..=+π`.
         ///
-        /// The vectors do not need to be unit vectors but they do need to be
-        /// non-zero.
+        /// This does not assume `self` and `other` are normalized, but this
+        /// does assume they are not the zero vector.
         ///
         /// Equivalent to `other.angle_to(self)`.
         ///
@@ -873,7 +883,7 @@ macro_rules! items_2 {
             self.angle_between(other) * outer_product.signum()
         }
 
-        /// Rotates a vector by an `angle` (in radians) rotating `+X` to `+Y`.
+        /// Rotates a 2D vector by an angle (in radians) rotating `+X` to `+Y`.
         ///
         /// # Unspecified precision
         ///
@@ -894,17 +904,17 @@ macro_rules! items_2 {
 
 macro_rules! items_3 {
     ($Wide:ident, $UnsignedWide:ty) => {
-        /// For each lane, creates a 3D vector from homogeneous coordinates by
-        /// performing perspective divide.
+        /// Creates a vector from homogeneous coordinates by performing
+        /// perspective divide.
         ///
-        /// Equivalent to `homogeneous.xyz / homogeneous.w`.
+        /// Equivalent to `homogeneous.truncate() / homogeneous.last()`.
         #[inline]
         #[must_use]
         pub fn from_homogeneous(homogeneous: Vector<4, $Wide, A>) -> Self {
             homogeneous.xyz() / homogeneous.w
         }
 
-        /// Rotates a vector by an `angle` (in radians) rotating `+X` to `+Y`.
+        /// Rotates a 3D vector by an angle (in radians) rotating `+X` to `+Y`.
         ///
         /// # Unspecified precision
         ///
@@ -922,7 +932,7 @@ macro_rules! items_3 {
             )
         }
 
-        /// Rotates a vector by an `angle` (in radians) rotating `+X` to `+Z`.
+        /// Rotates a 3D vector by an angle (in radians) rotating `+X` to `+Z`.
         ///
         /// # Unspecified precision
         ///
@@ -940,7 +950,7 @@ macro_rules! items_3 {
             )
         }
 
-        /// Rotates a vector by an `angle` (in radians) rotating `+Y` to `+Z`.
+        /// Rotates a 3D vector by an angle (in radians) rotating `+Y` to `+Z`.
         ///
         /// # Unspecified precision
         ///
@@ -958,8 +968,8 @@ macro_rules! items_3 {
             )
         }
 
-        /// For each lane, returns two unit vectors that are orthogonal to
-        /// `self` and to each other.
+        /// Returns two normalized vectors that are orthogonal to `self` and to
+        /// each other.
         ///
         /// Together with `self`, they form an orthonormal basis where the three
         /// vectors are all orthogonal to each other and are normalized.

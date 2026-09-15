@@ -41,8 +41,7 @@ macro_rules! items {
         /// Equivalent to
         /// `(self.x.clamp(min.x, max.x), self.y.clamp(min.y, max.y), ...)`.
         ///
-        /// If `min > max`, the result is unspecified. Consider manually
-        /// checking for that case.
+        /// This assumes `min <= max`.
         #[inline]
         #[must_use]
         pub fn clamp(self, min: Self, max: Self) -> Self {

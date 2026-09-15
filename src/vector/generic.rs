@@ -170,14 +170,14 @@ where
         }
     }
 
-    /// Converts the vector to an array.
+    /// Converts a vector to an array.
     #[inline]
     #[must_use]
     pub const fn to_array(self) -> [T; N] {
         *self.as_array()
     }
 
-    /// Returns a reference to the vector's elements.
+    /// Returns a reference to a vector's elements.
     #[inline]
     #[must_use]
     pub const fn as_array(&self) -> &[T; N] {
@@ -186,7 +186,7 @@ where
         unsafe { transmute_ref::<Vector<N, T, A>, [T; N]>(self) }
     }
 
-    /// Returns a mutable reference to the vector's elements.
+    /// Returns a mutable reference to a vector's elements.
     #[inline]
     #[must_use]
     pub const fn as_mut_array(&mut self) -> &mut [T; N] {
@@ -195,14 +195,14 @@ where
         unsafe { transmute_mut::<Vector<N, T, A>, [T; N]>(self) }
     }
 
-    /// Returns an iterator over the vector's elements.
+    /// Returns an iterator over a vector's elements.
     #[inline]
     #[must_use]
     pub fn iter(self) -> core::array::IntoIter<T, N> {
         self.to_array().into_iter()
     }
 
-    /// Returns an iterator over mutable references to the vector's elements.
+    /// Returns an iterator over mutable references to a vector's elements.
     #[inline]
     #[must_use = "iterators are lazy and do nothing unless consumed"]
     pub fn iter_mut(&mut self) -> core::slice::IterMut<'_, T> {
@@ -238,7 +238,7 @@ where
         Vector::from_fn(|i| f(self[i]))
     }
 
-    /// Returns a vector with the elements of `self` in reverse order.
+    /// Returns the elements of a vector in reversed order.
     ///
     /// # Examples
     ///
@@ -254,7 +254,7 @@ where
         specialize!(Vector::<N, T, A>::reverse_backend(self))
     }
 
-    /// Computes the sum of the elements of `self`.
+    /// Computes the sum of the elements of a vector.
     ///
     /// Equivalent to `self.x + self.y + ...`.
     ///
@@ -277,7 +277,7 @@ where
         specialize!(<T as VectorBackend<N, A>>::vector_element_sum(self))
     }
 
-    /// Computes the product of the elements of `self`.
+    /// Computes the product of the elements of a vector.
     ///
     /// Equivalent to `self.x * self.y * ...`.
     ///
@@ -300,7 +300,7 @@ where
         specialize!(<T as VectorBackend<N, A>>::vector_element_product(self))
     }
 
-    /// Computes the dot product of `self` and `rhs`.
+    /// Computes the dot product of two vectors.
     ///
     /// # Panics
     ///
@@ -330,7 +330,7 @@ where
         (self * rhs).element_sum()
     }
 
-    /// Computes the squared length/magnitude of `self`.
+    /// Computes the squared length/magnitude of a vector.
     ///
     /// # Panics
     ///
@@ -355,7 +355,7 @@ where
         (self * self).element_sum()
     }
 
-    /// Computes the squared Euclidean distance between `self` and `other`.
+    /// Computes the squared Euclidean distance between two vectors.
     ///
     /// # Panics
     ///
@@ -672,7 +672,7 @@ impl<T, A: Alignment> Vector<2, T, A>
 where
     T: Element,
 {
-    /// Creates a 2-dimensional vector.
+    /// Creates a 2D vector from elements `x, y`.
     #[inline]
     #[must_use]
     pub const fn new(x: T, y: T) -> Self {
@@ -681,17 +681,15 @@ where
         unsafe { transmute_generic::<Repr2<T>, Vector<2, T, A>>(Repr2(x, y)) }
     }
 
-    /// Returns a 3-dimensional vector containing the elements of `self` then
-    /// the scalar `value`.
-    ///
-    /// Equivalent to `(self, value)`.
+    /// Returns a vector with length `N + 1` containing the elements of `self`
+    /// then the element `value`.
     #[inline]
     #[must_use]
     pub fn extend(self, value: T) -> Vector<3, T, A> {
         Vector::<3, T, A>::new(self.x, self.y, value)
     }
 
-    /// Converts `self` to homogeneous coordinates.
+    /// Converts a vector to homogeneous coordinates.
     ///
     /// Equivalent to `self.extend(1)`.
     #[inline]
@@ -794,7 +792,7 @@ impl<T, A: Alignment> Vector<3, T, A>
 where
     T: Element,
 {
-    /// Creates a 3-dimensional vector.
+    /// Creates a 3D vector from elements `x, y, z`.
     #[inline]
     #[must_use]
     pub const fn new(x: T, y: T, z: T) -> Self {
@@ -811,27 +809,25 @@ where
         }
     }
 
-    /// Returns a 4-dimensional vector containing the elements of `self` then
-    /// the scalar `value`.
-    ///
-    /// Equivalent to `(self, value)`.
+    /// Returns a vector with length `N + 1` containing the elements of `self`
+    /// then the element `value`.
     #[inline]
     #[must_use]
     pub fn extend(self, value: T) -> Vector<4, T, A> {
         Vector::<4, T, A>::new(self.x, self.y, self.z, value)
     }
 
-    /// Returns a 2-dimensional vector containing the first 2 elements of
-    /// `self`, discarding the last element.
+    /// Returns a vector with length `N - 1` containing the first elements of
+    /// `self`, removing the last element.
     ///
-    /// Equivalent to `self.xy`.
+    /// This performs the same operation as `self.xy()`.
     #[inline]
     #[must_use]
     pub fn truncate(self) -> Vector<2, T, A> {
         self.xy()
     }
 
-    /// Converts `self` to homogeneous coordinates.
+    /// Converts a vector to homogeneous coordinates.
     ///
     /// Equivalent to `self.extend(1)`.
     #[inline]
@@ -843,7 +839,7 @@ where
         self.extend(T::ONE)
     }
 
-    /// Computes the cross product of `self` and `rhs`.
+    /// Computes the cross product of two 3D vectors.
     ///
     /// # Examples
     ///
@@ -852,8 +848,14 @@ where
     /// #
     /// let x = Vec3::new(1, 0, 0);
     /// let y = Vec3::new(0, 1, 0);
+    /// let z = Vec3::new(0, 0, 1);
     ///
+    /// assert_eq!(y.cross(z), Vec3::new(1, 0, 0));
+    /// assert_eq!(z.cross(x), Vec3::new(0, 1, 0));
     /// assert_eq!(x.cross(y), Vec3::new(0, 0, 1));
+    ///
+    /// assert_eq!(z.cross(y), Vec3::new(-1, 0, 0));
+    /// assert_eq!(x.cross(z), Vec3::new(0, -1, 0));
     /// assert_eq!(y.cross(x), Vec3::new(0, 0, -1));
     /// ```
     #[inline]
@@ -910,7 +912,7 @@ impl<T, A: Alignment> Vector<4, T, A>
 where
     T: Element,
 {
-    /// Creates a 4-dimensional vector.
+    /// Creates a 4D vector from elements `x, y, z, w`.
     #[inline]
     #[must_use]
     pub const fn new(x: T, y: T, z: T, w: T) -> Self {
@@ -919,10 +921,10 @@ where
         unsafe { transmute_generic::<Repr4<T>, Vector<4, T, A>>(Repr4(x, y, z, w)) }
     }
 
-    /// Returns a 3-dimensional vector containing the first 3 elements of
-    /// `self`, discarding the last element.
+    /// Returns a vector with length `N - 1` containing the first elements of
+    /// `self`, removing the last element.
     ///
-    /// Equivalent to `self.xyz`.
+    /// This performs the same operation as `self.xy()`.
     #[inline]
     #[must_use]
     pub fn truncate(self) -> Vector<3, T, A> {
