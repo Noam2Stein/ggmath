@@ -29,8 +29,7 @@ mod wide;
 #[cfg(feature = "wide")]
 mod wide_float;
 
-/// An `N`-dimensional affine transform which can represent translation,
-/// rotation, scaling and shear of type `T`.
+/// An affine transform represented by a matrix and a translation vector.
 ///
 /// `A` controls SIMD alignment and is either [`Unaligned`] or [`Aligned`]. See
 /// [`Alignment`] for more details.
@@ -89,8 +88,7 @@ where
     Dim<N>: TwoThreeOrFour,
     T: Element;
 
-/// A 2D affine transform which can represent translation, rotation, scaling and
-/// shear.
+/// A 2D affine transform represented by a matrix and a translation vector.
 ///
 /// Contains a 2x2 matrix and a 2D translation vector.
 ///
@@ -102,8 +100,7 @@ where
 /// Fields are exposed by implementing [`Deref`] and [`DerefMut`].
 pub type Affine2<T> = Affine<2, T, Unaligned>;
 
-/// A 3D affine transform which can represent translation, rotation, scaling and
-/// shear.
+/// A 3D affine transform represented by a matrix and a translation vector.
 ///
 /// Contains a 3x3 matrix and a 3D translation vector.
 ///
@@ -115,8 +112,7 @@ pub type Affine2<T> = Affine<2, T, Unaligned>;
 /// Fields are exposed by implementing [`Deref`] and [`DerefMut`].
 pub type Affine3<T> = Affine<3, T, Unaligned>;
 
-/// A 2D affine transform which can represent translation, rotation, scaling and
-/// shear.
+/// A 2D affine transform represented by a matrix and a translation vector.
 ///
 /// Contains a 2x2 matrix and a 2D translation vector.
 ///
@@ -146,8 +142,7 @@ pub type Affine3<T> = Affine<3, T, Unaligned>;
 /// | `f32` | `all(target_arch = "aarch64", target_feature = "neon")` | `[float32x4_t; 2]` | 32           | 16                |
 pub type Affine2A<T> = Affine<2, T, Aligned>;
 
-/// A 3D affine transform which can represent translation, rotation, scaling and
-/// shear.
+/// A 3D affine transform represented by a matrix and a translation vector.
 ///
 /// Contains a 3x3 matrix and a 3D translation vector.
 ///

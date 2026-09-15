@@ -27,7 +27,7 @@ mod wide;
 #[cfg(feature = "wide")]
 mod wide_float;
 
-/// A 2D rotation represented by a unit complex number.
+/// A 2D rotation represented by a normalized complex number.
 ///
 /// `A` controls SIMD alignment and is either [`Unaligned`] or [`Aligned`]. See
 /// [`Alignment`] for more details.
@@ -53,7 +53,7 @@ pub struct Rotation2<T, A: Alignment>(pub(crate) Vector<2, T, A>)
 where
     T: Element;
 
-/// A 2D rotation represented by a unit complex number.
+/// A 2D rotation represented by a normalized complex number.
 ///
 /// # Fields
 ///
@@ -63,7 +63,7 @@ where
 /// Fields are exposed by implementing [`Deref`] and [`DerefMut`].
 pub type Rot2<T> = Rotation2<T, Unaligned>;
 
-/// A 2D rotation represented by a unit complex number.
+/// A 2D rotation represented by a normalized complex number.
 ///
 /// # Fields
 ///

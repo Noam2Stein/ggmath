@@ -12,7 +12,7 @@ use crate::{
     utils::{specialize, transmute_generic, transmute_mut},
 };
 
-/// An `N`-element vector mask optimized for type `T`.
+/// A vector mask.
 ///
 /// Masks are boolean vectors optimized for specific vector types. For example,
 /// [`Mask3A<f32>`] performs better than [`Vec3A<bool>`] for operations
