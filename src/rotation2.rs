@@ -33,8 +33,8 @@ mod wide_float;
 ///
 /// # Type aliases
 ///
-/// - [`Rot2<T>`] for [`Rotation2<T, Unaligned>`].
-/// - [`Rot2A<T>`] for [`Rotation2<T, Aligned>`].
+/// - [`Rot2<T>`] for [`Rotation2<T, Unaligned>`]
+/// - [`Rot2A<T>`] for [`Rotation2<T, Aligned>`]
 ///
 /// # Fields
 ///

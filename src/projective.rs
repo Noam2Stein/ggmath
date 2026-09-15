@@ -38,10 +38,10 @@ mod wide_float;
 ///
 /// # Type aliases
 ///
-/// - [`Proj2<T>`] for [`Projective<2, T, Unaligned>`].
-/// - [`Proj3<T>`] for [`Projective<3, T, Unaligned>`].
-/// - [`Proj2A<T>`] for [`Projective<2, T, Aligned>`].
-/// - [`Proj3A<T>`] for [`Projective<3, T, Aligned>`].
+/// - [`Proj2<T>`] for [`Projective<2, T, Unaligned>`]
+/// - [`Proj3<T>`] for [`Projective<3, T, Unaligned>`]
+/// - [`Proj2A<T>`] for [`Projective<2, T, Aligned>`]
+/// - [`Proj3A<T>`] for [`Projective<3, T, Aligned>`]
 ///
 /// # Fields
 ///

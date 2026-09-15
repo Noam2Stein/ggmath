@@ -37,12 +37,12 @@ mod wide_float;
 ///
 /// # Type aliases
 ///
-/// - [`Mat2<T>`] for [`Matrix<2, T, Unaligned>`].
-/// - [`Mat3<T>`] for [`Matrix<3, T, Unaligned>`].
-/// - [`Mat4<T>`] for [`Matrix<4, T, Unaligned>`].
-/// - [`Mat2A<T>`] for [`Matrix<2, T, Aligned>`].
-/// - [`Mat3A<T>`] for [`Matrix<3, T, Aligned>`].
-/// - [`Mat4A<T>`] for [`Matrix<4, T, Aligned>`].
+/// - [`Mat2<T>`] for [`Matrix<2, T, Unaligned>`]
+/// - [`Mat3<T>`] for [`Matrix<3, T, Unaligned>`]
+/// - [`Mat4<T>`] for [`Matrix<4, T, Unaligned>`]
+/// - [`Mat2A<T>`] for [`Matrix<2, T, Aligned>`]
+/// - [`Mat3A<T>`] for [`Matrix<3, T, Aligned>`]
+/// - [`Mat4A<T>`] for [`Matrix<4, T, Aligned>`]
 ///
 /// # Fields
 ///

@@ -35,10 +35,10 @@ mod wide_float;
 ///
 /// # Type aliases
 ///
-/// - [`Affine2<T>`] for [`Affine<2, T, Unaligned>`].
-/// - [`Affine3<T>`] for [`Affine<3, T, Unaligned>`].
-/// - [`Affine2A<T>`] for [`Affine<2, T, Aligned>`].
-/// - [`Affine3A<T>`] for [`Affine<3, T, Aligned>`].
+/// - [`Affine2<T>`] for [`Affine<2, T, Unaligned>`]
+/// - [`Affine3<T>`] for [`Affine<3, T, Unaligned>`]
+/// - [`Affine2A<T>`] for [`Affine<2, T, Aligned>`]
+/// - [`Affine3A<T>`] for [`Affine<3, T, Aligned>`]
 ///
 /// # Fields
 ///
