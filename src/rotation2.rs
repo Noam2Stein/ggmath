@@ -45,8 +45,7 @@ mod wide_float;
 ///
 /// # Memory layout
 ///
-/// [`Rotation2<T, A>`] is a transparent wrapper over [`Vector<2, T, A>`],
-/// storing `cos` then `sin`.
+/// [`Rotation2<T, A>`] is a transparent wrapper around [`Vector<2, T, A>`].
 #[repr(transparent)]
 pub struct Rotation2<T, A: Alignment>(pub(crate) Vector<2, T, A>)
 where

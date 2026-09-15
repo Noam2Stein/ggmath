@@ -65,8 +65,8 @@ mod wide_float;
 ///
 /// # Memory layout
 ///
-/// [`Projective<N, T, A>`] is a transparent wrapper over
-/// [`Matrix<N + 1, T, A>`]. The types can be transmuted both ways.
+/// [`Projective<N, T, A>`] is a transparent wrapper around
+/// [`Matrix<N + 1, T, A>`].
 ///
 /// [`transform_point`]: Projective::transform_point
 /// [`transform_vector`]: Projective::transform_vector

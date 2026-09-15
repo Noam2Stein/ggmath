@@ -80,7 +80,7 @@ mod wide_float;
 ///
 /// Fields are exposed by implementing [`Deref`] and [`DerefMut`].
 ///
-/// # Memory Layout
+/// # Memory layout
 ///
 /// [`Rotor<3, T, A>`] is a transparent wrapper around [`Vector<4, T, A>`].
 ///
