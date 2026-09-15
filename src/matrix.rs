@@ -53,20 +53,19 @@ mod wide_float;
 ///
 /// # Fields
 ///
-/// - `x_axis: Vector<N, T, N>` (the first row of the matrix, represents the
-///   result of `+X * matrix`, exists for lengths `2`, `3`, `4`)
+/// - `x_axis: Vector<N, T, N>` The first row of a matrix, representing the
+///   result of `+X * matrix`. (exists for 2D, 3D, 4D)
 ///
-/// - `y_axis: Vector<N, T, N>` (the second row of the matrix, represents the
-///   result of `+Y * matrix`, exists for lengths `2`, `3`, `4`)
+/// - `y_axis: Vector<N, T, N>` The second row of a matrix, representing the
+///   result of `+Y * matrix`. (exists for 2D, 3D, 4D)
 ///
-/// - `z_axis: Vector<N, T, N>` (the third row of the matrix, represents the
-///   result of `+Z * matrix`, exists for lengths `3`, `4`)
+/// - `z_axis: Vector<N, T, N>` The third row of a matrix, representing the
+///   result of `+Z * matrix`. (exists for 3D, 4D)
 ///
-/// - `w_axis: Vector<N, T, N>` (the fourth row of the matrix, represents the
-///   result of `+W * matrix`, exists for length `4`)
+/// - `w_axis: Vector<N, T, N>` The fourth row of a matrix, representing the
+///   result of `+W * matrix`. (exists for 4D)
 ///
-/// Note that these fields are only exposed by implementing [`Deref`] and
-/// [`DerefMut`].
+/// Fields are exposed by implementing [`Deref`] and [`DerefMut`].
 ///
 /// # Memory layout
 ///
@@ -102,14 +101,13 @@ where
 ///
 /// # Fields
 ///
-/// - `x_axis: Vec2<T>` (the first row of the matrix, represents the result of
-///   `(1, 0) * self`)
+/// - `x_axis: Vec2<T>` The first row of a matrix, representing the result of
+///   `+X * matrix`.
 ///
-/// - `y_axis: Vec2<T>` (the second row of the matrix, represents the result of
-///   `(0, 1) * self`)
+/// - `y_axis: Vec2<T>` The second row of a matrix, representing the result of
+///   `+Y * matrix`.
 ///
-/// Note that these fields are only exposed by implementing [`Deref`] and
-/// [`DerefMut`].
+/// Fields are exposed by implementing [`Deref`] and [`DerefMut`].
 ///
 /// [`Affine2`]: crate::Affine2
 /// [`Proj2`]: crate::Proj2
@@ -128,17 +126,16 @@ pub type Mat2<T> = Matrix<2, T, Unaligned>;
 ///
 /// # Fields
 ///
-/// - `x_axis: Vec3<T>` (the first row of the matrix, represents the result of
-///   `(1, 0, 0) * self`)
+/// - `x_axis: Vec3<T>` The first row of a matrix, representing the result of
+///   `+X * matrix`.
 ///
-/// - `y_axis: Vec3<T>` (the second row of the matrix, represents the result of
-///   `(0, 1, 0) * self`)
+/// - `y_axis: Vec3<T>` The second row of a matrix, representing the result of
+///   `+Y * matrix`.
 ///
-/// - `z_axis: Vec3<T>` (the third row of the matrix, represents the result of
-///   `(0, 0, 1) * self`)
+/// - `z_axis: Vec3<T>` The third row of a matrix, representing the result of
+///   `+Z * matrix`.
 ///
-/// Note that these fields are only exposed by implementing [`Deref`] and
-/// [`DerefMut`].
+/// Fields are exposed by implementing [`Deref`] and [`DerefMut`].
 ///
 /// [`Affine3`]: crate::Affine3
 /// [`Proj3`]: crate::Proj3
@@ -159,20 +156,19 @@ pub type Mat3<T> = Matrix<3, T, Unaligned>;
 ///
 /// # Fields
 ///
-/// - `x_axis: Vec4<T>` (the first row of the matrix, represents the result of
-///   `(1, 0, 0, 0) * self`)
+/// - `x_axis: Vec4<T>` The first row of a matrix, representing the result of
+///   `+X * matrix`.
 ///
-/// - `y_axis: Vec4<T>` (the second row of the matrix, represents the result of
-///   `(0, 1, 0, 0) * self`)
+/// - `y_axis: Vec4<T>` The second row of a matrix, representing the result of
+///   `+Y * matrix`.
 ///
-/// - `z_axis: Vec4<T>` (the third row of the matrix, represents the result of
-///   `(0, 0, 1, 0) * self`)
+/// - `z_axis: Vec4<T>` The third row of a matrix, representing the result of
+///   `+Z * matrix`.
 ///
-/// - `w_axis: Vec4<T>` (the fourth row of the matrix, represents the result of
-///   `(0, 0, 0, 1) * self`)
+/// - `w_axis: Vec4<T>` The fourth row of a matrix, representing the result of
+///   `+W * matrix`.
 ///
-/// Note that these fields are only exposed by implementing [`Deref`] and
-/// [`DerefMut`].
+/// Fields are exposed by implementing [`Deref`] and [`DerefMut`].
 ///
 /// [`Affine3`]: crate::Affine3
 /// [`Proj3`]: crate::Proj3
@@ -188,14 +184,13 @@ pub type Mat4<T> = Matrix<4, T, Unaligned>;
 ///
 /// # Fields
 ///
-/// - `x_axis: Vec2A<T>` (the first row of the matrix, represents the result of
-///   `(1, 0) * self`)
+/// - `x_axis: Vec2A<T>` The first row of a matrix, representing the result of
+///   `+X * matrix`.
 ///
-/// - `y_axis: Vec2A<T>` (the second row of the matrix, represents the result of
-///   `(0, 1) * self`)
+/// - `y_axis: Vec2A<T>` The second row of a matrix, representing the result of
+///   `+Y * matrix`.
 ///
-/// Note that these fields are only exposed by implementing [`Deref`] and
-/// [`DerefMut`].
+/// Fields are exposed by implementing [`Deref`] and [`DerefMut`].
 ///
 /// # SIMD alignment
 ///
@@ -231,17 +226,16 @@ pub type Mat2A<T> = Matrix<2, T, Aligned>;
 ///
 /// # Fields
 ///
-/// - `x_axis: Vec3A<T>` (the first row of the matrix, represents the result of
-///   `(1, 0, 0) * self`)
+/// - `x_axis: Vec3A<T>` The first row of a matrix, representing the result of
+///   `+X * matrix`.
 ///
-/// - `y_axis: Vec3A<T>` (the second row of the matrix, represents the result of
-///   `(0, 1, 0) * self`)
+/// - `y_axis: Vec3A<T>` The second row of a matrix, representing the result of
+///   `+Y * matrix`.
 ///
-/// - `z_axis: Vec3A<T>` (the third row of the matrix, represents the result of
-///   `(0, 0, 1) * self`)
+/// - `z_axis: Vec3A<T>` The third row of a matrix, representing the result of
+///   `+Z * matrix`.
 ///
-/// Note that these fields are only exposed by implementing [`Deref`] and
-/// [`DerefMut`].
+/// Fields are exposed by implementing [`Deref`] and [`DerefMut`].
 ///
 /// # SIMD alignment
 ///
@@ -278,20 +272,19 @@ pub type Mat3A<T> = Matrix<3, T, Aligned>;
 ///
 /// # Fields
 ///
-/// - `x_axis: Vec4A<T>` (the first row of the matrix, represents the result of
-///   `(1, 0, 0, 0) * self`)
+/// - `x_axis: Vec4A<T>` The first row of a matrix, representing the result of
+///   `+X * matrix`.
 ///
-/// - `y_axis: Vec4A<T>` (the second row of the matrix, represents the result of
-///   `(0, 1, 0, 0) * self`)
+/// - `y_axis: Vec4A<T>` The second row of a matrix, representing the result of
+///   `+Y * matrix`.
 ///
-/// - `z_axis: Vec4A<T>` (the third row of the matrix, represents the result of
-///   `(0, 0, 1, 0) * self`)
+/// - `z_axis: Vec4A<T>` The third row of a matrix, representing the result of
+///   `+Z * matrix`.
 ///
-/// - `w_axis: Vec4A<T>` (the fourth row of the matrix, represents the result of
-///   `(0, 0, 0, 1) * self`)
+/// - `w_axis: Vec4A<T>` The fourth row of a matrix, representing the result of
+///   `+W * matrix`.
 ///
-/// Note that these fields are only exposed by implementing [`Deref`] and
-/// [`DerefMut`].
+/// Fields are exposed by implementing [`Deref`] and [`DerefMut`].
 ///
 /// # SIMD alignment
 ///
@@ -374,13 +367,9 @@ pub struct Mat2Fields<T, A: Alignment>
 where
     T: Element,
 {
-    /// The first row of the matrix.
-    ///
-    /// This represents the result of multiplying `(1, 0)` by the matrix.
+    /// The first row of a matrix, representing the result of `+X * matrix`.
     pub x_axis: Vector<2, T, A>,
-    /// The second row of the matrix.
-    ///
-    /// This represents the result of multiplying `(0, 1)` by the matrix.
+    /// The second row of a matrix, representing the result of `+Y * matrix`.
     pub y_axis: Vector<2, T, A>,
 }
 
@@ -416,17 +405,11 @@ pub struct Mat3Fields<T, A: Alignment>
 where
     T: Element,
 {
-    /// The first row of the matrix.
-    ///
-    /// This represents the result of multiplying `(1, 0, 0)` by the matrix.
+    /// The first row of a matrix, representing the result of `+X * matrix`.
     pub x_axis: Vector<3, T, A>,
-    /// The second row of the matrix.
-    ///
-    /// This represents the result of multiplying `(0, 1, 0)` by the matrix.
+    /// The second row of a matrix, representing the result of `+Y * matrix`.
     pub y_axis: Vector<3, T, A>,
-    /// The third row of the matrix.
-    ///
-    /// This represents the result of multiplying `(0, 0, 1)` by the matrix.
+    /// The third row of a matrix, representing the result of `+Z * matrix`.
     pub z_axis: Vector<3, T, A>,
 }
 
@@ -462,21 +445,13 @@ pub struct Mat4Fields<T, A: Alignment>
 where
     T: Element,
 {
-    /// The first row of the matrix.
-    ///
-    /// This represents the result of multiplying `(1, 0, 0, 0)` by the matrix.
+    /// The first row of a matrix, representing the result of `+X * matrix`.
     pub x_axis: Vector<4, T, A>,
-    /// The second row of the matrix.
-    ///
-    /// This represents the result of multiplying `(0, 1, 0, 0)` by the matrix.
+    /// The second row of a matrix, representing the result of `+Y * matrix`.
     pub y_axis: Vector<4, T, A>,
-    /// The third row of the matrix.
-    ///
-    /// This represents the result of multiplying `(0, 0, 1, 0)` by the matrix.
+    /// The third row of a matrix, representing the result of `+Z * matrix`.
     pub z_axis: Vector<4, T, A>,
-    /// The fourth row of the matrix.
-    ///
-    /// This represents the result of multiplying `(0, 0, 0, 1)` by the matrix.
+    /// The fourth row of a matrix, representing the result of `+W * matrix`.
     pub w_axis: Vector<4, T, A>,
 }
 

@@ -142,8 +142,7 @@ where
 /// > `R = e^(B/2)` with vector multiplication `R~vR`. This differs from the
 /// > traditional convention, `R = e^(-B/2)` and `RvR~`.
 ///
-/// Note that the fields are only exposed by implementing [`Deref`] and
-/// [`DerefMut`].
+/// Fields are exposed by implementing [`Deref`] and [`DerefMut`].
 ///
 /// [`rotor.normalize()`]: Rotor#method.normalize
 pub type Rotor3<T> = Rotor<3, T, Unaligned>;
@@ -189,8 +188,7 @@ pub type Rotor3<T> = Rotor<3, T, Unaligned>;
 /// > `R = e^(B/2)` with vector multiplication `R~vR`. This differs from the
 /// > traditional convention, `R = e^(-B/2)` and `RvR~`.
 ///
-/// Note that the fields are only exposed by implementing [`Deref`] and
-/// [`DerefMut`].
+/// Fields are exposed by implementing [`Deref`] and [`DerefMut`].
 ///
 /// # SIMD alignment
 ///

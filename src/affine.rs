@@ -46,11 +46,13 @@ mod wide_float;
 ///
 /// # Fields
 ///
-/// - `matrix: Matrix<N, T, A>` (linear transformation matrix)
-/// - `translation: Vector<N, T, A>` (translation vector)
+/// - `matrix: Matrix<N, T, A>` The linear transformation matrix of an affine
+///   transform.
 ///
-/// Note that these fields are only exposed by implementing [`Deref`] and
-/// [`DerefMut`].
+/// - `translation: Vector<N, T, A>` The translation vector of an affine
+///   transform.
+///
+/// Fields are exposed by implementing [`Deref`] and [`DerefMut`].
 ///
 /// # Memory layout
 ///
@@ -94,11 +96,10 @@ where
 ///
 /// # Fields
 ///
-/// - `matrix: Mat2<T>` (linear transformation matrix)
-/// - `translation: Vec2<T>` (translation vector)
+/// - `matrix: Mat2<T>` The linear transformation matrix of an affine transform.
+/// - `translation: Vec2<T>` The translation vector of an affine transform.
 ///
-/// Note that these fields are only exposed by implementing [`Deref`] and
-/// [`DerefMut`].
+/// Fields are exposed by implementing [`Deref`] and [`DerefMut`].
 pub type Affine2<T> = Affine<2, T, Unaligned>;
 
 /// A 3D affine transform which can represent translation, rotation, scaling and
@@ -108,11 +109,10 @@ pub type Affine2<T> = Affine<2, T, Unaligned>;
 ///
 /// # Fields
 ///
-/// - `matrix: Mat3<T>` (linear transformation matrix)
-/// - `translation: Vec3<T>` (translation vector)
+/// - `matrix: Mat3<T>` The linear transformation matrix of an affine transform.
+/// - `translation: Vec3<T>` The translation vector of an affine transform.
 ///
-/// Note that these fields are only exposed by implementing [`Deref`] and
-/// [`DerefMut`].
+/// Fields are exposed by implementing [`Deref`] and [`DerefMut`].
 pub type Affine3<T> = Affine<3, T, Unaligned>;
 
 /// A 2D affine transform which can represent translation, rotation, scaling and
@@ -122,11 +122,12 @@ pub type Affine3<T> = Affine<3, T, Unaligned>;
 ///
 /// # Fields
 ///
-/// - `matrix: Mat2A<T>` (linear transformation matrix)
-/// - `translation: Vec2A<T>` (translation vector)
+/// - `matrix: Mat2A<T>` The linear transformation matrix of an affine
+///   transform.
 ///
-/// Note that these fields are only exposed by implementing [`Deref`] and
-/// [`DerefMut`].
+/// - `translation: Vec2A<T>` The translation vector of an affine transform.
+///
+/// Fields are exposed by implementing [`Deref`] and [`DerefMut`].
 ///
 /// # SIMD alignment
 ///
@@ -152,11 +153,12 @@ pub type Affine2A<T> = Affine<2, T, Aligned>;
 ///
 /// # Fields
 ///
-/// - `matrix: Mat3A<T>` (linear transformation matrix)
-/// - `translation: Vec3A<T>` (translation vector)
+/// - `matrix: Mat3A<T>` The linear transformation matrix of an affine
+///   transform.
 ///
-/// Note that these fields are only exposed by implementing [`Deref`] and
-/// [`DerefMut`].
+/// - `translation: Vec3A<T>` The translation vector of an affine transform.
+///
+/// Fields are exposed by implementing [`Deref`] and [`DerefMut`].
 ///
 /// # SIMD alignment
 ///
@@ -266,9 +268,9 @@ where
     Dim<N>: TwoThreeOrFour,
     T: Element,
 {
-    /// The part representing rotation, scaling and shear.
+    /// The linear transformation matrix of an affine transform.
     pub matrix: Matrix<N, T, A>,
-    /// The part representing translation.
+    /// The translation vector of an affine transform.
     pub translation: Vector<N, T, A>,
 }
 
