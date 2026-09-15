@@ -16,8 +16,9 @@ where
 {
     /// A matrix with all elements set to `0`.
     ///
-    /// This transforms all vectors to a zero vector. See [`IDENTITY`] for a
-    /// matrix with no transformation.
+    /// This transforms all vectors to the zero vector.
+    ///
+    /// See [`IDENTITY`] for a matrix that leaves all vectors unchanged.
     ///
     /// [`IDENTITY`]: Self::IDENTITY
     pub const ZERO: Self = Self::from_rows(&[Vector::ZERO; N]);
@@ -28,9 +29,9 @@ where
     Dim<N>: TwoThreeOrFour,
     T: Element + Zero + One,
 {
-    /// A matrix with no transformation.
+    /// A matrix that leaves all vectors unchanged.
     ///
-    /// `IDENTITY` diagonal elements are `1` and all other elements are `0`.
+    /// This sets diagonal elements to `1` and other elements to `0`.
     pub const IDENTITY: Self = Self::from_diagonal(Vector::ONE);
 }
 
@@ -39,7 +40,7 @@ where
     Dim<N>: TwoThreeOrFour,
     T: Element,
 {
-    /// Creates a matrix from an array of row vectors.
+    /// Creates a row-major matrix from an array of row vectors.
     #[inline]
     #[must_use]
     pub const fn from_rows(rows: &[Vector<N, T, A>; N]) -> Self {
@@ -55,7 +56,7 @@ where
         *self.as_rows()
     }
 
-    /// Returns a reference to the matrix's rows.
+    /// Returns a reference to a row-major matrix's rows.
     #[inline]
     #[must_use]
     pub const fn as_rows(&self) -> &[Vector<N, T, A>; N] {
@@ -64,7 +65,7 @@ where
         unsafe { transmute_ref::<Matrix<N, T, A>, [Vector<N, T, A>; N]>(self) }
     }
 
-    /// Returns a mutable reference to the matrix's rows.
+    /// Returns a mutable reference to a row-major matrix's rows.
     #[inline]
     #[must_use]
     pub const fn as_mut_rows(&mut self) -> &mut [Vector<N, T, A>; N] {
@@ -73,9 +74,10 @@ where
         unsafe { transmute_mut::<Matrix<N, T, A>, [Vector<N, T, A>; N]>(self) }
     }
 
-    /// Creates a matrix by calling function `f` for each row index.
+    /// Creates a row-major matrix by calling function `f` for each row index.
     ///
-    /// Equivalent to `[f(0), f(1), f(2), ...]` where each item is a row vector.
+    /// Equivalent to `[f(0), f(1), f(2), ...]` where each element is a row
+    /// vector.
     ///
     /// # Examples
     ///
@@ -99,8 +101,8 @@ where
         Self::from_rows(&core::array::from_fn(f))
     }
 
-    /// Creates a matrix with the diagonal set to `diagonal` and all other
-    /// elements set to `0`.
+    /// Creates a matrix with the diagonal set to `diagonal` and other elements
+    /// set to `0`.
     ///
     /// # Examples
     ///
@@ -166,7 +168,7 @@ where
         }
     }
 
-    /// Returns the diagonal of `self`.
+    /// Returns the diagonal of a matrix.
     ///
     /// # Examples
     ///
@@ -222,8 +224,7 @@ where
 
     /// Creates a matrix from a non-uniform scale.
     ///
-    /// This is identical to [`from_diagonal`]. Use whichever function that
-    /// makes your intentions clearer.
+    /// This performs the same operation as [`from_diagonal`].
     ///
     /// # Examples
     ///
@@ -253,7 +254,7 @@ where
     ///
     /// This assumes `self` only contains scale.
     ///
-    /// This is the same operation as [`diagonal`].
+    /// This performs the same operation as [`diagonal`].
     ///
     /// # Panics
     ///
@@ -295,7 +296,7 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if the last column of `projective` is not `(0, 0, ..., 1)`
+    /// Panics if `projective` does not contain an affine transformation
     /// (according to [`EqTest`]).
     #[inline]
     #[must_use]
@@ -319,12 +320,11 @@ where
         Projective::from_matrix(self)
     }
 
-    /// Returns the column at the given index.
+    /// Returns the given column of a row-major matrix.
     ///
     /// # Panics
     ///
-    /// Panics if `index` is greater than or equal to the dimension of the
-    /// matrix.
+    /// Panics if `index` is greater than or equal to `N`.
     ///
     /// # Examples
     ///
@@ -388,11 +388,11 @@ where
         }
     }
 
-    /// Sets the column at the given index to the given value.
+    /// Sets the given column of a row-major matrix to the given value.
     ///
     /// # Panics
     ///
-    /// Panics if the index is out of bounds.
+    /// Panics if `index` is greater than or equal to `N`.
     ///
     /// # Examples
     ///
@@ -447,7 +447,7 @@ where
         }
     }
 
-    /// Returns the determinant of `self`.
+    /// Returns the determinant of a matrix.
     ///
     /// # Consistency
     ///
@@ -472,7 +472,7 @@ where
         specialize!(Matrix::<N, T, A>::determinant_backend(self))
     }
 
-    /// Returns the transpose of `self`.
+    /// Returns the transpose of a matrix.
     ///
     /// # Examples
     ///
@@ -501,11 +501,9 @@ where
         specialize!(Matrix::<N, T, A>::transpose_backend(self))
     }
 
-    /// Returns a matrix that first applies scaling vector `scale` then applies
-    /// `self`.
+    /// Returns a matrix that applies a non-uniform scale then applies `self`.
     ///
-    /// Equivalent to `Matrix::from_scale(scale) * self` but is faster. This
-    /// may be inconsistent for NaNs and `-0.0`.
+    /// Equivalent to `Self::from_scale(scale) * self`.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -516,10 +514,9 @@ where
         specialize!(Matrix::<N, T, A>::prepend_scale_backend(self, scale))
     }
 
-    /// Transforms `vector` by the transpose of `self`.
+    /// Transforms a vector by the transpose of `self`.
     ///
-    /// Equivalent to `vector * self.transpose()` but is faster and may return a
-    /// slightly different value.
+    /// Equivalent to `vector * self.transpose()`.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -595,7 +592,7 @@ impl<T, A: Alignment> Matrix<2, T, A>
 where
     T: Element,
 {
-    /// Creates a matrix from a row-major array of elements.
+    /// Creates a row-major matrix from a row-major array of elements.
     ///
     /// # Examples
     ///
@@ -621,8 +618,8 @@ where
         self.0.to_array()
     }
 
-    /// Takes the `N`x`N` linear transformation part of an `N+1`x`N+1`
-    /// homogeneous transformation matrix, removing the last row and column.
+    /// Creates a linear transformation matrix from a higher-dimensional
+    /// homogeneous matrix by removing the last row and column.
     ///
     /// This assumes `homogeneous` contains an affine transformation.
     ///
@@ -630,7 +627,7 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if the last column of `homogeneous` is not `(0, 0, ..., 1)`
+    /// Panics if `homogeneous` does not contain an affine transformation
     /// (according to [`EqTest`]).
     ///
     /// # Examples
@@ -666,8 +663,11 @@ where
         Self::from_rows(&[homogeneous.x_axis.truncate(), homogeneous.y_axis.truncate()])
     }
 
-    /// Creates an `N+1`x`N+1` homogeneous transformation matrix from an `N`x`N`
-    /// linear transformation matrix.
+    /// Creates a higher-dimensional homogeneous matrix from a linear
+    /// transformation matrix by adding another row and column.
+    ///
+    /// The new diagonal element is set to `1`, and other elements are set to
+    /// `0`.
     ///
     /// # Examples
     ///
@@ -752,7 +752,7 @@ impl<T, A: Alignment> Matrix<3, T, A>
 where
     T: Element,
 {
-    /// Creates a matrix from a row-major array of elements.
+    /// Creates a row-major matrix from a row-major array of elements.
     ///
     /// # Examples
     ///
@@ -798,11 +798,11 @@ where
         }
     }
 
-    /// Returns a 2x2 matrix discarding the given `row` and `column`.
+    /// Removes a row and column from a matrix based on the given indices.
     ///
     /// # Panics
     ///
-    /// Panics if `row` or `column` are greater than `2`.
+    /// Panics if `row` or `column` are greater than or equal to `N`.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -821,14 +821,14 @@ where
         }
     }
 
-    /// Takes the `N`x`N` linear transformation part of an `N+1`x`N+1`
-    /// homogeneous transformation matrix, removing the last row and column.
+    /// Creates a linear transformation matrix from a higher-dimensional
+    /// homogeneous matrix by removing the last row and column.
     ///
     /// This assumes `homogeneous` contains an affine transformation.
     ///
     /// # Panics
     ///
-    /// Panics if the last column of `homogeneous` is not `(0, 0, ..., 1)`
+    /// Panics if `homogeneous` does not contain an affine transformation
     /// (according to [`EqTest`]).
     ///
     /// # Examples
@@ -868,8 +868,11 @@ where
         ])
     }
 
-    /// Creates an `N+1`x`N+1` homogeneous transformation matrix from an `N`x`N`
-    /// linear transformation matrix.
+    /// Creates a higher-dimensional homogeneous matrix from a linear
+    /// transformation matrix by adding another row and column.
+    ///
+    /// The new diagonal element is set to `1`, and other elements are set to
+    /// `0`.
     ///
     /// # Examples
     ///
@@ -971,7 +974,7 @@ impl<T, A: Alignment> Matrix<4, T, A>
 where
     T: Element,
 {
-    /// Creates a matrix from a row-major array of elements.
+    /// Creates a row-major matrix from a row-major array of elements.
     ///
     /// # Examples
     ///
@@ -1001,11 +1004,11 @@ where
         unsafe { *transmute_ref::<Matrix<4, T, A>, [T; 16]>(self) }
     }
 
-    /// Returns a 3x3 matrix discarding the given `row` and `column`.
+    /// Removes a row and column from a matrix based on the given indices.
     ///
     /// # Panics
     ///
-    /// Panics if `row` or `column` are greater than `3`.
+    /// Panics if `row` or `column` are greater than or equal to `N`.
     #[inline]
     #[must_use]
     #[track_caller]

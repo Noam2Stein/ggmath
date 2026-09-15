@@ -15,13 +15,13 @@ where
 
     /// Creates a matrix from a rotor.
     ///
-    /// This assumes the rotor is normalized.
+    /// This assumes `rotor` is normalized.
     ///
     /// # Panics
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if the rotor is not normalized.
+    /// Panics if `rotor` is not normalized.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -40,13 +40,13 @@ where
 
     /// Converts a matrix to a rotor.
     ///
-    /// This assumes `self` is a rotation matrix.
+    /// This assumes `self` only contains rotation.
     ///
     /// # Panics
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `self` is not a rotation matrix.
+    /// Panics if `self` contains anything but rotation.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -98,15 +98,15 @@ where
         specialize_3!(Matrix::<N, T, A>::to_scale_rotor_backend(self))
     }
 
-    /// Returns the inverse of `self`.
+    /// Returns the inverse of a matrix.
     ///
-    /// If `self` is not invertable the result is unspecified.
+    /// This assumes `self` is invertable.
     ///
     /// # Panics
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if the determinant is `0`.
+    /// Panics if the determinant of `self` is `0`.
     #[must_use]
     #[track_caller]
     pub fn inverse(&self) -> Self {
@@ -230,7 +230,7 @@ where
         specialize!(Matrix::<N, T, A>::is_finite_backend(self))
     }
 
-    /// Returns the absolute values of the elements of `self`.
+    /// Returns the absolute values of the elements of a matrix.
     ///
     /// Equivalent to `(self.x_axis.abs(), self.y_axis.abs(), ...)`.
     ///
@@ -260,7 +260,7 @@ where
         specialize!(Matrix::<N, T, A>::abs_backend(self))
     }
 
-    /// Returns the element-wise reciprocal (inverse) of a matrix, `1 / self`.
+    /// Returns the reciprocals of the elements of a matrix, `1 / self`.
     ///
     /// # Examples
     ///
@@ -293,7 +293,7 @@ impl<T, A: Alignment> Matrix<2, T, A>
 where
     T: PrimitiveFloat,
 {
-    /// Creates a matrix from a 2D rotation.
+    /// Creates a 2x2 matrix from a 2D rotation.
     ///
     /// This assumes `rotation` is normalized.
     ///
@@ -319,15 +319,15 @@ where
         ))
     }
 
-    /// Converts a matrix to a 2D rotation.
+    /// Converts a 2x2 matrix to a 2D rotation.
     ///
-    /// This assumes `self` is a rotation matrix.
+    /// This assumes `self` only contains rotation.
     ///
     /// # Panics
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `self` is not approximately a rotation matrix.
+    /// Panics if `self` contains anything but rotation.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -335,7 +335,7 @@ where
         Rotation2::<T, A>::from_matrix(self)
     }
 
-    /// Creates a matrix from `scale` and 2D rotation.
+    /// Creates a 2x2 matrix from a non-uniform scale and a 2D rotation.
     ///
     /// This assumes `rotation` is normalized.
     ///
@@ -361,15 +361,15 @@ where
         ))
     }
 
-    /// Converts a matrix to scale and rotation.
+    /// Converts a 2x2 matrix to a non-uniform scale and a 2D rotation.
     ///
-    /// This assumes `self` does not contain shear.
+    /// This assumes `self` only contains scale and rotation.
     ///
     /// # Panics
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `self` contains shear or the determinant of `self` is zero.
+    /// Panics if `self` contains anything but scale and rotation.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -395,8 +395,7 @@ where
         (scale, rotation)
     }
 
-    /// Creates a rotation matrix from an `angle` (in radians) rotating `+X` to
-    /// `+Y`.
+    /// Creates a 2x2 matrix from an angle (in radians) rotating `+X` to `+Y`.
     #[inline]
     #[must_use]
     pub fn from_angle(angle: T) -> Self {
@@ -407,15 +406,15 @@ where
         ])
     }
 
-    /// Converts a matrix to an angle (in radians) rotating `+X` to `+Y`.
+    /// Converts a 2x2 matrix to an angle (in radians) rotating `+X` to `+Y`.
     ///
-    /// This assumes `self` is a rotation matrix.
+    /// This assumes `self` only contains rotation.
     ///
     /// # Panics
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `self` is not approximately a rotation matrix.
+    /// Panics if `self` contains anything but rotation.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -438,10 +437,8 @@ where
         self.x_axis.y.atan2(self.x_axis.x)
     }
 
-    /// Creates a matrix containing the non-uniform `scale` and a rotation of
-    /// `angle` (in radians).
-    ///
-    /// This rotates `+X` to `+Y`.
+    /// Creates a 2x2 matrix from a non-uniform scale and an angle (in radians)
+    /// rotating `+X` to `+Y`.
     #[inline]
     #[must_use]
     pub fn from_scale_angle(scale: Vector<2, T, A>, angle: T) -> Self {
@@ -452,15 +449,16 @@ where
         ])
     }
 
-    /// Returns the `scale` and `angle` of `self`.
+    /// Converts a 2x2 matrix to a non-uniform scale and an angle (in radians)
+    /// rotating `+X` to `+Y`.
     ///
-    /// `self` must not contain shearing. Otherwise the result is unspecified.
+    /// This assumes `self` only contains scale and rotation.
     ///
     /// # Panics
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `self` contains shearing or the determinant of `self` is zero.
+    /// Panics if `self` contains anything but scale and rotation.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -544,8 +542,7 @@ impl<T, A: Alignment> Matrix<3, T, A>
 where
     T: PrimitiveFloat,
 {
-    /// Creates a rotation matrix from an `angle` (in radians) rotating `+X` to
-    /// `+Y`.
+    /// Creates a 3x3 matrix from an angle (in radians) rotating `+X` to `+Y`.
     #[inline]
     #[must_use]
     pub fn from_rotation_xy(angle: T) -> Self {
@@ -557,8 +554,7 @@ where
         ])
     }
 
-    /// Creates a rotation matrix from an `angle` (in radians) rotating `+X` to
-    /// `+Z`.
+    /// Creates a 3x3 matrix from an angle (in radians) rotating `+X` to `+Z`.
     #[inline]
     #[must_use]
     pub fn from_rotation_xz(angle: T) -> Self {
@@ -570,8 +566,7 @@ where
         ])
     }
 
-    /// Creates a rotation matrix from an `angle` (in radians) rotating `+Y` to
-    /// `+Z`.
+    /// Creates a 3x3 matrix from an angle (in radians) rotating `+Y` to `+Z`.
     #[inline]
     #[must_use]
     pub fn from_rotation_yz(angle: T) -> Self {
@@ -583,10 +578,15 @@ where
         ])
     }
 
-    /// Creates a 3D rotation matrix from a rotation `axis` and `angle` (in
-    /// radians) using the right-hand rule.
+    /// Creates a 3x3 matrix from a rotation axis and an angle (in radians).
     ///
-    /// `axis` must be normalized. Otherwise the result is unspecified.
+    /// This follows the right-hand rule:
+    ///
+    /// - `+X` rotates `+Y` to `+Z`
+    /// - `+Y` rotates `+Z` to `+X`
+    /// - `+Z` rotates `+X` to `+Y`
+    ///
+    /// This assumes `axis` is normalized.
     ///
     /// # Panics
     ///
@@ -618,15 +618,21 @@ where
         ])
     }
 
-    /// Converts a 3x3 matrix to an axis-angle rotation.
+    /// Converts a 3x3 matrix to a rotation axis and an angle (in radians).
     ///
-    /// This assumes `self` is a rotation matrix.
+    /// This follows the right-hand rule:
+    ///
+    /// - `+X` rotates `+Y` to `+Z`
+    /// - `+Y` rotates `+Z` to `+X`
+    /// - `+Z` rotates `+X` to `+Y`
+    ///
+    /// This assumes `self` only contains rotation.
     ///
     /// # Panics
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `self` is not approximately a rotation matrix.
+    /// Panics if `self` contains anything but rotation.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -635,7 +641,22 @@ where
         self.to_rotor().to_axis_angle()
     }
 
-    /// Creates a 3x3 matrix from a scaled-axis rotation.
+    /// Creates a 3x3 matrix from a rotation axis scaled by an angle (in radians).
+    ///
+    /// Equivalent to:
+    ///
+    /// ```
+    /// Self::from_axis_angle(
+    ///     scaled_axis.normalize(),
+    ///     scaled_axis.length(),
+    /// )
+    /// ```
+    ///
+    /// This follows the right-hand rule:
+    ///
+    /// - `+X` rotates `+Y` to `+Z`
+    /// - `+Y` rotates `+Z` to `+X`
+    /// - `+Z` rotates `+X` to `+Y`
     #[inline]
     #[must_use]
     pub fn from_scaled_axis(scaled_axis: Vector<3, T, A>) -> Self {
@@ -660,15 +681,29 @@ where
         }
     }
 
-    /// Converts a 3x3 matrix to a scaled-axis rotation.
+    /// Converts a 3x3 matrix to a rotation axis scaled by an angle (in
+    /// radians).
     ///
-    /// This assumes `self` is a rotation matrix.
+    /// Equivalent to:
+    ///
+    /// ```
+    /// let (axis, angle) = self.to_axis_angle();
+    /// axis * angle
+    /// ```
+    ///
+    /// This follows the right-hand rule:
+    ///
+    /// - `+X` rotates `+Y` to `+Z`
+    /// - `+Y` rotates `+Z` to `+X`
+    /// - `+Z` rotates `+X` to `+Y`
+    ///
+    /// This assumes `self` only contains rotation.
     ///
     /// # Panics
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `self` is not approximately a rotation matrix.
+    /// Panics if `self` contains anything but rotation.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -677,8 +712,8 @@ where
         self.to_rotor().to_scaled_axis()
     }
 
-    /// Creates a 3D rotation matrix from an Euler rotation order/sequence and
-    /// angles (in radians).
+    /// Creates a 3x3 matrix from an Euler rotation order/sequence and angles
+    /// (in radians).
     #[inline]
     #[must_use]
     pub fn from_euler(order: EulerRot, a: T, b: T, c: T) -> Self {
@@ -737,17 +772,16 @@ where
         result
     }
 
-    /// Returns the Euler angles forming `self` for the given Euler rotation
+    /// Converts a 3x3 matrix to Euler angles for a given Euler rotation
     /// order/sequence.
     ///
-    /// `self` must not contain any non-rotation transformations. Otherwise the
-    /// result is unspecified.
+    /// This assumes `self` only contains rotation.
     ///
     /// # Panics
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `self` is not a rotation matrix.
+    /// Panics if `self` contains anything but rotation.
     #[inline]
     #[must_use]
     #[track_caller]

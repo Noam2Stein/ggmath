@@ -71,7 +71,7 @@ mod wide_float;
 ///
 /// For `N = 2` this type has the size and alignment of [`Vector<4, T, A>`].
 ///
-/// For `N = 3` and `N = 4` this type has the size and alignment of
+/// For `N = 3, 4` this type has the size and alignment of
 /// `[Vector<N, T, A>; N]`.
 ///
 /// [`Affine`]: crate::Affine

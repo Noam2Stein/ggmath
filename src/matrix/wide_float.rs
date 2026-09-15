@@ -13,7 +13,7 @@ macro_rules! items {
 
         /// Creates a matrix from a rotor.
         ///
-        /// This assumes the rotor is normalized.
+        /// This assumes `rotor` is normalized.
         #[inline]
         #[must_use]
         #[expect(private_bounds)]
@@ -26,7 +26,7 @@ macro_rules! items {
 
         /// Converts a matrix to a rotor.
         ///
-        /// This assumes `self` is a rotation matrix.
+        /// This assumes `self` only contains rotation.
         #[inline]
         #[must_use]
         #[expect(private_bounds)]
@@ -63,9 +63,9 @@ macro_rules! items {
             specialize_3!(Matrix::<N, $Wide, A>::to_scale_rotor_backend(self))
         }
 
-        /// Returns the inverse of `self`.
+        /// Returns the inverse of a matrix.
         ///
-        /// If `self` is not invertable the result is unspecified.
+        /// This assumes `self` is invertable.
         #[must_use]
         pub fn inverse(&self) -> Self {
             self.inverse_and_determinant().0
@@ -77,8 +77,8 @@ macro_rules! items {
         /// Returns the inverse of `self` or `fallback` if `self` is not
         /// invertable.
         ///
-        /// The fallback is only applied for invalid lanes. Other lanes are not
-        /// affected.
+        /// The fallback is only applied for invalid lanes. Valid lanes are
+        /// unaffected.
         #[must_use]
         pub fn inverse_or(&self, fallback: &Self) -> Self {
             specialize!(Matrix::<N, $Wide, A>::inverse_or_backend(self, fallback))
@@ -87,8 +87,8 @@ macro_rules! items {
         /// Returns the inverse of `self` or the zero matrix if `self` is not
         /// invertable.
         ///
-        /// The fallback is only applied for invalid lanes. Other lanes are not
-        /// affected.
+        /// The fallback is only applied for invalid lanes. Valid lanes are
+        /// unaffected.
         #[must_use]
         pub fn inverse_or_zero(&self) -> Self {
             specialize!(Matrix::<N, $Wide, A>::inverse_or_zero_backend(self))
@@ -116,22 +116,26 @@ macro_rules! items {
             ))
         }
 
-        /// For each lane, returns `true` if any element is NaN.
+        /// Returns a [mask] that is `true` if any element is NaN.
+        ///
+        /// [mask]: wide#masks
         #[inline]
         #[must_use]
         pub fn is_nan(&self) -> $Wide {
             specialize!(Matrix::<N, $Wide, A>::is_nan_backend(self))
         }
 
-        /// For each lane, returns `true` if all elements are neither infinite
+        /// Returns a [mask] that is `true` if all elements are neither infinite
         /// nor NaN.
+        ///
+        /// [mask]: wide#masks
         #[inline]
         #[must_use]
         pub fn is_finite(&self) -> $Wide {
             specialize!(Matrix::<N, $Wide, A>::is_finite_backend(self))
         }
 
-        /// Returns the absolute values of the elements of `self`.
+        /// Returns the absolute values of the elements of a matrix.
         ///
         /// Equivalent to `(self.x_axis.abs(), self.y_axis.abs(), ...)`.
         #[inline]
@@ -140,8 +144,7 @@ macro_rules! items {
             specialize!(Matrix::<N, $Wide, A>::abs_backend(self))
         }
 
-        /// Returns the element-wise reciprocal (inverse) of a matrix,
-        /// `1 / self`.
+        /// Returns the reciprocals of the elements of a matrix, `1 / self`.
         #[inline]
         #[must_use]
         pub fn recip(&self) -> Self {
@@ -152,7 +155,7 @@ macro_rules! items {
 
 macro_rules! items_2 {
     ($Wide:ident, $T:ident) => {
-        /// Creates a matrix from a 2D rotation.
+        /// Creates a 2x2 matrix from a 2D rotation.
         ///
         /// This assumes `rotation` is normalized.
         #[inline]
@@ -166,16 +169,16 @@ macro_rules! items_2 {
             ))
         }
 
-        /// Converts a matrix to a 2D rotation.
+        /// Converts a 2x2 matrix to a 2D rotation.
         ///
-        /// This assumes `self` is a rotation matrix.
+        /// This assumes `self` only contains rotation.
         #[inline]
         #[must_use]
         pub fn to_rotation(&self) -> Rotation2<$Wide, A> {
             Rotation2::<$Wide, A>::from_matrix(self)
         }
 
-        /// Creates a matrix from `scale` and 2D rotation.
+        /// Creates a 2x2 matrix from a non-uniform scale and a 2D rotation.
         ///
         /// This assumes `rotation` is normalized.
         #[inline]
@@ -192,9 +195,9 @@ macro_rules! items_2 {
             ))
         }
 
-        /// Converts a matrix to scale and rotation.
+        /// Converts a 2x2 matrix to a non-uniform scale and a 2D rotation.
         ///
-        /// This assumes `self` does not contain shear.
+        /// This assumes `self` only contains scale and rotation.
         #[inline]
         #[must_use]
         pub fn to_scale_rotation(&self) -> (Vector<2, $Wide, A>, Rotation2<$Wide, A>) {
@@ -210,8 +213,8 @@ macro_rules! items_2 {
             (scale, rotation)
         }
 
-        /// Creates a rotation matrix from an `angle` (in radians) rotating `+X`
-        /// to `+Y`.
+        /// Creates a 2x2 matrix from an angle (in radians) rotating `+X` to
+        /// `+Y`.
         #[inline]
         #[must_use]
         pub fn from_angle(angle: $Wide) -> Self {
@@ -222,19 +225,18 @@ macro_rules! items_2 {
             ])
         }
 
-        /// Converts a matrix to an angle (in radians) rotating `+X` to `+Y`.
+        /// Converts a 2x2 matrix to an angle (in radians) rotating `+X` to
+        /// `+Y`.
         ///
-        /// This assumes `self` is a rotation matrix.
+        /// This assumes `self` only contains rotation.
         #[inline]
         #[must_use]
         pub fn to_angle(&self) -> $Wide {
             self.x_axis.y.atan2(self.x_axis.x)
         }
 
-        /// Creates a matrix containing the non-uniform `scale` and a rotation
-        /// of `angle` (in radians).
-        ///
-        /// This rotates `+X` to `+Y`.
+        /// Creates a 2x2 matrix from a non-uniform scale and an angle (in
+        /// radians) rotating `+X` to `+Y`.
         #[inline]
         #[must_use]
         pub fn from_scale_angle(scale: Vector<2, $Wide, A>, angle: $Wide) -> Self {
@@ -245,10 +247,10 @@ macro_rules! items_2 {
             ])
         }
 
-        /// Returns the `scale` and `angle` of `self`.
+        /// Converts a 2x2 matrix to a non-uniform scale and an angle (in
+        /// radians) rotating `+X` to `+Y`.
         ///
-        /// `self` must not contain shearing. Otherwise the result is
-        /// unspecified.
+        /// This assumes `self` only contains scale and rotation.
         #[inline]
         #[must_use]
         pub fn to_scale_angle(&self) -> (Vector<2, $Wide, A>, $Wide) {
@@ -268,8 +270,8 @@ macro_rules! items_2 {
 
 macro_rules! items_3 {
     ($Wide:ident, $T:ident) => {
-        /// Creates a rotation matrix from an `angle` (in radians) rotating `+X`
-        /// to `+Y`.
+        /// Creates a 3x3 matrix from an angle (in radians) rotating `+X` to
+        /// `+Y`.
         #[inline]
         #[must_use]
         pub fn from_rotation_xy(angle: $Wide) -> Self {
@@ -281,8 +283,8 @@ macro_rules! items_3 {
             ])
         }
 
-        /// Creates a rotation matrix from an `angle` (in radians) rotating `+X`
-        /// to `+Z`.
+        /// Creates a 3x3 matrix from an angle (in radians) rotating `+X` to
+        /// `+Z`.
         #[inline]
         #[must_use]
         pub fn from_rotation_xz(angle: $Wide) -> Self {
@@ -294,8 +296,8 @@ macro_rules! items_3 {
             ])
         }
 
-        /// Creates a rotation matrix from an `angle` (in radians) rotating `+Y`
-        /// to `+Z`.
+        /// Creates a 3x3 matrix from an angle (in radians) rotating `+Y` to
+        /// `+Z`.
         #[inline]
         #[must_use]
         pub fn from_rotation_yz(angle: $Wide) -> Self {
@@ -307,10 +309,15 @@ macro_rules! items_3 {
             ])
         }
 
-        /// Creates a 3D rotation matrix from a rotation `axis` and `angle` (in
-        /// radians) using the right-hand rule.
+        /// Creates a 3x3 matrix from a rotation axis and an angle (in radians).
         ///
-        /// `axis` must be normalized. Otherwise the result is unspecified.
+        /// This follows the right-hand rule:
+        ///
+        /// - `+X` rotates `+Y` to `+Z`
+        /// - `+Y` rotates `+Z` to `+X`
+        /// - `+Z` rotates `+X` to `+Y`
+        ///
+        /// This assumes `axis` is normalized.
         #[inline]
         #[must_use]
         pub fn from_axis_angle(axis: Vector<3, $Wide, A>, angle: $Wide) -> Self {
@@ -330,9 +337,15 @@ macro_rules! items_3 {
             ])
         }
 
-        /// Converts a 3x3 matrix to an axis-angle rotation.
+        /// Converts a 3x3 matrix to a rotation axis and an angle (in radians).
         ///
-        /// This assumes `self` is a rotation matrix.
+        /// This follows the right-hand rule:
+        ///
+        /// - `+X` rotates `+Y` to `+Z`
+        /// - `+Y` rotates `+Z` to `+X`
+        /// - `+Z` rotates `+X` to `+Y`
+        ///
+        /// This assumes `self` only contains rotation.
         #[inline]
         #[must_use]
         pub fn to_axis_angle(&self) -> (Vector<3, $Wide, A>, $Wide) {
@@ -340,7 +353,23 @@ macro_rules! items_3 {
             self.to_rotor().to_axis_angle()
         }
 
-        /// Creates a 3x3 matrix from a scaled-axis rotation.
+        /// Creates a 3x3 matrix from a rotation axis scaled by an angle (in
+        /// radians).
+        ///
+        /// Equivalent to:
+        ///
+        /// ```
+        /// Self::from_axis_angle(
+        ///     scaled_axis.normalize(),
+        ///     scaled_axis.length(),
+        /// )
+        /// ```
+        ///
+        /// This follows the right-hand rule:
+        ///
+        /// - `+X` rotates `+Y` to `+Z`
+        /// - `+Y` rotates `+Z` to `+X`
+        /// - `+Z` rotates `+X` to `+Y`
         #[inline]
         #[must_use]
         pub fn from_scaled_axis(scaled_axis: Vector<3, $Wide, A>) -> Self {
@@ -363,9 +392,23 @@ macro_rules! items_3 {
             ])
         }
 
-        /// Converts a 3x3 matrix to a scaled-axis rotation.
+        /// Converts a 3x3 matrix to a rotation axis scaled by an angle (in
+        /// radians).
         ///
-        /// This assumes `self` is a rotation matrix.
+        /// Equivalent to:
+        ///
+        /// ```
+        /// let (axis, angle) = self.to_axis_angle();
+        /// axis * angle
+        /// ```
+        ///
+        /// This follows the right-hand rule:
+        ///
+        /// - `+X` rotates `+Y` to `+Z`
+        /// - `+Y` rotates `+Z` to `+X`
+        /// - `+Z` rotates `+X` to `+Y`
+        ///
+        /// This assumes `self` only contains rotation.
         #[inline]
         #[must_use]
         pub fn to_scaled_axis(&self) -> Vector<3, $Wide, A> {
@@ -373,8 +416,8 @@ macro_rules! items_3 {
             self.to_rotor().to_scaled_axis()
         }
 
-        /// Creates a 3D rotation matrix from an Euler rotation order/sequence
-        /// and angles (in radians).
+        /// Creates a 3x3 matrix from an Euler rotation order/sequence and
+        /// angles (in radians).
         #[inline]
         #[must_use]
         pub fn from_euler(order: EulerRot, a: $Wide, b: $Wide, c: $Wide) -> Self {
@@ -433,11 +476,10 @@ macro_rules! items_3 {
             result
         }
 
-        /// Returns the Euler angles forming `self` for the given Euler rotation
+        /// Converts a 3x3 matrix to Euler angles for a given Euler rotation
         /// order/sequence.
         ///
-        /// `self` must not contain any non-rotation transformations. Otherwise
-        /// the result is unspecified.
+        /// This assumes `self` only contains rotation.
         #[inline]
         #[must_use]
         pub fn to_euler(&self, order: EulerRot) -> ($Wide, $Wide, $Wide) {
