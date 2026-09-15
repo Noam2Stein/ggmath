@@ -5,16 +5,16 @@
 //! - Affine Transforms: [`Affine2<T>`], [`Affine3<T>`]
 //! - Projective Transforms: [`Proj2<T>`], [`Proj3<T>`]
 //! - Rotations: [`Rot2<T>`], [`Rotor3<T>`]
-//! - Masks: [`Mask2<T>`], [`Mask3<T>`], [`Mask4<T>`]
+//! - Vector Masks: [`Mask2<T>`], [`Mask3<T>`], [`Mask4<T>`]
 //!
-//! SIMD-aligned variants:
+//! SIMD-aligned types:
 //!
 //! - Vectors: [`Vec2A<T>`], [`Vec3A<T>`], [`Vec4A<T>`]
 //! - Square Matrices: [`Mat2A<T>`], [`Mat3A<T>`], [`Mat4A<T>`]
 //! - Affine Transforms: [`Affine2A<T>`], [`Affine3A<T>`]
 //! - Projective Transforms: [`Proj2A<T>`], [`Proj3A<T>`]
 //! - Rotations: [`Rot2A<T>`], [`Rotor3A<T>`]
-//! - Masks: [`Mask2A<T>`], [`Mask3A<T>`], [`Mask4A<T>`]
+//! - Vector Masks: [`Mask2A<T>`], [`Mask3A<T>`], [`Mask4A<T>`]
 //!
 //! Underlying generic types:
 //!
@@ -28,149 +28,117 @@
 //!
 //! # SIMD-aligned types
 //!
-//! Types with an `A` suffix (`A = Aligned` in generic form) are SIMD-aligned
-//! types. For example, [`Vec3A<T>`] is the SIMD-aligned variant of [`Vec3<T>`].
+//! Math types come in two variants: scalar types and SIMD-aligned types. Scalar
+//! types are named without a suffix, and SIMD-aligned types are named with an
+//! `A` suffix.
 //!
-//! For supported `T` types and target configurations, these types use
-//! SIMD-compatible representations, and appropriate operations use specialized
-//! SIMD implementations. Exact representations are documented on each SIMD
-//! type. For unsupported types, SIMD-aligned types are identical to their
-//! non-SIMD variants.
+//! Scalar types have the alignment of their `T` type, and are considered the
+//! default math types.
 //!
-//! SIMD-aligned types tend to improve arithmetic throughput, but have higher
-//! alignment and may have padding. For example, [`Vec3<f32>`] has a size of 12
-//! bytes and an alignment of 4 bytes, while [`Vec3A<f32>`] has a size and
-//! alignment of 16 bytes.
+//! For supported `T` types and target configurations, SIMD-aligned types have
+//! additional alignment allowing them to be efficiently loaded into SIMD
+//! registers. Operations on these types use specialized SIMD implementations.
+//! For unsupported `T` types, SIMD-aligned types are identical to their scalar
+//! counterparts.
 //!
-//! SIMD-aligned types tend to improve performance when the bottleneck is
-//! arithmetic throughput, and tend to hurt performance when the bottleneck is
-//! memory bandwidth.
+//! On target configurations `x86`/`x86_64` and `aarch64` with `neon`,
+//! appropriate [`f32`] types have 16-byte alignment and use optimized SIMD
+//! implementations. Exact representations are documented on each type.
+//!
+//! Generally, SIMD-aligned types result in faster computations, but consume
+//! more memory due to alignment and/or padding. SIMD-aligned types tend to
+//! improve performance for compute-bound algorithms, and tend to hurt
+//! performance for memory-bound algorithms.
 //!
 //! # Generics
 //!
-//! The underlying types are generic over:
+//! Generics are used to simplify the API and avoid "type explosion". While
+//! there are multiple marker traits due to type system limitations, all actual
+//! functionality is provided through inherent implementations, not traits.
 //!
-//! - `T`: The element type
+//! Underlying types are useful when defining composite math types or extending
+//! existing types with more functionality. They are generic over:
+//!
 //! - `N`: The dimension
-//! - `A`: The alignment mode (SIMD or non-SIMD)
+//! - `T`: The element type
+//! - `A`: The SIMD-alignment mode (aligned or unaligned)
 //!
-//! The traits [`PrimitiveFloat`], [`PrimitiveInteger`], [`PrimitiveSigned`] and
-//! [`PrimitiveUnsigned`] give generic contexts access to most primitive
-//! functionality. These traits do not expose functions directly, they only
-//! enable functionality for vectors, matrices, etc.
-//!
-//! # Affine and Projective Transforms
-//!
-//! Unlike many graphics math libraries, [`ggmath`] does not use [`Mat4`] to
-//! represent every kind of 3D transformation, nor [`Mat3`] for every kind of 2D
-//! transformation. Instead, there are three kinds of transforms, so that common
-//! transformations can use more efficient representations:
-//!
-//! - [`Matrix`] types represent linear transformations. They can represent
-//!   scale, rotation and shear, but not translation. Use these when translation
-//!   is not needed.
-//!
-//! - [`Affine`] types contain a matrix and a translation vector. They can
-//!   represent any linear transformation, plus translation. Use these for the
-//!   transform of objects and cameras.
-//!
-//! - [`Projective`] types are represented by homogeneous matrices (e.g.,
-//!   [`Proj3`] is represented by [`Mat4`], and [`Proj2`] is represented by
-//!   [`Mat3`]). They can represent any affine transformation, plus perspective
-//!   projection. Use these for projections and arguments to shaders.
-//!
-//! For performance, you should pick the smallest type that satisfies your
-//! requirements. Linear transforms (matrices) are more efficient than affine
-//! transforms, which are more efficient than projective transforms. See
-//! [benchmark results].
-//!
-//! | Type              | [`Mat2<f32>`] | [`Affine2<f32>`] | [`Proj2<f32>`] | [`Mat2A<f32>`] | [`Affine2A<f32>`] | [`Proj2A<f32>`] |
-//! | ----------------- | ------------- | ---------------- | -------------- | -------------- | ----------------- | --------------- |
-//! | Size (bytes)      | 16            | 24               | 36             | 16             | 32                | 48              |
-//! | Alignment (bytes) | 4             | 4                | 4              | 16             | 16                | 16              |
-//!
-//! | Type              | [`Mat3<f32>`] | [`Affine3<f32>`] | [`Proj3<f32>`] | [`Mat3A<f32>`] | [`Affine3A<f32>`] | [`Proj3A<f32>`] |
-//! | ----------------- | ------------- | ---------------- | -------------- | -------------- | ----------------- | --------------- |
-//! | Size (bytes)      | 36            | 48               | 64             | 48             | 64                | 64              |
-//! | Alignment (bytes) | 4             | 4                | 4              | 16             | 16                | 16              |
-//!
-//! > This table is true only for target architectures that have SIMD and are
-//! > supported.
-//!
-//! # Masks
-//!
-//! Masks are boolean vectors optimized for specific vector types. For example,
-//! [`Mask3A<f32>`] performs better than [`Vec3A<bool>`] for operations
-//! involving [`Vec3A<f32>`].
+//! The marker traits [`PrimitiveFloat`], [`PrimitiveInteger`],
+//! [`PrimitiveSigned`] and [`PrimitiveUnsigned`] give generic contexts access
+//! to most functionality specific to primitive types. These traits do not
+//! expose any functions directly, they only enable functionality for math
+//! types.
 //!
 //! # SoA
 //!
-//! SoA, or Structure of Arrays, refers to math types where each element `T`
-//! contains multiple values. For example, [`Vec3<f32x4>`] represents four 3D
-//! vectors, stored in memory as:
-//!
-//! `x1, x2, x3, x4, y1, y2, y3, y4, z1, z2, z3, z4`
-//!
-//! SoA is faster than standard SIMD. For example, computing the dot product for
-//! [`Vec3<f32>`] is quite slow because SIMD is not built for horizontal
-//! operations, while for [`Vec3<f32x4>`] it is much faster because each element
-//! is a SIMD register and there are no horizontal operations.
-//!
-//! However, SoA requires that algorithms are designed to process multiple
-//! values at the same time, which can be quite challenging. Because of this, it
-//! is best to only use SoA for performance-critical algorithms.
+//! SoA, short for Structure of Arrays, refers to math types where each element
+//! is a SIMD vector representing multiple values. Whereas SIMD-aligned types
+//! make an entire [`Vector`] a SIMD vector, as in [`Vec3A<f32>`], SoA makes
+//! each element a SIMD vector, as in [`Vec3<f32x4>`], which represents four 3D
+//! vectors.
 //!
 //! SoA is supported through an optional dependency for the [`wide`] crate.
 //! Almost all functionality that exists for standard types also exists for SoA
 //! types.
 //!
-//! # Fixed-point numbers
+//! SoA generally results in way faster computations than SIMD-aligned types.
+//! Mathematical operations on SIMD-aligned types frequently have to use shuffle
+//! and extract instructions, and cannot use SIMD for single-element operations.
+//! The same operations on SoA types never use shuffles nor extracts, and do use
+//! SIMD for single-element operations, since each element is a SIMD vector.
 //!
-//! Currently, there is only basic support for fixed-point numbers, through the
-//! [`fixed`] feature flag which implements [`Element`] for [`fixed`] types. See
-//! [this issue](https://github.com/Noam2Stein/ggmath/issues/46) for better
-//! fixed-point number support.
+//! SoA also has downsides:
+//!
+//! - SoA values often need to be converted from and into AoS form, which
+//!   depending on the algorithm, can have overhead higher than the speedup SoA
+//!   provides.
+//!
+//! - SoA values take a lot of register space. A single [`Mat4<f32x4>`] takes 16
+//!   SIMD registers, which is all that is available on some processors. If too
+//!   many values are used at the same time, data will move to the stack,
+//!   heavily hurting performance.
 //!
 //! # Linear algebra conventions
 //!
 //! [`ggmath`] is coordinate-system agnostic, and should work for both
-//! right-handed and left-handed coordinate systems.
+//! left-handed and right-handed coordinate systems.
 //!
-//! [`ggmath`] uses left-multiplication, meaning to transform a vector by a
-//! matrix (or any other transformation) you write `vector * matrix` and not
-//! `matrix * vector`. This means matrices are stored in row-major order.
+//! [`ggmath`] uses left-multiplication and row-major matrices. To transform a
+//! vector by a matrix (or any other transformation) you write
+//! `vector * matrix`, not `matrix * vector`. To chain transformations you write
+//! `first * second`, not `second * first`.
 //!
 //! # Why another math crate?
 //!
-//! [`ggmath`] exists because existing similar libraries are missing certain
-//! features:
+//! The reason for creating a new math crate, instead of updating an existing
+//! one, is to add certain features that cannot be added to those libraries, due
+//! to incompatibilities that would be too big of a change to fix. These
+//! features are:
 //!
-//! - SIMD alignment (e.g., `Vec3` is `__m128`, important for performance)
-//! - Generics (over primitives or arbitrary types, avoids macros)
-//! - SoA (niche, but important for game engines)
-//! - Fixed-point numbers (niche too, but important for game engines that aim to
-//!   be flexible)
+//! - SIMD-aligned types
+//! - Generics
+//! - SoA
+//! - Fixed-point numbers
 //!
-//! Existing similar libraries:
+//! While these features are not needed for every project, in a general-purpose
+//! game engine it is important to design the math module with support for these
+//! features in mind, since some developers will need them eventually. If you do
+//! not design for generics and SIMD alignment from the start, they are hard to
+//! add properly afterwards. Without generics, supporting multiple `T` types
+//! quickly leads to macro hell and type explosion.
 //!
-//! - [`glam`]: Supports SIMD alignment, but does not use generics, and as a
-//!   result SoA and fixed-point numbers are out of scope.
+//! Existing libraries:
 //!
-//! - [`ultraviolet`]: Supports SoA, but does not support SIMD alignment because
-//!   its types are simple scalar structs. Does not use generics, and as a
-//!   result fixed-point numbers are probably out of scope.
+//! - [`glam`]: Supports SIMD-aligned types, but not generics.
 //!
-//! - [`cgmath`]: Supports generics (could also support SoA and fixed-point
-//!   numbers) but does not support SIMD alignment, because its types are simple
-//!   scalar structs.
+//! - [`ultraviolet`]: Supports SoA, but not generics.
 //!
-//! - [`nalgebra`]: Less graphics oriented and thus has a larger, more
-//!   complicated API more suitable for general linear algebra.
+//! - [`cgmath`]: Supports generics, not SIMD-aligned types, since its types are
+//!   simple scalar structs.
 //!
-//! [`ggmath`] has a design where types are generic over `N` and `T`, but also
-//! whether SIMD alignment is enabled or disabled, enabling it to support both
-//! SIMD alignment and generics. Changing existing libraries to use this design
-//! would be out of scope.
+//! - [`nalgebra`]: Less graphics oriented and has a larger, more complicated
+//!   API more suitable for general linear algebra. Supports generics and SoA,
+//!   but not SIMD-aligned types.
 //!
 //! # Usage
 //!
@@ -208,15 +176,11 @@
 //! - [`serde`]: Implements [`Serialize`] and [`Deserialize`] for [`ggmath`]
 //!   types.
 //!
-//! - [`wide`]: Implements functionality for SoA types.
-//!
-//! [`ggmath`]: crate
-//!
-//! [benchmark results]: https://github.com/Noam2Stein/ggmath/blob/main/BENCH_RESULTS.md
+//! - [`wide`]: Enables SoA functionality.
 //!
 //! [`wide`]: https://crates.io/crates/wide
 //!
-//! [`fixed`]: https://crates.io/crates/fixed
+//! [`ggmath`]: crate
 //!
 //! [`glam`]: https://crates.io/crates/glam
 //! [`ultraviolet`]: https://crates.io/crates/ultraviolet
@@ -227,6 +191,7 @@
 //! [`libm`]: https://crates.io/crates/libm
 //!
 //! [`bytemuck`]: https://crates.io/crates/bytemuck
+//! [`fixed`]: https://crates.io/crates/fixed
 //! [`half`]: https://crates.io/crates/half
 //! [`f16`]: https://docs.rs/half/latest/half/struct.f16.html
 //! [`bf16`]: https://docs.rs/half/latest/half/struct.bf16.html
