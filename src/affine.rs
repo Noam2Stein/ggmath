@@ -31,9 +31,6 @@ mod wide_float;
 
 /// An affine transform represented by a matrix and a translation vector.
 ///
-/// `A` controls SIMD alignment and is either [`Unaligned`] or [`Aligned`]. See
-/// [`Alignment`] for more details.
-///
 /// Contains a matrix and a translation vector.
 ///
 /// # Type aliases

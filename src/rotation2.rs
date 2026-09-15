@@ -29,9 +29,6 @@ mod wide_float;
 
 /// A 2D rotation represented by a unit complex number.
 ///
-/// `A` controls SIMD alignment and is either [`Unaligned`] or [`Aligned`]. See
-/// [`Alignment`] for more details.
-///
 /// # Type aliases
 ///
 /// - [`Rot2<T>`] for [`Rotation2<T, Unaligned>`].
