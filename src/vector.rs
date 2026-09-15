@@ -52,7 +52,7 @@ mod wide_signed;
 #[cfg(feature = "wide")]
 mod wide_unsigned;
 
-/// An `N`-dimensional vector of type `T`.
+/// A vector.
 ///
 /// `A` controls SIMD alignment and is either [`Unaligned`] or [`Aligned`]. See
 /// [`Alignment`] for more details.

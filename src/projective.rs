@@ -29,7 +29,7 @@ mod wide;
 #[cfg(feature = "wide")]
 mod wide_float;
 
-/// An `N`-dimensional projective transform represented by a homogeneous matrix.
+/// A projective transform represented by a homogeneous matrix.
 ///
 /// `A` controls SIMD alignment and is either [`Unaligned`] or [`Aligned`]. See
 /// [`Alignment`] for more details.

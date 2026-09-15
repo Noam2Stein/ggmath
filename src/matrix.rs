@@ -31,7 +31,7 @@ mod wide;
 #[cfg(feature = "wide")]
 mod wide_float;
 
-/// An `N`x`N` row-major matrix of type `T`.
+/// A square row-major matrix.
 ///
 /// `A` controls SIMD alignment and is either [`Unaligned`] or [`Aligned`]. See
 /// [`Alignment`] for more details.
