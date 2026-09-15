@@ -31,6 +31,10 @@ mod wide_float;
 
 /// A projective transform represented by a homogeneous matrix.
 ///
+/// This can represent scale, rotation, shear, translation and projections. If
+/// you do not need projections, use [`Affine`]. If you do not need translation,
+/// use [`Matrix`].
+///
 /// Use [`transform_point`] and [`transform_vector`] to transform vectors
 /// assuming `self` contains an affine transformation. Use [`project_point`] to
 /// transform vectors with perspective divide. Use `vector * projective` to
@@ -80,6 +84,10 @@ where
 
 /// A 2D projective transform represented by a homogeneous 3x3 matrix.
 ///
+/// This can represent 2D scale, rotation, shear, translation and projections.
+/// If you do not need projections, use [`Affine2`]. If you do not need
+/// translation, use [`Mat2`].
+///
 /// Use [`transform_point`] and [`transform_vector`] to transform vectors
 /// assuming `self` contains an affine transformation. Use [`project_point`] to
 /// transform vectors with perspective divide. Use `vector * projective` to
@@ -93,12 +101,18 @@ where
 ///
 /// Fields are exposed by implementing [`Deref`] and [`DerefMut`].
 ///
+/// [`Affine2`]: crate::Affine2
+/// [`Mat2`]: crate::Mat2
 /// [`transform_point`]: Projective::transform_point
 /// [`transform_vector`]: Projective::transform_vector
 /// [`project_point`]: Projective::project_point
 pub type Proj2<T> = Projective<2, T, Unaligned>;
 
 /// A 3D projective transform represented by a homogeneous 4x4 matrix.
+///
+/// This can represent 3D scale, rotation, shear, translation and projections.
+/// If you do not need projections, use [`Affine3`]. If you do not need
+/// translation, use [`Mat3`].
 ///
 /// Use [`transform_point`] and [`transform_vector`] to transform vectors
 /// assuming `self` contains an affine transformation. Use [`project_point`] to
@@ -114,12 +128,18 @@ pub type Proj2<T> = Projective<2, T, Unaligned>;
 ///
 /// Fields are exposed by implementing [`Deref`] and [`DerefMut`].
 ///
+/// [`Affine3`]: crate::Affine3
+/// [`Mat3`]: crate::Mat3
 /// [`transform_point`]: Projective::transform_point
 /// [`transform_vector`]: Projective::transform_vector
 /// [`project_point`]: Projective::project_point
 pub type Proj3<T> = Projective<3, T, Unaligned>;
 
 /// A 2D projective transform represented by a homogeneous 3x3 matrix.
+///
+/// This can represent 2D scale, rotation, shear, translation and projections.
+/// If you do not need projections, use [`Affine2A`]. If you do not need
+/// translation, use [`Mat2A`].
 ///
 /// Use [`transform_point`] and [`transform_vector`] to transform vectors
 /// assuming `self` contains an affine transformation. Use [`project_point`] to
@@ -153,12 +173,18 @@ pub type Proj3<T> = Projective<3, T, Unaligned>;
 /// | `f32` | `target_feature = "sse2"`                               | `[__m128; 3]`      | 48           | 16                |
 /// | `f32` | `all(target_arch = "aarch64", target_feature = "neon")` | `[float32x4_t; 3]` | 48           | 16                |
 ///
+/// [`Affine2A`]: crate::Affine2A
+/// [`Mat2A`]: crate::Mat2A
 /// [`transform_point`]: Projective::transform_point
 /// [`transform_vector`]: Projective::transform_vector
 /// [`project_point`]: Projective::project_point
 pub type Proj2A<T> = Projective<2, T, Aligned>;
 
 /// A 3D projective transform represented by a homogeneous 4x4 matrix.
+///
+/// This can represent 3D scale, rotation, shear, translation and projections.
+/// If you do not need projections, use [`Affine3A`]. If you do not need
+/// translation, use [`Mat3A`].
 ///
 /// Use [`transform_point`] and [`transform_vector`] to transform vectors
 /// assuming `self` contains an affine transformation. Use [`project_point`] to
@@ -195,6 +221,8 @@ pub type Proj2A<T> = Projective<2, T, Aligned>;
 /// | `f32` | `target_feature = "sse2"`                               | `[__m128; 4]`      | 64           | 16                |
 /// | `f32` | `all(target_arch = "aarch64", target_feature = "neon")` | `[float32x4_t; 4]` | 64           | 16                |
 ///
+/// [`Affine3A`]: crate::Affine3A
+/// [`Mat3A`]: crate::Mat3A
 /// [`transform_point`]: Projective::transform_point
 /// [`transform_vector`]: Projective::transform_vector
 /// [`project_point`]: Projective::project_point

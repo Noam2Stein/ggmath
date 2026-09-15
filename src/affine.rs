@@ -31,6 +31,10 @@ mod wide_float;
 
 /// An affine transform represented by a matrix and a translation vector.
 ///
+/// This can represent scale, rotation, shear and translation, but not
+/// projections. If you need projections, use [`Projective`]. If you do not need
+/// translation, use [`Matrix`].
+///
 /// Use [`transform_point`] and [`transform_vector`] to transform vectors.
 ///
 /// # Type aliases
@@ -63,6 +67,7 @@ mod wide_float;
 /// accepts all bit patterns. Unless `T` accepts all bit patterns, it is not
 /// sound to assume padding contains valid values of `T`.
 ///
+/// [`Projective`]: crate::Projective
 /// [`transform_point`]: Self::transform_point
 /// [`transform_vector`]: Self::transform_vector
 /// [`Mat2A`]: crate::Mat2A
@@ -89,7 +94,9 @@ where
 
 /// A 2D affine transform represented by a matrix and a translation vector.
 ///
-/// Contains a 2x2 matrix and a 2D translation vector.
+/// This can represent 2D scale, rotation, shear and translation, but not
+/// projections. If you need projections, use [`Proj2`]. If you do not need
+/// translation, use [`Mat2`].
 ///
 /// Use [`transform_point`] and [`transform_vector`] to transform vectors.
 ///
@@ -100,13 +107,17 @@ where
 ///
 /// Fields are exposed by implementing [`Deref`] and [`DerefMut`].
 ///
+/// [`Proj2`]: crate::Proj2
+/// [`Mat2`]: crate::Mat2
 /// [`transform_point`]: Self::transform_point
 /// [`transform_vector`]: Self::transform_vector
 pub type Affine2<T> = Affine<2, T, Unaligned>;
 
 /// A 3D affine transform represented by a matrix and a translation vector.
 ///
-/// Contains a 3x3 matrix and a 3D translation vector.
+/// This can represent 3D scale, rotation, shear and translation, but not
+/// projections. If you need projections, use [`Proj3`]. If you do not need
+/// translation, use [`Mat3`].
 ///
 /// Use [`transform_point`] and [`transform_vector`] to transform vectors.
 ///
@@ -117,13 +128,17 @@ pub type Affine2<T> = Affine<2, T, Unaligned>;
 ///
 /// Fields are exposed by implementing [`Deref`] and [`DerefMut`].
 ///
+/// [`Proj3`]: crate::Proj3
+/// [`Mat3`]: crate::Mat3
 /// [`transform_point`]: Self::transform_point
 /// [`transform_vector`]: Self::transform_vector
 pub type Affine3<T> = Affine<3, T, Unaligned>;
 
 /// A 2D affine transform represented by a matrix and a translation vector.
 ///
-/// Contains a 2x2 matrix and a 2D translation vector.
+/// This can represent 2D scale, rotation, shear and translation, but not
+/// projections. If you need projections, use [`Proj2A`]. If you do not need
+/// translation, use [`Mat2A`].
 ///
 /// Use [`transform_point`] and [`transform_vector`] to transform vectors.
 ///
@@ -152,13 +167,17 @@ pub type Affine3<T> = Affine<3, T, Unaligned>;
 /// | `f32` | `target_feature = "sse2"`                               | `[__m128; 2]`      | 32           | 16                |
 /// | `f32` | `all(target_arch = "aarch64", target_feature = "neon")` | `[float32x4_t; 2]` | 32           | 16                |
 ///
+/// [`Proj2A`]: crate::Proj2A
+/// [`Mat2A`]: crate::Mat2A
 /// [`transform_point`]: Self::transform_point
 /// [`transform_vector`]: Self::transform_vector
 pub type Affine2A<T> = Affine<2, T, Aligned>;
 
 /// A 3D affine transform represented by a matrix and a translation vector.
 ///
-/// Contains a 3x3 matrix and a 3D translation vector.
+/// This can represent 3D scale, rotation, shear and translation, but not
+/// projections. If you need projections, use [`Proj3A`]. If you do not need
+/// translation, use [`Mat3A`].
 ///
 /// Use [`transform_point`] and [`transform_vector`] to transform vectors.
 ///
@@ -187,6 +206,8 @@ pub type Affine2A<T> = Affine<2, T, Aligned>;
 /// | `f32` | `target_feature = "sse2"`                               | `[__m128; 4]`      | 64           | 16                |
 /// | `f32` | `all(target_arch = "aarch64", target_feature = "neon")` | `[float32x4_t; 4]` | 64           | 16                |
 ///
+/// [`Proj3A`]: crate::Proj3A
+/// [`Mat3A`]: crate::Mat3A
 /// [`transform_point`]: Self::transform_point
 /// [`transform_vector`]: Self::transform_vector
 pub type Affine3A<T> = Affine<3, T, Aligned>;

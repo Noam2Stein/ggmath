@@ -33,6 +33,10 @@ mod wide_float;
 
 /// A square row-major matrix.
 ///
+/// This can represent scale, rotation and shear, but not translation or
+/// projections. If you need translation, use [`Affine`]. If you need
+/// projections, use [`Projective`].
+///
 /// Use `vector * matrix` to transform vectors.
 ///
 /// # Type aliases
@@ -87,6 +91,10 @@ where
 
 /// A 2x2 row-major matrix.
 ///
+/// This can represent 2D scale, rotation and shear, but not translation or
+/// projections. If you need translation, use [`Affine2`]. If you need
+/// projections, use [`Proj2`].
+///
 /// Use `vector * matrix` to transform vectors.
 ///
 /// # Fields
@@ -104,6 +112,10 @@ where
 pub type Mat2<T> = Matrix<2, T, Unaligned>;
 
 /// A 3x3 row-major matrix.
+///
+/// This can represent 3D scale, rotation and shear, but not translation or
+/// projections. If you need translation, use [`Affine3`]. If you need
+/// projections, use [`Proj3`].
 ///
 /// Use `vector * matrix` to transform vectors.
 ///
@@ -166,6 +178,10 @@ pub type Mat4<T> = Matrix<4, T, Unaligned>;
 
 /// A 2x2 row-major matrix.
 ///
+/// This can represent 2D scale, rotation and shear, but not translation or
+/// projections. If you need translation, use [`Affine2A`]. If you need
+/// projections, use [`Proj2A`].
+///
 /// Use `vector * matrix` to transform vectors.
 ///
 /// # Fields
@@ -200,6 +216,10 @@ pub type Mat4<T> = Matrix<4, T, Unaligned>;
 pub type Mat2A<T> = Matrix<2, T, Aligned>;
 
 /// A 3x3 row-major matrix.
+///
+/// This can represent 3D scale, rotation and shear, but not translation or
+/// projections. If you need translation, use [`Affine3A`]. If you need
+/// projections, use [`Proj3A`].
 ///
 /// Use `vector * matrix` to transform vectors.
 ///
