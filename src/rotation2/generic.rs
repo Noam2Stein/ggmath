@@ -20,7 +20,7 @@ impl<T, A: Alignment> Rotation2<T, A>
 where
     T: Element,
 {
-    /// Creates a 2D rotation from raw elements, the cosine and sine of an
+    /// Creates a 2D rotation from raw elements, the cosine and sine of the
     /// angle.
     ///
     /// This is how the rotation is stored, so this function is akin to
@@ -116,8 +116,7 @@ where
         &mut self.0
     }
 
-    /// Converts a rotation matrix to a 2D rotation represented by a complex
-    /// number.
+    /// Converts a 2x2 matrix to a 2D rotation.
     ///
     /// This assumes `matrix` only contains rotation.
     ///
@@ -143,8 +142,7 @@ where
         Self(matrix.x_axis)
     }
 
-    /// Converts an affine transform to a 2D rotation represented by a complex
-    /// number.
+    /// Converts a 2D affine transform to a 2D rotation.
     ///
     /// This assumes `affine` only contains rotation, and translation which is
     /// ignored.
@@ -165,8 +163,7 @@ where
         Self::from_matrix(&affine.matrix)
     }
 
-    /// Converts a projective transform to a 2D rotation represented by a
-    /// complex number.
+    /// Converts a 2D projective transform to a 2D rotation.
     ///
     /// This assumes `projective` only contains rotation, and translation which
     /// is ignored.
@@ -201,7 +198,7 @@ where
         Self(projective.x_axis.truncate())
     }
 
-    /// Returns the rotation transforming `from` to `to`.
+    /// Creates a 2D rotation transforming `from` to `to`.
     ///
     /// This assumes `from` and `to` are normalized.
     ///
@@ -233,7 +230,7 @@ where
 
     /// Negates the sine element.
     ///
-    /// This is the same operation as [`inverse`].
+    /// This performs the same operation as [`inverse`].
     ///
     /// [`inverse`]: Rotation2::inverse
     #[inline]
@@ -250,7 +247,7 @@ where
     ///
     /// This assumes `self` is normalized.
     ///
-    /// This is the same operation as [`conjugate`].
+    /// This performs the same operation as [`conjugate`].
     ///
     /// # Panics
     ///
@@ -274,8 +271,7 @@ where
         self.conjugate()
     }
 
-    /// Rotates a complex number by a quarter of a turn, adding 90 degrees to
-    /// the rotation.
+    /// Adds 90 degrees to a 2D rotation.
     ///
     /// This rotates `+X` to `+Y`.
     #[inline]
@@ -288,7 +284,7 @@ where
         Self(self.0.perp())
     }
 
-    /// Computes the dot product of two rotations.
+    /// Computes the dot product of two 2D rotations.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -313,7 +309,7 @@ where
         self.0.perp_dot(rhs.0)
     }
 
-    /// Computes the squared length/magnitude of `self`.
+    /// Computes the squared length/magnitude of a complex number.
     #[inline]
     #[must_use]
     #[track_caller]

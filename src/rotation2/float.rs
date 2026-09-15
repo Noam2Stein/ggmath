@@ -7,8 +7,7 @@ where
     /// A 2D rotation with all elements set to NaN (Not a Number).
     pub const NAN: Self = Self::from_cos_sin(T::NAN, T::NAN);
 
-    /// Creates a 2D rotation from an `angle` (in radians) rotating `+X` to
-    /// `+Y`.
+    /// Creates a 2D rotation from an angle (in radians) rotating `+X` to `+Y`.
     #[inline]
     #[must_use]
     pub fn from_angle(angle: T) -> Self {
@@ -37,7 +36,7 @@ where
         self.sin.atan2(self.cos)
     }
 
-    /// Returns the rotation transforming `from` to either `to` or `-to`,
+    /// Creates a 2D rotation transforming `from` to either `to` or `-to`,
     /// rotating up to 90 degrees.
     ///
     /// This assumes `from` and `to` are normalized.
@@ -61,7 +60,7 @@ where
         Self::from_cos_sin(dot, from.perp_dot(to)) * dot.signum()
     }
 
-    /// Returns the absolute angle (in radians) between two rotations.
+    /// Returns the absolute angle (in radians) between two 2D rotations.
     ///
     /// This assumes `self` and `other` are normalized.
     ///
@@ -82,10 +81,10 @@ where
         self.dot(other).acos_approx()
     }
 
-    /// Returns the signed angle (in radians) transforming `self` to `other`.
+    /// Returns the angle (in radians) that rotates `self` to `other` in the
+    /// range `-π..=+π`.
     ///
-    /// The result is in the range `-π..π`. Positive is counter-clockwise and
-    /// negative is clockwise.
+    /// Positive angles rotate `+X` to `+Y`.
     ///
     /// This assumes `self` and `other` are normalized.
     ///
@@ -108,10 +107,10 @@ where
         self.dot(other).acos_approx() * self.perp_dot(other).signum()
     }
 
-    /// Returns the signed angle (in radians) transforming `other` to `self`.
+    /// Returns the angle (in radians) that rotates `other` to `self` in the
+    /// range `-π..=+π`.
     ///
-    /// The result is in the range `-π..π`. Positive is counter-clockwise and
-    /// negative is clockwise.
+    /// Positive angles rotate `+X` to `+Y`.
     ///
     /// This assumes `self` and `other` are normalized.
     ///
@@ -134,8 +133,8 @@ where
         self.dot(other).acos_approx() * other.perp_dot(self).signum()
     }
 
-    /// Computes the linear interpolation between two rotations, then normalizes
-    /// the result.
+    /// Computes the linear interpolation between two 2D rotations, then
+    /// normalizes the result.
     ///
     /// When `t` is `0`, the result is `self`. When `t` is `1`, the result is
     /// `other`.
@@ -172,7 +171,7 @@ where
         (self * (T::ONE - t) + other * t).normalize()
     }
 
-    /// Computes the spherical linear interpolation between two rotations.
+    /// Computes the spherical linear interpolation between two 2D rotations.
     ///
     /// When `t` is `0`, the result is `self`. When `t` is `1`, the result is
     /// `other`. This interpolates the angle at a constant speed, always taking
@@ -203,8 +202,7 @@ where
         Self::from_angle(diff.to_angle() * t) * self
     }
 
-    /// Rotates one rotation towards another by at most `max_angle` (in
-    /// radians).
+    /// Rotates `self` towards `target` by at most `max_angle` (in radians).
     ///
     /// This assumes `self` and `other` are normalized.
     ///
@@ -253,7 +251,7 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `self` is a zero vector, or if the result is non finite or
+    /// Panics if `self` is the zero vector, or if the result is non finite or
     /// zero.
     #[inline]
     #[must_use]
