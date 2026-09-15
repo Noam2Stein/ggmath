@@ -31,9 +31,6 @@ mod wide_float;
 
 /// A projective transform represented by a homogeneous matrix.
 ///
-/// `A` controls SIMD alignment and is either [`Unaligned`] or [`Aligned`]. See
-/// [`Alignment`] for more details.
-///
 /// This can represent translation, rotation, scaling, shear and projections. To
 /// apply this assuming no projection, use [`transform_point`] and
 /// [`transform_vector`]. To apply this with perspective divide, use

@@ -33,9 +33,6 @@ mod wide_float;
 
 /// A square row-major matrix.
 ///
-/// `A` controls SIMD alignment and is either [`Unaligned`] or [`Aligned`]. See
-/// [`Alignment`] for more details.
-///
 /// This represents an `N`-dimensional linear transformation, applied using
 /// `vector_n * self`.
 ///

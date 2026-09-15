@@ -54,9 +54,6 @@ mod wide_unsigned;
 
 /// A vector.
 ///
-/// `A` controls SIMD alignment and is either [`Unaligned`] or [`Aligned`]. See
-/// [`Alignment`] for more details.
-///
 /// # Type aliases
 ///
 /// - [`Vec2<T>`] for [`Vector<2, T, Unaligned>`].
