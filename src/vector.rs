@@ -56,12 +56,12 @@ mod wide_unsigned;
 ///
 /// # Type aliases
 ///
-/// - [`Vec2<T>`] for [`Vector<2, T, Unaligned>`].
-/// - [`Vec3<T>`] for [`Vector<3, T, Unaligned>`].
-/// - [`Vec4<T>`] for [`Vector<4, T, Unaligned>`].
-/// - [`Vec2A<T>`] for [`Vector<2, T, Aligned>`].
-/// - [`Vec3A<T>`] for [`Vector<3, T, Aligned>`].
-/// - [`Vec4A<T>`] for [`Vector<4, T, Aligned>`].
+/// - [`Vec2<T>`] for [`Vector<2, T, Unaligned>`]
+/// - [`Vec3<T>`] for [`Vector<3, T, Unaligned>`]
+/// - [`Vec4<T>`] for [`Vector<4, T, Unaligned>`]
+/// - [`Vec2A<T>`] for [`Vector<2, T, Aligned>`]
+/// - [`Vec3A<T>`] for [`Vector<3, T, Aligned>`]
+/// - [`Vec4A<T>`] for [`Vector<4, T, Aligned>`]
 ///
 /// # Fields
 ///

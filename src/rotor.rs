@@ -51,8 +51,8 @@ mod wide_float;
 ///
 /// # Type aliases
 ///
-/// - [`Rotor3<T>`] for [`Rotor<3, T, Unaligned>`].
-/// - [`Rotor3A<T>`] for [`Rotor<3, T, Aligned>`].
+/// - [`Rotor3<T>`] for [`Rotor<3, T, Unaligned>`]
+/// - [`Rotor3A<T>`] for [`Rotor<3, T, Aligned>`]
 ///
 /// # Representation
 ///

@@ -21,12 +21,12 @@ use crate::{
 ///
 /// # Type aliases
 ///
-/// - [`Mask2<T>`] for [`Mask<2, T, Unaligned>`].
-/// - [`Mask3<T>`] for [`Mask<3, T, Unaligned>`].
-/// - [`Mask4<T>`] for [`Mask<4, T, Unaligned>`].
-/// - [`Mask2A<T>`] for [`Mask<2, T, Aligned>`].
-/// - [`Mask3A<T>`] for [`Mask<3, T, Aligned>`].
-/// - [`Mask4A<T>`] for [`Mask<4, T, Aligned>`].
+/// - [`Mask2<T>`] for [`Mask<2, T, Unaligned>`]
+/// - [`Mask3<T>`] for [`Mask<3, T, Unaligned>`]
+/// - [`Mask4<T>`] for [`Mask<4, T, Unaligned>`]
+/// - [`Mask2A<T>`] for [`Mask<2, T, Aligned>`]
+/// - [`Mask3A<T>`] for [`Mask<3, T, Aligned>`]
+/// - [`Mask4A<T>`] for [`Mask<4, T, Aligned>`]
 ///
 /// # Memory layout
 ///
