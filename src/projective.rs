@@ -49,20 +49,19 @@ mod wide_float;
 ///
 /// # Fields
 ///
-/// - `x_axis: Vector<N + 1, T, N>` (first row of inner matrix, exists for
-///   dimensions `2`, `3`)
+/// - `x_axis: Vector<N + 1, T, N>` The first row of a projective transform's
+///   inner matrix. (exists for 2D, 3D)
 ///
-/// - `y_axis: Vector<N + 1, T, N>` (second row of inner matrix, exists for
-///   dimensions `2`, `3`)
+/// - `y_axis: Vector<N + 1, T, N>` The second row of a projective transform's
+///   inner matrix. (exists for 2D, 3D)
 ///
-/// - `z_axis: Vector<N + 1, T, N>` (third row of inner matrix, exists for
-///   dimensions `2`, `3`)
+/// - `z_axis: Vector<N + 1, T, N>` The third row of a projective transform's
+///   inner matrix. (exists for 2D, 3D)
 ///
-/// - `w_axis: Vector<N + 1, T, N>` (fourth row of inner matrix, exists for
-///   dimension `3`)
+/// - `w_axis: Vector<N + 1, T, N>` The fourth row of a projective transform's
+///   inner matrix. (exists for 3D)
 ///
-/// Note that these fields are only exposed by implementing [`Deref`] and
-/// [`DerefMut`].
+/// Fields are exposed by implementing [`Deref`] and [`DerefMut`].
 ///
 /// # Memory layout
 ///
@@ -90,6 +89,14 @@ where
 /// [`transform_vector`]. To apply this with perspective divide, use
 /// [`project_point`]. To transform a homogeneous 3D vector, use `vec3 * self`.
 ///
+/// # Fields
+///
+/// - `x_axis: Vec3<T>` The first row of a projective transform's inner matrix.
+/// - `y_axis: Vec3<T>` The second row of a projective transform's inner matrix.
+/// - `z_axis: Vec3<T>` The third row of a projective transform's inner matrix.
+///
+/// Fields are exposed by implementing [`Deref`] and [`DerefMut`].
+///
 /// [`transform_point`]: Projective::transform_point
 /// [`transform_vector`]: Projective::transform_vector
 /// [`project_point`]: Projective::project_point
@@ -102,6 +109,15 @@ pub type Proj2<T> = Projective<2, T, Unaligned>;
 /// [`transform_vector`]. To apply this with perspective divide, use
 /// [`project_point`]. To transform a homogeneous 4D vector, use `vec4 * self`.
 ///
+/// # Fields
+///
+/// - `x_axis: Vec4<T>` The first row of a projective transform's inner matrix.
+/// - `y_axis: Vec4<T>` The second row of a projective transform's inner matrix.
+/// - `z_axis: Vec4<T>` The third row of a projective transform's inner matrix.
+/// - `w_axis: Vec4<T>` The fourth row of a projective transform's inner matrix.
+///
+/// Fields are exposed by implementing [`Deref`] and [`DerefMut`].
+///
 /// [`transform_point`]: Projective::transform_point
 /// [`transform_vector`]: Projective::transform_vector
 /// [`project_point`]: Projective::project_point
@@ -113,6 +129,17 @@ pub type Proj3<T> = Projective<3, T, Unaligned>;
 /// To apply this assuming no projection, use [`transform_point`] and
 /// [`transform_vector`]. To apply this with perspective divide, use
 /// [`project_point`]. To transform a homogeneous 3D vector, use `vec3 * self`.
+///
+/// # Fields
+///
+/// - `x_axis: Vec3A<T>` The first row of a projective transform's inner matrix.
+///
+/// - `y_axis: Vec3A<T>` The second row of a projective transform's inner
+///   matrix.
+///
+/// - `z_axis: Vec3A<T>` The third row of a projective transform's inner matrix.
+///
+/// Fields are exposed by implementing [`Deref`] and [`DerefMut`].
 ///
 /// # SIMD alignment
 ///
@@ -141,6 +168,20 @@ pub type Proj2A<T> = Projective<2, T, Aligned>;
 /// To apply this assuming no projection, use [`transform_point`] and
 /// [`transform_vector`]. To apply this with perspective divide, use
 /// [`project_point`]. To transform a homogeneous 4D vector, use `vec4 * self`.
+///
+/// # Fields
+///
+/// - `x_axis: Vec4A<T>` The first row of a projective transform's inner matrix.
+///
+/// - `y_axis: Vec4A<T>` The second row of a projective transform's inner
+///   matrix.
+///
+/// - `z_axis: Vec4A<T>` The third row of a projective transform's inner matrix.
+///
+/// - `w_axis: Vec4A<T>` The fourth row of a projective transform's inner
+///   matrix.
+///
+/// Fields are exposed by implementing [`Deref`] and [`DerefMut`].
 ///
 /// # SIMD alignment
 ///
@@ -255,20 +296,11 @@ pub struct Proj2Fields<T, A: Alignment>
 where
     T: Element,
 {
-    /// The first row of the projective transform.
-    ///
-    /// This is a vector3, since projective transforms are represented by
-    /// homogeneous matrices.
+    /// The first row of a projective transform's inner matrix.
     pub x_axis: Vector<3, T, A>,
-    /// The second row of the projective transform.
-    ///
-    /// This is a vector3, since projective transforms are represented by
-    /// homogeneous matrices.
+    /// The second row of a projective transform's inner matrix.
     pub y_axis: Vector<3, T, A>,
-    /// The third row of the projective transform.
-    ///
-    /// This is a vector3, since projective transforms are represented by
-    /// homogeneous matrices.
+    /// The third row of a projective transform's inner matrix.
     pub z_axis: Vector<3, T, A>,
 }
 
@@ -304,25 +336,13 @@ pub struct Proj3Fields<T, A: Alignment>
 where
     T: Element,
 {
-    /// The first row of the projective transform.
-    ///
-    /// This is a vector4, since projective transforms are represented by
-    /// homogeneous matrices.
+    /// The first row of a projective transform's inner matrix.
     pub x_axis: Vector<4, T, A>,
-    /// The second row of the projective transform.
-    ///
-    /// This is a vector4, since projective transforms are represented by
-    /// homogeneous matrices.
+    /// The second row of a projective transform's inner matrix.
     pub y_axis: Vector<4, T, A>,
-    /// The third row of the projective transform.
-    ///
-    /// This is a vector4, since projective transforms are represented by
-    /// homogeneous matrices.
+    /// The third row of a projective transform's inner matrix.
     pub z_axis: Vector<4, T, A>,
-    /// The fourth row of the projective transform.
-    ///
-    /// This is a vector4, since projective transforms are represented by
-    /// homogeneous matrices.
+    /// The fourth row of a projective transform's inner matrix.
     pub w_axis: Vector<4, T, A>,
 }
 

@@ -39,11 +39,10 @@ mod wide_float;
 ///
 /// # Fields
 ///
-/// - `cos: T` (the cosine of the angle)
-/// - `sin: T` (the sine of the angle rotating `+X` to `+Y`)
+/// - `cos: T` The cosine of the angle.
+/// - `sin: T` The sine of the angle rotating `+X` to `+Y`.
 ///
-/// Note that these fields are only exposed by implementing [`Deref`] and
-/// [`DerefMut`].
+/// Fields are exposed by implementing [`Deref`] and [`DerefMut`].
 ///
 /// # Memory layout
 ///
@@ -58,22 +57,20 @@ where
 ///
 /// # Fields
 ///
-/// - `cos: T` (the cosine of the angle)
-/// - `sin: T` (the sine of the angle rotating `+X` to `+Y`)
+/// - `cos: T` The cosine of the angle.
+/// - `sin: T` The sine of the angle rotating `+X` to `+Y`.
 ///
-/// Note that these fields are only exposed by implementing [`Deref`] and
-/// [`DerefMut`].
+/// Fields are exposed by implementing [`Deref`] and [`DerefMut`].
 pub type Rot2<T> = Rotation2<T, Unaligned>;
 
 /// A 2D rotation represented by a unit complex number.
 ///
 /// # Fields
 ///
-/// - `cos: T` (the cosine of the angle)
-/// - `sin: T` (the sine of the angle rotating `+X` to `+Y`)
+/// - `cos: T` The cosine of the angle.
+/// - `sin: T` The sine of the angle rotating `+X` to `+Y`.
 ///
-/// Note that these fields are only exposed by implementing [`Deref`] and
-/// [`DerefMut`].
+/// Fields are exposed by implementing [`Deref`] and [`DerefMut`].
 ///
 /// # SIMD alignment
 ///
