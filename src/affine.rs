@@ -31,7 +31,7 @@ mod wide_float;
 
 /// An affine transform represented by a matrix and a translation vector.
 ///
-/// Contains a matrix and a translation vector.
+/// Use [`transform_point`] and [`transform_vector`] to transform vectors.
 ///
 /// # Type aliases
 ///
@@ -63,6 +63,8 @@ mod wide_float;
 /// accepts all bit patterns. Unless `T` accepts all bit patterns, it is not
 /// sound to assume padding contains valid values of `T`.
 ///
+/// [`transform_point`]: Self::transform_point
+/// [`transform_vector`]: Self::transform_vector
 /// [`Mat2A`]: crate::Mat2A
 /// [`Vec4A`]: crate::Vec4A
 #[repr(C)]
@@ -89,17 +91,24 @@ where
 ///
 /// Contains a 2x2 matrix and a 2D translation vector.
 ///
+/// Use [`transform_point`] and [`transform_vector`] to transform vectors.
+///
 /// # Fields
 ///
 /// - `matrix: Mat2<T>` The linear transformation matrix of an affine transform.
 /// - `translation: Vec2<T>` The translation vector of an affine transform.
 ///
 /// Fields are exposed by implementing [`Deref`] and [`DerefMut`].
+///
+/// [`transform_point`]: Self::transform_point
+/// [`transform_vector`]: Self::transform_vector
 pub type Affine2<T> = Affine<2, T, Unaligned>;
 
 /// A 3D affine transform represented by a matrix and a translation vector.
 ///
 /// Contains a 3x3 matrix and a 3D translation vector.
+///
+/// Use [`transform_point`] and [`transform_vector`] to transform vectors.
 ///
 /// # Fields
 ///
@@ -107,11 +116,16 @@ pub type Affine2<T> = Affine<2, T, Unaligned>;
 /// - `translation: Vec3<T>` The translation vector of an affine transform.
 ///
 /// Fields are exposed by implementing [`Deref`] and [`DerefMut`].
+///
+/// [`transform_point`]: Self::transform_point
+/// [`transform_vector`]: Self::transform_vector
 pub type Affine3<T> = Affine<3, T, Unaligned>;
 
 /// A 2D affine transform represented by a matrix and a translation vector.
 ///
 /// Contains a 2x2 matrix and a 2D translation vector.
+///
+/// Use [`transform_point`] and [`transform_vector`] to transform vectors.
 ///
 /// # Fields
 ///
@@ -137,11 +151,16 @@ pub type Affine3<T> = Affine<3, T, Unaligned>;
 /// | ----- | ------------------------------------------------------- | ------------------ | ------------ | ----------------- |
 /// | `f32` | `target_feature = "sse2"`                               | `[__m128; 2]`      | 32           | 16                |
 /// | `f32` | `all(target_arch = "aarch64", target_feature = "neon")` | `[float32x4_t; 2]` | 32           | 16                |
+///
+/// [`transform_point`]: Self::transform_point
+/// [`transform_vector`]: Self::transform_vector
 pub type Affine2A<T> = Affine<2, T, Aligned>;
 
 /// A 3D affine transform represented by a matrix and a translation vector.
 ///
 /// Contains a 3x3 matrix and a 3D translation vector.
+///
+/// Use [`transform_point`] and [`transform_vector`] to transform vectors.
 ///
 /// # Fields
 ///
@@ -167,6 +186,9 @@ pub type Affine2A<T> = Affine<2, T, Aligned>;
 /// | ----- | ------------------------------------------------------- | ------------------ | ------------ | ----------------- |
 /// | `f32` | `target_feature = "sse2"`                               | `[__m128; 4]`      | 64           | 16                |
 /// | `f32` | `all(target_arch = "aarch64", target_feature = "neon")` | `[float32x4_t; 4]` | 64           | 16                |
+///
+/// [`transform_point`]: Self::transform_point
+/// [`transform_vector`]: Self::transform_vector
 pub type Affine3A<T> = Affine<3, T, Aligned>;
 
 impl<const N: usize, T, A: Alignment> Clone for Affine<N, T, A>

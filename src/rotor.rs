@@ -32,6 +32,8 @@ mod wide_float;
 
 /// A rotor representing rotation.
 ///
+/// Use `vector * rotor` to transform vectors.
+///
 /// A rotor is a mathematical object used to represent rotations. You may be
 /// familiar with quaternions, which are mathematically identical to 3D rotors,
 /// however rotors tend to be easier to understand, and extend better to
@@ -103,6 +105,8 @@ where
 
 /// A 3D rotor representing 3D rotation.
 ///
+/// Use `vector * rotor` to transform vectors.
+///
 /// A rotor is a mathematical object used to represent rotations. You may be
 /// familiar with quaternions, which are mathematically identical to 3D rotors,
 /// however rotors tend to be easier to understand, and extend better to
@@ -148,6 +152,8 @@ where
 pub type Rotor3<T> = Rotor<3, T, Unaligned>;
 
 /// A 3D rotor representing 3D rotation.
+///
+/// Use `vector * rotor` to transform vectors.
 ///
 /// A rotor is a mathematical object used to represent rotations. You may be
 /// familiar with quaternions, which are mathematically identical to 3D rotors,

@@ -29,6 +29,8 @@ mod wide_float;
 
 /// A 2D rotation represented by a normalized complex number.
 ///
+/// Use `vector * rotation` to transform vectors.
+///
 /// # Type aliases
 ///
 /// - [`Rot2<T>`] for [`Rotation2<T, Unaligned>`].
@@ -52,6 +54,8 @@ where
 
 /// A 2D rotation represented by a normalized complex number.
 ///
+/// Use `vector * rotation` to transform vectors.
+///
 /// # Fields
 ///
 /// - `cos: T` The cosine of the angle.
@@ -61,6 +65,8 @@ where
 pub type Rot2<T> = Rotation2<T, Unaligned>;
 
 /// A 2D rotation represented by a normalized complex number.
+///
+/// Use `vector * rotation` to transform vectors.
 ///
 /// # Fields
 ///
