@@ -31,11 +31,10 @@ mod wide_float;
 
 /// A projective transform represented by a homogeneous matrix.
 ///
-/// This can represent translation, rotation, scaling, shear and projections. To
-/// apply this assuming no projection, use [`transform_point`] and
-/// [`transform_vector`]. To apply this with perspective divide, use
-/// [`project_point`]. To transform a homogeneous vector, use
-/// `vector_np1 * self`.
+/// Use [`transform_point`] and [`transform_vector`] to transform vectors
+/// assuming `self` contains an affine transformation. Use [`project_point`] to
+/// transform vectors with perspective divide. Use `vector * projective` to
+/// transform homogeneous vectors.
 ///
 /// # Type aliases
 ///
@@ -81,10 +80,10 @@ where
 
 /// A 2D projective transform represented by a homogeneous 3x3 matrix.
 ///
-/// This can represent 2D translation, rotation, scaling, shear and projections.
-/// To apply this assuming no projection, use [`transform_point`] and
-/// [`transform_vector`]. To apply this with perspective divide, use
-/// [`project_point`]. To transform a homogeneous 3D vector, use `vec3 * self`.
+/// Use [`transform_point`] and [`transform_vector`] to transform vectors
+/// assuming `self` contains an affine transformation. Use [`project_point`] to
+/// transform vectors with perspective divide. Use `vector * projective` to
+/// transform homogeneous 3D vectors.
 ///
 /// # Fields
 ///
@@ -101,10 +100,10 @@ pub type Proj2<T> = Projective<2, T, Unaligned>;
 
 /// A 3D projective transform represented by a homogeneous 4x4 matrix.
 ///
-/// This can represent 3D translation, rotation, scaling, shear and projections.
-/// To apply this assuming no projection, use [`transform_point`] and
-/// [`transform_vector`]. To apply this with perspective divide, use
-/// [`project_point`]. To transform a homogeneous 4D vector, use `vec4 * self`.
+/// Use [`transform_point`] and [`transform_vector`] to transform vectors
+/// assuming `self` contains an affine transformation. Use [`project_point`] to
+/// transform vectors with perspective divide. Use `vector * projective` to
+/// transform homogeneous 4D vectors.
 ///
 /// # Fields
 ///
@@ -122,10 +121,10 @@ pub type Proj3<T> = Projective<3, T, Unaligned>;
 
 /// A 2D projective transform represented by a homogeneous 3x3 matrix.
 ///
-/// This can represent 2D translation, rotation, scaling, shear and projections.
-/// To apply this assuming no projection, use [`transform_point`] and
-/// [`transform_vector`]. To apply this with perspective divide, use
-/// [`project_point`]. To transform a homogeneous 3D vector, use `vec3 * self`.
+/// Use [`transform_point`] and [`transform_vector`] to transform vectors
+/// assuming `self` contains an affine transformation. Use [`project_point`] to
+/// transform vectors with perspective divide. Use `vector * projective` to
+/// transform homogeneous 3D vectors.
 ///
 /// # Fields
 ///
@@ -161,10 +160,10 @@ pub type Proj2A<T> = Projective<2, T, Aligned>;
 
 /// A 3D projective transform represented by a homogeneous 4x4 matrix.
 ///
-/// This can represent 3D translation, rotation, scaling, shear and projections.
-/// To apply this assuming no projection, use [`transform_point`] and
-/// [`transform_vector`]. To apply this with perspective divide, use
-/// [`project_point`]. To transform a homogeneous 4D vector, use `vec4 * self`.
+/// Use [`transform_point`] and [`transform_vector`] to transform vectors
+/// assuming `self` contains an affine transformation. Use [`project_point`] to
+/// transform vectors with perspective divide. Use `vector * projective` to
+/// transform homogeneous 4D vectors.
 ///
 /// # Fields
 ///

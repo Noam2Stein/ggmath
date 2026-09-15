@@ -33,11 +33,7 @@ mod wide_float;
 
 /// A square row-major matrix.
 ///
-/// This represents an `N`-dimensional linear transformation, applied using
-/// `vector_n * self`.
-///
-/// If you need translation, use [`Affine`]. If you need projections, use
-/// [`Projective`].
+/// Use `vector * matrix` to transform vectors.
 ///
 /// # Type aliases
 ///
@@ -91,10 +87,7 @@ where
 
 /// A 2x2 row-major matrix.
 ///
-/// This represents a 2D linear transformation, applied using `vec2 * self`.
-///
-/// If you need translation, use [`Affine2`]. If you need 2D projections, use
-/// [`Proj2`].
+/// Use `vector * matrix` to transform vectors.
 ///
 /// # Fields
 ///
@@ -112,10 +105,7 @@ pub type Mat2<T> = Matrix<2, T, Unaligned>;
 
 /// A 3x3 row-major matrix.
 ///
-/// This represents a 3D linear transformation, applied using `vec3 * self`.
-///
-/// If you need translation, use [`Affine3`]. If you need projections, use
-/// [`Proj3`].
+/// Use `vector * matrix` to transform vectors.
 ///
 /// Unlike many other libraries, here [`Mat3`] is not used for 2D affine and
 /// projective transformations. For that use the [`Affine2`] and [`Proj2`]
@@ -142,6 +132,8 @@ pub type Mat2<T> = Matrix<2, T, Unaligned>;
 pub type Mat3<T> = Matrix<3, T, Unaligned>;
 
 /// A 4x4 row-major matrix.
+///
+/// Use `vector * matrix` to transform vectors.
 ///
 /// Unlike many other libraries, here [`Mat4`] is not used for 3D affine and
 /// projective transformations. For that use the [`Affine3`] and [`Proj3`]
@@ -174,10 +166,7 @@ pub type Mat4<T> = Matrix<4, T, Unaligned>;
 
 /// A 2x2 row-major matrix.
 ///
-/// This represents a 2D linear transformation, applied using `vec2 * self`.
-///
-/// If you need translation, use [`Affine2A`]. If you need 2D projections, use
-/// [`Proj2A`].
+/// Use `vector * matrix` to transform vectors.
 ///
 /// # Fields
 ///
@@ -212,10 +201,7 @@ pub type Mat2A<T> = Matrix<2, T, Aligned>;
 
 /// A 3x3 row-major matrix.
 ///
-/// This represents a 3D linear transformation, applied using `vec3 * self`.
-///
-/// If you need translation, use [`Affine3A`]. If you need projections, use
-/// [`Proj3A`].
+/// Use `vector * matrix` to transform vectors.
 ///
 /// Unlike many other libraries, here [`Mat3A`] is not used for 2D affine and
 /// projective transformations. For that use the [`Affine2A`] and [`Proj2A`]
@@ -258,6 +244,8 @@ pub type Mat2A<T> = Matrix<2, T, Aligned>;
 pub type Mat3A<T> = Matrix<3, T, Aligned>;
 
 /// A 4x4 row-major matrix.
+///
+/// Use `vector * matrix` to transform vectors.
 ///
 /// Unlike many other libraries, here [`Mat4A`] is not used for 3D affine and
 /// projective transformations. For that use the [`Affine3A`] and [`Proj3A`]
