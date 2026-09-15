@@ -10,7 +10,7 @@ where
     Dim<N>: TwoOrThree,
     T: PrimitiveFloat,
 {
-    /// A transform with all elements set to NaN (Not a Number).
+    /// A projective transform with all elements set to NaN (Not a Number).
     pub const NAN: Self = Self::NAN_INTERNAL_IMPL;
 
     /// The implementation of [`Self::NAN`].
@@ -39,13 +39,13 @@ where
 
     /// Creates a projective transform from a rotor.
     ///
-    /// This assumes the rotor is normalized.
+    /// This assumes `rotor` is normalized.
     ///
     /// # Panics
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if the rotor is not normalized.
+    /// Panics if `rotor` is not normalized.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -71,8 +71,7 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `self` does not approximately only contain rotation and
-    /// translation.
+    /// Panics if `self` contains anything but rotation and translation.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -132,7 +131,7 @@ where
         specialize_3!(Projective::<N, T, A>::to_scale_rotor_backend(self))
     }
 
-    /// Creates a projective transform from a rotor and translation.
+    /// Creates a projective transform from a rotor and a translation vector.
     ///
     /// This assumes `rotor` is normalized.
     ///
@@ -181,8 +180,8 @@ where
         (self.to_rotor(), self.translation())
     }
 
-    /// Creates a projective transform from a non-uniform scale, a rotor and
-    /// translation.
+    /// Creates a projective transform from a non-uniform scale, a rotor and a
+    /// translation vector.
     ///
     /// This assumes `rotor` is normalized.
     ///
@@ -215,8 +214,8 @@ where
         ))
     }
 
-    /// Converts a projective transform to a non-uniform scale, a rotor and
-    /// translation.
+    /// Converts a projective transform to a non-uniform scale, a rotor and a
+    /// translation vector.
     ///
     /// This assumes `self` only contains scale, rotation and translation.
     ///
@@ -237,18 +236,16 @@ where
         (scale, rotor, self.translation())
     }
 
-    /// Transforms the given vector as a point, applying perspective divide.
+    /// Transforms a vector as a point, applying perspective divide.
     #[inline]
     #[must_use]
     pub fn project_point(&self, point: Vector<N, T, A>) -> Vector<N, T, A> {
         specialize_23!(Projective::<N, T, A>::project_point_backend(self, point))
     }
 
-    /// Returns the inverse of `self`.
+    /// Returns the inverse of a projective transform.
     ///
-    /// If `self` is not invertable, the result is unspecified.
-    ///
-    /// This computes the inverse of the inner homogeneous matrix.
+    /// This assumes `self` is invertable.
     ///
     /// # Panics
     ///
@@ -262,16 +259,12 @@ where
     }
 
     /// Returns the inverse of `self` or `None` if `self` is not invertable.
-    ///
-    /// This computes the inverse of the inner homogeneous matrix.
     #[must_use]
     pub fn try_inverse(&self) -> Option<Self> {
         specialize_23!(Projective::<N, T, A>::try_inverse_backend(self))
     }
 
     /// Returns the inverse of `self` or `fallback` if `self` is not invertable.
-    ///
-    /// This computes the inverse of the inner homogeneous matrix.
     #[must_use]
     pub fn inverse_or(&self, fallback: &Self) -> Self {
         specialize_23!(Projective::<N, T, A>::inverse_or_backend(self, fallback))
@@ -279,8 +272,6 @@ where
 
     /// Returns the inverse of `self` or the zero transform if `self` is not
     /// invertable.
-    ///
-    /// This computes the inverse of the inner homogeneous matrix.
     #[must_use]
     pub fn inverse_or_zero(&self) -> Self {
         specialize_23!(Projective::<N, T, A>::inverse_or_zero_backend(self))
@@ -355,7 +346,7 @@ where
         specialize_23!(Projective::<N, T, A>::is_finite_backend(self))
     }
 
-    /// Returns the absolute values of the elements of `self`.
+    /// Returns the absolute values of the elements of a projective transform.
     ///
     /// Equivalent to `(self.x_axis.abs(), self.y_axis.abs(), ...)`.
     ///
@@ -390,7 +381,7 @@ impl<T, A: Alignment> Projective<2, T, A>
 where
     T: PrimitiveFloat,
 {
-    /// Creates a projective transform from a 2D rotation.
+    /// Creates a 2D projective transform from a 2D rotation.
     ///
     /// This assumes `rotation` is normalized.
     ///
@@ -415,7 +406,7 @@ where
         ])
     }
 
-    /// Converts a projective transform to a 2D rotation.
+    /// Converts a 2D projective transform to a 2D rotation.
     ///
     /// This assumes `self` only contains rotation, and translation which is
     /// ignored.
@@ -424,8 +415,7 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `self` does not approximately only contain rotation and
-    /// translation.
+    /// Panics if `self` contains anything but rotation and translation.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -433,7 +423,8 @@ where
         Rotation2::<T, A>::from_projective(self)
     }
 
-    /// Creates a projective transform from `scale` and 2D rotation.
+    /// Creates a 2D projective transform from a non-uniform scale and a 2D
+    /// rotation.
     ///
     /// This assumes `rotation` is normalized.
     ///
@@ -458,16 +449,17 @@ where
         ])
     }
 
-    /// Converts a projective transform to scale and rotation.
+    /// Converts a 2D projective transform to a non-uniform scale and a 2D
+    /// rotation.
     ///
-    /// This assumes `self` does not contain shear or projection.
+    /// This assumes `self` only contains scale, rotation, and translation which
+    /// is ignored.
     ///
     /// # Panics
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `self` contains shear or projection or the determinant of
-    /// `self` is zero.
+    /// Panics if `self` contains anything but scale, rotation and translation.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -500,7 +492,8 @@ where
         (scale, rotation)
     }
 
-    /// Creates a projective transform from `rotation` and `translation`.
+    /// Creates a 2D projective transform from a 2D rotation and a translation
+    /// vector.
     ///
     /// This assumes `rotation` is normalized.
     ///
@@ -528,7 +521,7 @@ where
         ])
     }
 
-    /// Converts a projective transform to a 2D rotation and a translation
+    /// Converts a 2D projective transform to a 2D rotation and a translation
     /// vector.
     ///
     /// This assumes `self` only contains rotation and translation.
@@ -537,8 +530,7 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `self` does not approximately only contain rotation and
-    /// translation.
+    /// Panics if `self` contains anything but rotation and translation.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -546,8 +538,8 @@ where
         (self.to_rotation(), self.translation())
     }
 
-    /// Creates a projective transform from `scale`, 2D rotation and
-    /// translation.
+    /// Creates a 2D projective transform from a non-uniform scale, a 2D
+    /// rotation and a translation vector.
     ///
     /// This assumes `rotation` is normalized.
     ///
@@ -576,15 +568,16 @@ where
         ])
     }
 
-    /// Converts a projective transform to scale, rotation and translation.
+    /// Converts a 2D projective transform to a non-uniform scale, a 2D rotation
+    /// and a translation vector.
     ///
-    /// This assumes `self` does not contain shear.
+    /// This assumes `self` only contains scale, rotation and translation.
     ///
     /// # Panics
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `self` contains shear or the determinant of `self` is zero.
+    /// Panics if `self` contains anything but scale, rotation and translation.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -595,8 +588,8 @@ where
         (scale, rotation, self.translation())
     }
 
-    /// Creates a projective transform containing a rotation from an `angle` (in
-    /// radians) rotating `+X` to `+Y`.
+    /// Creates a 2D projective transform from an angle (in radians) rotating
+    /// `+X` to `+Y`.
     #[inline]
     #[must_use]
     pub fn from_angle(angle: T) -> Self {
@@ -618,8 +611,7 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `self` does not approximately only contain rotation and
-    /// translation.
+    /// Panics if `self` contains anything but rotation and translation.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -627,10 +619,8 @@ where
         self.to_matrix().to_angle()
     }
 
-    /// Creates a 2D projective transform containing a non-uniform `scale` and a
-    /// rotation of `angle` (in radians).
-    ///
-    /// This rotates `+X` to `+Y`.
+    /// Creates a 2D projective transform from a non-uniform scale and an angle
+    /// (in radians) rotating `+X` to `+Y`.
     #[inline]
     #[must_use]
     pub fn from_scale_angle(scale: Vector<2, T, A>, angle: T) -> Self {
@@ -642,18 +632,17 @@ where
         ])
     }
 
-    /// Returns the `scale` and `angle` of `self`.
+    /// Converts a 2D projective transform to a non-uniform scale and an angle
+    /// (in radians) rotating `+X` to `+Y`.
     ///
-    /// This function assumes `self` contains an affine transformation with no
-    /// shearing.
-    ///
-    /// `self` can contain translation, which is ignored.
+    /// This assumes `self` only contains scale, rotation, and translation which
+    /// is ignored.
     ///
     /// # Panics
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `self` contains shearing or the 2D determinant of `self` is zero.
+    /// Panics if `self` contains anything but scale, rotation and translation.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -661,10 +650,8 @@ where
         Matrix::<2, T, A>::from_projective(self).to_scale_angle()
     }
 
-    /// Creates a 2D projective transform containing a rotation of `angle` (in
-    /// radians) and `translation`.
-    ///
-    /// This rotates `+X` to `+Y`.
+    /// Creates a 2D projective transform from an angle (in radians) rotating
+    /// `+X` to `+Y` and a translation vector.
     #[inline]
     #[must_use]
     pub fn from_angle_translation(angle: T, translation: Vector<2, T, A>) -> Self {
@@ -685,8 +672,7 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `self` does not approximately only contain rotation and
-    /// translation.
+    /// Panics if `self` contains anything but rotation and translation.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -694,10 +680,8 @@ where
         (self.to_angle(), self.translation())
     }
 
-    /// Creates a 2D projective transform containing a non-uniform `scale`, a
-    /// rotation of `angle` (in radians) and `translation`.
-    ///
-    /// This rotates `+X` to `+Y`.
+    /// Creates a 2D projective transform from a non-uniform scale, an angle (in
+    /// radians) rotating `+X` to `+Y` and a translation vector.
     #[inline]
     #[must_use]
     pub fn from_scale_angle_translation(
@@ -713,16 +697,16 @@ where
         ])
     }
 
-    /// Returns the `scale`, `angle` and `translation` of `self`.
+    /// Converts a 2D projective transform to a non-uniform scale, an angle (in
+    /// radians) rotating `+X` to `+Y` and a translation vector.
     ///
-    /// This function assumes `self` contains an affine transformation with no
-    /// shearing.
+    /// This assumes `self` only contains scale, rotation and translation.
     ///
     /// # Panics
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `self` contains shearing or the 2D determinant of `self` is zero.
+    /// Panics if `self` contains anything but scale, rotation and translation.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -783,8 +767,8 @@ impl<T, A: Alignment> Projective<3, T, A>
 where
     T: PrimitiveFloat,
 {
-    /// Creates a projective transform containing a rotation from an `angle` (in
-    /// radians) rotating `+X` to `+Y`.
+    /// Creates a 3D projective transform from an angle (in radians) rotating
+    /// `+X` to `+Y`.
     #[inline]
     #[must_use]
     pub fn from_rotation_xy(angle: T) -> Self {
@@ -797,8 +781,8 @@ where
         ])
     }
 
-    /// Creates a projective transform containing a rotation from an `angle` (in
-    /// radians) rotating `+X` to `+Z`.
+    /// Creates a 3D projective transform from an angle (in radians) rotating
+    /// `+X` to `+Z`.
     #[inline]
     #[must_use]
     pub fn from_rotation_xz(angle: T) -> Self {
@@ -811,8 +795,8 @@ where
         ])
     }
 
-    /// Creates a projective transform containing a rotation from an `angle` (in
-    /// radians) rotating `+Y` to `+Z`.
+    /// Creates a 3D projective transform from an angle (in radians) rotating
+    /// `+Y` to `+Z`.
     #[inline]
     #[must_use]
     pub fn from_rotation_yz(angle: T) -> Self {
@@ -825,10 +809,16 @@ where
         ])
     }
 
-    /// Creates a 3D projective transform containing a rotation from a
-    /// rotation `axis` and `angle` (in radians) using the right-hand rule.
+    /// Creates a 3D projective transform from a rotation axis and an angle (in
+    /// radians).
     ///
-    /// `axis` must be normalized. Otherwise the result is unspecified.
+    /// This follows the right-hand rule:
+    ///
+    /// - `+X` rotates `+Y` to `+Z`
+    /// - `+Y` rotates `+Z` to `+X`
+    /// - `+Z` rotates `+X` to `+Y`
+    ///
+    /// This assumes `axis` is normalized.
     ///
     /// # Panics
     ///
@@ -861,7 +851,14 @@ where
         ])
     }
 
-    /// Converts a 3D projective transform to an axis-angle rotation.
+    /// Converts a 3D projective transform to a rotation axis and an angle (in
+    /// radians).
+    ///
+    /// This follows the right-hand rule:
+    ///
+    /// - `+X` rotates `+Y` to `+Z`
+    /// - `+Y` rotates `+Z` to `+X`
+    /// - `+Z` rotates `+X` to `+Y`
     ///
     /// This assumes `self` only contains rotation, and translation which is
     /// ignored.
@@ -870,8 +867,7 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `self` does not approximately only contain rotation and
-    /// translation.
+    /// Panics if `self` contains anything but rotation and translation.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -880,7 +876,23 @@ where
         self.to_rotor().to_axis_angle()
     }
 
-    /// Creates a 3D projective transform from a scaled-axis rotation.
+    /// Creates a 3D projective transform from a rotation axis scaled by an
+    /// angle (in radians).
+    ///
+    /// Equivalent to:
+    ///
+    /// ```
+    /// Self::from_axis_angle(
+    ///     scaled_axis.normalize(),
+    ///     scaled_axis.length(),
+    /// )
+    /// ```
+    ///
+    /// This follows the right-hand rule:
+    ///
+    /// - `+X` rotates `+Y` to `+Z`
+    /// - `+Y` rotates `+Z` to `+X`
+    /// - `+Z` rotates `+X` to `+Y`
     #[inline]
     #[must_use]
     pub fn from_scaled_axis(scaled_axis: Vector<3, T, A>) -> Self {
@@ -906,7 +918,21 @@ where
         }
     }
 
-    /// Converts a 3D projective transform to a scaled-axis rotation.
+    /// Converts a 3D projective transform to a rotation axis scaled by an angle
+    /// (in radians).
+    ///
+    /// Equivalent to:
+    ///
+    /// ```
+    /// let (axis, angle) = self.to_axis_angle();
+    /// axis * angle
+    /// ```
+    ///
+    /// This follows the right-hand rule:
+    ///
+    /// - `+X` rotates `+Y` to `+Z`
+    /// - `+Y` rotates `+Z` to `+X`
+    /// - `+Z` rotates `+X` to `+Y`
     ///
     /// This assumes `self` only contains rotation, and translation which is
     /// ignored.
@@ -915,8 +941,7 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `self` does not approximately only contain rotation and
-    /// translation.
+    /// Panics if `self` contains anything but rotation and translation.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -925,25 +950,25 @@ where
         self.to_rotor().to_scaled_axis()
     }
 
-    /// Creates a 3D projective transform containing a rotation from an Euler
-    /// rotation order/sequence and angles (in radians).
+    /// Creates a 3D projective transform from an Euler rotation order/sequence
+    /// and angles (in radians).
     #[inline]
     #[must_use]
     pub fn from_euler(order: EulerRot, a: T, b: T, c: T) -> Self {
         Self::from_matrix(&Matrix::<3, T, A>::from_euler(order, a, b, c))
     }
 
-    /// Returns the Euler angles forming `self` for the given Euler rotation
-    /// order/sequence.
+    /// Converts a 3D projective transform to Euler angles for a given Euler
+    /// rotation order/sequence.
     ///
-    /// The upper-left 3x3 matrix of `self` must not contain any non-rotation
-    /// transformations. Otherwise the result is unspecified.
+    /// This assumes `self` only contains rotation, and translation which is
+    /// ignored.
     ///
     /// # Panics
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `self` is not a rotation matrix.
+    /// Panics if `self` contains anything but rotation and translation.
     #[inline]
     #[must_use]
     #[track_caller]

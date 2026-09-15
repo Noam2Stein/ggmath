@@ -18,8 +18,9 @@ where
 {
     /// A projective transform with all elements set to `0`.
     ///
-    /// This transforms all vectors to the zero vector. See [`IDENTITY`] for a
-    /// transform that keeps all vectors unchanged.
+    /// This transforms all vectors to the zero vector.
+    ///
+    /// See [`IDENTITY`] for a transform that keeps all vectors unchanged.
     ///
     /// [`IDENTITY`]: Self::IDENTITY
     pub const ZERO: Self = Self::ZERO_INTERNAL_IMPL;
@@ -52,7 +53,7 @@ where
 {
     /// A projective transform that keeps all vectors unchanged.
     ///
-    /// Diagonal elements are `1` and the rest are `0`.
+    /// This sets diagonal elements to `1` and other elements to `0`.
     pub const IDENTITY: Self = Self::IDENTITY_INTERNAL_IMPL;
 
     /// The implementation of [`Self::IDENTITY`].
@@ -81,7 +82,7 @@ where
     Dim<N>: TwoOrThree,
     T: Element,
 {
-    /// Creates a projective transform from a non-uniform `scale`.
+    /// Creates a projective transform from a non-uniform scale.
     #[inline]
     #[must_use]
     pub fn from_scale(scale: Vector<N, T, A>) -> Self
@@ -112,7 +113,7 @@ where
         Matrix::<N, T, A>::from_projective(self).to_scale()
     }
 
-    /// Creates a projective transform from a `translation` vector.
+    /// Creates a projective transform from a translation vector.
     #[inline]
     #[must_use]
     pub fn from_translation(translation: Vector<N, T, A>) -> Self
@@ -145,8 +146,8 @@ where
         specialize_23!(Projective::<N, T, A>::translation_backend(self))
     }
 
-    /// Creates a projective transform from a non-uniform `scale` and a
-    /// `translation` vector.
+    /// Creates a projective transform from a non-uniform scale and a
+    /// translation vector.
     #[inline]
     #[must_use]
     pub fn from_scale_translation(scale: Vector<N, T, A>, translation: Vector<N, T, A>) -> Self
@@ -179,7 +180,7 @@ where
         (self.to_scale(), self.translation())
     }
 
-    /// Creates a projective transform from a linear transformation matrix.
+    /// Creates a projective transform from a matrix.
     #[inline]
     #[must_use]
     pub fn from_matrix(matrix: &Matrix<N, T, A>) -> Self
@@ -209,8 +210,7 @@ where
         Matrix::<N, T, A>::from_projective(self)
     }
 
-    /// Creates a projective transform from a linear transformation `matrix` and
-    /// a `translation` vector.
+    /// Creates a projective transform from a matrix and a translation vector.
     #[inline]
     #[must_use]
     pub fn from_matrix_translation(matrix: &Matrix<N, T, A>, translation: Vector<N, T, A>) -> Self
@@ -294,18 +294,18 @@ where
         Affine::<N, T, A>::from_projective(self)
     }
 
-    /// Transforms the given vector as a point.
+    /// Transforms a vector applying a linear transformation and translation.
     ///
-    /// Equivalent to `(point, 1) * self` but is faster.
+    /// Equivalent to `(point.extend(1) * self).truncate()`.
     ///
-    /// This function assumes `self` contains an affine transformation.
+    /// This assumes `self` contains an affine transformation.
     ///
     /// # Panics
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if the last column of `self` is not `(0, 0, ..., 1)` (according
-    /// to [`EqTest`]).
+    /// Panics if `self` does not contain an affine transformation (according to
+    /// [`EqTest`]).
     #[inline]
     #[must_use]
     #[track_caller]
@@ -316,18 +316,19 @@ where
         specialize_23!(Projective::<N, T, A>::transform_point_backend(self, point))
     }
 
-    /// Transforms the given vector without applying translation.
+    /// Transforms a vector applying a linear transformation, but not
+    /// translation.
     ///
-    /// Equivalent to `(vector, 0) * self` but is faster.
+    /// Equivalent to `(point.extend(0) * self).truncate()`.
     ///
-    /// This function assumes `self` contains an affine transformation.
+    /// This assumes `self` contains an affine transformation.
     ///
     /// # Panics
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if the last column of `self` is not `(0, 0, ..., 1)` (according
-    /// to [`EqTest`]).
+    /// Panics if `self` does not contain an affine transformation (according to
+    /// [`EqTest`]).
     #[inline]
     #[must_use]
     #[track_caller]
@@ -404,36 +405,40 @@ impl<T, A: Alignment> Projective<2, T, A>
 where
     T: Element,
 {
-    /// Creates a projective transform from an array of homogeneous row vectors.
+    /// Creates a row-major projective transform from an array of homogeneous
+    /// row vectors.
     #[inline]
     #[must_use]
     pub const fn from_rows(rows: &[Vector<3, T, A>; 3]) -> Self {
         Self(Matrix::from_rows(rows))
     }
 
-    /// Converts a row-major projective transform to an array of row vectors.
+    /// Converts a row-major projective transform to an array of homogeneous row
+    /// vectors.
     #[inline]
     #[must_use]
     pub const fn to_rows(&self) -> [Vector<3, T, A>; 3] {
         self.0.to_rows()
     }
 
-    /// Returns a reference to the projective transform's rows.
+    /// Returns a reference to a row-major projective transform's homogeneous
+    /// rows.
     #[inline]
     #[must_use]
     pub const fn as_rows(&self) -> &[Vector<3, T, A>; 3] {
         self.0.as_rows()
     }
 
-    /// Returns a mutable reference to the projective transform's rows.
+    /// Returns a mutable reference to a row-major projective transform's
+    /// homogeneous rows.
     #[inline]
     #[must_use]
     pub const fn as_mut_rows(&mut self) -> &mut [Vector<3, T, A>; 3] {
         self.0.as_mut_rows()
     }
 
-    /// Creates a projective transform by calling function `f` for each
-    /// homogeneous row index.
+    /// Creates a row-major projective transform by calling function `f` for
+    /// each homogeneous row index.
     ///
     /// Equivalent to `[f(0), f(1), f(2), ...]` where each item is a homogeneous
     /// row vector.
@@ -460,7 +465,8 @@ where
         Self(Matrix::from_row_fn(f))
     }
 
-    /// Creates a projective transform from a row-major array of elements.
+    /// Creates a row-major projective transform from a row-major array of
+    /// elements.
     ///
     /// # Examples
     ///
@@ -529,12 +535,11 @@ where
         &mut self.0
     }
 
-    /// Returns the column at the given index.
+    /// Returns the given column of a row-major projective transform.
     ///
     /// # Panics
     ///
-    /// Panics if `index` is greater than or equal to the number of columns
-    /// `N + 1`.
+    /// Panics if `index` is greater than or equal to `N + 1`.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -542,12 +547,11 @@ where
         self.0.column(index)
     }
 
-    /// Sets the column at the given index to the given value.
+    /// Sets the given column of a row-major projective transform.
     ///
     /// # Panics
     ///
-    /// Panics if `index` is greater than or equal to the number of columns
-    /// `N + 1`.
+    /// Panics if `index` is greater than or equal to `N + 1`.
     #[inline]
     #[track_caller]
     pub const fn set_column(&mut self, index: usize, value: Vector<3, T, A>) {
@@ -746,36 +750,39 @@ impl<T, A: Alignment> Projective<3, T, A>
 where
     T: Element,
 {
-    /// Creates a projective transform from an array of homogeneous row vectors.
+    /// Creates a row-major projective transform from an array of homogeneous
+    /// row vectors.
     #[inline]
     #[must_use]
     pub const fn from_rows(rows: &[Vector<4, T, A>; 4]) -> Self {
         Self(Matrix::from_rows(rows))
     }
 
-    /// Converts a row-major projective transform to an array of row vectors.
+    /// Converts a row-major projective transform to an array of homogeneous row
+    /// vectors.
     #[inline]
     #[must_use]
     pub const fn to_rows(&self) -> [Vector<4, T, A>; 4] {
         self.0.to_rows()
     }
 
-    /// Returns a reference to the projective transform's rows.
+    /// Returns a reference to a row-major projective transform's homogeneous rows.
     #[inline]
     #[must_use]
     pub const fn as_rows(&self) -> &[Vector<4, T, A>; 4] {
         self.0.as_rows()
     }
 
-    /// Returns a mutable reference to the projective transform's rows.
+    /// Returns a mutable reference to a row-major projective transform's
+    /// homogeneous rows.
     #[inline]
     #[must_use]
     pub const fn as_mut_rows(&mut self) -> &mut [Vector<4, T, A>; 4] {
         self.0.as_mut_rows()
     }
 
-    /// Creates a projective transform by calling function `f` for each
-    /// homogeneous row index.
+    /// Creates a row-major projective transform by calling function `f` for
+    /// each homogeneous row index.
     ///
     /// Equivalent to `[f(0), f(1), f(2), ...]` where each item is a homogeneous
     /// row vector.
@@ -802,7 +809,8 @@ where
         Self(Matrix::from_row_fn(f))
     }
 
-    /// Creates a projective transform from a row-major array of elements.
+    /// Creates a row-major projective transform from a row-major array of
+    /// elements.
     ///
     /// # Examples
     ///
@@ -871,12 +879,11 @@ where
         &mut self.0
     }
 
-    /// Returns the column at the given index.
+    /// Returns the given column of a row-major projective transform.
     ///
     /// # Panics
     ///
-    /// Panics if `index` is greater than or equal to the number of columns
-    /// `N + 1`.
+    /// Panics if `index` is greater than or equal to `N + 1`.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -884,12 +891,11 @@ where
         self.0.column(index)
     }
 
-    /// Sets the column at the given index to the given value.
+    /// Sets the given column of a row-major projective transform.
     ///
     /// # Panics
     ///
-    /// Panics if `index` is greater than or equal to the number of columns
-    /// `N + 1`.
+    /// Panics if `index` is greater than or equal to `N + 1`.
     #[inline]
     #[track_caller]
     pub const fn set_column(&mut self, index: usize, value: Vector<4, T, A>) {
