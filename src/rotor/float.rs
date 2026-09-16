@@ -74,7 +74,7 @@ where
         ))
     }
 
-    /// Converts a rotation matrix to a rotor.
+    /// Converts a matrix to a rotor.
     ///
     /// This assumes `matrix` only contains rotation.
     ///
@@ -82,7 +82,7 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `matrix` is not a rotation matrix.
+    /// Panics if `matrix` contains anything but rotation.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -90,7 +90,7 @@ where
         specialize_3!(Rotor::<N, T, A>::from_matrix_backend(matrix))
     }
 
-    /// Converts an affine transform with rotation to a rotor.
+    /// Converts an affine transform to a rotor.
     ///
     /// This assumes `affine` only contains rotation, and translation which is
     /// ignored.
@@ -99,7 +99,7 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `affine.matrix` is not a rotation matrix.
+    /// Panics if `affine` contains anything but rotation and translation.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -107,7 +107,7 @@ where
         Self::from_matrix(&affine.matrix)
     }
 
-    /// Converts a projective transform with rotation to a rotor.
+    /// Converts a projective transform to a rotor.
     ///
     /// This assumes `projective` only contains rotation, and translation which
     /// is ignored.
@@ -125,7 +125,7 @@ where
     }
 
     /// Returns the angle (in radians) for the minimal rotation for transforming
-    /// `self` into `other`.
+    /// `self` into `other` in the range `0..=+π`.
     ///
     /// This assumes `self` and `other` are normalized.
     ///
@@ -237,7 +237,7 @@ where
         }
     }
 
-    /// Returns the length/magnitude of `self`.
+    /// Returns the length/magnitude of a rotor.
     #[inline]
     #[must_use]
     pub fn length(self) -> T {
@@ -246,12 +246,13 @@ where
 
     /// Returns `self` normalized to length `1`.
     ///
+    /// This assumes `self` is not zero.
+    ///
     /// # Panics
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `self` is a zero rotor, or if the result is non finite or
-    /// zero.
+    /// Panics if `self` is zero, or if the result is non finite or zero.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -288,8 +289,8 @@ where
 
     /// Simultaneously computes [`normalize`] and [`length`].
     ///
-    /// This assumes the rotor is not zero (so the output for that will be
-    /// garbage). Consider manually checking for that case.
+    /// If `self` is zero, the result is length `0` and an unspecified rotor.
+    /// Consider manually checking for `length == 0.0`.
     ///
     /// [`normalize`]: Self::normalize
     /// [`length`]: Self::length
@@ -300,7 +301,7 @@ where
         (Self(normalize), length)
     }
 
-    /// Returns whether the rotor has the length 1 or not.
+    /// Returns whether a rotor has the length `1` or not.
     ///
     /// This uses a precision threshold of approximately `1e-4`.
     #[inline]
@@ -339,7 +340,7 @@ impl<T, A: Alignment> Rotor<3, T, A>
 where
     T: PrimitiveFloat,
 {
-    /// Creates a rotor from an `angle` (in radians) rotating `+X` to `+Y`.
+    /// Creates a 3D rotor from an angle (in radians) rotating `+X` to `+Y`.
     #[inline]
     #[must_use]
     pub fn from_rotation_xy(angle: T) -> Self {
@@ -348,7 +349,7 @@ where
         Self::from_elements(T::ZERO, T::ZERO, xy, s)
     }
 
-    /// Creates a rotor from an `angle` (in radians) rotating `+X` to `+Z`.
+    /// Creates a 3D rotor from an angle (in radians) rotating `+X` to `+Z`.
     #[inline]
     #[must_use]
     pub fn from_rotation_xz(angle: T) -> Self {
@@ -357,7 +358,7 @@ where
         Self::from_elements(T::ZERO, -xz, T::ZERO, s)
     }
 
-    /// Creates a rotor from an `angle` (in radians) rotating `+Y` to `+Z`.
+    /// Creates a 3D rotor from an angle (in radians) rotating `+Y` to `+Z`.
     #[inline]
     #[must_use]
     pub fn from_rotation_yz(angle: T) -> Self {
@@ -366,8 +367,13 @@ where
         Self::from_elements(yz, T::ZERO, T::ZERO, s)
     }
 
-    /// Creates a rotor from a rotation `axis` and `angle` (in radians), using
-    /// the right-hand rule.
+    /// Creates a 3D rotor from a rotation axis and an angle (in radians).
+    ///
+    /// This follows the right-hand rule:
+    ///
+    /// - `+X` rotates `+Y` to `+Z`
+    /// - `+Y` rotates `+Z` to `+X`
+    /// - `+Z` rotates `+X` to `+Y`
     ///
     /// This assumes `axis` is normalized.
     ///
@@ -390,8 +396,15 @@ where
         Self((axis * sin).extend(s))
     }
 
-    /// Converts the rotor `self` to a normalized rotation axis and an angle (in
-    /// radians), using the right-hand rule.
+    /// Converts a 3D rotor to a rotation axis and an angle (in radians).
+    ///
+    /// This follows the right-hand rule:
+    ///
+    /// - `+X` rotates `+Y` to `+Z`
+    /// - `+Y` rotates `+Z` to `+X`
+    /// - `+Z` rotates `+X` to `+Y`
+    ///
+    /// This assumes `self` is normalized.
     ///
     /// # Panics
     ///
@@ -421,8 +434,22 @@ where
         }
     }
 
-    /// Creates a rotor that rotates `scaled_axis.length()` radians around
-    /// `scaled_axis.normalize()`, using the right-hand rule.
+    /// Creates a 3D rotor from a rotation axis scaled by an angle (in radians).
+    ///
+    /// Equivalent to:
+    ///
+    /// ```ignore
+    /// Self::from_axis_angle(
+    ///     scaled_axis.normalize(),
+    ///     scaled_axis.length(),
+    /// )
+    /// ```
+    ///
+    /// This follows the right-hand rule:
+    ///
+    /// - `+X` rotates `+Y` to `+Z`
+    /// - `+Y` rotates `+Z` to `+X`
+    /// - `+Z` rotates `+X` to `+Y`
     #[inline]
     #[must_use]
     pub fn from_scaled_axis(scaled_axis: Vector<3, T, A>) -> Self {
@@ -436,8 +463,22 @@ where
         }
     }
 
-    // Converts the rotor `self` to a rotation axis scaled by an angle (in
-    /// radians), using the right-hand rule.
+    /// Converts a 3D rotor to a rotation axis scaled by an angle (in radians).
+    ///
+    /// Equivalent to:
+    ///
+    /// ```ignore
+    /// let (axis, angle) = self.to_axis_angle();
+    /// axis * angle
+    /// ```
+    ///
+    /// This follows the right-hand rule:
+    ///
+    /// - `+X` rotates `+Y` to `+Z`
+    /// - `+Y` rotates `+Z` to `+X`
+    /// - `+Z` rotates `+X` to `+Y`
+    ///
+    /// This assumes `self` is normalized.
     ///
     /// # Panics
     ///
@@ -466,7 +507,7 @@ where
         }
     }
 
-    /// Creates a rotor from an Euler rotation order/sequence and angles (in
+    /// Creates a 3D rotor from an Euler rotation order/sequence and angles (in
     /// radians).
     #[inline]
     #[must_use]
@@ -523,8 +564,10 @@ where
         Self(result)
     }
 
-    /// Returns the Euler angles forming `self` for the given Euler rotation
+    /// Converts a 3D rotor to Euler angles for a given Euler rotation
     /// order/sequence.
+    ///
+    /// This assumes `self` is normalized.
     ///
     /// # Panics
     ///

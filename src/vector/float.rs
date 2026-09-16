@@ -36,7 +36,7 @@ where
     /// [`NEG_INFINITY`]: f32::NEG_INFINITY
     pub const NEG_INFINITY: Self = Self::splat(T::NEG_INFINITY);
 
-    /// Returns the length/magnitude of `self`.
+    /// Returns the length/magnitude of a vector.
     ///
     /// # Examples
     ///
@@ -53,13 +53,15 @@ where
         self.dot(self).sqrt()
     }
 
-    /// Returns a vector with the direction of `self` and length `1.0`.
+    /// Returns a vector with the direction of `self` and length `1`.
+    ///
+    /// This assumes `self` is not the zero vector.
     ///
     /// # Panics
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `self` is a zero vector, or if the result is non finite or
+    /// Panics if `self` is the zero vector, or if the result is non finite or
     /// zero.
     ///
     /// # Examples
@@ -135,7 +137,7 @@ where
         self.try_normalize().unwrap_or(fallback)
     }
 
-    /// Returns [`normalize`], or a zero vector if `self` is zero or if the
+    /// Returns [`normalize`], or the zero vector if `self` is zero or if the
     /// result is non finite.
     ///
     /// # Examples
@@ -159,8 +161,8 @@ where
 
     /// Simultaneously computes [`normalize`] and [`length`].
     ///
-    /// If `self` is a zero vector, the result is length `0` and an unspecified
-    /// vector. Consider manually checking for `length == 0.0`.
+    /// If `self` is the zero vector, the result is length `0` and an
+    /// unspecified vector. Consider manually checking for `length == 0.0`.
     ///
     /// # Examples
     ///
@@ -183,7 +185,7 @@ where
         (self / length, length)
     }
 
-    /// Returns whether the vector has the length `1.0` or not.
+    /// Returns whether a vector has the length `1` or not.
     ///
     /// This uses a precision threshold of approximately `1e-4`.
     ///
@@ -192,11 +194,11 @@ where
     /// ```
     /// # use ggmath::Vec3;
     /// #
-    /// let unit = Vec3::splat((1.0_f32 / 3.0).sqrt());
-    /// let non_unit = Vec3::splat(2.0);
+    /// let normalized = Vec3::new(1.0, 2.0, 3.0).normalize();
+    /// let not_normalized = Vec3::splat(2.0);
     ///
-    /// assert!(unit.is_normalized());
-    /// assert!(!non_unit.is_normalized());
+    /// assert!(normalized.is_normalized());
+    /// assert!(!not_normalized.is_normalized());
     /// ```
     #[inline]
     #[must_use]
@@ -204,7 +206,7 @@ where
         (self.length_squared() - T::ONE).abs() <= T::as_from(2e-4)
     }
 
-    /// Computes the Euclidean distance between `self` and `other`.
+    /// Computes the Euclidean distance between two vectors.
     ///
     /// # Examples
     ///
@@ -222,11 +224,11 @@ where
         (self - other).length()
     }
 
-    /// Returns the angle (in radians) between `self` and `other` in the range
+    /// Returns the angle (in radians) between two vectors in the range
     /// `0..=+π`.
     ///
-    /// The vectors do not need to be unit vectors but they do need to be
-    /// non-zero.
+    /// This does not assume `self` and `other` are normalized, but this does
+    /// assume they are not the zero vector.
     ///
     /// # Unspecified precision
     ///
@@ -238,7 +240,7 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `self` or `other` are zero vectors.
+    /// Panics if `self` or `other` are the zero vector.
     ///
     /// # Examples
     ///
@@ -267,8 +269,8 @@ where
     /// Computes the linear interpolation between `self` and `other` based on
     /// the value `t`.
     ///
-    /// When `t` is `0.0`, the result is `self`.  When `t` is `1.0`, the result
-    /// is `rhs`. When `t` is outside of the range `0.0..=1.0`, the result is
+    /// When `t` is `0`, the result is `self`.  When `t` is `1`, the result is
+    /// `other`. When `t` is outside of the range `0..=1`, the result is
     /// linearly extrapolated.
     #[inline]
     #[must_use]
@@ -276,10 +278,9 @@ where
         self * (T::ONE - t) + other * t
     }
 
-    /// Computes the middle point between `self` and `other`.
+    /// Computes the middle point between two vectors.
     ///
-    /// Equivalent to `self.lerp(other, 0.5)`, but is cheaper to compute. This
-    /// may return a slightly different value.
+    /// Equivalent to `self.lerp(other, 0.5)`.
     #[inline]
     #[must_use]
     pub fn midpoint(self, other: Self) -> Self {
@@ -288,8 +289,8 @@ where
 
     /// Moves `self` towards `other` by at most `max_delta`.
     ///
-    /// When `max_delta` is `0.0`, the result is `self`. When `max_delta` is
-    /// equal to or greater than `self.distance(other)`, the result is `other`.
+    /// When `max_delta` is `0`, the result is `self`. When `max_delta` is equal
+    /// to or greater than `self.distance(other)`, the result is `other`.
     ///
     /// ```
     /// # use ggmath::Vec3;
@@ -321,14 +322,14 @@ where
     /// is `other`. When `t` is outside of the range `0..=1`, the result is
     /// spherically linearly extrapolated.
     ///
-    /// The vectors do not need to be unit vectors but they do need to be
-    /// non-zero.
+    /// This does not assume `self` and `other` are normalized, but this does
+    /// assume they are not the zero vector.
     ///
     /// # Panics
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `self` or `other` are zero vectors.
+    /// Panics if `self` or `other` are the zero vector.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -342,14 +343,14 @@ where
     /// to or greater than `self.angle_between(target)`, the result is `target`.
     /// When `max_angle` is negative, this rotates towards `-target`.
     ///
-    /// The vectors do not need to be unit vectors but `target` does need to be
-    /// non-zero.
+    /// This does not assume `self` and `other` are normalized, but this does
+    /// assume `target` is not the zero vector.
     ///
     /// # Panics
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `target` is a zero vector.
+    /// Panics if `target` is the zero vector.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -361,13 +362,13 @@ where
 
     /// Returns the vector projection of `self` onto `other`.
     ///
-    /// `other` must not be a zero vector.
+    /// This assumes `other` is not the zero vector.
     ///
     /// # Panics
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `other` is a zero vector.
+    /// Panics if `other` is the zero vector.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -384,7 +385,7 @@ where
 
     /// Returns the vector projection of `self` onto `other`.
     ///
-    /// `other` must be normalized.
+    /// This assues `other` is normalized.
     ///
     /// # Panics
     ///
@@ -407,13 +408,13 @@ where
     ///
     /// Equivalent to `self - self.project_onto(other)`.
     ///
-    /// `other` must not be a zero vector.
+    /// This assumes `other` is not the zero vector.
     ///
     /// # Panics
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `other` is a zero vector.
+    /// Panics if `other` is the zero vector.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -432,7 +433,7 @@ where
     ///
     /// Equivalent to `self - self.project_onto(other)`.
     ///
-    /// `other` must be normalized.
+    /// This assumes `other` is normalized.
     ///
     /// # Panics
     ///
@@ -453,7 +454,7 @@ where
 
     /// Returns the reflection of `self` through `normal`.
     ///
-    /// `normal` must be normalized.
+    /// This assumes `normal` is normalized.
     ///
     /// # Panics
     ///
@@ -477,9 +478,9 @@ where
     /// `eta` is the incident refraction-index divided by the transmitted
     /// refraction-index.
     ///
-    /// When total internal reflection occurs, the result is a zero vector.
+    /// When total internal reflection occurs, the result is the zero vector.
     ///
-    /// `self` and `normal` must be normalized.
+    /// This assumes `self` and `normal` are normalized.
     ///
     /// # Panics
     ///
@@ -509,7 +510,7 @@ where
     /// The result is not necessarily normalized. For that use
     /// [`any_orthonormal_vector`] instead.
     ///
-    /// For 2D vectors this is equivalent to [`perp`].
+    /// For 2D vectors this performs [`perp`].
     ///
     /// [`any_orthonormal_vector`]: Self::any_orthonormal_vector
     /// [`perp`]: Vector::perp
@@ -519,11 +520,11 @@ where
         specialize!(Vector::<N, T, A>::any_orthogonal_vector_backend(self))
     }
 
-    /// Returns some unit vector that is orthogonal to `self`.
+    /// Returns some normalized vector that is orthogonal to `self`.
     ///
-    /// `self` must normalized.
+    /// This assumes `self` is normalized.
     ///
-    /// For 2D vectors this is equivalent to [`perp`].
+    /// For 2D vectors this performs [`perp`].
     ///
     /// # Panics
     ///
@@ -843,7 +844,7 @@ where
         self.max(min).min(max)
     }
 
-    /// Returns the maximum between the elements of `self`.
+    /// Returns the maximum element of a vector.
     ///
     /// Equivalent to `self.x.max(self.y).max(self.z)...`.
     ///
@@ -874,7 +875,7 @@ where
         specialize!(<T as FloatVectorBackend<N, A>>::vector_max_element(self))
     }
 
-    /// Returns the minimum between the elements of `self`.
+    /// Returns the minimum element of a vector.
     ///
     /// Equivalent to `self.x.min(self.y).min(self.z)...`.
     ///
@@ -1506,10 +1507,10 @@ impl<T, A: Alignment> Vector<2, T, A>
 where
     T: PrimitiveFloat,
 {
-    /// Creates a 2D vector from homogeneous coordinates by performing
-    /// perspective divide.
+    /// Creates a vector from homogeneous coordinates by performing perspective
+    /// divide.
     ///
-    /// Equivalent to `homogeneous.xy / homogeneous.z`.
+    /// Equivalent to `homogeneous.truncate() / homogeneous.last()`.
     #[inline]
     #[must_use]
     pub fn from_homogeneous(homogeneous: Vector<3, T, A>) -> Self {
@@ -1519,8 +1520,8 @@ where
     /// Returns the angle (in radians) that rotates `self` to `other` in the
     /// range `-π..=+π`.
     ///
-    /// The vectors do not need to be unit vectors but they do need to be
-    /// non-zero.
+    /// This does not assume `self` and `other` are normalized, but this does
+    /// assume they are not the zero vector.
     ///
     /// Equivalent to `other.angle_from(self)`.
     ///
@@ -1534,7 +1535,7 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `self` or `other` are zero vectors.
+    /// Panics if `self` or `other` are the zero vector.
     ///
     /// # Examples
     ///
@@ -1566,8 +1567,8 @@ where
     /// Returns the angle (in radians) that rotates `other` to `self` in the
     /// range `-π..=+π`.
     ///
-    /// The vectors do not need to be unit vectors but they do need to be
-    /// non-zero.
+    /// This does not assume `self` and `other` are normalized, but this does
+    /// assume they are not the zero vector.
     ///
     /// Equivalent to `other.angle_to(self)`.
     ///
@@ -1581,7 +1582,7 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `self` or `other` are zero vectors.
+    /// Panics if `self` or `other` are the zero vector.
     ///
     /// # Examples
     ///
@@ -1609,7 +1610,7 @@ where
         angle_between * outer_product.signum()
     }
 
-    /// Rotates a vector by an `angle` (in radians) rotating `+X` to `+Y`.
+    /// Rotates a 2D vector by an angle (in radians) rotating `+X` to `+Y`.
     ///
     /// # Unspecified precision
     ///
@@ -1688,17 +1689,17 @@ impl<T, A: Alignment> Vector<3, T, A>
 where
     T: PrimitiveFloat,
 {
-    /// Creates a 3D vector from homogeneous coordinates by performing
-    /// perspective divide.
+    /// Creates a vector from homogeneous coordinates by performing perspective
+    /// divide.
     ///
-    /// Equivalent to `homogeneous.xyz / homogeneous.w`.
+    /// Equivalent to `homogeneous.truncate() / homogeneous.last()`.
     #[inline]
     #[must_use]
     pub fn from_homogeneous(homogeneous: Vector<4, T, A>) -> Self {
         homogeneous.xyz() / homogeneous.w
     }
 
-    /// Rotates a vector by an `angle` (in radians) rotating `+X` to `+Y`.
+    /// Rotates a 3D vector by an angle (in radians) rotating `+X` to `+Y`.
     ///
     /// # Unspecified precision
     ///
@@ -1716,7 +1717,7 @@ where
         )
     }
 
-    /// Rotates a vector by an `angle` (in radians) rotating `+X` to `+Z`.
+    /// Rotates a 3D vector by an angle (in radians) rotating `+X` to `+Z`.
     ///
     /// # Unspecified precision
     ///
@@ -1734,7 +1735,7 @@ where
         )
     }
 
-    /// Rotates a vector by an `angle` (in radians) rotating `+Y` to `+Z`.
+    /// Rotates a 3D vector by an angle (in radians) rotating `+Y` to `+Z`.
     ///
     /// # Unspecified precision
     ///
@@ -1752,7 +1753,7 @@ where
         )
     }
 
-    /// Returns two unit vectors that are orthogonal to `self` and to each
+    /// Returns two normalized vectors that are orthogonal to `self` and to each
     /// other.
     ///
     /// Together with `self`, they form an orthonormal basis where the three

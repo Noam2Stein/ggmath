@@ -42,7 +42,7 @@ macro_rules! items {
 
         /// Creates a projective transform from a rotor.
         ///
-        /// This assumes the rotor is normalized.
+        /// This assumes `rotor` is normalized.
         #[inline]
         #[must_use]
         #[expect(private_bounds)]
@@ -96,7 +96,7 @@ macro_rules! items {
             specialize_3!(Projective::<N, $Wide, A>::to_scale_rotor_backend(self))
         }
 
-        /// Creates a projective transform from a rotor and translation.
+        /// Creates a projective transform from a rotor and a translation vector.
         ///
         /// This assumes `rotor` is normalized.
         #[inline]
@@ -129,7 +129,7 @@ macro_rules! items {
         }
 
         /// Creates a projective transform from a non-uniform scale, a rotor and
-        /// translation.
+        /// a translation vector.
         ///
         /// This assumes `rotor` is normalized.
         #[inline]
@@ -153,7 +153,7 @@ macro_rules! items {
         }
 
         /// Converts a projective transform to a non-uniform scale, a rotor and
-        /// translation.
+        /// a translation vector.
         ///
         /// This assumes `self` only contains scale, rotation and translation.
         #[inline]
@@ -169,7 +169,7 @@ macro_rules! items {
             (scale, rotor, self.translation())
         }
 
-        /// Transforms the given vector as a point, applying perspective divide.
+        /// Transforms a vector as a point, applying perspective divide.
         #[inline]
         #[must_use]
         pub fn project_point(&self, point: Vector<N, $Wide, A>) -> Vector<N, $Wide, A> {
@@ -178,11 +178,9 @@ macro_rules! items {
             ))
         }
 
-        /// Returns the inverse of `self`.
+        /// Returns the inverse of a projective transform.
         ///
-        /// If `self` is not invertable the result is unspecified.
-        ///
-        /// This computes the inverse of the inner homogeneous matrix.
+        /// This assumes `self` is invertable.
         #[must_use]
         pub fn inverse(&self) -> Self {
             specialize_23!(Projective::<N, $Wide, A>::inverse_backend(self))
@@ -194,10 +192,8 @@ macro_rules! items {
         /// Returns the inverse of `self` or `fallback` if `self` is not
         /// invertable.
         ///
-        /// The fallback is only applied for invalid lanes. Other lanes are not
-        /// affected.
-        ///
-        /// This computes the inverse of the inner homogeneous matrix.
+        /// The fallback is only applied for invalid lanes. Valid lanes are
+        /// unaffected.
         #[must_use]
         pub fn inverse_or(&self, fallback: &Self) -> Self {
             specialize_23!(Projective::<N, $Wide, A>::inverse_or_backend(
@@ -208,10 +204,8 @@ macro_rules! items {
         /// Returns the inverse of `self` or the zero transform if `self` is not
         /// invertable.
         ///
-        /// The fallback is only applied for invalid lanes. Other lanes are not
-        /// affected.
-        ///
-        /// This computes the inverse of the inner homogeneous matrix.
+        /// The fallback is only applied for invalid lanes. Valid lanes are
+        /// unaffected.
         #[must_use]
         pub fn inverse_or_zero(&self) -> Self {
             specialize_23!(Projective::<N, $Wide, A>::inverse_or_zero_backend(self))
@@ -234,22 +228,27 @@ macro_rules! items {
             ))
         }
 
-        /// For each lane, returns `true` if any element is NaN.
+        /// Returns a [mask] that is `true` if any element is NaN.
+        ///
+        /// [mask]: wide#masks
         #[inline]
         #[must_use]
         pub fn is_nan(&self) -> $Wide {
             specialize_23!(Projective::<N, $Wide, A>::is_nan_backend(self))
         }
 
-        /// For each lane, returns `true` if all elements are neither infinite
+        /// Returns a [mask] that is `true` if all elements are neither infinite
         /// nor NaN.
+        ///
+        /// [mask]: wide#masks
         #[inline]
         #[must_use]
         pub fn is_finite(&self) -> $Wide {
             specialize_23!(Projective::<N, $Wide, A>::is_finite_backend(self))
         }
 
-        /// Returns the absolute values of the elements of `self`.
+        /// Returns the absolute values of the elements of a projective
+        /// transform.
         ///
         /// Equivalent to `(self.x_axis.abs(), self.y_axis.abs(), ...)`.
         #[inline]
@@ -262,7 +261,7 @@ macro_rules! items {
 
 macro_rules! items_2 {
     ($Wide:ident, $T:ident) => {
-        /// Creates a projective transform from a 2D rotation.
+        /// Creates a 2D projective transform from a 2D rotation.
         ///
         /// This assumes `rotation` is normalized.
         #[inline]
@@ -275,7 +274,7 @@ macro_rules! items_2 {
             ])
         }
 
-        /// Converts a projective transform to a 2D rotation.
+        /// Converts a 2D projective transform to a 2D rotation.
         ///
         /// This assumes `self` only contains rotation, and translation which is
         /// ignored.
@@ -285,7 +284,8 @@ macro_rules! items_2 {
             Rotation2::<$Wide, A>::from_projective(&self)
         }
 
-        /// Creates a projective transform from `scale` and 2D rotation.
+        /// Creates a 2D projective transform from a non-uniform scale and a 2D
+        /// rotation.
         ///
         /// This assumes `rotation` is normalized.
         #[inline]
@@ -305,9 +305,11 @@ macro_rules! items_2 {
             ])
         }
 
-        /// Converts a projective transform to scale and rotation.
+        /// Converts a 2D projective transform to a non-uniform scale and a 2D
+        /// rotation.
         ///
-        /// This assumes `self` does not contain shear or projection.
+        /// This assumes `self` only contains scale, rotation, and translation
+        /// which is ignored.
         #[inline]
         #[must_use]
         pub fn to_scale_rotation(&self) -> (Vector<2, $Wide, A>, Rotation2<$Wide, A>) {
@@ -324,7 +326,8 @@ macro_rules! items_2 {
             (scale, rotation)
         }
 
-        /// Creates a projective transform from `rotation` and `translation`.
+        /// Creates a 2D projective transform from a 2D rotation and a
+        /// translation vector.
         ///
         /// This assumes `rotation` is normalized.
         #[inline]
@@ -340,8 +343,8 @@ macro_rules! items_2 {
             ])
         }
 
-        /// Converts a projective transform to a 2D rotation and a translation
-        /// vector.
+        /// Converts a 2D projective transform to a 2D rotation and a
+        /// translation vector.
         ///
         /// This assumes `self` only contains rotation and translation.
         #[inline]
@@ -350,8 +353,8 @@ macro_rules! items_2 {
             (self.to_rotation(), self.translation())
         }
 
-        /// Creates a projective transform from `scale`, 2D rotation and
-        /// translation.
+        /// Creates a 2D projective transform from a non-uniform scale, a 2D
+        /// rotation and a translation vector.
         ///
         /// This assumes `rotation` is normalized.
         #[inline]
@@ -372,9 +375,10 @@ macro_rules! items_2 {
             ])
         }
 
-        /// Converts a projective transform to scale, rotation and translation.
+        /// Converts a 2D projective transform to a non-uniform scale, a 2D
+        /// rotation and a translation vector.
         ///
-        /// This assumes `self` does not contain shear.
+        /// This assumes `self` only contains scale, rotation and translation.
         #[inline]
         #[must_use]
         pub fn to_scale_rotation_translation(
@@ -388,8 +392,8 @@ macro_rules! items_2 {
             (scale, rotation, self.translation())
         }
 
-        /// Creates a projective transform containing a rotation from an `angle`
-        /// (in radians) rotating `+X` to `+Y`.
+        /// Creates a 2D projective transform from an angle (in radians)
+        /// rotating `+X` to `+Y`.
         #[inline]
         #[must_use]
         pub fn from_angle(angle: $Wide) -> Self {
@@ -412,10 +416,8 @@ macro_rules! items_2 {
             self.to_matrix().to_angle()
         }
 
-        /// Creates a 2D projective transform containing a non-uniform `scale`
-        /// and a rotation of `angle` (in radians).
-        ///
-        /// This rotates `+X` to `+Y`.
+        /// Creates a 2D projective transform from a non-uniform scale and an
+        /// angle (in radians) rotating `+X` to `+Y`.
         #[inline]
         #[must_use]
         pub fn from_scale_angle(scale: Vector<2, $Wide, A>, angle: $Wide) -> Self {
@@ -427,22 +429,19 @@ macro_rules! items_2 {
             ])
         }
 
-        /// Returns the `scale` and `angle` of `self`.
+        /// Converts a 2D projective transform to a non-uniform scale and an
+        /// angle (in radians) rotating `+X` to `+Y`.
         ///
-        /// This function assumes `self` contains an affine transformation with
-        /// no shearing.
-        ///
-        /// `self` can contain translation, which is ignored.
+        /// This assumes `self` only contains scale, rotation, and translation
+        /// which is ignored.
         #[inline]
         #[must_use]
         pub fn to_scale_angle(&self) -> (Vector<2, $Wide, A>, $Wide) {
             Matrix::<2, $Wide, A>::from_projective(self).to_scale_angle()
         }
 
-        /// Creates a 2D projective transform containing a rotation of `angle`
-        /// (in radians) and `translation`.
-        ///
-        /// This rotates `+X` to `+Y`.
+        /// Creates a 2D projective transform from an angle (in radians)
+        /// rotating `+X` to `+Y` and a translation vector.
         #[inline]
         #[must_use]
         pub fn from_angle_translation(angle: $Wide, translation: Vector<2, $Wide, A>) -> Self {
@@ -464,10 +463,8 @@ macro_rules! items_2 {
             (self.to_angle(), self.translation())
         }
 
-        /// Creates a 2D projective transform containing a non-uniform `scale`,
-        /// a rotation of `angle` (in radians) and `translation`.
-        ///
-        /// This rotates `+X` to `+Y`.
+        /// Creates a 2D projective transform from a non-uniform scale, an angle
+        /// (in radians) rotating `+X` to `+Y` and a translation vector.
         #[inline]
         #[must_use]
         pub fn from_scale_angle_translation(
@@ -483,10 +480,10 @@ macro_rules! items_2 {
             ])
         }
 
-        /// Returns the `scale`, `angle` and `translation` of `self`.
+        /// Converts a 2D projective transform to a non-uniform scale, an angle
+        /// (in radians) rotating `+X` to `+Y` and a translation vector.
         ///
-        /// This function assumes `self` contains an affine transformation with
-        /// no shearing.
+        /// This assumes `self` only contains scale, rotation and translation.
         #[inline]
         #[must_use]
         pub fn to_scale_angle_translation(
@@ -500,8 +497,8 @@ macro_rules! items_2 {
 
 macro_rules! items_3 {
     ($Wide:ident, $T:ident) => {
-        /// Creates a projective transform containing a rotation from an `angle`
-        /// (in radians) rotating `+X` to `+Y`.
+        /// Creates a 3D projective transform from an angle (in radians)
+        /// rotating `+X` to `+Y`.
         #[inline]
         #[must_use]
         pub fn from_rotation_xy(angle: $Wide) -> Self {
@@ -514,8 +511,8 @@ macro_rules! items_3 {
             ])
         }
 
-        /// Creates a projective transform containing a rotation from an `angle`
-        /// (in radians) rotating `+X` to `+Z`.
+        /// Creates a 3D projective transform from an angle (in radians)
+        /// rotating `+X` to `+Z`.
         #[inline]
         #[must_use]
         pub fn from_rotation_xz(angle: $Wide) -> Self {
@@ -528,8 +525,8 @@ macro_rules! items_3 {
             ])
         }
 
-        /// Creates a projective transform containing a rotation from an `angle`
-        /// (in radians) rotating `+Y` to `+Z`.
+        /// Creates a 3D projective transform from an angle (in radians)
+        /// rotating `+Y` to `+Z`.
         #[inline]
         #[must_use]
         pub fn from_rotation_yz(angle: $Wide) -> Self {
@@ -542,10 +539,16 @@ macro_rules! items_3 {
             ])
         }
 
-        /// Creates a 3D projective transform containing a rotation from a
-        /// rotation `axis` and `angle` (in radians) using the right-hand rule.
+        /// Creates a 3D projective transform from a rotation axis and an angle
+        /// (in radians).
         ///
-        /// `axis` must be normalized. Otherwise the result is unspecified.
+        /// This follows the right-hand rule:
+        ///
+        /// - `+X` rotates `+Y` to `+Z`
+        /// - `+Y` rotates `+Z` to `+X`
+        /// - `+Z` rotates `+X` to `+Y`
+        ///
+        /// This assumes `axis` is normalized.
         #[inline]
         #[must_use]
         pub fn from_axis_angle(axis: Vector<3, $Wide, A>, angle: $Wide) -> Self {
@@ -566,7 +569,14 @@ macro_rules! items_3 {
             ])
         }
 
-        /// Converts a 3D projective transform to an axis-angle rotation.
+        /// Converts a 3D projective transform to a rotation axis and an angle
+        /// (in radians).
+        ///
+        /// This follows the right-hand rule:
+        ///
+        /// - `+X` rotates `+Y` to `+Z`
+        /// - `+Y` rotates `+Z` to `+X`
+        /// - `+Z` rotates `+X` to `+Y`
         ///
         /// This assumes `self` only contains rotation, and translation which is
         /// ignored.
@@ -577,7 +587,23 @@ macro_rules! items_3 {
             self.to_rotor().to_axis_angle()
         }
 
-        /// Creates a 3D projective transform from a scaled-axis rotation.
+        /// Creates a 3D projective transform from a rotation axis scaled by an
+        /// angle (in radians).
+        ///
+        /// Equivalent to:
+        ///
+        /// ```ignore
+        /// Self::from_axis_angle(
+        ///     scaled_axis.normalize(),
+        ///     scaled_axis.length(),
+        /// )
+        /// ```
+        ///
+        /// This follows the right-hand rule:
+        ///
+        /// - `+X` rotates `+Y` to `+Z`
+        /// - `+Y` rotates `+Z` to `+X`
+        /// - `+Z` rotates `+X` to `+Y`
         #[inline]
         #[must_use]
         pub fn from_scaled_axis(scaled_axis: Vector<3, $Wide, A>) -> Self {
@@ -601,7 +627,21 @@ macro_rules! items_3 {
             ])
         }
 
-        /// Converts a 3D projective transform to a scaled-axis rotation.
+        /// Converts a 3D projective transform to a rotation axis scaled by an
+        /// angle (in radians).
+        ///
+        /// Equivalent to:
+        ///
+        /// ```ignore
+        /// let (axis, angle) = self.to_axis_angle();
+        /// axis * angle
+        /// ```
+        ///
+        /// This follows the right-hand rule:
+        ///
+        /// - `+X` rotates `+Y` to `+Z`
+        /// - `+Y` rotates `+Z` to `+X`
+        /// - `+Z` rotates `+X` to `+Y`
         ///
         /// This assumes `self` only contains rotation, and translation which is
         /// ignored.
@@ -612,19 +652,19 @@ macro_rules! items_3 {
             self.to_rotor().to_scaled_axis()
         }
 
-        /// Creates a 3D projective transform containing a rotation from an
-        /// Euler rotation order/sequence and angles (in radians).
+        /// Creates a 3D projective transform from an Euler rotation
+        /// order/sequence and angles (in radians).
         #[inline]
         #[must_use]
         pub fn from_euler(order: EulerRot, a: $Wide, b: $Wide, c: $Wide) -> Self {
             Self::from_matrix(&Matrix::<3, $Wide, A>::from_euler(order, a, b, c))
         }
 
-        /// Returns the Euler angles forming `self` for the given Euler rotation
-        /// order/sequence.
+        /// Converts a 3D projective transform to Euler angles for a given Euler
+        /// rotation order/sequence.
         ///
-        /// The upper-left 3x3 matrix of `self` must not contain any
-        /// non-rotation transformations. Otherwise the result is unspecified.
+        /// This assumes `self` only contains rotation, and translation which is
+        /// ignored.
         #[inline]
         #[must_use]
         pub fn to_euler(&self, order: EulerRot) -> ($Wide, $Wide, $Wide) {

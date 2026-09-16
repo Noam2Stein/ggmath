@@ -68,6 +68,8 @@ macro_rules! conflicting_items {
         /// Equivalent to
         /// `(self.x.clamp(min.x, max.x), self.y.clamp(min.y, max.y), ...)`.
         ///
+        /// This assumes `min <= max`.
+        ///
         /// # Panics
         ///
         /// When debug assertions are enabled:
@@ -99,7 +101,7 @@ macro_rules! conflicting_items {
             self.max(min).min(max)
         }
 
-        /// Returns the maximum between the elements of `self`.
+        /// Returns the maximum element of a vector.
         ///
         /// Equivalent to `self.x.max(self.y).max(self.z)...`.
         ///
@@ -117,7 +119,7 @@ macro_rules! conflicting_items {
             specialize!(<$T as IntegerVectorBackend<N, A>>::vector_max_element(self))
         }
 
-        /// Returns the minimum between the elements of `self`.
+        /// Returns the minimum element of a vector.
         ///
         /// Equivalent to `self.x.min(self.y).min(self.z)...`.
         ///

@@ -12,21 +12,19 @@ use crate::{
     utils::{specialize, transmute_generic, transmute_mut},
 };
 
-/// An `N`-element vector mask optimized for type `T`.
+/// A vector mask.
 ///
-/// Masks are boolean vectors optimized for specific vector types. For example,
-/// [`Mask3A<f32>`] performs better than [`Vec3A<bool>`] for operations
-/// involving [`Vec3A<f32>`]. [`Mask<N, T, A>`] is optimized specifically for
-/// [`Vector<N, T, A>`].
+/// Masks are boolean vectors with storage optimized for specific vector types.
+/// [`Mask<N, T, A>`] is optimized for [`Vector<N, T, A>`].
 ///
 /// # Type aliases
 ///
-/// - [`Mask2<T>`] for [`Mask<2, T, Unaligned>`].
-/// - [`Mask3<T>`] for [`Mask<3, T, Unaligned>`].
-/// - [`Mask4<T>`] for [`Mask<4, T, Unaligned>`].
-/// - [`Mask2A<T>`] for [`Mask<2, T, Aligned>`].
-/// - [`Mask3A<T>`] for [`Mask<3, T, Aligned>`].
-/// - [`Mask4A<T>`] for [`Mask<4, T, Aligned>`].
+/// - [`Mask2<T>`] for [`Mask<2, T, Unaligned>`]
+/// - [`Mask3<T>`] for [`Mask<3, T, Unaligned>`]
+/// - [`Mask4<T>`] for [`Mask<4, T, Unaligned>`]
+/// - [`Mask2A<T>`] for [`Mask<2, T, Aligned>`]
+/// - [`Mask3A<T>`] for [`Mask<3, T, Aligned>`]
+/// - [`Mask4A<T>`] for [`Mask<4, T, Aligned>`]
 ///
 /// # Memory layout
 ///
@@ -60,10 +58,8 @@ where
 
 /// A 2-element vector mask.
 ///
-/// Masks are boolean vectors optimized for specific vector types. For example,
-/// [`Mask3A<f32>`] performs better than [`Vec3A<bool>`] for operations
-/// involving [`Vec3A<f32>`]. [`Mask2<T>`] is optimized specifically for
-/// [`Vec2<T>`].
+/// Masks are boolean vectors with storage optimized for specific vector types.
+/// [`Mask2<T>`] is optimized for [`Vec2<T>`].
 ///
 /// [`Vec3A<bool>`]: crate::Vec3A
 /// [`Vec3A<f32>`]: crate::Vec3A
@@ -72,10 +68,8 @@ pub type Mask2<T> = Mask<2, T, Unaligned>;
 
 /// A 3-element vector mask.
 ///
-/// Masks are boolean vectors optimized for specific vector types. For example,
-/// [`Mask3A<f32>`] performs better than [`Vec3A<bool>`] for operations
-/// involving [`Vec3A<f32>`]. [`Mask3<T>`] is optimized specifically for
-/// [`Vec3<T>`].
+/// Masks are boolean vectors with storage optimized for specific vector types.
+/// [`Mask3<T>`] is optimized for [`Vec3<T>`].
 ///
 /// [`Vec3A<bool>`]: crate::Vec3A
 /// [`Vec3A<f32>`]: crate::Vec3A
@@ -84,10 +78,8 @@ pub type Mask3<T> = Mask<3, T, Unaligned>;
 
 /// A 4-element vector mask.
 ///
-/// Masks are boolean vectors optimized for specific vector types. For example,
-/// [`Mask3A<f32>`] performs better than [`Vec3A<bool>`] for operations
-/// involving [`Vec3A<f32>`]. [`Mask4<T>`] is optimized specifically for
-/// [`Vec4<T>`].
+/// Masks are boolean vectors with storage optimized for specific vector types.
+/// [`Mask4<T>`] is optimized for [`Vec4<T>`].
 ///
 /// [`Vec3A<bool>`]: crate::Vec3A
 /// [`Vec3A<f32>`]: crate::Vec3A
@@ -96,10 +88,8 @@ pub type Mask4<T> = Mask<4, T, Unaligned>;
 
 /// A 2-element vector mask.
 ///
-/// Masks are boolean vectors optimized for specific vector types. For example,
-/// [`Mask3A<f32>`] performs better than [`Vec3A<bool>`] for operations
-/// involving [`Vec3A<f32>`]. [`Mask2A<T>`] is optimized specifically for
-/// [`Vec2A<T>`].
+/// Masks are boolean vectors with storage optimized for specific vector types.
+/// [`Mask2A<T>`] is optimized for [`Vec2A<T>`].
 ///
 /// # SIMD alignment
 ///
@@ -114,10 +104,8 @@ pub type Mask2A<T> = Mask<2, T, Aligned>;
 
 /// A 3-element vector mask.
 ///
-/// Masks are boolean vectors optimized for specific vector types. For example,
-/// [`Mask3A<f32>`] performs better than [`Vec3A<bool>`] for operations
-/// involving [`Vec3A<f32>`]. [`Mask3A<T>`] is optimized specifically for
-/// [`Vec3A<T>`].
+/// Masks are boolean vectors with storage optimized for specific vector types.
+/// [`Mask3A<T>`] is optimized for [`Vec3A<T>`].
 ///
 /// # SIMD alignment
 ///
@@ -141,10 +129,8 @@ pub type Mask3A<T> = Mask<3, T, Aligned>;
 
 /// A 4-element vector mask.
 ///
-/// Masks are boolean vectors optimized for specific vector types. For example,
-/// [`Mask3A<f32>`] performs better than [`Vec3A<bool>`] for operations
-/// involving [`Vec3A<f32>`]. [`Mask4A<T>`] is optimized specifically for
-/// [`Vec4A<T>`].
+/// Masks are boolean vectors with storage optimized for specific vector types.
+/// [`Mask4A<T>`] is optimized for [`Vec4A<T>`].
 ///
 /// # SIMD alignment
 ///

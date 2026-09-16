@@ -29,45 +29,44 @@ mod wide;
 #[cfg(feature = "wide")]
 mod wide_float;
 
-/// An `N`-dimensional projective transform represented by a homogeneous matrix.
+/// A projective transform represented by a homogeneous matrix.
 ///
-/// `A` controls SIMD alignment and is either [`Unaligned`] or [`Aligned`]. See
-/// [`Alignment`] for more details.
+/// This can represent scale, rotation, shear, translation and projections. If
+/// you do not need projections, use [`Affine`]. If you do not need translation,
+/// use [`Matrix`].
 ///
-/// This can represent translation, rotation, scaling, shear and projections. To
-/// apply this assuming no projection, use [`transform_point`] and
-/// [`transform_vector`]. To apply this with perspective divide, use
-/// [`project_point`]. To transform a homogeneous vector, use
-/// `vector_np1 * self`.
+/// Use [`transform_point`] and [`transform_vector`] to transform vectors
+/// assuming `self` contains an affine transformation. Use [`project_point`] to
+/// transform vectors with perspective divide. Use `vector * projective` to
+/// transform homogeneous vectors.
 ///
 /// # Type aliases
 ///
-/// - [`Proj2<T>`] for [`Projective<2, T, Unaligned>`].
-/// - [`Proj3<T>`] for [`Projective<3, T, Unaligned>`].
-/// - [`Proj2A<T>`] for [`Projective<2, T, Aligned>`].
-/// - [`Proj3A<T>`] for [`Projective<3, T, Aligned>`].
+/// - [`Proj2<T>`] for [`Projective<2, T, Unaligned>`]
+/// - [`Proj3<T>`] for [`Projective<3, T, Unaligned>`]
+/// - [`Proj2A<T>`] for [`Projective<2, T, Aligned>`]
+/// - [`Proj3A<T>`] for [`Projective<3, T, Aligned>`]
 ///
 /// # Fields
 ///
-/// - `x_axis: Vector<N + 1, T, N>` (first row of inner matrix, exists for
-///   dimensions `2`, `3`)
+/// - `x_axis: Vector<N + 1, T, N>` The first row of a projective transform's
+///   inner matrix. (exists for 2D, 3D)
 ///
-/// - `y_axis: Vector<N + 1, T, N>` (second row of inner matrix, exists for
-///   dimensions `2`, `3`)
+/// - `y_axis: Vector<N + 1, T, N>` The second row of a projective transform's
+///   inner matrix. (exists for 2D, 3D)
 ///
-/// - `z_axis: Vector<N + 1, T, N>` (third row of inner matrix, exists for
-///   dimensions `2`, `3`)
+/// - `z_axis: Vector<N + 1, T, N>` The third row of a projective transform's
+///   inner matrix. (exists for 2D, 3D)
 ///
-/// - `w_axis: Vector<N + 1, T, N>` (fourth row of inner matrix, exists for
-///   dimension `3`)
+/// - `w_axis: Vector<N + 1, T, N>` The fourth row of a projective transform's
+///   inner matrix. (exists for 3D)
 ///
-/// Note that these fields are only exposed by implementing [`Deref`] and
-/// [`DerefMut`].
+/// Fields are exposed by implementing [`Deref`] and [`DerefMut`].
 ///
 /// # Memory layout
 ///
-/// [`Projective<N, T, A>`] is a transparent wrapper over
-/// [`Matrix<N + 1, T, A>`]. The types can be transmuted both ways.
+/// [`Projective<N, T, A>`] is a transparent wrapper around
+/// [`Matrix<N + 1, T, A>`].
 ///
 /// [`transform_point`]: Projective::transform_point
 /// [`transform_vector`]: Projective::transform_vector
@@ -85,11 +84,25 @@ where
 
 /// A 2D projective transform represented by a homogeneous 3x3 matrix.
 ///
-/// This can represent 2D translation, rotation, scaling, shear and projections.
-/// To apply this assuming no projection, use [`transform_point`] and
-/// [`transform_vector`]. To apply this with perspective divide, use
-/// [`project_point`]. To transform a homogeneous 3D vector, use `vec3 * self`.
+/// This can represent 2D scale, rotation, shear, translation and projections.
+/// If you do not need projections, use [`Affine2`]. If you do not need
+/// translation, use [`Mat2`].
 ///
+/// Use [`transform_point`] and [`transform_vector`] to transform vectors
+/// assuming `self` contains an affine transformation. Use [`project_point`] to
+/// transform vectors with perspective divide. Use `vector * projective` to
+/// transform homogeneous 3D vectors.
+///
+/// # Fields
+///
+/// - `x_axis: Vec3<T>` The first row of a projective transform's inner matrix.
+/// - `y_axis: Vec3<T>` The second row of a projective transform's inner matrix.
+/// - `z_axis: Vec3<T>` The third row of a projective transform's inner matrix.
+///
+/// Fields are exposed by implementing [`Deref`] and [`DerefMut`].
+///
+/// [`Affine2`]: crate::Affine2
+/// [`Mat2`]: crate::Mat2
 /// [`transform_point`]: Projective::transform_point
 /// [`transform_vector`]: Projective::transform_vector
 /// [`project_point`]: Projective::project_point
@@ -97,11 +110,26 @@ pub type Proj2<T> = Projective<2, T, Unaligned>;
 
 /// A 3D projective transform represented by a homogeneous 4x4 matrix.
 ///
-/// This can represent 3D translation, rotation, scaling, shear and projections.
-/// To apply this assuming no projection, use [`transform_point`] and
-/// [`transform_vector`]. To apply this with perspective divide, use
-/// [`project_point`]. To transform a homogeneous 4D vector, use `vec4 * self`.
+/// This can represent 3D scale, rotation, shear, translation and projections.
+/// If you do not need projections, use [`Affine3`]. If you do not need
+/// translation, use [`Mat3`].
 ///
+/// Use [`transform_point`] and [`transform_vector`] to transform vectors
+/// assuming `self` contains an affine transformation. Use [`project_point`] to
+/// transform vectors with perspective divide. Use `vector * projective` to
+/// transform homogeneous 4D vectors.
+///
+/// # Fields
+///
+/// - `x_axis: Vec4<T>` The first row of a projective transform's inner matrix.
+/// - `y_axis: Vec4<T>` The second row of a projective transform's inner matrix.
+/// - `z_axis: Vec4<T>` The third row of a projective transform's inner matrix.
+/// - `w_axis: Vec4<T>` The fourth row of a projective transform's inner matrix.
+///
+/// Fields are exposed by implementing [`Deref`] and [`DerefMut`].
+///
+/// [`Affine3`]: crate::Affine3
+/// [`Mat3`]: crate::Mat3
 /// [`transform_point`]: Projective::transform_point
 /// [`transform_vector`]: Projective::transform_vector
 /// [`project_point`]: Projective::project_point
@@ -109,10 +137,25 @@ pub type Proj3<T> = Projective<3, T, Unaligned>;
 
 /// A 2D projective transform represented by a homogeneous 3x3 matrix.
 ///
-/// This can represent 2D translation, rotation, scaling, shear and projections.
-/// To apply this assuming no projection, use [`transform_point`] and
-/// [`transform_vector`]. To apply this with perspective divide, use
-/// [`project_point`]. To transform a homogeneous 3D vector, use `vec3 * self`.
+/// This can represent 2D scale, rotation, shear, translation and projections.
+/// If you do not need projections, use [`Affine2A`]. If you do not need
+/// translation, use [`Mat2A`].
+///
+/// Use [`transform_point`] and [`transform_vector`] to transform vectors
+/// assuming `self` contains an affine transformation. Use [`project_point`] to
+/// transform vectors with perspective divide. Use `vector * projective` to
+/// transform homogeneous 3D vectors.
+///
+/// # Fields
+///
+/// - `x_axis: Vec3A<T>` The first row of a projective transform's inner matrix.
+///
+/// - `y_axis: Vec3A<T>` The second row of a projective transform's inner
+///   matrix.
+///
+/// - `z_axis: Vec3A<T>` The third row of a projective transform's inner matrix.
+///
+/// Fields are exposed by implementing [`Deref`] and [`DerefMut`].
 ///
 /// # SIMD alignment
 ///
@@ -130,6 +173,8 @@ pub type Proj3<T> = Projective<3, T, Unaligned>;
 /// | `f32` | `target_feature = "sse2"`                               | `[__m128; 3]`      | 48           | 16                |
 /// | `f32` | `all(target_arch = "aarch64", target_feature = "neon")` | `[float32x4_t; 3]` | 48           | 16                |
 ///
+/// [`Affine2A`]: crate::Affine2A
+/// [`Mat2A`]: crate::Mat2A
 /// [`transform_point`]: Projective::transform_point
 /// [`transform_vector`]: Projective::transform_vector
 /// [`project_point`]: Projective::project_point
@@ -137,10 +182,28 @@ pub type Proj2A<T> = Projective<2, T, Aligned>;
 
 /// A 3D projective transform represented by a homogeneous 4x4 matrix.
 ///
-/// This can represent 3D translation, rotation, scaling, shear and projections.
-/// To apply this assuming no projection, use [`transform_point`] and
-/// [`transform_vector`]. To apply this with perspective divide, use
-/// [`project_point`]. To transform a homogeneous 4D vector, use `vec4 * self`.
+/// This can represent 3D scale, rotation, shear, translation and projections.
+/// If you do not need projections, use [`Affine3A`]. If you do not need
+/// translation, use [`Mat3A`].
+///
+/// Use [`transform_point`] and [`transform_vector`] to transform vectors
+/// assuming `self` contains an affine transformation. Use [`project_point`] to
+/// transform vectors with perspective divide. Use `vector * projective` to
+/// transform homogeneous 4D vectors.
+///
+/// # Fields
+///
+/// - `x_axis: Vec4A<T>` The first row of a projective transform's inner matrix.
+///
+/// - `y_axis: Vec4A<T>` The second row of a projective transform's inner
+///   matrix.
+///
+/// - `z_axis: Vec4A<T>` The third row of a projective transform's inner matrix.
+///
+/// - `w_axis: Vec4A<T>` The fourth row of a projective transform's inner
+///   matrix.
+///
+/// Fields are exposed by implementing [`Deref`] and [`DerefMut`].
 ///
 /// # SIMD alignment
 ///
@@ -158,6 +221,8 @@ pub type Proj2A<T> = Projective<2, T, Aligned>;
 /// | `f32` | `target_feature = "sse2"`                               | `[__m128; 4]`      | 64           | 16                |
 /// | `f32` | `all(target_arch = "aarch64", target_feature = "neon")` | `[float32x4_t; 4]` | 64           | 16                |
 ///
+/// [`Affine3A`]: crate::Affine3A
+/// [`Mat3A`]: crate::Mat3A
 /// [`transform_point`]: Projective::transform_point
 /// [`transform_vector`]: Projective::transform_vector
 /// [`project_point`]: Projective::project_point
@@ -187,7 +252,7 @@ where
 {
     type Output = Vector<3, T, A>;
 
-    /// Returns the row at the given index.
+    /// Returns the given row of a row-major projective transform.
     ///
     /// # Panics
     ///
@@ -205,7 +270,7 @@ where
 {
     type Output = Vector<4, T, A>;
 
-    /// Returns the row at the given index.
+    /// Returns the given row of a row-major projective transform.
     ///
     /// # Panics
     ///
@@ -221,7 +286,7 @@ impl<T, A: Alignment> IndexMut<usize> for Projective<2, T, A>
 where
     T: Element,
 {
-    /// Returns a mutable reference to the row at the given index.
+    /// Returns the given row of a row-major projective transform.
     ///
     /// # Panics
     ///
@@ -237,7 +302,7 @@ impl<T, A: Alignment> IndexMut<usize> for Projective<3, T, A>
 where
     T: Element,
 {
-    /// Returns a mutable reference to the row at the given index.
+    /// Returns the given row of a row-major projective transform.
     ///
     /// # Panics
     ///
@@ -255,20 +320,11 @@ pub struct Proj2Fields<T, A: Alignment>
 where
     T: Element,
 {
-    /// The first row of the projective transform.
-    ///
-    /// This is a vector3, since projective transforms are represented by
-    /// homogeneous matrices.
+    /// The first row of a projective transform's inner matrix.
     pub x_axis: Vector<3, T, A>,
-    /// The second row of the projective transform.
-    ///
-    /// This is a vector3, since projective transforms are represented by
-    /// homogeneous matrices.
+    /// The second row of a projective transform's inner matrix.
     pub y_axis: Vector<3, T, A>,
-    /// The third row of the projective transform.
-    ///
-    /// This is a vector3, since projective transforms are represented by
-    /// homogeneous matrices.
+    /// The third row of a projective transform's inner matrix.
     pub z_axis: Vector<3, T, A>,
 }
 
@@ -304,25 +360,13 @@ pub struct Proj3Fields<T, A: Alignment>
 where
     T: Element,
 {
-    /// The first row of the projective transform.
-    ///
-    /// This is a vector4, since projective transforms are represented by
-    /// homogeneous matrices.
+    /// The first row of a projective transform's inner matrix.
     pub x_axis: Vector<4, T, A>,
-    /// The second row of the projective transform.
-    ///
-    /// This is a vector4, since projective transforms are represented by
-    /// homogeneous matrices.
+    /// The second row of a projective transform's inner matrix.
     pub y_axis: Vector<4, T, A>,
-    /// The third row of the projective transform.
-    ///
-    /// This is a vector4, since projective transforms are represented by
-    /// homogeneous matrices.
+    /// The third row of a projective transform's inner matrix.
     pub z_axis: Vector<4, T, A>,
-    /// The fourth row of the projective transform.
-    ///
-    /// This is a vector4, since projective transforms are represented by
-    /// homogeneous matrices.
+    /// The fourth row of a projective transform's inner matrix.
     pub w_axis: Vector<4, T, A>,
 }
 
@@ -784,9 +828,6 @@ impl_vector_mul!(
     /// The vector has one element more than the dimension of the transform,
     /// because projective transforms are represented as homogeneous matrices.
     ///
-    /// Because vectors are treated as row matrices, they always go on the
-    /// left-hand side.
-    ///
     /// Equivalent to `self.x * rhs.x_axis + self.y * rhs.y_axis + ...`.
     ///
     /// # Consistency
@@ -886,10 +927,9 @@ macro_rules! impl_mul {
     };
 }
 impl_mul!(
-    /// Multiplies two projective transforms.
-    ///
-    /// The resulting transform is equivalent to first applying the left
-    /// transform, then the right transform.
+    /// Multiplies two projective transforms, returning a projective transform
+    /// equivalent to applying the left projective transform then the right
+    /// projective transform.
     ///
     /// # Consistency
     ///
@@ -1061,12 +1101,9 @@ macro_rules! impl_affine_mul {
     };
 }
 impl_affine_mul!(
-    /// Affine-transform projective-transform multiplication, resulting in a
-    /// projective transform.
-    ///
-    /// Because vectors are treated as row matrices, multiplication first
-    /// applies the left-hand side transform, then the right-hand side
-    /// transform.
+    /// Multiplies an affine transform by a projective transform, returning a
+    /// projective transform equivalent to applying the left affine transform
+    /// then the right projective transform.
     ///
     /// # Consistency
     ///
@@ -1165,12 +1202,9 @@ macro_rules! impl_mul_affine {
     };
 }
 impl_mul_affine!(
-    /// Projective-transform affine-transform multiplication, resulting in a
-    /// projective transform.
-    ///
-    /// Because vectors are treated as row matrices, multiplication first
-    /// applies the left-hand side transform, then the right-hand side
-    /// transform.
+    /// Multiplies a projective transform by an affine transform, returning a
+    /// projective transform equivalent to applying the left projective
+    /// transform then applying the right affine transform.
     ///
     /// # Consistency
     ///

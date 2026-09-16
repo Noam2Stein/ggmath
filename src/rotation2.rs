@@ -27,53 +27,52 @@ mod wide;
 #[cfg(feature = "wide")]
 mod wide_float;
 
-/// A 2D rotation represented by a unit complex number.
+/// A 2D rotation represented by a normalized complex number.
 ///
-/// `A` controls SIMD alignment and is either [`Unaligned`] or [`Aligned`]. See
-/// [`Alignment`] for more details.
+/// Use `vector * rotation` to transform vectors.
 ///
 /// # Type aliases
 ///
-/// - [`Rot2<T>`] for [`Rotation2<T, Unaligned>`].
-/// - [`Rot2A<T>`] for [`Rotation2<T, Aligned>`].
+/// - [`Rot2<T>`] for [`Rotation2<T, Unaligned>`]
+/// - [`Rot2A<T>`] for [`Rotation2<T, Aligned>`]
 ///
 /// # Fields
 ///
-/// - `cos: T` (the cosine of the angle)
-/// - `sin: T` (the sine of the angle rotating `+X` to `+Y`)
+/// - `cos: T` The cosine of the angle.
+/// - `sin: T` The sine of the angle rotating `+X` to `+Y`.
 ///
-/// Note that these fields are only exposed by implementing [`Deref`] and
-/// [`DerefMut`].
+/// Fields are exposed by implementing [`Deref`] and [`DerefMut`].
 ///
 /// # Memory layout
 ///
-/// [`Rotation2<T, A>`] is a transparent wrapper over [`Vector<2, T, A>`],
-/// storing `cos` then `sin`.
+/// [`Rotation2<T, A>`] is a transparent wrapper around [`Vector<2, T, A>`].
 #[repr(transparent)]
 pub struct Rotation2<T, A: Alignment>(pub(crate) Vector<2, T, A>)
 where
     T: Element;
 
-/// A 2D rotation represented by a unit complex number.
+/// A 2D rotation represented by a normalized complex number.
+///
+/// Use `vector * rotation` to transform vectors.
 ///
 /// # Fields
 ///
-/// - `cos: T` (the cosine of the angle)
-/// - `sin: T` (the sine of the angle rotating `+X` to `+Y`)
+/// - `cos: T` The cosine of the angle.
+/// - `sin: T` The sine of the angle rotating `+X` to `+Y`.
 ///
-/// Note that these fields are only exposed by implementing [`Deref`] and
-/// [`DerefMut`].
+/// Fields are exposed by implementing [`Deref`] and [`DerefMut`].
 pub type Rot2<T> = Rotation2<T, Unaligned>;
 
-/// A 2D rotation represented by a unit complex number.
+/// A 2D rotation represented by a normalized complex number.
+///
+/// Use `vector * rotation` to transform vectors.
 ///
 /// # Fields
 ///
-/// - `cos: T` (the cosine of the angle)
-/// - `sin: T` (the sine of the angle rotating `+X` to `+Y`)
+/// - `cos: T` The cosine of the angle.
+/// - `sin: T` The sine of the angle rotating `+X` to `+Y`.
 ///
-/// Note that these fields are only exposed by implementing [`Deref`] and
-/// [`DerefMut`].
+/// Fields are exposed by implementing [`Deref`] and [`DerefMut`].
 ///
 /// # SIMD alignment
 ///
@@ -576,7 +575,7 @@ macro_rules! impl_vector_mul {
     };
 }
 impl_vector_mul!(
-    /// Applies a 2D rotation to a vector.
+    /// Transforms a 2D vector by a 2D rotation.
     ///
     /// If the complex number is not normalized, the vector gets scaled by its
     /// length.
@@ -669,7 +668,8 @@ macro_rules! impl_mul {
     };
 }
 impl_mul!(
-    /// Chains two 2D rotations into a single rotation.
+    /// Multiplies two 2D rotations, returning a 2D rotation equivalent to
+    /// applying them both.
 );
 
 macro_rules! impl_div_scalar {

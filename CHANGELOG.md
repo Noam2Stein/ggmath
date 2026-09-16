@@ -28,6 +28,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#87](https://github.com/Noam2Stein/ggmath/pull/87): Reorder functions to
   improve documentation readability
 
+- [#92](https://github.com/Noam2Stein/ggmath/pull/92): Improve documentation of
+  many items
+
 ## [0.18.0] - 2026-09-09
 
 This version makes a lot of breaking changes, including changing and removing

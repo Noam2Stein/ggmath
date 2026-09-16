@@ -31,42 +31,38 @@ mod wide;
 #[cfg(feature = "wide")]
 mod wide_float;
 
-/// An `N`x`N` row-major matrix of type `T`.
+/// A square row-major matrix.
 ///
-/// `A` controls SIMD alignment and is either [`Unaligned`] or [`Aligned`]. See
-/// [`Alignment`] for more details.
+/// This can represent scale, rotation and shear, but not translation or
+/// projections. If you need translation, use [`Affine`]. If you need
+/// projections, use [`Projective`].
 ///
-/// This represents an `N`-dimensional linear transformation, applied using
-/// `vector_n * self`.
-///
-/// If you need translation, use [`Affine`]. If you need projections, use
-/// [`Projective`].
+/// Use `vector * matrix` to transform vectors.
 ///
 /// # Type aliases
 ///
-/// - [`Mat2<T>`] for [`Matrix<2, T, Unaligned>`].
-/// - [`Mat3<T>`] for [`Matrix<3, T, Unaligned>`].
-/// - [`Mat4<T>`] for [`Matrix<4, T, Unaligned>`].
-/// - [`Mat2A<T>`] for [`Matrix<2, T, Aligned>`].
-/// - [`Mat3A<T>`] for [`Matrix<3, T, Aligned>`].
-/// - [`Mat4A<T>`] for [`Matrix<4, T, Aligned>`].
+/// - [`Mat2<T>`] for [`Matrix<2, T, Unaligned>`]
+/// - [`Mat3<T>`] for [`Matrix<3, T, Unaligned>`]
+/// - [`Mat4<T>`] for [`Matrix<4, T, Unaligned>`]
+/// - [`Mat2A<T>`] for [`Matrix<2, T, Aligned>`]
+/// - [`Mat3A<T>`] for [`Matrix<3, T, Aligned>`]
+/// - [`Mat4A<T>`] for [`Matrix<4, T, Aligned>`]
 ///
 /// # Fields
 ///
-/// - `x_axis: Vector<N, T, N>` (the first row of the matrix, represents the
-///   result of `+X * matrix`, exists for lengths `2`, `3`, `4`)
+/// - `x_axis: Vector<N, T, N>` The first row of a matrix, representing the
+///   result of `+X * matrix`. (exists for 2D, 3D, 4D)
 ///
-/// - `y_axis: Vector<N, T, N>` (the second row of the matrix, represents the
-///   result of `+Y * matrix`, exists for lengths `2`, `3`, `4`)
+/// - `y_axis: Vector<N, T, N>` The second row of a matrix, representing the
+///   result of `+Y * matrix`. (exists for 2D, 3D, 4D)
 ///
-/// - `z_axis: Vector<N, T, N>` (the third row of the matrix, represents the
-///   result of `+Z * matrix`, exists for lengths `3`, `4`)
+/// - `z_axis: Vector<N, T, N>` The third row of a matrix, representing the
+///   result of `+Z * matrix`. (exists for 3D, 4D)
 ///
-/// - `w_axis: Vector<N, T, N>` (the fourth row of the matrix, represents the
-///   result of `+W * matrix`, exists for length `4`)
+/// - `w_axis: Vector<N, T, N>` The fourth row of a matrix, representing the
+///   result of `+W * matrix`. (exists for 4D)
 ///
-/// Note that these fields are only exposed by implementing [`Deref`] and
-/// [`DerefMut`].
+/// Fields are exposed by implementing [`Deref`] and [`DerefMut`].
 ///
 /// # Memory layout
 ///
@@ -75,7 +71,7 @@ mod wide_float;
 ///
 /// For `N = 2` this type has the size and alignment of [`Vector<4, T, A>`].
 ///
-/// For `N = 3` and `N = 4` this type has the size and alignment of
+/// For `N = 3, 4` this type has the size and alignment of
 /// `[Vector<N, T, A>; N]`.
 ///
 /// [`Affine`]: crate::Affine
@@ -95,21 +91,21 @@ where
 
 /// A 2x2 row-major matrix.
 ///
-/// This represents a 2D linear transformation, applied using `vec2 * self`.
+/// This can represent 2D scale, rotation and shear, but not translation or
+/// projections. If you need translation, use [`Affine2`]. If you need
+/// projections, use [`Proj2`].
 ///
-/// If you need translation, use [`Affine2`]. If you need 2D projections, use
-/// [`Proj2`].
+/// Use `vector * matrix` to transform vectors.
 ///
 /// # Fields
 ///
-/// - `x_axis: Vec2<T>` (the first row of the matrix, represents the result of
-///   `(1, 0) * self`)
+/// - `x_axis: Vec2<T>` The first row of a matrix, representing the result of
+///   `+X * matrix`.
 ///
-/// - `y_axis: Vec2<T>` (the second row of the matrix, represents the result of
-///   `(0, 1) * self`)
+/// - `y_axis: Vec2<T>` The second row of a matrix, representing the result of
+///   `+Y * matrix`.
 ///
-/// Note that these fields are only exposed by implementing [`Deref`] and
-/// [`DerefMut`].
+/// Fields are exposed by implementing [`Deref`] and [`DerefMut`].
 ///
 /// [`Affine2`]: crate::Affine2
 /// [`Proj2`]: crate::Proj2
@@ -117,28 +113,27 @@ pub type Mat2<T> = Matrix<2, T, Unaligned>;
 
 /// A 3x3 row-major matrix.
 ///
-/// This represents a 3D linear transformation, applied using `vec3 * self`.
+/// This can represent 3D scale, rotation and shear, but not translation or
+/// projections. If you need translation, use [`Affine3`]. If you need
+/// projections, use [`Proj3`].
 ///
-/// If you need translation, use [`Affine3`]. If you need projections, use
-/// [`Proj3`].
+/// Use `vector * matrix` to transform vectors.
 ///
-/// Unlike many other libraries, here [`Mat3`] is not used for 2D affine and
-/// projective transformations. For that use the [`Affine2`] and [`Proj2`]
-/// types.
+/// Unlike in traditional APIs, here [`Mat3`] is not used for 2D affine and
+/// projective transformations. For that use [`Affine2`] and [`Proj2`].
 ///
 /// # Fields
 ///
-/// - `x_axis: Vec3<T>` (the first row of the matrix, represents the result of
-///   `(1, 0, 0) * self`)
+/// - `x_axis: Vec3<T>` The first row of a matrix, representing the result of
+///   `+X * matrix`.
 ///
-/// - `y_axis: Vec3<T>` (the second row of the matrix, represents the result of
-///   `(0, 1, 0) * self`)
+/// - `y_axis: Vec3<T>` The second row of a matrix, representing the result of
+///   `+Y * matrix`.
 ///
-/// - `z_axis: Vec3<T>` (the third row of the matrix, represents the result of
-///   `(0, 0, 1) * self`)
+/// - `z_axis: Vec3<T>` The third row of a matrix, representing the result of
+///   `+Z * matrix`.
 ///
-/// Note that these fields are only exposed by implementing [`Deref`] and
-/// [`DerefMut`].
+/// Fields are exposed by implementing [`Deref`] and [`DerefMut`].
 ///
 /// [`Affine3`]: crate::Affine3
 /// [`Proj3`]: crate::Proj3
@@ -149,30 +144,28 @@ pub type Mat3<T> = Matrix<3, T, Unaligned>;
 
 /// A 4x4 row-major matrix.
 ///
-/// Unlike many other libraries, here [`Mat4`] is not used for 3D affine and
-/// projective transformations. For that use the [`Affine3`] and [`Proj3`]
-/// types.
+/// Use `vector * matrix` to transform vectors.
 ///
-/// This represents a 4D linear transformation, applied using `vec4 * self`.
-/// Even though this type does not have many use cases, it is still useful for
-/// raw matrix operations and interop with other libraries.
+/// Unlike in traditional APIs, here [`Mat4`] is not used for 3D affine and
+/// projective transformations. For that use [`Affine3`] and [`Proj3`]. Here
+/// [`Mat4`] is mostly used for raw matrix operations and interop with other
+/// libraries.
 ///
 /// # Fields
 ///
-/// - `x_axis: Vec4<T>` (the first row of the matrix, represents the result of
-///   `(1, 0, 0, 0) * self`)
+/// - `x_axis: Vec4<T>` The first row of a matrix, representing the result of
+///   `+X * matrix`.
 ///
-/// - `y_axis: Vec4<T>` (the second row of the matrix, represents the result of
-///   `(0, 1, 0, 0) * self`)
+/// - `y_axis: Vec4<T>` The second row of a matrix, representing the result of
+///   `+Y * matrix`.
 ///
-/// - `z_axis: Vec4<T>` (the third row of the matrix, represents the result of
-///   `(0, 0, 1, 0) * self`)
+/// - `z_axis: Vec4<T>` The third row of a matrix, representing the result of
+///   `+Z * matrix`.
 ///
-/// - `w_axis: Vec4<T>` (the fourth row of the matrix, represents the result of
-///   `(0, 0, 0, 1) * self`)
+/// - `w_axis: Vec4<T>` The fourth row of a matrix, representing the result of
+///   `+W * matrix`.
 ///
-/// Note that these fields are only exposed by implementing [`Deref`] and
-/// [`DerefMut`].
+/// Fields are exposed by implementing [`Deref`] and [`DerefMut`].
 ///
 /// [`Affine3`]: crate::Affine3
 /// [`Proj3`]: crate::Proj3
@@ -181,21 +174,21 @@ pub type Mat4<T> = Matrix<4, T, Unaligned>;
 
 /// A 2x2 row-major matrix.
 ///
-/// This represents a 2D linear transformation, applied using `vec2 * self`.
+/// This can represent 2D scale, rotation and shear, but not translation or
+/// projections. If you need translation, use [`Affine2A`]. If you need
+/// projections, use [`Proj2A`].
 ///
-/// If you need translation, use [`Affine2A`]. If you need 2D projections, use
-/// [`Proj2A`].
+/// Use `vector * matrix` to transform vectors.
 ///
 /// # Fields
 ///
-/// - `x_axis: Vec2A<T>` (the first row of the matrix, represents the result of
-///   `(1, 0) * self`)
+/// - `x_axis: Vec2A<T>` The first row of a matrix, representing the result of
+///   `+X * matrix`.
 ///
-/// - `y_axis: Vec2A<T>` (the second row of the matrix, represents the result of
-///   `(0, 1) * self`)
+/// - `y_axis: Vec2A<T>` The second row of a matrix, representing the result of
+///   `+Y * matrix`.
 ///
-/// Note that these fields are only exposed by implementing [`Deref`] and
-/// [`DerefMut`].
+/// Fields are exposed by implementing [`Deref`] and [`DerefMut`].
 ///
 /// # SIMD alignment
 ///
@@ -220,28 +213,27 @@ pub type Mat2A<T> = Matrix<2, T, Aligned>;
 
 /// A 3x3 row-major matrix.
 ///
-/// This represents a 3D linear transformation, applied using `vec3 * self`.
+/// This can represent 3D scale, rotation and shear, but not translation or
+/// projections. If you need translation, use [`Affine3A`]. If you need
+/// projections, use [`Proj3A`].
 ///
-/// If you need translation, use [`Affine3A`]. If you need projections, use
-/// [`Proj3A`].
+/// Use `vector * matrix` to transform vectors.
 ///
-/// Unlike many other libraries, here [`Mat3A`] is not used for 2D affine and
-/// projective transformations. For that use the [`Affine2A`] and [`Proj2A`]
-/// types.
+/// Unlike in traditional APIs, here [`Mat3A`] is not used for 2D affine and
+/// projective transformations. For that use [`Affine2A`] and [`Proj2A`].
 ///
 /// # Fields
 ///
-/// - `x_axis: Vec3A<T>` (the first row of the matrix, represents the result of
-///   `(1, 0, 0) * self`)
+/// - `x_axis: Vec3A<T>` The first row of a matrix, representing the result of
+///   `+X * matrix`.
 ///
-/// - `y_axis: Vec3A<T>` (the second row of the matrix, represents the result of
-///   `(0, 1, 0) * self`)
+/// - `y_axis: Vec3A<T>` The second row of a matrix, representing the result of
+///   `+Y * matrix`.
 ///
-/// - `z_axis: Vec3A<T>` (the third row of the matrix, represents the result of
-///   `(0, 0, 1) * self`)
+/// - `z_axis: Vec3A<T>` The third row of a matrix, representing the result of
+///   `+Z * matrix`.
 ///
-/// Note that these fields are only exposed by implementing [`Deref`] and
-/// [`DerefMut`].
+/// Fields are exposed by implementing [`Deref`] and [`DerefMut`].
 ///
 /// # SIMD alignment
 ///
@@ -268,30 +260,28 @@ pub type Mat3A<T> = Matrix<3, T, Aligned>;
 
 /// A 4x4 row-major matrix.
 ///
-/// Unlike many other libraries, here [`Mat4A`] is not used for 3D affine and
-/// projective transformations. For that use the [`Affine3A`] and [`Proj3A`]
-/// types.
+/// Use `vector * matrix` to transform vectors.
 ///
-/// This represents a 4D linear transformation, applied using `vec4 * self`.
-/// Even though this type does not have many use cases, it is still useful for
-/// raw matrix operations and interop with other libraries.
+/// Unlike in traditional APIs, here [`Mat4A`] is not used for 3D affine and
+/// projective transformations. For that use [`Affine3A`] and [`Proj3A`]. Here
+/// [`Mat4A`] is mostly used for raw matrix operations and interop with other
+/// libraries.
 ///
 /// # Fields
 ///
-/// - `x_axis: Vec4A<T>` (the first row of the matrix, represents the result of
-///   `(1, 0, 0, 0) * self`)
+/// - `x_axis: Vec4A<T>` The first row of a matrix, representing the result of
+///   `+X * matrix`.
 ///
-/// - `y_axis: Vec4A<T>` (the second row of the matrix, represents the result of
-///   `(0, 1, 0, 0) * self`)
+/// - `y_axis: Vec4A<T>` The second row of a matrix, representing the result of
+///   `+Y * matrix`.
 ///
-/// - `z_axis: Vec4A<T>` (the third row of the matrix, represents the result of
-///   `(0, 0, 1, 0) * self`)
+/// - `z_axis: Vec4A<T>` The third row of a matrix, representing the result of
+///   `+Z * matrix`.
 ///
-/// - `w_axis: Vec4A<T>` (the fourth row of the matrix, represents the result of
-///   `(0, 0, 0, 1) * self`)
+/// - `w_axis: Vec4A<T>` The fourth row of a matrix, representing the result of
+///   `+W * matrix`.
 ///
-/// Note that these fields are only exposed by implementing [`Deref`] and
-/// [`DerefMut`].
+/// Fields are exposed by implementing [`Deref`] and [`DerefMut`].
 ///
 /// # SIMD alignment
 ///
@@ -339,11 +329,11 @@ where
 {
     type Output = Vector<N, T, A>;
 
-    /// Returns the row at the given index.
+    /// Returns the given row of a row-major matrix.
     ///
     /// # Panics
     ///
-    /// Panics if index is greater than or equal to the dimension of the matrix.
+    /// Panics if `index` is greater than or equal to `N`.
     #[inline]
     #[track_caller]
     fn index(&self, index: usize) -> &Self::Output {
@@ -356,11 +346,11 @@ where
     Dim<N>: TwoThreeOrFour,
     T: Element,
 {
-    /// Returns a mutable reference to the row at the given index.
+    /// Returns the given row of a row-major matrix.
     ///
     /// # Panics
     ///
-    /// Panics if index is greater than or equal to the dimension of the matrix.
+    /// Panics if `index` is greater than or equal to `N`.
     #[inline]
     #[track_caller]
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
@@ -374,13 +364,9 @@ pub struct Mat2Fields<T, A: Alignment>
 where
     T: Element,
 {
-    /// The first row of the matrix.
-    ///
-    /// This represents the result of multiplying `(1, 0)` by the matrix.
+    /// The first row of a matrix, representing the result of `+X * matrix`.
     pub x_axis: Vector<2, T, A>,
-    /// The second row of the matrix.
-    ///
-    /// This represents the result of multiplying `(0, 1)` by the matrix.
+    /// The second row of a matrix, representing the result of `+Y * matrix`.
     pub y_axis: Vector<2, T, A>,
 }
 
@@ -416,17 +402,11 @@ pub struct Mat3Fields<T, A: Alignment>
 where
     T: Element,
 {
-    /// The first row of the matrix.
-    ///
-    /// This represents the result of multiplying `(1, 0, 0)` by the matrix.
+    /// The first row of a matrix, representing the result of `+X * matrix`.
     pub x_axis: Vector<3, T, A>,
-    /// The second row of the matrix.
-    ///
-    /// This represents the result of multiplying `(0, 1, 0)` by the matrix.
+    /// The second row of a matrix, representing the result of `+Y * matrix`.
     pub y_axis: Vector<3, T, A>,
-    /// The third row of the matrix.
-    ///
-    /// This represents the result of multiplying `(0, 0, 1)` by the matrix.
+    /// The third row of a matrix, representing the result of `+Z * matrix`.
     pub z_axis: Vector<3, T, A>,
 }
 
@@ -462,21 +442,13 @@ pub struct Mat4Fields<T, A: Alignment>
 where
     T: Element,
 {
-    /// The first row of the matrix.
-    ///
-    /// This represents the result of multiplying `(1, 0, 0, 0)` by the matrix.
+    /// The first row of a matrix, representing the result of `+X * matrix`.
     pub x_axis: Vector<4, T, A>,
-    /// The second row of the matrix.
-    ///
-    /// This represents the result of multiplying `(0, 1, 0, 0)` by the matrix.
+    /// The second row of a matrix, representing the result of `+Y * matrix`.
     pub y_axis: Vector<4, T, A>,
-    /// The third row of the matrix.
-    ///
-    /// This represents the result of multiplying `(0, 0, 1, 0)` by the matrix.
+    /// The third row of a matrix, representing the result of `+Z * matrix`.
     pub z_axis: Vector<4, T, A>,
-    /// The fourth row of the matrix.
-    ///
-    /// This represents the result of multiplying `(0, 0, 0, 1)` by the matrix.
+    /// The fourth row of a matrix, representing the result of `+W * matrix`.
     pub w_axis: Vector<4, T, A>,
 }
 
@@ -1001,10 +973,8 @@ macro_rules! impl_mul {
     };
 }
 impl_mul!(
-    /// Matrix multiplication.
-    ///
-    /// Because vectors are treated as row matrices, matrix multiplication first
-    /// applies the left-hand side matrix, then the right-hand side matrix.
+    /// Multiplies two matrices, returning a matrix equivalent to applying the
+    /// left matrix then the right matrix.
     ///
     /// Equivalent to `[self.x_axis * rhs, self.y_axis * rhs, ...]`.
     ///
@@ -1084,10 +1054,7 @@ macro_rules! impl_vector_mul {
     };
 }
 impl_vector_mul!(
-    /// Vector-matrix multiplication.
-    ///
-    /// Because vectors are treated as row matrices, they always go on the
-    /// left-hand side.
+    /// Transforms a vector by a matrix.
     ///
     /// Equivalent to `self.x * rhs.x_axis + self.y * rhs.y_axis + ...`.
     ///

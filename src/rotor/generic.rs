@@ -16,7 +16,7 @@ where
 {
     /// A rotor that keeps all vectors unchanged.
     ///
-    /// This sets `s` to 1 and all other elements to 0.
+    /// This sets `s` to `1` and all other elements to `0`.
     pub const IDENTITY: Self = Self::IDENTITY_INTERNAL_IMPL;
 
     /// The implementation of [`Self::IDENTITY`].

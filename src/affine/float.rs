@@ -14,13 +14,13 @@ where
 
     /// Creates an affine transform from a rotor.
     ///
-    /// This assumes the rotor is normalized.
+    /// This assumes `rotor` is normalized.
     ///
     /// # Panics
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if the rotor is not normalized.
+    /// Panics if `rotor` is not normalized.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -41,8 +41,7 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `self` does not approximately only contain rotation and
-    /// translation.
+    /// Panics if `self` contains anything but rotation and translation.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -95,7 +94,7 @@ where
         self.matrix.to_scale_rotor()
     }
 
-    /// Creates an affine transform from a rotor and translation.
+    /// Creates an affine transform from a rotor and a translation vector.
     ///
     /// This assumes `rotor` is normalized.
     ///
@@ -123,8 +122,7 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `self` does not approximately only contain rotation and
-    /// translation.
+    /// Panics if `self` contains anything but rotation and translation.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -136,8 +134,8 @@ where
         (self.to_rotor(), self.translation)
     }
 
-    /// Creates an affine transform from a non-uniform scale, a rotor and
-    /// translation.
+    /// Creates an affine transform from a non-uniform scale, a rotor and a
+    /// translation vector.
     ///
     /// This assumes `rotor` is normalized.
     ///
@@ -165,7 +163,7 @@ where
     }
 
     /// Converts an affine transform to a non-uniform scale, a rotor and
-    /// translation.
+    /// a translation vector.
     ///
     /// This assumes `self` only contains scale, rotation and translation.
     ///
@@ -186,9 +184,9 @@ where
         (scale, rotor, self.translation)
     }
 
-    /// Returns the inverse of `self`.
+    /// Returns the inverse of an affine transform.
     ///
-    /// If `self` is not invertable the result is unspecified.
+    /// This assumes `self` is invertable.
     ///
     /// # Panics
     ///
@@ -303,7 +301,7 @@ impl<T, A: Alignment> Affine<2, T, A>
 where
     T: PrimitiveFloat,
 {
-    /// Creates an affine transform from a 2D rotation.
+    /// Creates a 2D affine transform from a 2D rotation.
     ///
     /// This assumes `rotation` is normalized.
     ///
@@ -319,7 +317,7 @@ where
         Self::from_matrix(&Matrix::<2, T, A>::from_rotation(rotation))
     }
 
-    /// Converts an affine transform to a 2D rotation.
+    /// Converts a 2D affine transform to a 2D rotation.
     ///
     /// This assumes `self` only contains rotation, and translation which is
     /// ignored.
@@ -328,8 +326,7 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `self` does not approximately only contain rotation and
-    /// translation.
+    /// Panics if `self` contains anything but rotation and translation.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -337,7 +334,8 @@ where
         self.matrix.to_rotation()
     }
 
-    /// Creates an affine transform from `scale` and 2D rotation.
+    /// Creates a 2D affine transform from a non-uniform scale and a 2D
+    /// rotation.
     ///
     /// This assumes `rotation` is normalized.
     ///
@@ -353,15 +351,16 @@ where
         Self::from_matrix(&Matrix::<2, T, A>::from_scale_rotation(scale, rotation))
     }
 
-    /// Converts an affine transform to scale and rotation.
+    /// Converts a 2D affine transform to a non-uniform scale and a 2D rotation.
     ///
-    /// This assumes `self` does not contain shear.
+    /// This assumes `self` only contains scale, rotation, and translation which
+    /// is ignored.
     ///
     /// # Panics
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `self` contains shear or the determinant of `self` is zero.
+    /// Panics if `self` contains anything but scale, rotation and translation.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -369,7 +368,8 @@ where
         self.matrix.to_scale_rotation()
     }
 
-    /// Creates an affine transform from `rotation` and `translation`.
+    /// Creates a 2D affine transform from a 2D rotation and a translation
+    /// vector.
     ///
     /// This assumes `rotation` is normalized.
     ///
@@ -388,7 +388,8 @@ where
         Self::from_matrix_translation(&Matrix::<2, T, A>::from_rotation(rotation), translation)
     }
 
-    /// Converts an affine transform to a 2D rotation and a translation vector.
+    /// Converts a 2D affine transform to a 2D rotation and a translation
+    /// vector.
     ///
     /// This assumes `self` only contains rotation and translation.
     ///
@@ -396,8 +397,7 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `self` does not approximately only contain rotation and
-    /// translation.
+    /// Panics if `self` contains anything but rotation and translation.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -405,7 +405,8 @@ where
         (self.to_rotation(), self.translation)
     }
 
-    /// Creates an affine transform from `scale`, 2D rotation and translation.
+    /// Creates a 2D affine transform from a non-uniform scale, a 2D rotation
+    /// and a translation vector.
     ///
     /// This assumes `rotation` is normalized.
     ///
@@ -428,15 +429,16 @@ where
         )
     }
 
-    /// Converts an affine transform to scale, rotation and translation.
+    /// Converts a 2D affine transform to a non-uniform scale, a 2D rotation and
+    /// a translation vector.
     ///
-    /// This assumes `self` does not contain shear.
+    /// This assumes `self` only contains scale, rotation and translation.
     ///
     /// # Panics
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `self` contains shear or the determinant of `self` is zero.
+    /// Panics if `self` contains anything but scale, rotation and translation.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -447,8 +449,8 @@ where
         (scale, rotation, self.translation)
     }
 
-    /// Creates an affine transform containing a rotation from an `angle`
-    /// (in radians) rotating `+X` to `+Y`.
+    /// Creates a 2D affine transform from an angle (in radians) rotating `+X`
+    /// to `+Y`.
     #[inline]
     #[must_use]
     pub fn from_angle(angle: T) -> Self {
@@ -465,8 +467,7 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `self` does not approximately only contain rotation and
-    /// translation.
+    /// Panics if `self` contains anything but rotation and translation.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -474,26 +475,25 @@ where
         self.matrix.to_angle()
     }
 
-    /// Creates an affine transform containing a non-uniform `scale` and
-    /// rotation of `angle` (in radians).
-    ///
-    /// This rotates `+X` to `+Y`.
+    /// Creates a 2D affine transform from a non-uniform scale and an angle (in
+    /// radians) rotating `+X` to `+Y`.
     #[inline]
     #[must_use]
     pub fn from_scale_angle(scale: Vector<2, T, A>, angle: T) -> Self {
         Self::from_matrix(&Matrix::<2, T, A>::from_scale_angle(scale, angle))
     }
 
-    /// Returns the `scale` and `angle` of `self`.
+    /// Converts a 2D affine transform to a non-uniform scale and an angle (in
+    /// radians) rotating `+X` to `+Y`.
     ///
-    /// `self` must be reversible and not contain shearing. Otherwise the result
-    /// is unspecified.
+    /// This assumes `self` only contains scale, rotation, and translation which
+    /// is ignored.
     ///
     /// # Panics
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `self` contains shearing or the determinant of `self` is zero.
+    /// Panics if `self` contains anything but scale, rotation and translation.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -501,10 +501,8 @@ where
         self.matrix.to_scale_angle()
     }
 
-    /// Creates an affine transform containing a rotation of `angle`
-    /// (in radians) and `translation`.
-    ///
-    /// This rotates `+X` to `+Y`.
+    /// Creates a 2D affine transform from an angle (in radians) rotating `+X`
+    /// to `+Y` and a translation vector.
     #[inline]
     #[must_use]
     pub fn from_angle_translation(angle: T, translation: Vector<2, T, A>) -> Self {
@@ -520,8 +518,7 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `self` does not approximately only contain rotation and
-    /// translation.
+    /// Panics if `self` contains anything but rotation and translation.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -529,10 +526,8 @@ where
         (self.to_angle(), self.translation)
     }
 
-    /// Creates an affine transform containing a non-uniform `scale`, rotation
-    /// of `angle` (in radians) and `translation`.
-    ///
-    /// This rotates `+X` to `+Y`.
+    /// Creates a 2D affine transform from a non-uniform scale, an angle (in
+    /// radians) rotating `+X` to `+Y` and a translation vector.
     #[inline]
     #[must_use]
     pub fn from_scale_angle_translation(
@@ -546,16 +541,16 @@ where
         )
     }
 
-    /// Returns the `scale`, `angle` and `translation` of `self`.
+    /// Converts a 2D affine transform to a non-uniform scale, an angle (in
+    /// radians) rotating `+X` to `+Y` and a translation vector.
     ///
-    /// `self` must be reversible and not contain shearing. Otherwise the result
-    /// is unspecified.
+    /// This assumes `self` only contains scale, rotation and translation.
     ///
     /// # Panics
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `self` contains shearing or the determinant of `self` is zero.
+    /// Panics if `self` contains anything but scale, rotation and translation.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -569,34 +564,40 @@ impl<T, A: Alignment> Affine<3, T, A>
 where
     T: PrimitiveFloat,
 {
-    /// Creates an affine transform containing a rotation from an `angle` (in
-    /// radians) rotating `+X` to `+Y`.
+    /// Creates a 3D affine transform from an angle (in radians) rotating `+X`
+    /// to `+Y`.
     #[inline]
     #[must_use]
     pub fn from_rotation_xy(angle: T) -> Self {
         Self::from_matrix(&Matrix::<3, T, A>::from_rotation_xy(angle))
     }
 
-    /// Creates an affine transform containing a rotation from an `angle` (in
-    /// radians) rotating `+X` to `+Z`.
+    /// Creates a 3D affine transform from an angle (in radians) rotating `+X`
+    /// to `+Z`.
     #[inline]
     #[must_use]
     pub fn from_rotation_xz(angle: T) -> Self {
         Self::from_matrix(&Matrix::<3, T, A>::from_rotation_xz(angle))
     }
 
-    /// Creates an affine transform containing a rotation from an `angle` (in
-    /// radians) rotating `+Y` to `+Z`.
+    /// Creates a 3D affine transform from an angle (in radians) rotating `+Y`
+    /// to `+Z`.
     #[inline]
     #[must_use]
     pub fn from_rotation_yz(angle: T) -> Self {
         Self::from_matrix(&Matrix::<3, T, A>::from_rotation_yz(angle))
     }
 
-    /// Creates an affine transform containing a rotation from a rotation `axis`
-    /// and `angle` (in radians) using the right-hand rule.
+    /// Creates a 3D affine transform from a rotation axis and an angle (in
+    /// radians).
     ///
-    /// `axis` must be normalized. Otherwise the result is unspecified.
+    /// This follows the right-hand rule:
+    ///
+    /// - `+X` rotates `+Y` to `+Z`
+    /// - `+Y` rotates `+Z` to `+X`
+    /// - `+Z` rotates `+X` to `+Y`
+    ///
+    /// This assumes `axis` is normalized.
     ///
     /// # Panics
     ///
@@ -610,7 +611,14 @@ where
         Self::from_matrix(&Matrix::<3, T, A>::from_axis_angle(axis, angle))
     }
 
-    /// Converts a 3D affine transform to an axis-angle rotation.
+    /// Converts a 3D affine transform to a rotation axis and an angle (in
+    /// radians).
+    ///
+    /// This follows the right-hand rule:
+    ///
+    /// - `+X` rotates `+Y` to `+Z`
+    /// - `+Y` rotates `+Z` to `+X`
+    /// - `+Z` rotates `+X` to `+Y`
     ///
     /// This assumes `self` only contains rotation, and translation which is
     /// ignored.
@@ -619,8 +627,7 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `self` does not approximately only contain rotation and
-    /// translation.
+    /// Panics if `self` contains anything but rotation and translation.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -628,14 +635,44 @@ where
         self.matrix.to_axis_angle()
     }
 
-    /// Creates a 3D affine transform from a scaled-axis rotation.
+    /// Creates a 3D affine transform from a rotation axis scaled by an angle
+    /// (in radians).
+    ///
+    /// Equivalent to:
+    ///
+    /// ```ignore
+    /// Self::from_axis_angle(
+    ///     scaled_axis.normalize(),
+    ///     scaled_axis.length(),
+    /// )
+    /// ```
+    ///
+    /// This follows the right-hand rule:
+    ///
+    /// - `+X` rotates `+Y` to `+Z`
+    /// - `+Y` rotates `+Z` to `+X`
+    /// - `+Z` rotates `+X` to `+Y`
     #[inline]
     #[must_use]
     pub fn from_scaled_axis(scaled_axis: Vector<3, T, A>) -> Self {
         Self::from_matrix(&Matrix::<3, T, A>::from_scaled_axis(scaled_axis))
     }
 
-    /// Converts a 3D affine transform to a scaled-axis rotation.
+    /// Converts a 3D affine transform to a rotation axis scaled by an angle (in
+    /// radians).
+    ///
+    /// Equivalent to:
+    ///
+    /// ```ignore
+    /// let (axis, angle) = self.to_axis_angle();
+    /// axis * angle
+    /// ```
+    ///
+    /// This follows the right-hand rule:
+    ///
+    /// - `+X` rotates `+Y` to `+Z`
+    /// - `+Y` rotates `+Z` to `+X`
+    /// - `+Z` rotates `+X` to `+Y`
     ///
     /// This assumes `self` only contains rotation, and translation which is
     /// ignored.
@@ -644,8 +681,7 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `self` does not approximately only contain rotation and
-    /// translation.
+    /// Panics if `self` contains anything but rotation and translation.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -653,25 +689,25 @@ where
         self.matrix.to_scaled_axis()
     }
 
-    /// Creates an affine transform containing a rotation from an Euler rotation
-    /// order/sequence and angles (in radians).
+    /// Creates a 3D affine transform from an Euler rotation order/sequence and
+    /// angles (in radians).
     #[inline]
     #[must_use]
     pub fn from_euler(order: EulerRot, a: T, b: T, c: T) -> Self {
         Self::from_matrix(&Matrix::<3, T, A>::from_euler(order, a, b, c))
     }
 
-    /// Returns the Euler angles forming `self` for the given Euler rotation
-    /// order/sequence.
+    /// Converts a 3D affine transform to Euler angles for a given Euler
+    /// rotation order/sequence.
     ///
-    /// `self` must not contain any non-rotation transformations, excluding
-    /// translation. Otherwise the result is unspecified.
+    /// This assumes `self` only contains rotation, and translation which is
+    /// ignored.
     ///
     /// # Panics
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `self` contains scaling or shearing.
+    /// Panics if `self` contains anything but rotation and translation.
     #[inline]
     #[must_use]
     #[track_caller]

@@ -32,6 +32,8 @@ mod wide_float;
 
 /// A rotor representing rotation.
 ///
+/// Use `vector * rotor` to transform vectors.
+///
 /// A rotor is a mathematical object used to represent rotations. You may be
 /// familiar with quaternions, which are mathematically identical to 3D rotors,
 /// however rotors tend to be easier to understand, and extend better to
@@ -49,8 +51,8 @@ mod wide_float;
 ///
 /// # Type aliases
 ///
-/// - [`Rotor3<T>`] for [`Rotor<3, T, Unaligned>`].
-/// - [`Rotor3A<T>`] for [`Rotor<3, T, Aligned>`].
+/// - [`Rotor3<T>`] for [`Rotor<3, T, Unaligned>`]
+/// - [`Rotor3A<T>`] for [`Rotor<3, T, Aligned>`]
 ///
 /// # Representation
 ///
@@ -78,7 +80,7 @@ mod wide_float;
 ///
 /// Fields are exposed by implementing [`Deref`] and [`DerefMut`].
 ///
-/// # Memory Layout
+/// # Memory layout
 ///
 /// [`Rotor<3, T, A>`] is a transparent wrapper around [`Vector<4, T, A>`].
 ///
@@ -103,6 +105,8 @@ where
 
 /// A 3D rotor representing 3D rotation.
 ///
+/// Use `vector * rotor` to transform vectors.
+///
 /// A rotor is a mathematical object used to represent rotations. You may be
 /// familiar with quaternions, which are mathematically identical to 3D rotors,
 /// however rotors tend to be easier to understand, and extend better to
@@ -142,14 +146,15 @@ where
 /// > `R = e^(B/2)` with vector multiplication `R~vR`. This differs from the
 /// > traditional convention, `R = e^(-B/2)` and `RvR~`.
 ///
-/// Note that the fields are only exposed by implementing [`Deref`] and
-/// [`DerefMut`].
+/// Fields are exposed by implementing [`Deref`] and [`DerefMut`].
 ///
 /// [`rotor.normalize()`]: Rotor#method.normalize
 pub type Rotor3<T> = Rotor<3, T, Unaligned>;
 
 /// A 3D rotor representing 3D rotation.
 ///
+/// Use `vector * rotor` to transform vectors.
+///
 /// A rotor is a mathematical object used to represent rotations. You may be
 /// familiar with quaternions, which are mathematically identical to 3D rotors,
 /// however rotors tend to be easier to understand, and extend better to
@@ -189,8 +194,7 @@ pub type Rotor3<T> = Rotor<3, T, Unaligned>;
 /// > `R = e^(B/2)` with vector multiplication `R~vR`. This differs from the
 /// > traditional convention, `R = e^(-B/2)` and `RvR~`.
 ///
-/// Note that the fields are only exposed by implementing [`Deref`] and
-/// [`DerefMut`].
+/// Fields are exposed by implementing [`Deref`] and [`DerefMut`].
 ///
 /// # SIMD alignment
 ///
@@ -885,7 +889,7 @@ macro_rules! impl_mul {
     };
 }
 impl_mul!(
-    /// Chains two rotors, resulting in a rotor equivalent to applying the left
+    /// Multiplies two rotors, returning a rotor equivalent to applying the left
     /// rotor then the right rotor.
 );
 

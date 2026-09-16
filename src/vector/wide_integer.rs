@@ -41,15 +41,14 @@ macro_rules! items {
         /// Equivalent to
         /// `(self.x.clamp(min.x, max.x), self.y.clamp(min.y, max.y), ...)`.
         ///
-        /// If `min > max`, the result is unspecified. Consider manually
-        /// checking for that case.
+        /// This assumes `min <= max`.
         #[inline]
         #[must_use]
         pub fn clamp(self, min: Self, max: Self) -> Self {
             self.max(min).min(max)
         }
 
-        /// Returns the maximum between the elements of `self`.
+        /// Returns the maximum element of a vector.
         ///
         /// Equivalent to `self.x.max(self.y).max(self.z)...`.
         #[inline]
@@ -58,7 +57,7 @@ macro_rules! items {
             specialize!(Vector::<N, $Wide, A>::max_element_backend(self))
         }
 
-        /// Returns the minimum between the elements of `self`.
+        /// Returns the minimum element of a vector.
         ///
         /// Equivalent to `self.x.min(self.y).min(self.z)...`.
         #[inline]

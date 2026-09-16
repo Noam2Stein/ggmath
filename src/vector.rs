@@ -52,33 +52,25 @@ mod wide_signed;
 #[cfg(feature = "wide")]
 mod wide_unsigned;
 
-/// An `N`-dimensional vector of type `T`.
-///
-/// `A` controls SIMD alignment and is either [`Unaligned`] or [`Aligned`]. See
-/// [`Alignment`] for more details.
+/// A vector.
 ///
 /// # Type aliases
 ///
-/// - [`Vec2<T>`] for [`Vector<2, T, Unaligned>`].
-/// - [`Vec3<T>`] for [`Vector<3, T, Unaligned>`].
-/// - [`Vec4<T>`] for [`Vector<4, T, Unaligned>`].
-/// - [`Vec2A<T>`] for [`Vector<2, T, Aligned>`].
-/// - [`Vec3A<T>`] for [`Vector<3, T, Aligned>`].
-/// - [`Vec4A<T>`] for [`Vector<4, T, Aligned>`].
+/// - [`Vec2<T>`] for [`Vector<2, T, Unaligned>`]
+/// - [`Vec3<T>`] for [`Vector<3, T, Unaligned>`]
+/// - [`Vec4<T>`] for [`Vector<4, T, Unaligned>`]
+/// - [`Vec2A<T>`] for [`Vector<2, T, Aligned>`]
+/// - [`Vec3A<T>`] for [`Vector<3, T, Aligned>`]
+/// - [`Vec4A<T>`] for [`Vector<4, T, Aligned>`]
 ///
 /// # Fields
 ///
-/// - `x: T` (the first element of the vector, exists for lengths `2`, `3`, `4`)
+/// - `x: T` The first element of a vector. (exists for 2D, 3D, 4D)
+/// - `y: T` The second element of a vector. (exists for 2D, 3D, 4D)
+/// - `z: T` The third element of a vector. (exists for 3D, 4D)
+/// - `w: T` The fourth element of a vector. (exists for 4D)
 ///
-/// - `y: T` (the second element of the vector, exists for lengths `2`, `3`,
-///   `4`)
-///
-/// - `z: T` (the third element of the vector, exists for lengths `3`, `4`)
-///
-/// - `w: T` (the fourth element of the vector, exists for length `4`)
-///
-/// Note that these fields are only exposed by implementing [`Deref`] and
-/// [`DerefMut`].
+/// Fields are exposed by implementing [`Deref`] and [`DerefMut`].
 ///
 /// # Memory layout
 ///
@@ -116,47 +108,43 @@ where
 ///
 /// # Fields
 ///
-/// - `x: T` (the first element of the vector)
-/// - `y: T` (the second element of the vector)
+/// - `x: T` The first element of a vector.
+/// - `y: T` The second element of a vector.
 ///
-/// Note that these fields are only exposed by implementing [`Deref`] and
-/// [`DerefMut`].
+/// Fields are exposed by implementing [`Deref`] and [`DerefMut`].
 pub type Vec2<T> = Vector<2, T, Unaligned>;
 
 /// A 3D vector.
 ///
 /// # Fields
 ///
-/// - `x: T` (the first element of the vector)
-/// - `y: T` (the second element of the vector)
-/// - `z: T` (the third element of the vector)
+/// - `x: T` The first element of a vector.
+/// - `y: T` The second element of a vector.
+/// - `z: T` The third element of a vector.
 ///
-/// Note that these fields are only exposed by implementing [`Deref`] and
-/// [`DerefMut`].
+/// Fields are exposed by implementing [`Deref`] and [`DerefMut`].
 pub type Vec3<T> = Vector<3, T, Unaligned>;
 
 /// A 4D vector.
 ///
 /// # Fields
 ///
-/// - `x: T` (the first element of the vector)
-/// - `y: T` (the second element of the vector)
-/// - `z: T` (the third element of the vector)
-/// - `w: T` (the fourth element of the vector)
+/// - `x: T` The first element of a vector.
+/// - `y: T` The second element of a vector.
+/// - `z: T` The third element of a vector.
+/// - `w: T` The fourth element of a vector.
 ///
-/// Note that these fields are only exposed by implementing [`Deref`] and
-/// [`DerefMut`].
+/// Fields are exposed by implementing [`Deref`] and [`DerefMut`].
 pub type Vec4<T> = Vector<4, T, Unaligned>;
 
 /// A 2D vector.
 ///
 /// # Fields
 ///
-/// - `x: T` (the first element of the vector)
-/// - `y: T` (the second element of the vector)
+/// - `x: T` The first element of a vector.
+/// - `y: T` The second element of a vector.
 ///
-/// Note that these fields are only exposed by implementing [`Deref`] and
-/// [`DerefMut`].
+/// Fields are exposed by implementing [`Deref`] and [`DerefMut`].
 ///
 /// # SIMD alignment
 ///
@@ -169,12 +157,11 @@ pub type Vec2A<T> = Vector<2, T, Aligned>;
 ///
 /// # Fields
 ///
-/// - `x: T` (the first element of the vector)
-/// - `y: T` (the second element of the vector)
-/// - `z: T` (the third element of the vector)
+/// - `x: T` The first element of a vector.
+/// - `y: T` The second element of a vector.
+/// - `z: T` The third element of a vector.
 ///
-/// Note that these fields are only exposed by implementing [`Deref`] and
-/// [`DerefMut`].
+/// Fields are exposed by implementing [`Deref`] and [`DerefMut`].
 ///
 /// # SIMD alignment
 ///
@@ -196,13 +183,12 @@ pub type Vec3A<T> = Vector<3, T, Aligned>;
 ///
 /// # Fields
 ///
-/// - `x: T` (the first element of the vector)
-/// - `y: T` (the second element of the vector)
-/// - `z: T` (the third element of the vector)
-/// - `w: T` (the fourth element of the vector)
+/// - `x: T` The first element of a vector.
+/// - `y: T` The second element of a vector.
+/// - `z: T` The third element of a vector.
+/// - `w: T` The fourth element of a vector.
 ///
-/// Note that these fields are only exposed by implementing [`Deref`] and
-/// [`DerefMut`].
+/// Fields are exposed by implementing [`Deref`] and [`DerefMut`].
 ///
 /// # SIMD alignment
 ///
@@ -307,9 +293,9 @@ where
 #[doc(hidden)]
 #[repr(C)]
 pub struct Vec2Fields<T> {
-    /// The first element of the vector.
+    /// The first element of a vector.
     pub x: T,
-    /// The second element of the vector.
+    /// The second element of a vector.
     pub y: T,
 }
 
@@ -342,11 +328,11 @@ where
 #[doc(hidden)]
 #[repr(C)]
 pub struct Vec3Fields<T> {
-    /// The first element of the vector.
+    /// The first element of a vector.
     pub x: T,
-    /// The second element of the vector.
+    /// The second element of a vector.
     pub y: T,
-    /// The third element of the vector.
+    /// The third element of a vector.
     pub z: T,
 }
 
@@ -379,13 +365,13 @@ where
 #[doc(hidden)]
 #[repr(C)]
 pub struct Vec4Fields<T> {
-    /// The first element of the vector.
+    /// The first element of a vector.
     pub x: T,
-    /// The second element of the vector.
+    /// The second element of a vector.
     pub y: T,
-    /// The third element of the vector.
+    /// The third element of a vector.
     pub z: T,
-    /// The fourth element of the vector.
+    /// The fourth element of a vector.
     pub w: T,
 }
 
