@@ -90,6 +90,22 @@ where
         specialize_3!(Rotor::<N, T, A>::from_matrix_backend(matrix))
     }
 
+    /// Converts a rotor to a matrix.
+    ///
+    /// This assumes `self` is normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` is not normalized.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_matrix(self) -> Matrix<N, T, A> {
+        Matrix::<N, T, A>::from_rotor(self)
+    }
+
     /// Converts an affine transform to a rotor.
     ///
     /// This assumes `affine` only contains rotation, and translation which is
@@ -107,6 +123,22 @@ where
         Self::from_matrix(&affine.matrix)
     }
 
+    /// Converts a rotor to an affine transform.
+    ///
+    /// This assumes `self` is normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` is not normalized.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_affine(self) -> Affine<N, T, A> {
+        Affine::<N, T, A>::from_rotor(self)
+    }
+
     /// Converts a projective transform to a rotor.
     ///
     /// This assumes `projective` only contains rotation, and translation which
@@ -122,6 +154,22 @@ where
     #[track_caller]
     pub fn from_projective(projective: &Projective<N, T, A>) -> Self {
         specialize_3!(Rotor::<N, T, A>::from_projective_backend(projective))
+    }
+
+    /// Converts a rotor to a projective transform.
+    ///
+    /// This assumes `self` is normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` is not normalized.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_projective(self) -> Projective<N, T, A> {
+        Projective::<N, T, A>::from_rotor(self)
     }
 
     /// Returns the angle (in radians) for the minimal rotation for transforming
