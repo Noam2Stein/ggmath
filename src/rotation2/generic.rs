@@ -142,6 +142,25 @@ where
         Self(matrix.x_axis)
     }
 
+    /// Converts a 2D rotation to a 2x2 matrix.
+    ///
+    /// This assumes `self` is normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` is not normalized (according to [`EqTest`]).
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_matrix(self) -> Matrix<2, T, A>
+    where
+        T: Debug + Neg<Output = T> + Add<Output = T> + Mul<Output = T> + One + EqTest,
+    {
+        Matrix::from_rotation(self)
+    }
+
     /// Converts a 2D affine transform to a 2D rotation.
     ///
     /// This assumes `affine` only contains rotation, and translation which is
@@ -161,6 +180,25 @@ where
         T: Debug + Neg<Output = T> + Add<Output = T> + Mul<Output = T> + One + EqTest,
     {
         Self::from_matrix(&affine.matrix)
+    }
+
+    /// Converts a 2D rotation to a 2D affine transform.
+    ///
+    /// This assumes `self` is normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` is not normalized (according to [`EqTest`]).
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_affine(self) -> Affine<2, T, A>
+    where
+        T: Debug + Neg<Output = T> + Add<Output = T> + Mul<Output = T> + Zero + One + EqTest,
+    {
+        Affine::from_rotation(self)
     }
 
     /// Converts a 2D projective transform to a 2D rotation.
@@ -196,6 +234,25 @@ where
         );
 
         Self(projective.x_axis.truncate())
+    }
+
+    /// Converts a 2D rotation to a 2D projective transform.
+    ///
+    /// This assumes `self` is normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` is not normalized (according to [`EqTest`]).
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_projective(self) -> Projective<2, T, A>
+    where
+        T: Debug + Neg<Output = T> + Add<Output = T> + Mul<Output = T> + Zero + One + EqTest,
+    {
+        Projective::from_rotation(self)
     }
 
     /// Creates a 2D rotation transforming `from` to `to`.
