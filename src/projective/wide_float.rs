@@ -261,50 +261,6 @@ macro_rules! items {
 
 macro_rules! items_2 {
     ($Wide:ident, $T:ident) => {
-        /// Creates a 2D projective transform from a 2D rotation.
-        ///
-        /// This assumes `rotation` is normalized.
-        #[inline]
-        #[must_use]
-        pub fn from_rotation(rotation: Rotation2<$Wide, A>) -> Self {
-            Self::from_rows(&[
-                rotation.0.extend($Wide::ZERO),
-                Vector::<3, $Wide, A>::new(-rotation.sin, rotation.cos, $Wide::ZERO),
-                Vector::<3, $Wide, A>::Z,
-            ])
-        }
-
-        /// Converts a 2D projective transform to a 2D rotation.
-        ///
-        /// This assumes `self` only contains rotation, and translation which is
-        /// ignored.
-        #[inline]
-        #[must_use]
-        pub fn to_rotation(&self) -> Rotation2<$Wide, A> {
-            Rotation2::<$Wide, A>::from_projective(&self)
-        }
-
-        /// Creates a 2D projective transform from a non-uniform scale and a 2D
-        /// rotation.
-        ///
-        /// This assumes `rotation` is normalized.
-        #[inline]
-        #[must_use]
-        pub fn from_scale_rotation(
-            scale: Vector<2, $Wide, A>,
-            rotation: Rotation2<$Wide, A>,
-        ) -> Self {
-            Self::from_rows(&[
-                (rotation.0 * scale.x).extend($Wide::ZERO),
-                Vector::<3, $Wide, A>::new(
-                    -rotation.sin * scale.y,
-                    rotation.cos * scale.y,
-                    $Wide::ZERO,
-                ),
-                Vector::<3, $Wide, A>::Z,
-            ])
-        }
-
         /// Converts a 2D projective transform to a non-uniform scale and a 2D
         /// rotation.
         ///
@@ -324,55 +280,6 @@ macro_rules! items_2 {
             );
 
             (scale, rotation)
-        }
-
-        /// Creates a 2D projective transform from a 2D rotation and a
-        /// translation vector.
-        ///
-        /// This assumes `rotation` is normalized.
-        #[inline]
-        #[must_use]
-        pub fn from_rotation_translation(
-            rotation: Rotation2<$Wide, A>,
-            translation: Vector<2, $Wide, A>,
-        ) -> Self {
-            Self::from_rows(&[
-                rotation.0.extend($Wide::ZERO),
-                Vector::<3, $Wide, A>::new(-rotation.sin, rotation.cos, $Wide::ZERO),
-                translation.to_homogeneous(),
-            ])
-        }
-
-        /// Converts a 2D projective transform to a 2D rotation and a
-        /// translation vector.
-        ///
-        /// This assumes `self` only contains rotation and translation.
-        #[inline]
-        #[must_use]
-        pub fn to_rotation_translation(&self) -> (Rotation2<$Wide, A>, Vector<2, $Wide, A>) {
-            (self.to_rotation(), self.translation())
-        }
-
-        /// Creates a 2D projective transform from a non-uniform scale, a 2D
-        /// rotation and a translation vector.
-        ///
-        /// This assumes `rotation` is normalized.
-        #[inline]
-        #[must_use]
-        pub fn from_scale_rotation_translation(
-            scale: Vector<2, $Wide, A>,
-            rotation: Rotation2<$Wide, A>,
-            translation: Vector<2, $Wide, A>,
-        ) -> Self {
-            Self::from_rows(&[
-                (rotation.0 * scale.x).extend($Wide::ZERO),
-                Vector::<3, $Wide, A>::new(
-                    -rotation.sin * scale.y,
-                    rotation.cos * scale.y,
-                    $Wide::ZERO,
-                ),
-                translation.to_homogeneous(),
-            ])
         }
 
         /// Converts a 2D projective transform to a non-uniform scale, a 2D
@@ -1769,71 +1676,6 @@ mod tests {
                     (0..LANES).all(|lane| a
                         .lane(lane)
                         .abs_diff_eq(&b.lane(lane), max_abs_diff.to_array()[lane]))
-                );
-            }
-        });
-    }
-
-    #[test]
-    fn test_from_rotation() {
-        for_types!(|Wide: WideFloat| {
-            for rotation in random_iter::<Rot2<Wide>>() {
-                let rotation = rotation.normalize();
-
-                assert_test_eq!(
-                    Proj2::<Wide>::from_rotation(rotation),
-                    Projective::from_affine(&Affine2::<Wide>::from_rotation(rotation))
-                );
-            }
-        });
-    }
-
-    #[test]
-    fn test_from_scale_rotation() {
-        for_types!(|Wide: WideFloat| {
-            for (scale, rotation) in random_iter::<(Vec2<Wide>, Rot2<Wide>)>() {
-                let rotation = rotation.normalize();
-
-                assert_test_eq!(
-                    Proj2::<Wide>::from_scale_rotation(scale, rotation),
-                    Projective::from_affine(&Affine2::<Wide>::from_scale_rotation(scale, rotation))
-                );
-            }
-        });
-    }
-
-    #[test]
-    fn test_from_rotation_translation() {
-        for_types!(|Wide: WideFloat| {
-            for (rotation, translation) in random_iter::<(Rot2<Wide>, Vec2<Wide>)>() {
-                let rotation = rotation.normalize();
-
-                assert_test_eq!(
-                    Proj2::<Wide>::from_rotation_translation(rotation, translation),
-                    Projective::from_affine(&Affine2::<Wide>::from_rotation_translation(
-                        rotation,
-                        translation
-                    ))
-                );
-            }
-        });
-    }
-
-    #[test]
-    fn test_from_scale_rotation_translation() {
-        for_types!(|Wide: WideFloat| {
-            for (scale, rotation, translation) in
-                random_iter::<(Vec2<Wide>, Rot2<Wide>, Vec2<Wide>)>()
-            {
-                let rotation = rotation.normalize();
-
-                assert_test_eq!(
-                    Proj2::<Wide>::from_scale_rotation_translation(scale, rotation, translation),
-                    Projective::from_affine(&Affine2::<Wide>::from_scale_rotation_translation(
-                        scale,
-                        rotation,
-                        translation
-                    ))
                 );
             }
         });

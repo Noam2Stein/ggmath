@@ -1259,9 +1259,11 @@ mod tests {
     use std::format;
 
     use crate::{
-        Affine, Aligned, Mask, Matrix, Proj2A, Proj3A, Projective, Unaligned, Vec2A, Vec3A, Vec4A,
-        Vector,
-        test_utils::{assert_debug_panic, assert_test_eq, for_types, random_iter},
+        Affine, Aligned, Mask, Matrix, Proj2A, Proj3A, Projective, Rotation2, Unaligned, Vec2A,
+        Vec3A, Vec4A, Vector,
+        test_utils::{
+            assert_debug_panic, assert_panic_test_eq, assert_test_eq, for_types, random_iter,
+        },
     };
 
     #[test]
@@ -1625,6 +1627,77 @@ mod tests {
                     &projective.as_rows().map(Vector::unalign)
                 )
             );
+        });
+    }
+
+    #[test]
+    fn test_from_rotation() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for rotation in random_iter::<Rotation2<T, A>>() {
+                let rotation = rotation.normalize_or(Rotation2::IDENTITY);
+
+                assert_panic_test_eq!(
+                    Projective::<2, T, A>::from_rotation(rotation),
+                    Projective::from_affine(&Affine::<2, T, A>::from_rotation(rotation))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_scale_rotation() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for (scale, rotation) in random_iter::<(Vector<2, T, A>, Rotation2<T, A>)>() {
+                let rotation = rotation.normalize_or(Rotation2::IDENTITY);
+
+                assert_panic_test_eq!(
+                    Projective::<2, T, A>::from_scale_rotation(scale, rotation),
+                    Projective::from_affine(&Affine::<2, T, A>::from_scale_rotation(
+                        scale, rotation
+                    ))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_rotation_translation() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for (rotation, translation) in random_iter::<(Rotation2<T, A>, Vector<2, T, A>)>() {
+                let rotation = rotation.normalize_or(Rotation2::IDENTITY);
+
+                assert_panic_test_eq!(
+                    Projective::<2, T, A>::from_rotation_translation(rotation, translation),
+                    Projective::from_affine(&Affine::<2, T, A>::from_rotation_translation(
+                        rotation,
+                        translation
+                    ))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_scale_rotation_translation() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for (scale, rotation, translation) in
+                random_iter::<(Vector<2, T, A>, Rotation2<T, A>, Vector<2, T, A>)>()
+            {
+                let rotation = rotation.normalize_or(Rotation2::IDENTITY);
+
+                assert_panic_test_eq!(
+                    Projective::<2, T, A>::from_scale_rotation_translation(
+                        scale,
+                        rotation,
+                        translation
+                    ),
+                    Projective::from_affine(&Affine::<2, T, A>::from_scale_rotation_translation(
+                        scale,
+                        rotation,
+                        translation
+                    ))
+                );
+            }
         });
     }
 
