@@ -144,14 +144,14 @@ Add this to your Cargo.toml:
 
 ```toml
 [dependencies]
-ggmath = "0.18.0"
+ggmath = "0.18.1"
 ```
 
 For [`no_std`] support, enable the [`libm`] feature:
 
 ```toml
 [dependencies]
-ggmath = { version = "0.18.0", features = ["libm"] }
+ggmath = { version = "0.18.1", features = ["libm"] }
 ```
 
 ## Feature flags

@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.18.1] - 2026-09-16
+
 ### Added
 
 - [#88](https://github.com/Noam2Stein/ggmath/pull/88): Many convenience
@@ -827,7 +829,8 @@ functionality can start being added.
 
 This version completely rewrote the crate.
 
-[unreleased]: https://github.com/Noam2Stein/ggmath/compare/v0.18.0...HEAD
+[unreleased]: https://github.com/Noam2Stein/ggmath/compare/v0.18.1...HEAD
+[0.18.1]: https://github.com/Noam2Stein/ggmath/compare/v0.18.0...v0.18.1
 [0.18.0]: https://github.com/Noam2Stein/ggmath/compare/v0.17.1...v0.18.0
 [0.17.1]: https://github.com/Noam2Stein/ggmath/compare/v0.17.0...v0.17.1
 [0.17.0]: https://github.com/Noam2Stein/ggmath/compare/v0.16.7...v0.17.0
