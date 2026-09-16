@@ -293,74 +293,6 @@ impl<T, A: Alignment> Matrix<2, T, A>
 where
     T: PrimitiveFloat,
 {
-    /// Creates a 2x2 matrix from a 2D rotation.
-    ///
-    /// This assumes `rotation` is normalized.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `rotation` is not normalized.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn from_rotation(rotation: Rotation2<T, A>) -> Self {
-        debug_assert!(
-            rotation.is_normalized(),
-            "rotation is not normalized: from_rotation({rotation:?})"
-        );
-
-        Self(Vector::<4, T, A>::new(
-            rotation.cos,
-            rotation.sin,
-            -rotation.sin,
-            rotation.cos,
-        ))
-    }
-
-    /// Converts a 2x2 matrix to a 2D rotation.
-    ///
-    /// This assumes `self` only contains rotation.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `self` contains anything but rotation.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn to_rotation(&self) -> Rotation2<T, A> {
-        Rotation2::<T, A>::from_matrix(self)
-    }
-
-    /// Creates a 2x2 matrix from a non-uniform scale and a 2D rotation.
-    ///
-    /// This assumes `rotation` is normalized.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if `rotation` is not normalized.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn from_scale_rotation(scale: Vector<2, T, A>, rotation: Rotation2<T, A>) -> Self {
-        debug_assert!(
-            rotation.is_normalized(),
-            "rotation is not normalized: from_rotation({rotation:?})"
-        );
-
-        Self(Vector::<4, T, A>::new(
-            rotation.cos * scale.x,
-            rotation.sin * scale.x,
-            -rotation.sin * scale.y,
-            rotation.cos * scale.y,
-        ))
-    }
-
     /// Converts a 2x2 matrix to a non-uniform scale and a 2D rotation.
     ///
     /// This assumes `self` only contains scale and rotation.
@@ -1284,7 +1216,7 @@ mod tests {
     extern crate std;
 
     use crate::{
-        EulerRot, FloatExt, Matrix, Rotation2, Rotor, Vector,
+        EulerRot, FloatExt, Matrix, Rotor, Vector,
         test_utils::{assert_debug_panic, assert_test_eq, for_types, random_iter},
     };
 
@@ -1616,44 +1548,6 @@ mod tests {
                     0.125
                 )
             );
-        });
-    }
-
-    #[test]
-    fn test_from_rotation() {
-        for_types!(|T: PrimitiveFloat, A| {
-            for (vector, rotation) in random_iter::<(Vector<2, T, A>, Rotation2<T, A>)>() {
-                if !rotation.is_normalized() {
-                    assert_debug_panic!(Matrix::<2, T, A>::from_rotation(rotation));
-                }
-
-                let rotation = rotation.normalize_or(Rotation2::IDENTITY).normalize();
-
-                assert_test_eq!(
-                    vector * Matrix::<2, T, A>::from_rotation(rotation),
-                    vector * rotation
-                );
-            }
-        });
-    }
-
-    #[test]
-    fn test_from_scale_rotation() {
-        for_types!(|T: PrimitiveFloat, A| {
-            for (scale, rotation) in random_iter::<(Vector<2, T, A>, Rotation2<T, A>)>() {
-                if !rotation.is_normalized() {
-                    assert_debug_panic!(Matrix::<2, T, A>::from_scale_rotation(scale, rotation));
-                }
-
-                let rotation = rotation.normalize_or(Rotation2::IDENTITY).normalize();
-
-                assert_test_eq!(
-                    Matrix::<2, T, A>::from_scale_rotation(scale, rotation),
-                    Matrix::<2, T, A>::from_scale(scale)
-                        * Matrix::<2, T, A>::from_rotation(rotation),
-                    0.0 = -0.0
-                );
-            }
         });
     }
 

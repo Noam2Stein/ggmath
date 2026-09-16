@@ -5,8 +5,8 @@ use core::{
 };
 
 use crate::{
-    Affine, Aligned, Alignment, Dim, Element, EqTest, Matrix, One, Projective, Unaligned, Vector,
-    Zero,
+    Affine, Aligned, Alignment, Dim, Element, EqTest, Matrix, One, Projective, Rotation2,
+    Unaligned, Vector, Zero,
     dim::TwoOrThree,
     utils::{specialize_23, transmute_generic, transmute_ref},
 };
@@ -495,6 +495,170 @@ where
     #[must_use]
     pub const fn to_row_array(&self) -> [T; 9] {
         self.0.to_row_array()
+    }
+
+    /// Creates a 2D projective transform from a 2D rotation.
+    ///
+    /// This assumes `rotation` is normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `rotation` is not normalized (according to [`EqTest`]).
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn from_rotation(rotation: Rotation2<T, A>) -> Self
+    where
+        T: Debug + Neg<Output = T> + Add<Output = T> + Mul<Output = T> + Zero + One + EqTest,
+    {
+        debug_assert!(
+            rotation.length_squared().eq_test(&T::ONE),
+            "rotation is not normalized: from_rotation({rotation:?})"
+        );
+
+        Self::from_rows(&[
+            rotation.0.extend(T::ZERO),
+            Vector::<3, T, A>::new(-rotation.sin, rotation.cos, T::ZERO),
+            Vector::<3, T, A>::Z,
+        ])
+    }
+
+    /// Converts a 2D projective transform to a 2D rotation.
+    ///
+    /// This assumes `self` only contains rotation, and translation which is
+    /// ignored.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` contains anything but rotation and translation
+    /// (according to [`EqTest`]).
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_rotation(&self) -> Rotation2<T, A>
+    where
+        T: Debug + Neg<Output = T> + Add<Output = T> + Mul<Output = T> + Zero + One + EqTest,
+    {
+        Rotation2::<T, A>::from_projective(self)
+    }
+
+    /// Creates a 2D projective transform from a non-uniform scale and a 2D
+    /// rotation.
+    ///
+    /// This assumes `rotation` is normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `rotation` is not normalized (according to [`EqTest`]).
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn from_scale_rotation(scale: Vector<2, T, A>, rotation: Rotation2<T, A>) -> Self
+    where
+        T: Debug + Neg<Output = T> + Add<Output = T> + Mul<Output = T> + Zero + One + EqTest,
+    {
+        debug_assert!(
+            rotation.length_squared().eq_test(&T::ONE),
+            "rotation is not normalized: from_rotation({rotation:?})"
+        );
+
+        Self::from_rows(&[
+            (rotation.0 * scale.x).extend(T::ZERO),
+            Vector::<3, T, A>::new(-rotation.sin * scale.y, rotation.cos * scale.y, T::ZERO),
+            Vector::<3, T, A>::Z,
+        ])
+    }
+
+    /// Creates a 2D projective transform from a 2D rotation and a translation
+    /// vector.
+    ///
+    /// This assumes `rotation` is normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `rotation` is not normalized (according to [`EqTest`]).
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn from_rotation_translation(
+        rotation: Rotation2<T, A>,
+        translation: Vector<2, T, A>,
+    ) -> Self
+    where
+        T: Debug + Neg<Output = T> + Add<Output = T> + Mul<Output = T> + Zero + One + EqTest,
+    {
+        debug_assert!(
+            rotation.length_squared().eq_test(&T::ONE),
+            "rotation is not normalized: from_rotation({rotation:?})"
+        );
+
+        Self::from_rows(&[
+            rotation.0.extend(T::ZERO),
+            Vector::<3, T, A>::new(-rotation.sin, rotation.cos, T::ZERO),
+            translation.to_homogeneous(),
+        ])
+    }
+
+    /// Converts a 2D projective transform to a 2D rotation and a translation
+    /// vector.
+    ///
+    /// This assumes `self` only contains rotation and translation.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` contains anything but rotation and translation
+    /// (according to [`EqTest`]).
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_rotation_translation(&self) -> (Rotation2<T, A>, Vector<2, T, A>)
+    where
+        T: Debug + Neg<Output = T> + Add<Output = T> + Mul<Output = T> + Zero + One + EqTest,
+    {
+        (self.to_rotation(), self.translation())
+    }
+
+    /// Creates a 2D projective transform from a non-uniform scale, a 2D
+    /// rotation and a translation vector.
+    ///
+    /// This assumes `rotation` is normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `rotation` is not normalized (according to [`EqTest`]).
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn from_scale_rotation_translation(
+        scale: Vector<2, T, A>,
+        rotation: Rotation2<T, A>,
+        translation: Vector<2, T, A>,
+    ) -> Self
+    where
+        T: Debug + Neg<Output = T> + Add<Output = T> + Mul<Output = T> + Zero + One + EqTest,
+    {
+        debug_assert!(
+            rotation.length_squared().eq_test(&T::ONE),
+            "rotation is not normalized: from_rotation({rotation:?})"
+        );
+
+        Self::from_rows(&[
+            (rotation.0 * scale.x).extend(T::ZERO),
+            Vector::<3, T, A>::new(-rotation.sin * scale.y, rotation.cos * scale.y, T::ZERO),
+            translation.to_homogeneous(),
+        ])
     }
 
     /// Reinterprets a homogeneous matrix as a projective transform.

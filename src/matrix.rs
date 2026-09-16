@@ -1371,7 +1371,8 @@ mod tests {
     use std::format;
 
     use crate::{
-        Aligned, Mask, Mat2A, Mat3A, Mat4A, Matrix, Projective, Unaligned, Vec3A, Vec4A, Vector,
+        Aligned, Mask, Mat2A, Mat3A, Mat4A, Matrix, Projective, Rotation2, Unaligned, Vec3A, Vec4A,
+        Vector,
         test_utils::{assert_debug_panic, assert_panic, assert_test_eq, for_types, random_iter},
     };
 
@@ -1600,6 +1601,44 @@ mod tests {
                 Vector::<4, T, A>::new(0.2, 0.1, 0.8, 0.0),
                 Vector::<4, T, A>::new(5.3, 3.2, 9.8, 1.0),
             ])));
+        });
+    }
+
+    #[test]
+    fn test_from_rotation() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for (vector, rotation) in random_iter::<(Vector<2, T, A>, Rotation2<T, A>)>() {
+                if !rotation.is_normalized() {
+                    assert_debug_panic!(Matrix::<2, T, A>::from_rotation(rotation));
+                }
+
+                let rotation = rotation.normalize_or(Rotation2::IDENTITY).normalize();
+
+                assert_test_eq!(
+                    vector * Matrix::<2, T, A>::from_rotation(rotation),
+                    vector * rotation
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_scale_rotation() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for (scale, rotation) in random_iter::<(Vector<2, T, A>, Rotation2<T, A>)>() {
+                if !rotation.is_normalized() {
+                    assert_debug_panic!(Matrix::<2, T, A>::from_scale_rotation(scale, rotation));
+                }
+
+                let rotation = rotation.normalize_or(Rotation2::IDENTITY).normalize();
+
+                assert_test_eq!(
+                    Matrix::<2, T, A>::from_scale_rotation(scale, rotation),
+                    Matrix::<2, T, A>::from_scale(scale)
+                        * Matrix::<2, T, A>::from_rotation(rotation),
+                    0.0 = -0.0
+                );
+            }
         });
     }
 

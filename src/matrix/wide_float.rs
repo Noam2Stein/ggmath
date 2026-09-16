@@ -155,46 +155,6 @@ macro_rules! items {
 
 macro_rules! items_2 {
     ($Wide:ident, $T:ident) => {
-        /// Creates a 2x2 matrix from a 2D rotation.
-        ///
-        /// This assumes `rotation` is normalized.
-        #[inline]
-        #[must_use]
-        pub fn from_rotation(rotation: Rotation2<$Wide, A>) -> Self {
-            Self(Vector::<4, $Wide, A>::new(
-                rotation.cos,
-                rotation.sin,
-                -rotation.sin,
-                rotation.cos,
-            ))
-        }
-
-        /// Converts a 2x2 matrix to a 2D rotation.
-        ///
-        /// This assumes `self` only contains rotation.
-        #[inline]
-        #[must_use]
-        pub fn to_rotation(&self) -> Rotation2<$Wide, A> {
-            Rotation2::<$Wide, A>::from_matrix(self)
-        }
-
-        /// Creates a 2x2 matrix from a non-uniform scale and a 2D rotation.
-        ///
-        /// This assumes `rotation` is normalized.
-        #[inline]
-        #[must_use]
-        pub fn from_scale_rotation(
-            scale: Vector<2, $Wide, A>,
-            rotation: Rotation2<$Wide, A>,
-        ) -> Self {
-            Self(Vector::<4, $Wide, A>::new(
-                rotation.cos * scale.x,
-                rotation.sin * scale.x,
-                -rotation.sin * scale.y,
-                rotation.cos * scale.y,
-            ))
-        }
-
         /// Converts a 2x2 matrix to a non-uniform scale and a 2D rotation.
         ///
         /// This assumes `self` only contains scale and rotation.
@@ -1202,33 +1162,6 @@ mod tests {
                     (0..LANES).all(|lane| a
                         .lane(lane)
                         .abs_diff_eq(&b.lane(lane), max_abs_diff.to_array()[lane]))
-                );
-            }
-        });
-    }
-
-    #[test]
-    fn test_from_rotation() {
-        for_types!(|Wide: WideFloat| {
-            for rotation in random_iter::<Rot2<Wide>>() {
-                assert_test_eq_or_panic!(
-                    Mat2::<Wide>::from_rotation(rotation),
-                    Mat2::from_lane_fn(|lane| Mat2::<T>::from_rotation(rotation.lane(lane)))
-                );
-            }
-        });
-    }
-
-    #[test]
-    fn test_from_scale_rotation() {
-        for_types!(|Wide: WideFloat| {
-            for (scale, rotation) in random_iter::<(Vec2<Wide>, Rot2<Wide>)>() {
-                assert_test_eq_or_panic!(
-                    Mat2::<Wide>::from_scale_rotation(scale, rotation),
-                    Mat2::from_lane_fn(|lane| Mat2::<T>::from_scale_rotation(
-                        scale.lane(lane),
-                        rotation.lane(lane)
-                    ))
                 );
             }
         });

@@ -4,8 +4,8 @@ use core::{
 };
 
 use crate::{
-    Affine, Aligned, Alignment, Dim, Element, EqTest, Matrix, One, Projective, TwoOrThree,
-    TwoThreeOrFour, Unaligned, Vector, Zero,
+    Affine, Aligned, Alignment, Dim, Element, EqTest, Matrix, One, Projective, Rotation2,
+    TwoOrThree, TwoThreeOrFour, Unaligned, Vector, Zero,
     utils::{specialize, specialize_23, transmute_generic, transmute_mut, transmute_ref},
 };
 
@@ -616,6 +616,84 @@ where
     #[must_use]
     pub const fn to_row_array(&self) -> [T; 4] {
         self.0.to_array()
+    }
+
+    /// Creates a 2x2 matrix from a 2D rotation.
+    ///
+    /// This assumes `rotation` is normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `rotation` is not normalized (according to [`EqTest`]).
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn from_rotation(rotation: Rotation2<T, A>) -> Self
+    where
+        T: Debug + Neg<Output = T> + Add<Output = T> + Mul<Output = T> + One + EqTest,
+    {
+        debug_assert!(
+            rotation.length_squared().eq_test(&T::ONE),
+            "rotation is not normalized: from_rotation({rotation:?})"
+        );
+
+        Self(Vector::<4, T, A>::new(
+            rotation.cos,
+            rotation.sin,
+            -rotation.sin,
+            rotation.cos,
+        ))
+    }
+
+    /// Converts a 2x2 matrix to a 2D rotation.
+    ///
+    /// This assumes `self` only contains rotation.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` contains anything but rotation (according to
+    /// [`EqTest`]).
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_rotation(&self) -> Rotation2<T, A>
+    where
+        T: Debug + Neg<Output = T> + Add<Output = T> + Mul<Output = T> + One + EqTest,
+    {
+        Rotation2::<T, A>::from_matrix(self)
+    }
+
+    /// Creates a 2x2 matrix from a non-uniform scale and a 2D rotation.
+    ///
+    /// This assumes `rotation` is normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `rotation` is not normalized (according to [`EqTest`]).
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn from_scale_rotation(scale: Vector<2, T, A>, rotation: Rotation2<T, A>) -> Self
+    where
+        T: Debug + Neg<Output = T> + Add<Output = T> + Mul<Output = T> + One + EqTest,
+    {
+        debug_assert!(
+            rotation.length_squared().eq_test(&T::ONE),
+            "rotation is not normalized: from_rotation({rotation:?})"
+        );
+
+        Self(Vector::<4, T, A>::new(
+            rotation.cos * scale.x,
+            rotation.sin * scale.x,
+            -rotation.sin * scale.y,
+            rotation.cos * scale.y,
+        ))
     }
 
     /// Creates a linear transformation matrix from a higher-dimensional
