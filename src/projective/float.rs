@@ -167,8 +167,7 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `self` does not approximately only contain rotation and
-    /// translation.
+    /// Panics if `self` contains anything but rotation and translation.
     #[inline]
     #[must_use]
     #[track_caller]
