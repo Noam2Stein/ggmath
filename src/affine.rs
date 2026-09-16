@@ -237,12 +237,11 @@ where
 {
     type Output = Vector<N, T, A>;
 
-    /// Returns the row at the given index.
+    /// Returns the given row of a row-major affine transform.
     ///
     /// # Panics
     ///
-    /// Panics if `index` is greater than the dimension of the affine transform.
-    /// It is fine if `index == N` because of the additional `translation` row.
+    /// Panics if `index` is greater than or equal to `N + 1`.
     #[inline]
     #[track_caller]
     fn index(&self, index: usize) -> &Self::Output {
@@ -269,12 +268,11 @@ where
     Dim<N>: TwoThreeOrFour,
     T: Element,
 {
-    /// Returns a mutable reference to the row at the given index.
+    /// Returns the given row of a row-major affine transform.
     ///
     /// # Panics
     ///
-    /// Panics if `index` is greater than the dimension of the affine transform.
-    /// It is fine if `index == N` because of the additional `translation` row.
+    /// Panics if `index` is greater than or equal to `N + 1`.
     #[inline]
     #[track_caller]
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {

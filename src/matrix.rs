@@ -329,11 +329,11 @@ where
 {
     type Output = Vector<N, T, A>;
 
-    /// Returns the row at the given index.
+    /// Returns the given row of a row-major matrix.
     ///
     /// # Panics
     ///
-    /// Panics if index is greater than or equal to the dimension of the matrix.
+    /// Panics if `index` is greater than or equal to `N`.
     #[inline]
     #[track_caller]
     fn index(&self, index: usize) -> &Self::Output {
@@ -346,11 +346,11 @@ where
     Dim<N>: TwoThreeOrFour,
     T: Element,
 {
-    /// Returns a mutable reference to the row at the given index.
+    /// Returns the given row of a row-major matrix.
     ///
     /// # Panics
     ///
-    /// Panics if index is greater than or equal to the dimension of the matrix.
+    /// Panics if `index` is greater than or equal to `N`.
     #[inline]
     #[track_caller]
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {

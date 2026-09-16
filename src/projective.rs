@@ -252,7 +252,7 @@ where
 {
     type Output = Vector<3, T, A>;
 
-    /// Returns the row at the given index.
+    /// Returns the given row of a row-major projective transform.
     ///
     /// # Panics
     ///
@@ -270,7 +270,7 @@ where
 {
     type Output = Vector<4, T, A>;
 
-    /// Returns the row at the given index.
+    /// Returns the given row of a row-major projective transform.
     ///
     /// # Panics
     ///
@@ -286,7 +286,7 @@ impl<T, A: Alignment> IndexMut<usize> for Projective<2, T, A>
 where
     T: Element,
 {
-    /// Returns a mutable reference to the row at the given index.
+    /// Returns the given row of a row-major projective transform.
     ///
     /// # Panics
     ///
@@ -302,7 +302,7 @@ impl<T, A: Alignment> IndexMut<usize> for Projective<3, T, A>
 where
     T: Element,
 {
-    /// Returns a mutable reference to the row at the given index.
+    /// Returns the given row of a row-major projective transform.
     ///
     /// # Panics
     ///
