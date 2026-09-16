@@ -501,11 +501,9 @@ macro_rules! impl_mul {
     };
 }
 impl_mul!(
-    /// Affine transform multiplication.
-    ///
-    /// Because vectors are treated as row matrices, affine transform
-    /// multiplication first applies the left-hand side transform, then the
-    /// right-hand side transform.
+    /// Multiplies two affine transforms, returning an affine transform
+    /// equivalent to applying the left affine transform then the right affine
+    /// transform.
     ///
     /// # Consistency
     ///

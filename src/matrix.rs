@@ -973,10 +973,8 @@ macro_rules! impl_mul {
     };
 }
 impl_mul!(
-    /// Matrix multiplication.
-    ///
-    /// Because vectors are treated as row matrices, matrix multiplication first
-    /// applies the left-hand side matrix, then the right-hand side matrix.
+    /// Multiplies two matrices, returning a matrix equivalent to applying the
+    /// left matrix then the right matrix.
     ///
     /// Equivalent to `[self.x_axis * rhs, self.y_axis * rhs, ...]`.
     ///
@@ -1056,10 +1054,7 @@ macro_rules! impl_vector_mul {
     };
 }
 impl_vector_mul!(
-    /// Vector-matrix multiplication.
-    ///
-    /// Because vectors are treated as row matrices, they always go on the
-    /// left-hand side.
+    /// Transforms a vector by a matrix.
     ///
     /// Equivalent to `self.x * rhs.x_axis + self.y * rhs.y_axis + ...`.
     ///

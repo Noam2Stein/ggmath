@@ -889,7 +889,7 @@ macro_rules! impl_mul {
     };
 }
 impl_mul!(
-    /// Chains two rotors, resulting in a rotor equivalent to applying the left
+    /// Multiplies two rotors, returning a rotor equivalent to applying the left
     /// rotor then the right rotor.
 );
 

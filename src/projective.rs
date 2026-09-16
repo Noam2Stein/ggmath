@@ -828,9 +828,6 @@ impl_vector_mul!(
     /// The vector has one element more than the dimension of the transform,
     /// because projective transforms are represented as homogeneous matrices.
     ///
-    /// Because vectors are treated as row matrices, they always go on the
-    /// left-hand side.
-    ///
     /// Equivalent to `self.x * rhs.x_axis + self.y * rhs.y_axis + ...`.
     ///
     /// # Consistency
@@ -930,10 +927,9 @@ macro_rules! impl_mul {
     };
 }
 impl_mul!(
-    /// Multiplies two projective transforms.
-    ///
-    /// The resulting transform is equivalent to first applying the left
-    /// transform, then the right transform.
+    /// Multiplies two projective transforms, returning a projective transform
+    /// equivalent to applying the left projective transform then the right
+    /// projective transform.
     ///
     /// # Consistency
     ///
@@ -1105,12 +1101,9 @@ macro_rules! impl_affine_mul {
     };
 }
 impl_affine_mul!(
-    /// Affine-transform projective-transform multiplication, resulting in a
-    /// projective transform.
-    ///
-    /// Because vectors are treated as row matrices, multiplication first
-    /// applies the left-hand side transform, then the right-hand side
-    /// transform.
+    /// Multiplies an affine transform by a projective transform, returning a
+    /// projective transform equivalent to applying the left affine transform
+    /// then the right projective transform.
     ///
     /// # Consistency
     ///
@@ -1209,12 +1202,9 @@ macro_rules! impl_mul_affine {
     };
 }
 impl_mul_affine!(
-    /// Projective-transform affine-transform multiplication, resulting in a
-    /// projective transform.
-    ///
-    /// Because vectors are treated as row matrices, multiplication first
-    /// applies the left-hand side transform, then the right-hand side
-    /// transform.
+    /// Multiplies a projective transform by an affine transform, returning a
+    /// projective transform equivalent to applying the left projective
+    /// transform then applying the right affine transform.
     ///
     /// # Consistency
     ///

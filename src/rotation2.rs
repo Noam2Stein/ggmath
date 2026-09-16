@@ -575,7 +575,7 @@ macro_rules! impl_vector_mul {
     };
 }
 impl_vector_mul!(
-    /// Applies a 2D rotation to a vector.
+    /// Transforms a 2D vector by a 2D rotation.
     ///
     /// If the complex number is not normalized, the vector gets scaled by its
     /// length.
@@ -668,7 +668,8 @@ macro_rules! impl_mul {
     };
 }
 impl_mul!(
-    /// Chains two 2D rotations into a single rotation.
+    /// Multiplies two 2D rotations, returning a 2D rotation equivalent to
+    /// applying them both.
 );
 
 macro_rules! impl_div_scalar {
