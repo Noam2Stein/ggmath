@@ -48,7 +48,7 @@ macro_rules! items {
             self.max(min).min(max)
         }
 
-        /// Returns the maximum between the elements of `self`.
+        /// Returns the maximum element of a vector.
         ///
         /// Equivalent to `self.x.max(self.y).max(self.z)...`.
         #[inline]
@@ -57,7 +57,7 @@ macro_rules! items {
             specialize!(Vector::<N, $Wide, A>::max_element_backend(self))
         }
 
-        /// Returns the minimum between the elements of `self`.
+        /// Returns the minimum element of a vector.
         ///
         /// Equivalent to `self.x.min(self.y).min(self.z)...`.
         #[inline]
