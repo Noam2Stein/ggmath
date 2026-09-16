@@ -1,12 +1,12 @@
 use core::{
     fmt::Debug,
     mem::MaybeUninit,
-    ops::{Add, Mul},
+    ops::{Add, Mul, Neg},
 };
 
 use crate::{
-    Affine, Aligned, Alignment, Dim, Element, EqTest, Matrix, One, Projective, TwoOrThree,
-    TwoThreeOrFour, Unaligned, Vector, Zero,
+    Affine, Aligned, Alignment, Dim, Element, EqTest, Matrix, One, Projective, Rotation2,
+    TwoOrThree, TwoThreeOrFour, Unaligned, Vector, Zero,
     affine::AffineFields,
     utils::{specialize_23, transmute_generic, transmute_mut, transmute_ref},
 };
@@ -408,6 +408,137 @@ where
         // SAFETY: Because 2 is a power of two, there is no padding, so elements
         // are consecutive
         unsafe { *transmute_ref::<Affine<2, T, A>, [T; 6]>(self) }
+    }
+
+    /// Creates a 2D affine transform from a 2D rotation.
+    ///
+    /// This assumes `rotation` is normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `rotation` is not normalized (according to [`EqTest`]).
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn from_rotation(rotation: Rotation2<T, A>) -> Self
+    where
+        T: Debug + Neg<Output = T> + Add<Output = T> + Mul<Output = T> + Zero + One + EqTest,
+    {
+        Self::from_matrix(&Matrix::<2, T, A>::from_rotation(rotation))
+    }
+
+    /// Converts a 2D affine transform to a 2D rotation.
+    ///
+    /// This assumes `self` only contains rotation, and translation which is
+    /// ignored.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` contains anything but rotation and translation
+    /// (according to [`EqTest`]).
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_rotation(&self) -> Rotation2<T, A>
+    where
+        T: Debug + Neg<Output = T> + Add<Output = T> + Mul<Output = T> + One + EqTest,
+    {
+        self.matrix.to_rotation()
+    }
+
+    /// Creates a 2D affine transform from a non-uniform scale and a 2D
+    /// rotation.
+    ///
+    /// This assumes `rotation` is normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `rotation` is not normalized (according to [`EqTest`]).
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn from_scale_rotation(scale: Vector<2, T, A>, rotation: Rotation2<T, A>) -> Self
+    where
+        T: Debug + Neg<Output = T> + Add<Output = T> + Mul<Output = T> + Zero + One + EqTest,
+    {
+        Self::from_matrix(&Matrix::<2, T, A>::from_scale_rotation(scale, rotation))
+    }
+
+    /// Creates a 2D affine transform from a 2D rotation and a translation
+    /// vector.
+    ///
+    /// This assumes `rotation` is normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `rotation` is not normalized (according to [`EqTest`]).
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn from_rotation_translation(
+        rotation: Rotation2<T, A>,
+        translation: Vector<2, T, A>,
+    ) -> Self
+    where
+        T: Debug + Neg<Output = T> + Add<Output = T> + Mul<Output = T> + One + EqTest,
+    {
+        Self::from_matrix_translation(&Matrix::<2, T, A>::from_rotation(rotation), translation)
+    }
+
+    /// Converts a 2D affine transform to a 2D rotation and a translation
+    /// vector.
+    ///
+    /// This assumes `self` only contains rotation and translation.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` contains anything but rotation and translation
+    /// (according to [`EqTest`]).
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_rotation_translation(&self) -> (Rotation2<T, A>, Vector<2, T, A>)
+    where
+        T: Debug + Neg<Output = T> + Add<Output = T> + Mul<Output = T> + One + EqTest,
+    {
+        (self.to_rotation(), self.translation)
+    }
+
+    /// Creates a 2D affine transform from a non-uniform scale, a 2D rotation
+    /// and a translation vector.
+    ///
+    /// This assumes `rotation` is normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `rotation` is not normalized (according to [`EqTest`]).
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn from_scale_rotation_translation(
+        scale: Vector<2, T, A>,
+        rotation: Rotation2<T, A>,
+        translation: Vector<2, T, A>,
+    ) -> Self
+    where
+        T: Debug + Neg<Output = T> + Add<Output = T> + Mul<Output = T> + One + EqTest,
+    {
+        Self::from_matrix_translation(
+            &Matrix::<2, T, A>::from_scale_rotation(scale, rotation),
+            translation,
+        )
     }
 
     /// Creates an affine transform from a higher-dimensional homogeneous matrix

@@ -208,38 +208,6 @@ macro_rules! items {
 
 macro_rules! items_2 {
     ($Wide:ident) => {
-        /// Creates a 2D affine transform from a 2D rotation.
-        ///
-        /// This assumes `rotation` is normalized.
-        #[inline]
-        #[must_use]
-        pub fn from_rotation(rotation: Rotation2<$Wide, A>) -> Self {
-            Self::from_matrix(&Matrix::<2, $Wide, A>::from_rotation(rotation))
-        }
-
-        /// Converts a 2D affine transform to a 2D rotation.
-        ///
-        /// This assumes `self` only contains rotation, and translation which is
-        /// ignored.
-        #[inline]
-        #[must_use]
-        pub fn to_rotation(&self) -> Rotation2<$Wide, A> {
-            self.matrix.to_rotation()
-        }
-
-        /// Creates a 2D affine transform from a non-uniform scale and a 2D
-        /// rotation.
-        ///
-        /// This assumes `rotation` is normalized.
-        #[inline]
-        #[must_use]
-        pub fn from_scale_rotation(
-            scale: Vector<2, $Wide, A>,
-            rotation: Rotation2<$Wide, A>,
-        ) -> Self {
-            Self::from_matrix(&Matrix::<2, $Wide, A>::from_scale_rotation(scale, rotation))
-        }
-
         /// Converts a 2D affine transform to a non-uniform scale and a 2D
         /// rotation.
         ///
@@ -249,49 +217,6 @@ macro_rules! items_2 {
         #[must_use]
         pub fn to_scale_rotation(&self) -> (Vector<2, $Wide, A>, Rotation2<$Wide, A>) {
             self.matrix.to_scale_rotation()
-        }
-
-        /// Creates a 2D affine transform from a 2D rotation and a translation
-        /// vector.
-        ///
-        /// This assumes `rotation` is normalized.
-        #[inline]
-        #[must_use]
-        pub fn from_rotation_translation(
-            rotation: Rotation2<$Wide, A>,
-            translation: Vector<2, $Wide, A>,
-        ) -> Self {
-            Self::from_matrix_translation(
-                &Matrix::<2, $Wide, A>::from_rotation(rotation),
-                translation,
-            )
-        }
-
-        /// Converts a 2D affine transform to a 2D rotation and a translation
-        /// vector.
-        ///
-        /// This assumes `self` only contains rotation and translation.
-        #[inline]
-        #[must_use]
-        pub fn to_rotation_translation(&self) -> (Rotation2<$Wide, A>, Vector<2, $Wide, A>) {
-            (self.to_rotation(), self.translation)
-        }
-
-        /// Creates a 2D affine transform from a non-uniform scale, a 2D
-        /// rotation and a translation vector.
-        ///
-        /// This assumes `rotation` is normalized.
-        #[inline]
-        #[must_use]
-        pub fn from_scale_rotation_translation(
-            scale: Vector<2, $Wide, A>,
-            rotation: Rotation2<$Wide, A>,
-            translation: Vector<2, $Wide, A>,
-        ) -> Self {
-            Self::from_matrix_translation(
-                &Matrix::<2, $Wide, A>::from_scale_rotation(scale, rotation),
-                translation,
-            )
         }
 
         /// Converts a 2D affine transform to a non-uniform scale, a 2D rotation
