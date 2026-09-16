@@ -881,7 +881,7 @@ where
     ///
     /// Equivalent to:
     ///
-    /// ```
+    /// ```ignore
     /// Self::from_axis_angle(
     ///     scaled_axis.normalize(),
     ///     scaled_axis.length(),
@@ -923,7 +923,7 @@ where
     ///
     /// Equivalent to:
     ///
-    /// ```
+    /// ```ignore
     /// let (axis, angle) = self.to_axis_angle();
     /// axis * angle
     /// ```

@@ -592,7 +592,7 @@ macro_rules! items_3 {
         ///
         /// Equivalent to:
         ///
-        /// ```
+        /// ```ignore
         /// Self::from_axis_angle(
         ///     scaled_axis.normalize(),
         ///     scaled_axis.length(),
@@ -632,7 +632,7 @@ macro_rules! items_3 {
         ///
         /// Equivalent to:
         ///
-        /// ```
+        /// ```ignore
         /// let (axis, angle) = self.to_axis_angle();
         /// axis * angle
         /// ```
