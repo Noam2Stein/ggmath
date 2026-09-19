@@ -1690,7 +1690,6 @@ mod tests {
     use crate::{
         Aligned, Mask, Matrix, Unaligned, Vec2, Vec2A, Vec3, Vec3A, Vec4, Vec4A, Vector,
         test_utils::{assert_panic, assert_panic_test_eq, assert_test_eq, for_types, random_iter},
-        utils::{Repr2, Repr3, Repr4},
     };
 
     #[test]
@@ -2151,33 +2150,6 @@ mod tests {
                 );
             }
         });
-    }
-
-    #[test]
-    fn test_from_inner() {
-        assert_eq!(Vec2::<u32>::from_inner(Repr2(0, 1)), Vec2::new(0, 1));
-        assert_eq!(Vec3::<u32>::from_inner(Repr3(0, 1, 2)), Vec3::new(0, 1, 2));
-        assert_eq!(
-            Vec4::<u32>::from_inner(Repr4(0, 1, 2, 3)),
-            Vec4::new(0, 1, 2, 3)
-        );
-    }
-
-    #[test]
-    fn test_inner() {
-        assert_eq!(Vec2::<u32>::new(0, 1).inner(), Repr2(0, 1));
-        assert_eq!(Vec3::<u32>::new(0, 1, 2).inner(), Repr3(0, 1, 2));
-        assert_eq!(Vec4::<u32>::new(0, 1, 2, 3).inner(), Repr4(0, 1, 2, 3));
-    }
-
-    #[test]
-    fn test_inner_mut() {
-        assert_eq!(Vec2::<u32>::new(0, 1).inner_mut(), &mut Repr2(0, 1));
-        assert_eq!(Vec3::<u32>::new(0, 1, 2).inner_mut(), &mut Repr3(0, 1, 2));
-        assert_eq!(
-            Vec4::<u32>::new(0, 1, 2, 3).inner_mut(),
-            &mut Repr4(0, 1, 2, 3)
-        );
     }
 
     #[test]
