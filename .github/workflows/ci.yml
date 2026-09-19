@@ -67,7 +67,7 @@ jobs:
 
         exclude:
           - config: { target: wasm32-wasip1 }
-          - command: { rustflags: -C debug-assertions=on -C overflow-checks=on }
+            command: { rustflags: -C debug-assertions=on -C overflow-checks=on }
 
     steps:
     - uses: actions/checkout@v4
