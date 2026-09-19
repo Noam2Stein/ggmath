@@ -49,6 +49,8 @@ jobs:
     runs-on: ${{ matrix.config.os }}
     env:
       RUSTFLAGS: -D warnings ${{ matrix.config.rustflags }} ${{ matrix.command.rustflags }}
+      CARGO_TARGET_WASM32_WASIP1_RUNNER: wasmtime run --dir .
+      CARGO_TARGET_WASM32_WASIP1_RUSTFLAGS: -D warnings ${{ matrix.config.rustflags }} ${{ matrix.command.rustflags }}
     strategy:
       matrix:
         config:
@@ -74,6 +76,12 @@ jobs:
         target: ${{ matrix.config.target }}
         components: clippy
     - uses: Swatinem/rust-cache@master
+
+    - name: Install Wasmtime
+      if: matrix.config.target == 'wasm32-wasip1'
+      run: |
+        curl https://wasmtime.dev/install.sh -sSf | bash -s -- --version v39.0.1
+        echo "$HOME/.wasmtime/bin" >> $GITHUB_PATH
 
     - name: Cargo Test
       run: cargo test ${{ matrix.command.args }} --target ${{ matrix.config.target }}
