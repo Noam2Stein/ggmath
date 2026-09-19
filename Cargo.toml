@@ -1,31 +1,14 @@
 [package]
 name = "ggmath"
 version = "0.18.1"
-authors = ["Noam Stein <noamsteindev@proton.me>"]
 autobenches = false
-categories = [
-    "data-structures",
-    "game-development",
-    "graphics",
-    "mathematics",
-    "no-std",
-]
+categories = ["game-development", "graphics", "mathematics", "no-std"]
 edition = "2024"
 keywords = ["math", "matrix", "simd", "vector"]
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/Noam2Stein/ggmath"
 rust-version = "1.95.0"
-description = "A linear algebra library for games and graphics with generic SIMD types."
-
-[features]
-bytemuck = ["dep:bytemuck"]
-fixed = ["dep:fixed"]
-half = ["dep:half"]
-libm = ["dep:libm"]
-mint = ["dep:mint"]
-rand = ["dep:rand"]
-serde = ["dep:serde"]
-wide = ["dep:wide"]
+description = "A fast linear algebra library for games and graphics"
 
 [dependencies]
 bytemuck = { version = "1.25.0", optional = true, default-features = false }
