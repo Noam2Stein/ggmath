@@ -72,10 +72,10 @@ jobs:
     - name: Cargo Test
       run: cargo test ${{ matrix.command.args }} --target ${{ matrix.rust.target }}
 
-  test_avx2:
+  test_x86_64_additional_target_features:
     runs-on: ubuntu-latest
     env:
-      RUSTFLAGS: -D warnings -C target-feature=+ssse3,+sse4.1,+sse4.2,+avx2 -C debug-assertions=off -C overflow-checks=off
+      RUSTFLAGS: -D warnings -C target-feature=+ssse3,+sse4.1,+sse4.2,+avx2,+fma -C debug-assertions=off -C overflow-checks=off
     steps:
     - uses: actions/checkout@v4
     - uses: dtolnay/rust-toolchain@master
