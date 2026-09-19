@@ -554,13 +554,13 @@ where
 {
     #[inline]
     fn eq(&self, other: &Self) -> bool {
-        specialize!(<T as VectorBackend<N, A>>::vector_eq(self, other))
+        specialize!(<T as VectorBackend<N, A>>::eq(self, other))
     }
 
     #[expect(clippy::partialeq_ne_impl)]
     #[inline]
     fn ne(&self, other: &Self) -> bool {
-        specialize!(<T as VectorBackend<N, A>>::vector_ne(self, other))
+        specialize!(<T as VectorBackend<N, A>>::ne(self, other))
     }
 }
 
@@ -594,7 +594,7 @@ where
 }
 
 macro_rules! impl_unary_operator {
-    ($Op:ident, $op:ident, $vector_op:ident, $(#[$doc:meta])*) => {
+    ($Op:ident, $op:ident, $(#[$doc:meta])*) => {
         impl<const N: usize, T, A: Alignment> $Op for Vector<N, T, A>
         where
             Dim<N>: TwoThreeOrFour,
@@ -606,7 +606,7 @@ macro_rules! impl_unary_operator {
             #[inline]
             #[track_caller]
             fn $op(self) -> Self::Output {
-                specialize!(<T as VectorBackend<N, A>>::$vector_op(self))
+                specialize!(<T as VectorBackend<N, A>>::$op(self))
             }
         }
 
@@ -629,7 +629,6 @@ macro_rules! impl_unary_operator {
 impl_unary_operator!(
     Neg,
     neg,
-    vector_neg,
     /// Performs the unary `-` operation for each vector element.
     ///
     /// # Examples
@@ -649,7 +648,6 @@ impl_unary_operator!(
 impl_unary_operator!(
     Not,
     not,
-    vector_not,
     /// Performs the unary `!` operation for each vector element.
     ///
     /// # Examples
@@ -663,7 +661,7 @@ impl_unary_operator!(
 );
 
 macro_rules! impl_binary_operator {
-    ($Op:ident, $op:ident, $vector_op:ident, $(#[$doc:meta])*, $(#[$doc_scalar:meta])*) => {
+    ($Op:ident, $op:ident, $(#[$doc:meta])*, $(#[$doc_scalar:meta])*) => {
         impl<const N: usize, T, A: Alignment> $Op for Vector<N, T, A>
         where
             Dim<N>: TwoThreeOrFour,
@@ -675,7 +673,7 @@ macro_rules! impl_binary_operator {
             #[inline]
             #[track_caller]
             fn $op(self, rhs: Self) -> Self::Output {
-                specialize!(<T as VectorBackend<N, A>>::$vector_op(self, rhs))
+                specialize!(<T as VectorBackend<N, A>>::$op(self, rhs))
             }
         }
 
@@ -788,7 +786,6 @@ macro_rules! impl_binary_operator {
 impl_binary_operator!(
     Add,
     add,
-    vector_add,
     /// Performs the `+` operation for each vector element.
     ///
     /// # Examples
@@ -828,7 +825,6 @@ impl_binary_operator!(
 impl_binary_operator!(
     Sub,
     sub,
-    vector_sub,
     /// Performs the `-` operation for each vector element.
     ///
     /// # Examples
@@ -868,7 +864,6 @@ impl_binary_operator!(
 impl_binary_operator!(
     Mul,
     mul,
-    vector_mul,
     /// Performs the `*` operation for each vector element.
     ///
     /// # Examples
@@ -908,7 +903,6 @@ impl_binary_operator!(
 impl_binary_operator!(
     Div,
     div,
-    vector_div,
     /// Performs the `/` operation for each vector element.
     ///
     /// # Examples
@@ -948,7 +942,6 @@ impl_binary_operator!(
 impl_binary_operator!(
     Rem,
     rem,
-    vector_rem,
     /// Performs the `%` operation for each vector element.
     ///
     /// # Examples
@@ -994,7 +987,6 @@ impl_binary_operator!(
 impl_binary_operator!(
     Shl,
     shl,
-    vector_shl,
     /// Performs the `<<` operation for each vector element.
     ///
     /// # Examples
@@ -1035,7 +1027,6 @@ impl_binary_operator!(
 impl_binary_operator!(
     Shr,
     shr,
-    vector_shr,
     /// Performs the `>>` operation for each vector element.
     ///
     /// # Examples
@@ -1076,7 +1067,6 @@ impl_binary_operator!(
 impl_binary_operator!(
     BitAnd,
     bitand,
-    vector_bitand,
     /// Performs the `&` operation for each vector element.
     ///
     /// # Examples
@@ -1108,7 +1098,6 @@ impl_binary_operator!(
 impl_binary_operator!(
     BitOr,
     bitor,
-    vector_bitor,
     /// Performs the `|` operation for each vector element.
     ///
     /// # Examples
@@ -1140,7 +1129,6 @@ impl_binary_operator!(
 impl_binary_operator!(
     BitXor,
     bitxor,
-    vector_bitxor,
     /// Performs the `^` operation for each vector element.
     ///
     /// # Examples

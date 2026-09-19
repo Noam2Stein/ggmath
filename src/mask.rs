@@ -170,7 +170,7 @@ where
     #[inline]
     #[must_use]
     pub fn splat(value: bool) -> Self {
-        specialize!(<T as MaskBackend<N, A>>::mask_splat(value))
+        specialize!(<T as MaskBackend<N, A>>::splat(value))
     }
 
     /// Creates a vector mask by calling function `f` for each element index.
@@ -220,14 +220,14 @@ where
     #[inline]
     #[must_use]
     pub fn from_array(array: [bool; N]) -> Self {
-        specialize!(<T as MaskBackend<N, A>>::mask_from_array(array))
+        specialize!(<T as MaskBackend<N, A>>::from_array(array))
     }
 
     /// Converts the vector mask to an array.
     #[inline]
     #[must_use]
     pub fn to_array(self) -> [bool; N] {
-        specialize!(<T as MaskBackend<N, A>>::mask_to_array(self))
+        specialize!(<T as MaskBackend<N, A>>::to_array(self))
     }
 
     /// Returns the element at the given index.
@@ -239,7 +239,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn get(self, index: usize) -> bool {
-        specialize!(<T as MaskBackend<N, A>>::mask_get(self, index))
+        specialize!(<T as MaskBackend<N, A>>::get(self, index))
     }
 
     /// Sets the element at the given index to `value`.
@@ -250,7 +250,7 @@ where
     #[inline]
     #[track_caller]
     pub fn set(&mut self, index: usize, value: bool) {
-        specialize!(<T as MaskBackend<N, A>>::mask_set(self, index, value))
+        specialize!(<T as MaskBackend<N, A>>::set(self, index, value))
     }
 
     /// Returns `true` if all elements of `self` are `true`.
@@ -269,7 +269,7 @@ where
     #[inline]
     #[must_use]
     pub fn all(self) -> bool {
-        specialize!(<T as MaskBackend<N, A>>::mask_all(self))
+        specialize!(<T as MaskBackend<N, A>>::all(self))
     }
 
     /// Returns `true` if any element of `self` is `true`.
@@ -288,7 +288,7 @@ where
     #[inline]
     #[must_use]
     pub fn any(self) -> bool {
-        specialize!(<T as MaskBackend<N, A>>::mask_any(self))
+        specialize!(<T as MaskBackend<N, A>>::any(self))
     }
 
     /// Selects between the elements of `if_true` and `if_false` based on the
@@ -309,9 +309,7 @@ where
     #[inline]
     #[must_use]
     pub fn select(self, if_true: Vector<N, T, A>, if_false: Vector<N, T, A>) -> Vector<N, T, A> {
-        specialize!(<T as MaskBackend<N, A>>::mask_select(
-            self, if_true, if_false
-        ))
+        specialize!(<T as MaskBackend<N, A>>::select(self, if_true, if_false))
     }
 
     /// Returns an iterator over the vector mask's elements.
@@ -513,13 +511,13 @@ where
 {
     #[inline]
     fn eq(&self, other: &Self) -> bool {
-        specialize!(<T as MaskBackend<N, A>>::mask_eq(self, other))
+        specialize!(<T as MaskBackend<N, A>>::eq(self, other))
     }
 
     #[expect(clippy::partialeq_ne_impl)]
     #[inline]
     fn ne(&self, other: &Self) -> bool {
-        specialize!(<T as MaskBackend<N, A>>::mask_ne(self, other))
+        specialize!(<T as MaskBackend<N, A>>::ne(self, other))
     }
 }
 
@@ -564,7 +562,7 @@ macro_rules! impl_not {
             $(#[$doc])*
             #[inline]
             fn not(self) -> Self::Output {
-                specialize!(<T as MaskBackend<N, A>>::mask_not(self))
+                specialize!(<T as MaskBackend<N, A>>::not(self))
             }
         }
 
@@ -714,7 +712,7 @@ macro_rules! impl_binary_operator {
 impl_binary_operator!(
     BitAnd,
     bitand,
-    mask_bitand,
+    bitand,
     /// Performs the `&` operation for each vector mask element.
     ///
     /// # Examples
@@ -745,7 +743,7 @@ impl_binary_operator!(
 impl_binary_operator!(
     BitOr,
     bitor,
-    mask_bitor,
+    bitor,
     /// Performs the `|` operation for each vector mask element.
     ///
     /// # Examples
@@ -776,7 +774,7 @@ impl_binary_operator!(
 impl_binary_operator!(
     BitXor,
     bitxor,
-    mask_bitxor,
+    bitxor,
     /// Performs the `^` operation for each vector mask element.
     ///
     /// # Examples

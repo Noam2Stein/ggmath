@@ -38,7 +38,7 @@ macro_rules! conflicting_items {
         #[inline]
         #[must_use]
         pub fn max(self, other: Self) -> Self {
-            specialize!(<$T as IntegerVectorBackend<N, A>>::vector_max(self, other))
+            specialize!(<$T as IntegerVectorBackend<N, A>>::max(self, other))
         }
 
         /// Returns the minimum elements between `self` and `other`.
@@ -59,7 +59,7 @@ macro_rules! conflicting_items {
         #[inline]
         #[must_use]
         pub fn min(self, other: Self) -> Self {
-            specialize!(<$T as IntegerVectorBackend<N, A>>::vector_min(self, other))
+            specialize!(<$T as IntegerVectorBackend<N, A>>::min(self, other))
         }
 
         /// Clamps the elements of `self` between the elements of `min` and
@@ -116,7 +116,7 @@ macro_rules! conflicting_items {
         #[inline]
         #[must_use]
         pub fn max_element(self) -> $T {
-            specialize!(<$T as IntegerVectorBackend<N, A>>::vector_max_element(self))
+            specialize!(<$T as IntegerVectorBackend<N, A>>::max_element(self))
         }
 
         /// Returns the minimum element of a vector.
@@ -134,7 +134,7 @@ macro_rules! conflicting_items {
         #[inline]
         #[must_use]
         pub fn min_element(self) -> $T {
-            specialize!(<$T as IntegerVectorBackend<N, A>>::vector_min_element(self))
+            specialize!(<$T as IntegerVectorBackend<N, A>>::min_element(self))
         }
     };
 }
@@ -158,27 +158,21 @@ where
     #[inline]
     #[must_use]
     pub fn checked_add(self, rhs: Self) -> Option<Self> {
-        specialize!(<T as IntegerVectorBackend<N, A>>::vector_checked_add(
-            self, rhs
-        ))
+        specialize!(<T as IntegerVectorBackend<N, A>>::checked_add(self, rhs))
     }
 
     /// Computes `self - rhs`, returning `None` if overflow occured.
     #[inline]
     #[must_use]
     pub fn checked_sub(self, rhs: Self) -> Option<Self> {
-        specialize!(<T as IntegerVectorBackend<N, A>>::vector_checked_sub(
-            self, rhs
-        ))
+        specialize!(<T as IntegerVectorBackend<N, A>>::checked_sub(self, rhs))
     }
 
     /// Computes `self * rhs`, returning `None` if overflow occured.
     #[inline]
     #[must_use]
     pub fn checked_mul(self, rhs: Self) -> Option<Self> {
-        specialize!(<T as IntegerVectorBackend<N, A>>::vector_checked_mul(
-            self, rhs
-        ))
+        specialize!(<T as IntegerVectorBackend<N, A>>::checked_mul(self, rhs))
     }
 
     /// Computes `self / rhs`, returning `None` if overflow or division
@@ -186,9 +180,7 @@ where
     #[inline]
     #[must_use]
     pub fn checked_div(self, rhs: Self) -> Option<Self> {
-        specialize!(<T as IntegerVectorBackend<N, A>>::vector_checked_div(
-            self, rhs
-        ))
+        specialize!(<T as IntegerVectorBackend<N, A>>::checked_div(self, rhs))
     }
 
     /// Computes `self % rhs`, returning `None` if overflow or division
@@ -196,9 +188,7 @@ where
     #[inline]
     #[must_use]
     pub fn checked_rem(self, rhs: Self) -> Option<Self> {
-        specialize!(<T as IntegerVectorBackend<N, A>>::vector_checked_rem(
-            self, rhs
-        ))
+        specialize!(<T as IntegerVectorBackend<N, A>>::checked_rem(self, rhs))
     }
 
     /// Computes `self + rhs`, saturating at the numeric bounds instead of
@@ -206,9 +196,7 @@ where
     #[inline]
     #[must_use]
     pub fn saturating_add(self, rhs: Self) -> Self {
-        specialize!(<T as IntegerVectorBackend<N, A>>::vector_saturating_add(
-            self, rhs
-        ))
+        specialize!(<T as IntegerVectorBackend<N, A>>::saturating_add(self, rhs))
     }
 
     /// Computes `self - rhs`, saturating at the numeric bounds instead of
@@ -216,9 +204,7 @@ where
     #[inline]
     #[must_use]
     pub fn saturating_sub(self, rhs: Self) -> Self {
-        specialize!(<T as IntegerVectorBackend<N, A>>::vector_saturating_sub(
-            self, rhs
-        ))
+        specialize!(<T as IntegerVectorBackend<N, A>>::saturating_sub(self, rhs))
     }
 
     /// Computes `self * rhs`, saturating at the numeric bounds instead of
@@ -226,9 +212,7 @@ where
     #[inline]
     #[must_use]
     pub fn saturating_mul(self, rhs: Self) -> Self {
-        specialize!(<T as IntegerVectorBackend<N, A>>::vector_saturating_mul(
-            self, rhs
-        ))
+        specialize!(<T as IntegerVectorBackend<N, A>>::saturating_mul(self, rhs))
     }
 
     /// Computes `self / rhs`, saturating at the numeric bounds instead of
@@ -241,36 +225,28 @@ where
     #[must_use]
     #[track_caller]
     pub fn saturating_div(self, rhs: Self) -> Self {
-        specialize!(<T as IntegerVectorBackend<N, A>>::vector_saturating_div(
-            self, rhs
-        ))
+        specialize!(<T as IntegerVectorBackend<N, A>>::saturating_div(self, rhs))
     }
 
     /// Computes `self + rhs`, wrapping around at the boundary of the type.
     #[inline]
     #[must_use]
     pub fn wrapping_add(self, rhs: Self) -> Self {
-        specialize!(<T as IntegerVectorBackend<N, A>>::vector_wrapping_add(
-            self, rhs
-        ))
+        specialize!(<T as IntegerVectorBackend<N, A>>::wrapping_add(self, rhs))
     }
 
     /// Computes `self - rhs`, wrapping around at the boundary of the type.
     #[inline]
     #[must_use]
     pub fn wrapping_sub(self, rhs: Self) -> Self {
-        specialize!(<T as IntegerVectorBackend<N, A>>::vector_wrapping_sub(
-            self, rhs
-        ))
+        specialize!(<T as IntegerVectorBackend<N, A>>::wrapping_sub(self, rhs))
     }
 
     /// Computes `self * rhs`, wrapping around at the boundary of the type.
     #[inline]
     #[must_use]
     pub fn wrapping_mul(self, rhs: Self) -> Self {
-        specialize!(<T as IntegerVectorBackend<N, A>>::vector_wrapping_mul(
-            self, rhs
-        ))
+        specialize!(<T as IntegerVectorBackend<N, A>>::wrapping_mul(self, rhs))
     }
 
     /// Computes `self / rhs`, wrapping around at the boundary of the type.
@@ -282,9 +258,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn wrapping_div(self, rhs: Self) -> Self {
-        specialize!(<T as IntegerVectorBackend<N, A>>::vector_wrapping_div(
-            self, rhs
-        ))
+        specialize!(<T as IntegerVectorBackend<N, A>>::wrapping_div(self, rhs))
     }
 
     /// Computes `self % rhs`, wrapping around at the boundary of the type.
@@ -296,9 +270,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn wrapping_rem(self, rhs: Self) -> Self {
-        specialize!(<T as IntegerVectorBackend<N, A>>::vector_wrapping_rem(
-            self, rhs
-        ))
+        specialize!(<T as IntegerVectorBackend<N, A>>::wrapping_rem(self, rhs))
     }
 }
 

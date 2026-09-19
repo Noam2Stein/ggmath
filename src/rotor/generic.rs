@@ -44,7 +44,7 @@ where
     where
         T: Neg<Output = T>,
     {
-        specialize_3!(<T as RotorBackend<N, A>>::rotor_conjugate(self))
+        specialize_3!(<T as RotorBackend<N, A>>::conjugate(self))
     }
 
     /// Returns the inverse of a rotor.
