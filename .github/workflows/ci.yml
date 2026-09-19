@@ -81,7 +81,7 @@ jobs:
         echo "$HOME/.wasmtime/bin" >> $GITHUB_PATH
 
     - name: Cargo Test
-      run: cargo test ${{ matrix.command.args }} --target ${{ matrix.config.target }}
+      run: cargo test ${{ matrix.command.args }} --target ${{ matrix.config.target }}  -- --nocapture
 
   fmt_and_doc:
     runs-on: ubuntu-latest
