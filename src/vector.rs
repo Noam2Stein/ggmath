@@ -594,7 +594,7 @@ where
 }
 
 macro_rules! impl_unary_operator {
-    ($Op:ident, $op:ident, $vector_op:ident, $(#[$doc:meta])*) => {
+    ($Op:ident, $op:ident, $(#[$doc:meta])*) => {
         impl<const N: usize, T, A: Alignment> $Op for Vector<N, T, A>
         where
             Dim<N>: TwoThreeOrFour,
@@ -606,7 +606,7 @@ macro_rules! impl_unary_operator {
             #[inline]
             #[track_caller]
             fn $op(self) -> Self::Output {
-                specialize!(<T as VectorBackend<N, A>>::$vector_op(self))
+                specialize!(<T as VectorBackend<N, A>>::$op(self))
             }
         }
 
@@ -629,7 +629,6 @@ macro_rules! impl_unary_operator {
 impl_unary_operator!(
     Neg,
     neg,
-    neg,
     /// Performs the unary `-` operation for each vector element.
     ///
     /// # Examples
@@ -649,7 +648,6 @@ impl_unary_operator!(
 impl_unary_operator!(
     Not,
     not,
-    not,
     /// Performs the unary `!` operation for each vector element.
     ///
     /// # Examples
@@ -663,7 +661,7 @@ impl_unary_operator!(
 );
 
 macro_rules! impl_binary_operator {
-    ($Op:ident, $op:ident, $vector_op:ident, $(#[$doc:meta])*, $(#[$doc_scalar:meta])*) => {
+    ($Op:ident, $op:ident, $(#[$doc:meta])*, $(#[$doc_scalar:meta])*) => {
         impl<const N: usize, T, A: Alignment> $Op for Vector<N, T, A>
         where
             Dim<N>: TwoThreeOrFour,
@@ -675,7 +673,7 @@ macro_rules! impl_binary_operator {
             #[inline]
             #[track_caller]
             fn $op(self, rhs: Self) -> Self::Output {
-                specialize!(<T as VectorBackend<N, A>>::$vector_op(self, rhs))
+                specialize!(<T as VectorBackend<N, A>>::$op(self, rhs))
             }
         }
 
@@ -788,7 +786,6 @@ macro_rules! impl_binary_operator {
 impl_binary_operator!(
     Add,
     add,
-    add,
     /// Performs the `+` operation for each vector element.
     ///
     /// # Examples
@@ -827,7 +824,6 @@ impl_binary_operator!(
 );
 impl_binary_operator!(
     Sub,
-    sub,
     sub,
     /// Performs the `-` operation for each vector element.
     ///
@@ -868,7 +864,6 @@ impl_binary_operator!(
 impl_binary_operator!(
     Mul,
     mul,
-    mul,
     /// Performs the `*` operation for each vector element.
     ///
     /// # Examples
@@ -908,7 +903,6 @@ impl_binary_operator!(
 impl_binary_operator!(
     Div,
     div,
-    div,
     /// Performs the `/` operation for each vector element.
     ///
     /// # Examples
@@ -947,7 +941,6 @@ impl_binary_operator!(
 );
 impl_binary_operator!(
     Rem,
-    rem,
     rem,
     /// Performs the `%` operation for each vector element.
     ///
@@ -994,7 +987,6 @@ impl_binary_operator!(
 impl_binary_operator!(
     Shl,
     shl,
-    shl,
     /// Performs the `<<` operation for each vector element.
     ///
     /// # Examples
@@ -1034,7 +1026,6 @@ impl_binary_operator!(
 );
 impl_binary_operator!(
     Shr,
-    shr,
     shr,
     /// Performs the `>>` operation for each vector element.
     ///
@@ -1076,7 +1067,6 @@ impl_binary_operator!(
 impl_binary_operator!(
     BitAnd,
     bitand,
-    bitand,
     /// Performs the `&` operation for each vector element.
     ///
     /// # Examples
@@ -1108,7 +1098,6 @@ impl_binary_operator!(
 impl_binary_operator!(
     BitOr,
     bitor,
-    bitor,
     /// Performs the `|` operation for each vector element.
     ///
     /// # Examples
@@ -1139,7 +1128,6 @@ impl_binary_operator!(
 );
 impl_binary_operator!(
     BitXor,
-    bitxor,
     bitxor,
     /// Performs the `^` operation for each vector element.
     ///
