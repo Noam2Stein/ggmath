@@ -19,11 +19,11 @@ macro_rules! safe_target_feature {
             #[cfg_attr(target_feature = "sse4.1", target_feature(enable = "sse4.1"))]
             #[cfg_attr(target_feature = "neon", target_feature(enable = "neon"))]
             #[inline]
-            fn $f($($param: $Param),*) $(-> $Ret)? $body
+            fn safe_target_feature_helper_fn($($param: $Param),*) $(-> $Ret)? $body
 
             // SAFETY: The function only requires target features that are
             // enabled via cfg.
-            unsafe { $f($($param),*) }
+            unsafe { safe_target_feature_helper_fn($($param),*) }
         }
     )*};
 }
