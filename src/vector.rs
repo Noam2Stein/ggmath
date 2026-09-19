@@ -554,13 +554,13 @@ where
 {
     #[inline]
     fn eq(&self, other: &Self) -> bool {
-        specialize!(<T as VectorBackend<N, A>>::vector_eq(self, other))
+        specialize!(<T as VectorBackend<N, A>>::eq(self, other))
     }
 
     #[expect(clippy::partialeq_ne_impl)]
     #[inline]
     fn ne(&self, other: &Self) -> bool {
-        specialize!(<T as VectorBackend<N, A>>::vector_ne(self, other))
+        specialize!(<T as VectorBackend<N, A>>::ne(self, other))
     }
 }
 
@@ -629,7 +629,7 @@ macro_rules! impl_unary_operator {
 impl_unary_operator!(
     Neg,
     neg,
-    vector_neg,
+    neg,
     /// Performs the unary `-` operation for each vector element.
     ///
     /// # Examples
@@ -649,7 +649,7 @@ impl_unary_operator!(
 impl_unary_operator!(
     Not,
     not,
-    vector_not,
+    not,
     /// Performs the unary `!` operation for each vector element.
     ///
     /// # Examples
@@ -788,7 +788,7 @@ macro_rules! impl_binary_operator {
 impl_binary_operator!(
     Add,
     add,
-    vector_add,
+    add,
     /// Performs the `+` operation for each vector element.
     ///
     /// # Examples
@@ -828,7 +828,7 @@ impl_binary_operator!(
 impl_binary_operator!(
     Sub,
     sub,
-    vector_sub,
+    sub,
     /// Performs the `-` operation for each vector element.
     ///
     /// # Examples
@@ -868,7 +868,7 @@ impl_binary_operator!(
 impl_binary_operator!(
     Mul,
     mul,
-    vector_mul,
+    mul,
     /// Performs the `*` operation for each vector element.
     ///
     /// # Examples
@@ -908,7 +908,7 @@ impl_binary_operator!(
 impl_binary_operator!(
     Div,
     div,
-    vector_div,
+    div,
     /// Performs the `/` operation for each vector element.
     ///
     /// # Examples
@@ -948,7 +948,7 @@ impl_binary_operator!(
 impl_binary_operator!(
     Rem,
     rem,
-    vector_rem,
+    rem,
     /// Performs the `%` operation for each vector element.
     ///
     /// # Examples
@@ -994,7 +994,7 @@ impl_binary_operator!(
 impl_binary_operator!(
     Shl,
     shl,
-    vector_shl,
+    shl,
     /// Performs the `<<` operation for each vector element.
     ///
     /// # Examples
@@ -1035,7 +1035,7 @@ impl_binary_operator!(
 impl_binary_operator!(
     Shr,
     shr,
-    vector_shr,
+    shr,
     /// Performs the `>>` operation for each vector element.
     ///
     /// # Examples
@@ -1076,7 +1076,7 @@ impl_binary_operator!(
 impl_binary_operator!(
     BitAnd,
     bitand,
-    vector_bitand,
+    bitand,
     /// Performs the `&` operation for each vector element.
     ///
     /// # Examples
@@ -1108,7 +1108,7 @@ impl_binary_operator!(
 impl_binary_operator!(
     BitOr,
     bitor,
-    vector_bitor,
+    bitor,
     /// Performs the `|` operation for each vector element.
     ///
     /// # Examples
@@ -1140,7 +1140,7 @@ impl_binary_operator!(
 impl_binary_operator!(
     BitXor,
     bitxor,
-    vector_bitxor,
+    bitxor,
     /// Performs the `^` operation for each vector element.
     ///
     /// # Examples

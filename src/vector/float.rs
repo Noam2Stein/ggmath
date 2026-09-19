@@ -636,7 +636,7 @@ where
     #[inline]
     #[must_use]
     pub fn nan_mask(self) -> Mask<N, T, A> {
-        specialize!(<T as FloatVectorBackend<N, A>>::vector_nan_mask(self))
+        specialize!(<T as FloatVectorBackend<N, A>>::nan_mask(self))
     }
 
     /// Returns `true` if all elements are neither infinite nor NaN.
@@ -680,7 +680,7 @@ where
     #[inline]
     #[must_use]
     pub fn finite_mask(self) -> Mask<N, T, A> {
-        specialize!(<T as FloatVectorBackend<N, A>>::vector_finite_mask(self))
+        specialize!(<T as FloatVectorBackend<N, A>>::finite_mask(self))
     }
 
     /// Returns a vector mask where each element is `true` if the corresponding
@@ -703,9 +703,7 @@ where
     #[inline]
     #[must_use]
     pub fn sign_positive_mask(self) -> Mask<N, T, A> {
-        specialize!(<T as FloatVectorBackend<N, A>>::vector_sign_positive_mask(
-            self
-        ))
+        specialize!(<T as FloatVectorBackend<N, A>>::sign_positive_mask(self))
     }
 
     /// Returns a vector mask where each element is `true` if the corresponding
@@ -728,9 +726,7 @@ where
     #[inline]
     #[must_use]
     pub fn sign_negative_mask(self) -> Mask<N, T, A> {
-        specialize!(<T as FloatVectorBackend<N, A>>::vector_sign_negative_mask(
-            self
-        ))
+        specialize!(<T as FloatVectorBackend<N, A>>::sign_negative_mask(self))
     }
 
     /// Returns the maximum elements between `self` and `other`.
@@ -766,7 +762,7 @@ where
             "cannot compare NaN: {self:?}.max({other:?})"
         );
 
-        specialize!(<T as FloatVectorBackend<N, A>>::vector_max(self, other))
+        specialize!(<T as FloatVectorBackend<N, A>>::max(self, other))
     }
 
     /// Returns the minimum elements between `self` and `other`.
@@ -802,7 +798,7 @@ where
             "cannot compare NaN: {self:?}.min({other:?})"
         );
 
-        specialize!(<T as FloatVectorBackend<N, A>>::vector_min(self, other))
+        specialize!(<T as FloatVectorBackend<N, A>>::min(self, other))
     }
 
     /// Clamps the elements of `self` between the elements of `min` and `max`.
@@ -872,7 +868,7 @@ where
     pub fn max_element(self) -> T {
         debug_assert!(!self.is_nan(), "cannot compare NaN: {self:?}.max_element()");
 
-        specialize!(<T as FloatVectorBackend<N, A>>::vector_max_element(self))
+        specialize!(<T as FloatVectorBackend<N, A>>::max_element(self))
     }
 
     /// Returns the minimum element of a vector.
@@ -903,7 +899,7 @@ where
     pub fn min_element(self) -> T {
         debug_assert!(!self.is_nan(), "cannot compare NaN: {self:?}.min_element()");
 
-        specialize!(<T as FloatVectorBackend<N, A>>::vector_min_element(self))
+        specialize!(<T as FloatVectorBackend<N, A>>::min_element(self))
     }
 
     /// Returns `self` with a length of no more than `max`.
@@ -1075,7 +1071,7 @@ where
     #[inline]
     #[must_use]
     pub fn abs(self) -> Self {
-        specialize!(<T as FloatVectorBackend<N, A>>::vector_abs(self))
+        specialize!(<T as FloatVectorBackend<N, A>>::abs(self))
     }
 
     /// Returns the signum of the elements of `self`.
@@ -1103,7 +1099,7 @@ where
     #[inline]
     #[must_use]
     pub fn signum(self) -> Self {
-        specialize!(<T as FloatVectorBackend<N, A>>::vector_signum(self))
+        specialize!(<T as FloatVectorBackend<N, A>>::signum(self))
     }
 
     /// Returns a vector with the element magnitudes of `self` and the element
@@ -1125,7 +1121,7 @@ where
     #[inline]
     #[must_use]
     pub fn copysign(self, sign: Self) -> Self {
-        specialize!(<T as FloatVectorBackend<N, A>>::vector_copysign(self, sign))
+        specialize!(<T as FloatVectorBackend<N, A>>::copysign(self, sign))
     }
 
     /// Returns the largest integers less than or equal to the elements of
@@ -1145,7 +1141,7 @@ where
     #[inline]
     #[must_use]
     pub fn floor(self) -> Self {
-        specialize!(<T as FloatVectorBackend<N, A>>::vector_floor(self))
+        specialize!(<T as FloatVectorBackend<N, A>>::floor(self))
     }
 
     /// Returns the smallest integers greater than or equal to the elements of
@@ -1165,7 +1161,7 @@ where
     #[inline]
     #[must_use]
     pub fn ceil(self) -> Self {
-        specialize!(<T as FloatVectorBackend<N, A>>::vector_ceil(self))
+        specialize!(<T as FloatVectorBackend<N, A>>::ceil(self))
     }
 
     /// Returns the nearest integers to the elements of `self`.
@@ -1185,7 +1181,7 @@ where
     #[inline]
     #[must_use]
     pub fn round(self) -> Self {
-        specialize!(<T as FloatVectorBackend<N, A>>::vector_round(self))
+        specialize!(<T as FloatVectorBackend<N, A>>::round(self))
     }
 
     /// Returns the integer part of the elements of `self`. This means that
@@ -1205,7 +1201,7 @@ where
     #[inline]
     #[must_use]
     pub fn trunc(self) -> Self {
-        specialize!(<T as FloatVectorBackend<N, A>>::vector_trunc(self))
+        specialize!(<T as FloatVectorBackend<N, A>>::trunc(self))
     }
 
     /// Returns the fractional part of `self`. Equivalent to
@@ -1261,7 +1257,7 @@ where
     #[inline]
     #[must_use]
     pub fn mul_add(self, a: Self, b: Self) -> Self {
-        specialize!(<T as FloatVectorBackend<N, A>>::vector_mul_add(self, a, b))
+        specialize!(<T as FloatVectorBackend<N, A>>::mul_add(self, a, b))
     }
 
     /// Calculates Euclidean division for the elements of `self`.
@@ -1280,9 +1276,7 @@ where
     #[inline]
     #[must_use]
     pub fn div_euclid(self, rhs: Self) -> Self {
-        specialize!(<T as FloatVectorBackend<N, A>>::vector_div_euclid(
-            self, rhs
-        ))
+        specialize!(<T as FloatVectorBackend<N, A>>::div_euclid(self, rhs))
     }
 
     /// Calculates Euclidean remainder for the elements of `self`.
@@ -1301,9 +1295,7 @@ where
     #[inline]
     #[must_use]
     pub fn rem_euclid(self, rhs: Self) -> Self {
-        specialize!(<T as FloatVectorBackend<N, A>>::vector_rem_euclid(
-            self, rhs
-        ))
+        specialize!(<T as FloatVectorBackend<N, A>>::rem_euclid(self, rhs))
     }
 
     /// Computes `x^n` for the elements of `self`.
@@ -1316,7 +1308,7 @@ where
     #[inline]
     #[must_use]
     pub fn powf(self, n: T) -> Self {
-        specialize!(<T as FloatVectorBackend<N, A>>::vector_powf(self, n))
+        specialize!(<T as FloatVectorBackend<N, A>>::powf(self, n))
     }
 
     /// Returns the square root of the elements of `self`.
@@ -1343,7 +1335,7 @@ where
     #[inline]
     #[must_use]
     pub fn sqrt(self) -> Self {
-        specialize!(<T as FloatVectorBackend<N, A>>::vector_sqrt(self))
+        specialize!(<T as FloatVectorBackend<N, A>>::sqrt(self))
     }
 
     /// Computes the exponential function `e^x` for the elements of `self`.
@@ -1356,7 +1348,7 @@ where
     #[inline]
     #[must_use]
     pub fn exp(self) -> Self {
-        specialize!(<T as FloatVectorBackend<N, A>>::vector_exp(self))
+        specialize!(<T as FloatVectorBackend<N, A>>::exp(self))
     }
 
     /// Computes `2^x` for the elements of `self`.
@@ -1369,7 +1361,7 @@ where
     #[inline]
     #[must_use]
     pub fn exp2(self) -> Self {
-        specialize!(<T as FloatVectorBackend<N, A>>::vector_exp2(self))
+        specialize!(<T as FloatVectorBackend<N, A>>::exp2(self))
     }
 
     /// Computes the natural logarithm for the elements of `self`.
@@ -1382,7 +1374,7 @@ where
     #[inline]
     #[must_use]
     pub fn ln(self) -> Self {
-        specialize!(<T as FloatVectorBackend<N, A>>::vector_ln(self))
+        specialize!(<T as FloatVectorBackend<N, A>>::ln(self))
     }
 
     /// Computes the base 2 logarithm for the elements of `self`.
@@ -1405,7 +1397,7 @@ where
     #[inline]
     #[must_use]
     pub fn log2(self) -> Self {
-        specialize!(<T as FloatVectorBackend<N, A>>::vector_log2(self))
+        specialize!(<T as FloatVectorBackend<N, A>>::log2(self))
     }
 
     /// Computes the sine of the elements of `self`.
@@ -1418,7 +1410,7 @@ where
     #[inline]
     #[must_use]
     pub fn sin(self) -> Self {
-        specialize!(<T as FloatVectorBackend<N, A>>::vector_sin(self))
+        specialize!(<T as FloatVectorBackend<N, A>>::sin(self))
     }
 
     /// Computes the cosine of the elements of `self`.
@@ -1431,7 +1423,7 @@ where
     #[inline]
     #[must_use]
     pub fn cos(self) -> Self {
-        specialize!(<T as FloatVectorBackend<N, A>>::vector_cos(self))
+        specialize!(<T as FloatVectorBackend<N, A>>::cos(self))
     }
 
     /// Computes the tangent of the elements of `self`.
@@ -1444,7 +1436,7 @@ where
     #[inline]
     #[must_use]
     pub fn tan(self) -> Self {
-        specialize!(<T as FloatVectorBackend<N, A>>::vector_tan(self))
+        specialize!(<T as FloatVectorBackend<N, A>>::tan(self))
     }
 
     /// Computes the arcsine of the elements of `self`.
@@ -1457,7 +1449,7 @@ where
     #[inline]
     #[must_use]
     pub fn asin(self) -> Self {
-        specialize!(<T as FloatVectorBackend<N, A>>::vector_asin(self))
+        specialize!(<T as FloatVectorBackend<N, A>>::asin(self))
     }
 
     /// Computes the arccosine of the elements of `self`.
@@ -1470,7 +1462,7 @@ where
     #[inline]
     #[must_use]
     pub fn acos(self) -> Self {
-        specialize!(<T as FloatVectorBackend<N, A>>::vector_acos(self))
+        specialize!(<T as FloatVectorBackend<N, A>>::acos(self))
     }
 
     /// Computes the arctangent of the elements of `self`.
@@ -1483,7 +1475,7 @@ where
     #[inline]
     #[must_use]
     pub fn atan(self) -> Self {
-        specialize!(<T as FloatVectorBackend<N, A>>::vector_atan(self))
+        specialize!(<T as FloatVectorBackend<N, A>>::atan(self))
     }
 
     /// Simultaneously computes the sine and cosine of the elements of `self`.
@@ -1499,7 +1491,7 @@ where
     #[inline]
     #[must_use]
     pub fn sin_cos(self) -> (Self, Self) {
-        specialize!(<T as FloatVectorBackend<N, A>>::vector_sin_cos(self))
+        specialize!(<T as FloatVectorBackend<N, A>>::sin_cos(self))
     }
 }
 

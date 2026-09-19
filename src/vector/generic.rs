@@ -274,7 +274,7 @@ where
     where
         T: Add<Output = T>,
     {
-        specialize!(<T as VectorBackend<N, A>>::vector_element_sum(self))
+        specialize!(<T as VectorBackend<N, A>>::element_sum(self))
     }
 
     /// Computes the product of the elements of a vector.
@@ -297,7 +297,7 @@ where
     where
         T: Mul<Output = T>,
     {
-        specialize!(<T as VectorBackend<N, A>>::vector_element_product(self))
+        specialize!(<T as VectorBackend<N, A>>::element_product(self))
     }
 
     /// Computes the dot product of two vectors.
@@ -405,7 +405,7 @@ where
     where
         T: PartialEq,
     {
-        specialize!(<T as VectorBackend<N, A>>::vector_eq_mask(self, other))
+        specialize!(<T as VectorBackend<N, A>>::eq_mask(self, other))
     }
 
     /// Returns a vector mask where each element is `true` if the corresponding
@@ -428,7 +428,7 @@ where
     where
         T: PartialEq,
     {
-        specialize!(<T as VectorBackend<N, A>>::vector_ne_mask(self, other))
+        specialize!(<T as VectorBackend<N, A>>::ne_mask(self, other))
     }
 
     /// Returns a vector mask where each element is `true` if the corresponding
@@ -451,7 +451,7 @@ where
     where
         T: PartialOrd,
     {
-        specialize!(<T as VectorBackend<N, A>>::vector_lt_mask(self, other))
+        specialize!(<T as VectorBackend<N, A>>::lt_mask(self, other))
     }
 
     /// Returns a vector mask where each element is `true` if the corresponding
@@ -474,7 +474,7 @@ where
     where
         T: PartialOrd,
     {
-        specialize!(<T as VectorBackend<N, A>>::vector_gt_mask(self, other))
+        specialize!(<T as VectorBackend<N, A>>::gt_mask(self, other))
     }
 
     /// Returns a vector mask where each element is `true` if the corresponding
@@ -498,7 +498,7 @@ where
     where
         T: PartialOrd,
     {
-        specialize!(<T as VectorBackend<N, A>>::vector_le_mask(self, other))
+        specialize!(<T as VectorBackend<N, A>>::le_mask(self, other))
     }
 
     /// Returns a vector mask where each element is `true` if the corresponding
@@ -522,7 +522,7 @@ where
     where
         T: PartialOrd,
     {
-        specialize!(<T as VectorBackend<N, A>>::vector_ge_mask(self, other))
+        specialize!(<T as VectorBackend<N, A>>::ge_mask(self, other))
     }
 
     /// Converts `self` to SIMD-aligned storage.

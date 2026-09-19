@@ -812,7 +812,7 @@ macro_rules! impl_mul {
             #[inline]
             #[track_caller]
             fn mul(self, rhs: Self) -> Self::Output {
-                specialize_3!(<T as RotorBackend<N, A>>::rotor_mul(self, rhs))
+                specialize_3!(<T as RotorBackend<N, A>>::mul(self, rhs))
             }
         }
 
