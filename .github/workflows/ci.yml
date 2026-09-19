@@ -12,46 +12,55 @@ env:
 
 jobs:
   clippy:
-    runs-on: ${{ matrix.rust.os }}
+    runs-on: ${{ matrix.config.os }}
     env:
-      RUSTFLAGS: -D warnings
+      RUSTFLAGS: -D warnings ${{ matrix.config.rustflags }}
     strategy:
       matrix:
-        rust:
-        - { target: i686-pc-windows-msvc, os: windows-latest }
-        - { target: x86_64-unknown-linux-gnu, os: ubuntu-latest }
-        - { target: aarch64-apple-darwin, os: macos-latest }
+        config:
+        - { target: i686-pc-windows-msvc, os: windows-latest, rustflags: "" }
+        - { target: x86_64-unknown-linux-gnu, os: ubuntu-latest, rustflags: "" }
+        - { target: x86_64-unknown-linux-gnu, os: ubuntu-latest, rustflags: "-C target-feature=+ssse3,+sse4.1,+sse4.2,+avx2,+fma" }
+        - { target: aarch64-apple-darwin, os: macos-latest, rustflags: "" }
+        - { target: wasm32-wasip1, os: ubuntu-latest, rustflags: "-C target-feature=+simd128" }
+        - { target: wasm32-wasip1, os: ubuntu-latest, rustflags: "-C target-feature=-simd128" }
     steps:
     - uses: actions/checkout@v4
     - uses: dtolnay/rust-toolchain@master
       with:
         toolchain: "1.95.0"
-        target:  ${{ matrix.rust.target }}
+        target:  ${{ matrix.config.target }}
         components: clippy
     - uses: Swatinem/rust-cache@master
 
     - name: Clippy
-      run: cargo clippy --all-targets --target ${{ matrix.rust.target }}
+      run: cargo clippy --all-targets --target ${{ matrix.config.target }}
 
     - name: Clippy with Libm
-      run: cargo clippy --all-targets --features libm --target ${{ matrix.rust.target }}
+      run: cargo clippy --all-targets --features libm --target ${{ matrix.config.target }}
 
     - name: Clippy with optional dependencies
-      run: cargo clippy --all-targets --features "bytemuck fixed mint rand serde wide" --target ${{ matrix.rust.target }}
+      run: cargo clippy --all-targets --features "bytemuck fixed mint rand serde wide" --target ${{ matrix.config.target }}
 
     - name: Clippy with Libm and optional dependencies
-      run: cargo clippy --all-targets --all-features --target ${{ matrix.rust.target }}
+      run: cargo clippy --all-targets --all-features --target ${{ matrix.config.target }}
 
   test:
-    runs-on: ${{ matrix.rust.os }}
+    runs-on: ${{ matrix.config.os }}
     env:
-      RUSTFLAGS: -D warnings ${{ matrix.command.rustflags }}
+      RUSTFLAGS: -D warnings ${{ matrix.config.rustflags }} ${{ matrix.command.rustflags }}
+      CARGO_TARGET_WASM32_WASIP1_RUNNER: wasmtime run --dir .
+      CARGO_TARGET_WASM32_WASIP1_RUSTFLAGS: -D warnings ${{ matrix.config.rustflags }} ${{ matrix.command.rustflags }}
+      WASMTIME_BACKTRACE_DETAILS: 1
     strategy:
       matrix:
-        rust:
-        - { target: i686-pc-windows-msvc, os: windows-latest }
-        - { target: x86_64-unknown-linux-gnu, os: ubuntu-latest }
-        - { target: aarch64-apple-darwin, os: macos-latest }
+        config:
+        - { target: i686-pc-windows-msvc, os: windows-latest, rustflags: "" }
+        - { target: x86_64-unknown-linux-gnu, os: ubuntu-latest, rustflags: "" }
+        - { target: x86_64-unknown-linux-gnu, os: ubuntu-latest, rustflags: "-C target-feature=+ssse3,+sse4.1,+sse4.2,+avx2,+fma" }
+        - { target: aarch64-apple-darwin, os: macos-latest, rustflags: "" }
+        - { target: wasm32-wasip1, os: ubuntu-latest, rustflags: "-C target-feature=+simd128" }
+        - { target: wasm32-wasip1, os: ubuntu-latest, rustflags: "-C target-feature=-simd128" }
 
         command:
         - rustflags: -C debug-assertions=off -C overflow-checks=off
@@ -65,28 +74,18 @@ jobs:
     - uses: dtolnay/rust-toolchain@master
       with:
         toolchain: "1.95.0"
-        target: ${{ matrix.rust.target }}
+        target: ${{ matrix.config.target }}
         components: clippy
     - uses: Swatinem/rust-cache@master
 
-    - name: Cargo Test
-      run: cargo test ${{ matrix.command.args }} --target ${{ matrix.rust.target }}
-
-  test_x86_64_additional_target_features:
-    runs-on: ubuntu-latest
-    env:
-      RUSTFLAGS: -D warnings -C target-feature=+ssse3,+sse4.1,+sse4.2,+avx2,+fma -C debug-assertions=off -C overflow-checks=off
-    steps:
-    - uses: actions/checkout@v4
-    - uses: dtolnay/rust-toolchain@master
-      with:
-        toolchain: "1.95.0"
-        target: x86_64-unknown-linux-gnu
-        components: clippy
-    - uses: Swatinem/rust-cache@master
+    - name: Install Wasmtime
+      if: matrix.config.target == 'wasm32-wasip1'
+      run: |
+        curl https://wasmtime.dev/install.sh -sSf | bash -s -- --version v39.0.1
+        echo "$HOME/.wasmtime/bin" >> $GITHUB_PATH
 
     - name: Cargo Test
-      run: cargo test --target x86_64-unknown-linux-gnu
+      run: cargo test ${{ matrix.command.args }} --target ${{ matrix.config.target }} -- ${{ matrix.config.target == 'wasm32-wasip1' && '--nocapture' || '' }}
 
   fmt_and_doc:
     runs-on: ubuntu-latest
