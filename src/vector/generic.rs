@@ -584,66 +584,6 @@ where
             _ => unreachable!(),
         }
     }
-
-    #[inline]
-    #[must_use]
-    #[allow(
-        dead_code,
-        reason = "this will likely be used for fixed-point numbers (TODO)"
-    )]
-    pub(crate) const fn from_inner(inner: <T as VectorBackend<N, A>>::Inner) -> Self
-    where
-        T: VectorBackend<N, A>,
-    {
-        // SAFETY: These always correspond to the same type.
-        Self(unsafe {
-            transmute_generic::<
-                <T as VectorBackend<N, A>>::Inner,
-                <A as Alignment>::Select<
-                    <Dim<N> as TwoThreeOrFour>::Select<
-                        <T as VectorBackend<2, Aligned>>::Inner,
-                        <T as VectorBackend<3, Aligned>>::Inner,
-                        <T as VectorBackend<4, Aligned>>::Inner,
-                    >,
-                    <Dim<N> as TwoThreeOrFour>::Select<
-                        <T as VectorBackend<2, Unaligned>>::Inner,
-                        <T as VectorBackend<3, Unaligned>>::Inner,
-                        <T as VectorBackend<4, Unaligned>>::Inner,
-                    >,
-                >,
-            >(inner)
-        })
-    }
-
-    #[inline]
-    #[must_use]
-    #[allow(
-        dead_code,
-        reason = "this will likely be used for fixed-point numbers (TODO)"
-    )]
-    pub(crate) const fn inner(self) -> <T as VectorBackend<N, A>>::Inner
-    where
-        T: VectorBackend<N, A>,
-    {
-        // SAFETY: `Vector<N, T, A>` is a transparent wrapper over
-        // `<T as VectorBackend<N, A>>::Inner`.
-        unsafe { transmute_generic::<Vector<N, T, A>, <T as VectorBackend<N, A>>::Inner>(self) }
-    }
-
-    #[inline]
-    #[must_use]
-    #[allow(
-        dead_code,
-        reason = "this will likely be used for fixed-point numbers (TODO)"
-    )]
-    pub(crate) const fn inner_mut(&mut self) -> &mut <T as VectorBackend<N, A>>::Inner
-    where
-        T: VectorBackend<N, A>,
-    {
-        // SAFETY: `Vector<N, T, A>` is a transparent wrapper over
-        // `<T as VectorBackend<N, A>>::Inner`.
-        unsafe { transmute_mut::<Vector<N, T, A>, <T as VectorBackend<N, A>>::Inner>(self) }
-    }
 }
 
 impl<T, A: Alignment> Vector<2, T, A>
