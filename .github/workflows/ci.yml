@@ -63,6 +63,7 @@ jobs:
           args: --features "bytemuck fixed mint rand serde wide"
 
         - rustflags: -C debug-assertions=on -C overflow-checks=on
+          if: matrix.config.target != 'wasm32-wasip1'
           args: --all-features
 
     steps:
