@@ -222,7 +222,7 @@ unsafe impl VectorBackend<4, Aligned> for f32 {
 
         #[cfg(target_feature = "ssse3")]
         #[inline]
-        fn vector_element_sum(vector: Vec4A<f32>) -> f32 {
+        fn element_sum(vector: Vec4A<f32>) -> f32 {
             let reduce_2 = _mm_hadd_ps(vector.0, vector.0);
             let reduce_1 = _mm_hadd_ps(reduce_2, reduce_2);
             _mm_cvtss_f32(reduce_1)
