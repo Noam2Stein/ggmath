@@ -4,3 +4,4 @@ mod assert_panic;
 mod for_types;
 mod random_iter;
 mod test_eq;
+mod try_from_fn;

@@ -9,6 +9,9 @@ use std::{
 use colored::Colorize;
 
 /// Asserts that the given expression panics.
+///
+/// Note that this check is disabled on wasm, since there configuring
+/// `panic=unwind` requires a nightly compiler.
 macro_rules! assert_panic {
     ($expr:expr $(,)?) => {
         crate::test_utils::assert_panic_helper(|| {
@@ -80,9 +83,11 @@ pub(crate) use assert_test_eq_or_panic;
 #[doc(hidden)]
 #[track_caller]
 pub fn assert_panic_helper(f: impl FnOnce() + UnwindSafe) {
-    match catch_unwind(f) {
-        Ok(_) => panic!("assertion `panic` failed"),
-        Err(_) => println_panic_expected(),
+    if !cfg!(target_family = "wasm") {
+        match catch_unwind(f) {
+            Ok(_) => panic!("assertion `panic` failed"),
+            Err(_) => println_panic_expected(),
+        }
     }
 }
 
@@ -136,6 +141,7 @@ mod tests {
         assert_panic!(panic!());
     }
 
+    #[cfg(not(target_family = "wasm"))]
     #[test]
     #[should_panic]
     fn test_assert_panic_panic() {
@@ -160,16 +166,19 @@ mod tests {
     #[expect(unreachable_code)]
     fn test_assert_panic_test_eq() {
         assert_panic_test_eq!(1.0, 1.0);
-        assert_panic_test_eq!(
-            {
-                panic!();
-                0.0
-            },
-            panic!()
-        );
         assert_panic!(assert_panic_test_eq!(1.0, 2.0));
         assert_panic!(assert_panic_test_eq!(panic!(), 1.0));
         assert_panic!(assert_panic_test_eq!(1.0, panic!()));
+
+        if !cfg!(target_family = "wasm") {
+            assert_panic_test_eq!(
+                {
+                    panic!();
+                    0.0
+                },
+                panic!()
+            );
+        }
     }
 
     #[test]
@@ -177,7 +186,6 @@ mod tests {
     #[expect(clippy::diverging_sub_expression)]
     fn test_assert_test_eq_or_panic() {
         assert_test_eq_or_panic!(1.0, 1.0);
-        assert_test_eq_or_panic!(1.0, panic!());
         assert_panic!(assert_test_eq_or_panic!(1.0, 2.0));
         assert_panic!(assert_test_eq_or_panic!(panic!(), 1.0));
         assert_panic!(assert_test_eq_or_panic!(
@@ -187,5 +195,9 @@ mod tests {
             },
             panic!()
         ));
+
+        if !cfg!(target_family = "wasm") {
+            assert_test_eq_or_panic!(1.0, panic!());
+        }
     }
 }
