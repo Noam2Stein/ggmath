@@ -2083,7 +2083,7 @@ mod tests {
             for [vector, min, max] in random_iter::<[Vector<N, f32x4, Unaligned>; 3]>() {
                 let vector = vector.nan_mask().select(Vector::ZERO, vector);
                 let min = min.nan_mask().select(Vector::ZERO, min);
-                let max = min.nan_mask().select(Vector::ZERO, max);
+                let max = max.nan_mask().select(Vector::ZERO, max);
                 let max = max.max(min);
 
                 assert_test_eq!(
@@ -2100,14 +2100,20 @@ mod tests {
         for vector in random_iter::<Vec4<f32x4>>() {
             let vector = vector.nan_mask().select(Vector::ZERO, vector);
 
-            assert_test_eq!(vector.xy().max_element(), vector.x.max(vector.y));
+            assert_test_eq!(
+                vector.xy().max_element(),
+                vector.x.max(vector.y),
+                0.0 = -0.0
+            );
             assert_test_eq!(
                 vector.xyz().max_element(),
-                vector.x.max(vector.y).max(vector.z)
+                vector.x.max(vector.y).max(vector.z),
+                0.0 = -0.0
             );
             assert_test_eq!(
                 vector.max_element(),
-                vector.x.max(vector.y).max(vector.z).max(vector.w)
+                vector.x.max(vector.y).max(vector.z).max(vector.w),
+                0.0 = -0.0
             );
         }
     }
@@ -2117,14 +2123,20 @@ mod tests {
         for vector in random_iter::<Vec4<f32x4>>() {
             let vector = vector.nan_mask().select(Vector::ZERO, vector);
 
-            assert_test_eq!(vector.xy().min_element(), vector.x.min(vector.y));
+            assert_test_eq!(
+                vector.xy().min_element(),
+                vector.x.min(vector.y),
+                0.0 = -0.0
+            );
             assert_test_eq!(
                 vector.xyz().min_element(),
-                vector.x.min(vector.y).min(vector.z)
+                vector.x.min(vector.y).min(vector.z),
+                0.0 = -0.0
             );
             assert_test_eq!(
                 vector.min_element(),
-                vector.x.min(vector.y).min(vector.z).min(vector.w)
+                vector.x.min(vector.y).min(vector.z).min(vector.w),
+                0.0 = -0.0
             );
         }
     }

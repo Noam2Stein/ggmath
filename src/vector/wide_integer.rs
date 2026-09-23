@@ -414,6 +414,11 @@ mod tests {
     fn test_saturating_div() {
         for_types!(|N| {
             for [a, b] in random_iter::<[Vector<N, i32x4, Unaligned>; 2]>().take(100) {
+                #[cfg(target_family = "wasm")]
+                let b = b
+                    .simd_eq_mask(Vector::splat(i32x4::ZERO))
+                    .select(Vector::splat(i32x4::ONE), b);
+
                 assert_panic_test_eq!(
                     a.saturating_div(b),
                     Vector::from_lane_fn(|lane| a.lane(lane).saturating_div(b.lane(lane)))

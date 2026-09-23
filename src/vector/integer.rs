@@ -303,7 +303,7 @@ impl_conflicting_items!(usize);
 mod tests {
     use crate::{
         Vector,
-        test_utils::{assert_panic_test_eq, assert_test_eq_or_panic, for_types, random_iter},
+        test_utils::{assert_panic_test_eq, assert_test_eq, for_types, random_iter},
     };
 
     #[test]
@@ -347,8 +347,8 @@ mod tests {
                         vector.clamp(min, max),
                         Vector::from_fn(|i| vector[i].clamp(min[i], max[i]))
                     );
-                } else {
-                    assert_test_eq_or_panic!(
+                } else if min.le_mask(max).all() {
+                    assert_test_eq!(
                         vector.clamp(min, max),
                         Vector::from_fn(|i| vector[i].clamp(min[i], max[i]))
                     );
@@ -383,9 +383,9 @@ mod tests {
                 .map(|values| values.map(Vector::<N, T, A>::splat))
                 .chain(random_iter())
             {
-                assert_panic_test_eq!(
-                    vector_a.checked_add(vector_b).unwrap(),
-                    Vector::from_fn(|i| vector_a[i].strict_add(vector_b[i]))
+                assert_test_eq!(
+                    vector_a.checked_add(vector_b),
+                    Vector::option_from_fn(|i| vector_a[i].checked_add(vector_b[i]))
                 );
             }
         });
@@ -394,9 +394,9 @@ mod tests {
                 .into_iter()
                 .map(|values| values.map(Vector::<N, T, A>::splat))
             {
-                assert_panic_test_eq!(
-                    vector_a.checked_add(vector_b).unwrap(),
-                    Vector::from_fn(|i| vector_a[i].strict_add(vector_b[i]))
+                assert_test_eq!(
+                    vector_a.checked_add(vector_b),
+                    Vector::option_from_fn(|i| vector_a[i].checked_add(vector_b[i]))
                 );
             }
         });
@@ -410,9 +410,9 @@ mod tests {
                 .map(|values| values.map(Vector::<N, T, A>::splat))
                 .chain(random_iter())
             {
-                assert_panic_test_eq!(
-                    vector_a.checked_sub(vector_b).unwrap(),
-                    Vector::from_fn(|i| vector_a[i].strict_sub(vector_b[i]))
+                assert_test_eq!(
+                    vector_a.checked_sub(vector_b),
+                    Vector::option_from_fn(|i| vector_a[i].checked_sub(vector_b[i]))
                 );
             }
         });
@@ -421,9 +421,9 @@ mod tests {
                 .into_iter()
                 .map(|values| values.map(Vector::<N, T, A>::splat))
             {
-                assert_panic_test_eq!(
-                    vector_a.checked_sub(vector_b).unwrap(),
-                    Vector::from_fn(|i| vector_a[i].strict_sub(vector_b[i]))
+                assert_test_eq!(
+                    vector_a.checked_sub(vector_b),
+                    Vector::option_from_fn(|i| vector_a[i].checked_sub(vector_b[i]))
                 );
             }
         });
@@ -437,9 +437,9 @@ mod tests {
                 .map(|values| values.map(Vector::<N, T, A>::splat))
                 .chain(random_iter())
             {
-                assert_panic_test_eq!(
-                    vector_a.checked_mul(vector_b).unwrap(),
-                    Vector::from_fn(|i| vector_a[i].strict_mul(vector_b[i]))
+                assert_test_eq!(
+                    vector_a.checked_mul(vector_b),
+                    Vector::option_from_fn(|i| vector_a[i].checked_mul(vector_b[i]))
                 );
             }
         });
@@ -448,9 +448,9 @@ mod tests {
                 .into_iter()
                 .map(|values| values.map(Vector::<N, T, A>::splat))
             {
-                assert_panic_test_eq!(
-                    vector_a.checked_mul(vector_b).unwrap(),
-                    Vector::from_fn(|i| vector_a[i].strict_mul(vector_b[i]))
+                assert_test_eq!(
+                    vector_a.checked_mul(vector_b),
+                    Vector::option_from_fn(|i| vector_a[i].checked_mul(vector_b[i]))
                 );
             }
         });
@@ -460,9 +460,9 @@ mod tests {
     fn test_checked_div() {
         for_types!(|N, T: PrimitiveInteger, A| {
             for [vector_a, vector_b] in random_iter::<[Vector<N, T, A>; 2]>() {
-                assert_panic_test_eq!(
-                    vector_a.checked_div(vector_b).unwrap(),
-                    Vector::from_fn(|i| vector_a[i].strict_div(vector_b[i]))
+                assert_test_eq!(
+                    vector_a.checked_div(vector_b),
+                    Vector::option_from_fn(|i| vector_a[i].checked_div(vector_b[i]))
                 );
             }
         });
@@ -471,9 +471,9 @@ mod tests {
                 .into_iter()
                 .map(|values| values.map(Vector::<N, T, A>::splat))
             {
-                assert_panic_test_eq!(
-                    vector_a.checked_div(vector_b).unwrap(),
-                    Vector::from_fn(|i| vector_a[i].strict_div(vector_b[i]))
+                assert_test_eq!(
+                    vector_a.checked_div(vector_b),
+                    Vector::option_from_fn(|i| vector_a[i].checked_div(vector_b[i]))
                 );
             }
         });
@@ -483,9 +483,9 @@ mod tests {
     fn test_checked_rem() {
         for_types!(|N, T: PrimitiveInteger, A| {
             for [vector_a, vector_b] in random_iter::<[Vector<N, T, A>; 2]>() {
-                assert_panic_test_eq!(
-                    vector_a.checked_rem(vector_b).unwrap(),
-                    Vector::from_fn(|i| vector_a[i].strict_rem(vector_b[i]))
+                assert_test_eq!(
+                    vector_a.checked_rem(vector_b),
+                    Vector::option_from_fn(|i| vector_a[i].checked_rem(vector_b[i]))
                 );
             }
         });
@@ -494,9 +494,9 @@ mod tests {
                 .into_iter()
                 .map(|values| values.map(Vector::<N, T, A>::splat))
             {
-                assert_panic_test_eq!(
-                    vector_a.checked_rem(vector_b).unwrap(),
-                    Vector::from_fn(|i| vector_a[i].strict_rem(vector_b[i]))
+                assert_test_eq!(
+                    vector_a.checked_rem(vector_b),
+                    Vector::option_from_fn(|i| vector_a[i].checked_rem(vector_b[i]))
                 );
             }
         });
@@ -586,7 +586,9 @@ mod tests {
     #[test]
     fn test_saturating_div() {
         for_types!(|N, T: PrimitiveInteger, A| {
-            for [vector_a, vector_b] in random_iter::<[Vector<N, T, A>; 2]>() {
+            for [vector_a, vector_b] in random_iter::<[Vector<N, T, A>; 2]>()
+                .filter(|[_, b]| !cfg!(target_family = "wasm") || b.ne_mask(Vector::splat(0)).all())
+            {
                 assert_panic_test_eq!(
                     vector_a.saturating_div(vector_b),
                     Vector::from_fn(|i| vector_a[i].saturating_div(vector_b[i]))
@@ -597,6 +599,7 @@ mod tests {
             for [vector_a, vector_b] in [[T::MAX, -1], [T::MIN, -1]]
                 .into_iter()
                 .map(|values| values.map(Vector::<N, T, A>::splat))
+                .filter(|[_, b]| !cfg!(target_family = "wasm") || b.ne_mask(Vector::splat(0)).all())
             {
                 assert_panic_test_eq!(
                     vector_a.saturating_div(vector_b),
@@ -690,7 +693,9 @@ mod tests {
     #[test]
     fn test_wrapping_div() {
         for_types!(|N, T: PrimitiveInteger, A| {
-            for [vector_a, vector_b] in random_iter::<[Vector<N, T, A>; 2]>() {
+            for [vector_a, vector_b] in random_iter::<[Vector<N, T, A>; 2]>()
+                .filter(|[_, b]| !cfg!(target_family = "wasm") || b.ne_mask(Vector::splat(0)).all())
+            {
                 assert_panic_test_eq!(
                     vector_a.wrapping_div(vector_b),
                     Vector::from_fn(|i| vector_a[i].wrapping_div(vector_b[i]))
@@ -701,6 +706,7 @@ mod tests {
             for [vector_a, vector_b] in [[T::MAX, -1], [T::MIN, -1]]
                 .into_iter()
                 .map(|values| values.map(Vector::<N, T, A>::splat))
+                .filter(|[_, b]| !cfg!(target_family = "wasm") || b.ne_mask(Vector::splat(0)).all())
             {
                 assert_panic_test_eq!(
                     vector_a.wrapping_div(vector_b),
@@ -713,7 +719,9 @@ mod tests {
     #[test]
     fn test_wrapping_rem() {
         for_types!(|N, T: PrimitiveInteger, A| {
-            for [vector_a, vector_b] in random_iter::<[Vector<N, T, A>; 2]>() {
+            for [vector_a, vector_b] in random_iter::<[Vector<N, T, A>; 2]>()
+                .filter(|[_, b]| !cfg!(target_family = "wasm") || b.ne_mask(Vector::splat(0)).all())
+            {
                 assert_panic_test_eq!(
                     vector_a.wrapping_rem(vector_b),
                     Vector::from_fn(|i| vector_a[i].wrapping_rem(vector_b[i]))
@@ -724,6 +732,7 @@ mod tests {
             for [vector_a, vector_b] in [[T::MAX, -1], [T::MIN, -1]]
                 .into_iter()
                 .map(|values| values.map(Vector::<N, T, A>::splat))
+                .filter(|[_, b]| !cfg!(target_family = "wasm") || b.ne_mask(Vector::splat(0)).all())
             {
                 assert_panic_test_eq!(
                     vector_a.wrapping_rem(vector_b),

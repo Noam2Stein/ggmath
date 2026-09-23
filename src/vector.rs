@@ -2735,7 +2735,9 @@ mod tests {
             }
         });
         for_types!(|N, T: PrimitiveUnsigned, A| {
-            for [vector_a, vector_b] in random_iter::<[Vector<N, T, A>; 2]>() {
+            for [vector_a, vector_b] in random_iter::<[Vector<N, T, A>; 2]>()
+                .filter(|[a, b]| !cfg!(target_family = "wasm") || a.checked_div(*b).is_some())
+            {
                 assert_panic_test_eq!(
                     vector_a / vector_b,
                     Vector::from_fn(|i| vector_a[i] / vector_b[i])
@@ -2747,6 +2749,7 @@ mod tests {
                 .into_iter()
                 .map(|values| values.map(Vector::<N, T, A>::splat))
                 .chain(random_iter())
+                .filter(|[a, b]| !cfg!(target_family = "wasm") || a.checked_div(*b).is_some())
             {
                 assert_panic_test_eq!(
                     vector_a / vector_b,
@@ -2775,7 +2778,9 @@ mod tests {
             }
         });
         for_types!(|N, T: PrimitiveUnsigned, A| {
-            for [vector_a, vector_b] in random_iter::<[Vector<N, T, A>; 2]>() {
+            for [vector_a, vector_b] in random_iter::<[Vector<N, T, A>; 2]>()
+                .filter(|[a, b]| !cfg!(target_family = "wasm") || a.checked_rem(*b).is_some())
+            {
                 assert_panic_test_eq!(
                     vector_a % vector_b,
                     Vector::from_fn(|i| vector_a[i] % vector_b[i])
@@ -2786,6 +2791,7 @@ mod tests {
             for [vector_a, vector_b] in [[T::MAX, -1], [T::MIN, -1]]
                 .into_iter()
                 .map(|values| values.map(Vector::<N, T, A>::splat))
+                .filter(|[a, b]| !cfg!(target_family = "wasm") || a.checked_rem(*b).is_some())
             {
                 assert_panic_test_eq!(
                     vector_a % vector_b,
