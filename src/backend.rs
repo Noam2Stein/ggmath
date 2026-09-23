@@ -8,14 +8,16 @@ use crate::{
 };
 
 cfg_select! {
-    target_feature = "sse2" => {
-        mod sse2;
-    }
-    all(target_arch = "aarch64", target_feature = "neon") => {
-        mod neon;
+    any(
+        target_feature = "sse2",
+        all(target_arch = "aarch64", target_feature = "neon"),
+    ) => {
+        mod f32x4;
     }
     _ => {
-        mod fallback;
+        impl DefaultBackend<3, Aligned> for f32 {}
+
+        impl DefaultBackend<4, Aligned> for f32 {}
     }
 }
 
