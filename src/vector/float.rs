@@ -373,14 +373,14 @@ where
     #[must_use]
     #[track_caller]
     pub fn project_onto(self, other: Self) -> Self {
-        let other_length_squared_recip = other.length_squared().recip();
+        let other_length_squared = other.length_squared();
 
         debug_assert!(
-            other_length_squared_recip.is_finite(),
+            other_length_squared.recip().is_finite(),
             "other cannot be normalized: {self:?}.project_onto({other:?})"
         );
 
-        other * self.dot(other) * other_length_squared_recip
+        other * (self.dot(other) / other_length_squared)
     }
 
     /// Returns the vector projection of `self` onto `other`.
@@ -419,14 +419,14 @@ where
     #[must_use]
     #[track_caller]
     pub fn reject_from(self, other: Self) -> Self {
-        let other_length_squared_recip = other.length_squared().recip();
+        let other_length_squared = other.length_squared();
 
         debug_assert!(
-            other_length_squared_recip.is_finite(),
+            other_length_squared.recip().is_finite(),
             "other cannot be normalized: {self:?}.reject_from({other:?})"
         );
 
-        self - other * self.dot(other) * other_length_squared_recip
+        self - other * (self.dot(other) / other_length_squared)
     }
 
     /// Returns the vector rejection of `self` from `other`.
