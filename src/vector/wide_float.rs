@@ -200,6 +200,22 @@ macro_rules! items {
             specialize!(Vector::<N, $Wide, A>::slerp_backend(self, other, t))
         }
 
+        /// Computes the spherical linear interpolation between `self` and
+        /// `other` based on the value `t`.
+        ///
+        /// When `t` is `0`, the result is `self`.  When `t` is `1`, the result
+        /// is `other`. When `t` is outside of the range `0..=1`, the result is
+        /// spherically linearly extrapolated.
+        ///
+        /// This assumes `self` and `other` are normalized.
+        #[inline]
+        #[must_use]
+        pub fn slerp_normalized(self, other: Self, t: $Wide) -> Self {
+            specialize!(Vector::<N, $Wide, A>::slerp_normalized_backend(
+                self, other, t
+            ))
+        }
+
         /// Rotates `self` towards `target` by at most `max_angle` (in radians).
         ///
         /// When `max_angle` is `0`, the result is `self`. When `max_angle` is
@@ -1332,6 +1348,11 @@ macro_rules! impl_items {
             }
 
             #[inline(always)]
+            fn slerp_normalized_backend(self, other: Self, t: $Wide) -> Self {
+                self.rotate(self.angle_to(other) * t)
+            }
+
+            #[inline(always)]
             fn rotate_towards_backend(self, target: Self, max_angle: $Wide) -> Self {
                 let self_length = self.length();
                 let target_length = target.length();
@@ -1604,6 +1625,38 @@ macro_rules! impl_items {
                             // Vectors are almost parallel in the same direction.
                             self.lerp(other, t)
                         },
+                    ),
+                )
+            }
+
+            #[inline(always)]
+            fn slerp_normalized_backend(self, other: Self, t: $Wide) -> Self {
+                let angle_cos = self.dot(other);
+
+                // If `angle_cos` is close to `1` or `-1` or is NaN the normal
+                // calculation breaks down.
+
+                angle_cos.abs().simd_lt($Wide::splat(1.0 - 3e-7)).select(
+                    {
+                        let angle = angle_cos.acos_approx();
+                        let angle_sin = angle.sin();
+                        let self_factor = (angle * ($Wide::ONE - t)).sin();
+                        let other_factor = (angle * t).sin();
+
+                        (self * self_factor + other * other_factor) / angle_sin
+                    },
+                    angle_cos.is_sign_negative().select(
+                        {
+                            // Vectors are almost parallel in opposing directions.
+
+                            let axis = self.any_orthogonal_vector().normalize();
+                            let rotation =
+                                Rotor::<3, $Wide, A>::from_axis_angle(axis, t * $Wide::PI);
+
+                            self * rotation
+                        },
+                        // Vectors are almost parallel in the same direction.
+                        self.lerp(other, t),
                     ),
                 )
             }
@@ -1933,6 +1986,36 @@ macro_rules! impl_items {
                             // Vectors are almost parallel in the same direction.
                             self.lerp(other, t)
                         },
+                    ),
+                )
+            }
+
+            #[inline(always)]
+            fn slerp_normalized_backend(self, other: Self, t: $Wide) -> Self {
+                let angle_cos = self.dot(other);
+
+                // If `angle_cos` is close to `1` or `-1` or is NaN the normal
+                // calculation breaks down.
+                angle_cos.abs().simd_lt($Wide::splat(1.0 - 3e-7)).select(
+                    {
+                        let angle = angle_cos.acos_approx();
+                        let angle_sin = angle.sin();
+                        let t1 = (angle * ($Wide::ONE - t)).sin();
+                        let t2 = (angle * t).sin();
+
+                        (self * t1 + other * t2) / angle_sin
+                    },
+                    angle_cos.is_sign_negative().select(
+                        {
+                            // Vectors are almost parallel in opposing directions.
+
+                            let axis = self.any_orthogonal_vector().normalize();
+                            let (sin, cos) = (t * $Wide::PI).sin_cos();
+
+                            self * cos + axis * sin
+                        },
+                        // Vectors are almost parallel in the same direction.
+                        self.lerp(other, t),
                     ),
                 )
             }
@@ -2511,6 +2594,22 @@ mod tests {
                         .slerp(b.lane(lane), t.to_array()[lane])),
                     abs <= a.length().max(b.length()) * t.abs().max(Wide::ONE) * 1e-3 + 1e-3,
                     0.0 = -0.0
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_slerp_normalized() {
+        for_types!(|N, Wide: WideFloat| {
+            for ([a, b], t) in random_iter::<([Vector<N, Wide, Unaligned>; 2], Wide)>() {
+                let [a, b] = [a, b].map(|v| v.normalize_or(Vector::ONE).normalize());
+                let t = t % 10.0;
+
+                assert_test_eq!(
+                    a.slerp_normalized(b, t),
+                    a.slerp(b, t),
+                    abs <= Wide::splat(1e-2)
                 );
             }
         });

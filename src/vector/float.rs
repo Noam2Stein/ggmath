@@ -365,6 +365,32 @@ where
         specialize!(Vector::<N, T, A>::slerp_backend(self, other, t))
     }
 
+    /// Computes the spherical linear interpolation between `self` and `other`
+    /// based on the value `t`.
+    ///
+    /// When `t` is `0`, the result is `self`.  When `t` is `1`, the result
+    /// is `other`. When `t` is outside of the range `0..=1`, the result is
+    /// spherically linearly extrapolated.
+    ///
+    /// This assumes `self` and `other` are normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` or `other` are not normalized.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn slerp_normalized(self, other: Self, t: T) -> Self {
+        debug_assert!(
+            self.is_normalized() && other.is_normalized(),
+            "vectors are not normalized: {self:?}.slerp_normalized({other:?})"
+        );
+
+        specialize!(Vector::<N, T, A>::slerp_normalized_backend(self, other, t))
+    }
+
     /// Rotates `self` towards `target` by at most `max_angle` (in radians).
     ///
     /// When `max_angle` is `0`, the result is `self`. When `max_angle` is equal
@@ -1787,6 +1813,12 @@ where
 
     #[track_caller]
     #[inline(always)]
+    fn slerp_normalized_backend(self, other: Self, t: T) -> Self {
+        self.rotate(self.angle_to_normalized(other) * t)
+    }
+
+    #[track_caller]
+    #[inline(always)]
     fn rotate_towards_backend(self, target: Self, max_angle: T) -> Self {
         let self_length = self.length();
         let target_length = target.length();
@@ -1970,6 +2002,33 @@ where
 
     #[track_caller]
     #[inline(always)]
+    fn slerp_normalized_backend(self, other: Self, t: T) -> Self {
+        let angle_cos = self.dot(other);
+
+        // If `angle_cos` is close to `1` or `-1` or is NaN the normal
+        // calculation breaks down.
+        if angle_cos.abs() < T::as_from(1.0 - 3e-7) {
+            let angle = angle_cos.acos_approx();
+            let angle_sin = angle.sin();
+            let self_factor = (angle * (T::ONE - t)).sin();
+            let other_factor = (angle * t).sin();
+
+            (self * self_factor + other * other_factor) / angle_sin
+        } else if angle_cos.is_sign_negative() {
+            // Vectors are almost parallel in opposing directions.
+
+            let axis = self.any_orthogonal_vector().normalize();
+            let rotation = Rotor::<3, T, A>::from_axis_angle(axis, t * T::PI);
+
+            self * rotation
+        } else {
+            // Vectors are almost parallel in the same direction.
+            self.lerp(other, t)
+        }
+    }
+
+    #[track_caller]
+    #[inline(always)]
     fn rotate_towards_backend(self, target: Self, max_angle: T) -> Self {
         // Ported from `https://github.com/bitshifter/glam-rs`.
 
@@ -2066,6 +2125,33 @@ where
             let result_dir = self * cos + axis * sin;
             let result_length = self_length.lerp(other_length, t);
             result_dir * (result_length / result_dir.length())
+        } else {
+            // Vectors are almost parallel in the same direction.
+            self.lerp(other, t)
+        }
+    }
+
+    #[track_caller]
+    #[inline(always)]
+    fn slerp_normalized_backend(self, other: Self, t: T) -> Self {
+        let angle_cos = self.dot(other);
+
+        // If `angle_cos` is close to `1` or `-1` or is NaN the normal
+        // calculation breaks down.
+        if angle_cos.abs() < T::as_from(1.0 - 3e-7) {
+            let angle = angle_cos.acos_approx();
+            let angle_sin = angle.sin();
+            let t1 = (angle * (T::ONE - t)).sin();
+            let t2 = (angle * t).sin();
+
+            (self * t1 + other * t2) / angle_sin
+        } else if angle_cos.is_sign_negative() {
+            // Vectors are almost parallel in opposing directions.
+
+            let axis = self.any_orthogonal_vector().normalize();
+            let (sin, cos) = (t * T::PI).sin_cos();
+
+            self * cos + axis * sin
         } else {
             // Vectors are almost parallel in the same direction.
             self.lerp(other, t)
@@ -2722,6 +2808,18 @@ mod tests {
                         abs <= 1e-2
                     );
                 }
+            }
+        });
+    }
+
+    #[test]
+    fn test_slerp_normalized() {
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for ([a, b], t) in random_iter::<([Vector<N, T, A>; 2], T)>() {
+                let [a, b] = [a, b].map(|v| v.normalize_or(Vector::ONE).normalize());
+                let t = t % 10.0;
+
+                assert_test_eq!(a.slerp_normalized(b, t), a.slerp(b, t), abs <= 1e-2);
             }
         });
     }

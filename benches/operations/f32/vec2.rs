@@ -134,6 +134,13 @@ bench!(
 );
 
 bench!(
+    slerp_normalized,
+    ARRAY_LEN,
+    (unaligned, Vec2::<f32>::slerp_normalized),
+    (x4_unaligned, Vec2::<f32x4>::slerp_normalized),
+);
+
+bench!(
     sub,
     ARRAY_LEN,
     (unaligned, <Vec2::<f32> as Sub>::sub),
