@@ -1717,6 +1717,38 @@ where
         angle_between * outer_product.signum()
     }
 
+    /// Returns the angle (in radians) that rotates `other` to `self` in the
+    /// range `-π..=+π`.
+    ///
+    /// This assumes `self` and `other` are normalized.
+    ///
+    /// Equivalent to `other.angle_to_normalized(self)`.
+    ///
+    /// # Unspecified precision
+    ///
+    /// The precision of this function is non-deterministic. This means it
+    /// varies by platform, version, and can even differ within the same
+    /// execution from one invocation to the next.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` or `other` are not normalized.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn angle_from_normalized(self, other: Self) -> T {
+        debug_assert!(
+            self.is_normalized() && other.is_normalized(),
+            "vectors are not normalized: {self:?}.angle_from_normalized({other:?})"
+        );
+
+        let angle_between = self.dot(other).acos_approx();
+        let outer_product = other.x * self.y - other.y * self.x;
+        angle_between * outer_product.signum()
+    }
+
     /// Rotates a 2D vector by an angle (in radians) rotating `+X` to `+Y`.
     ///
     /// # Unspecified precision
@@ -3535,6 +3567,17 @@ mod tests {
         for_types!(|T: PrimitiveFloat, A| {
             for [start, end] in random_iter::<[Vector<2, T, A>; 2]>() {
                 assert_panic_test_eq!(end.angle_from(start), start.angle_to(end));
+            }
+        });
+    }
+
+    #[test]
+    fn test_angle_from_normalized() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for [a, b] in random_iter::<[Vector<2, T, A>; 2]>() {
+                let [a, b] = [a, b].map(|v| v.normalize_or(Vector::ONE).normalize());
+
+                assert_test_eq!(a.angle_from_normalized(b), a.angle_from(b), abs <= 1e-3);
             }
         });
     }

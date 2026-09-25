@@ -948,6 +948,26 @@ macro_rules! items_2 {
             self.angle_between(other) * outer_product.signum()
         }
 
+        /// Returns the angle (in radians) that rotates `other` to `self` in the
+        /// range `-π..=+π`.
+        ///
+        /// This assumes `self` and `other` are normalized.
+        ///
+        /// Equivalent to `other.angle_to_normalized(self)`.
+        ///
+        /// # Unspecified precision
+        ///
+        /// The precision of this function is non-deterministic. This means it
+        /// varies by platform, version, and can even differ within the same
+        /// execution from one invocation to the next.
+        #[inline]
+        #[must_use]
+        pub fn angle_from_normalized(self, other: Self) -> $Wide {
+            let angle_between = self.dot(other).acos_approx();
+            let outer_product = other.x * self.y - other.y * self.x;
+            angle_between * outer_product.signum()
+        }
+
         /// Rotates a 2D vector by an angle (in radians) rotating `+X` to `+Y`.
         ///
         /// # Unspecified precision
@@ -2919,6 +2939,21 @@ mod tests {
                         .lane(lane)
                         .angle_from(b.lane(lane)))),
                     abs <= a.angle_from(b).abs() * 1e-5 + 1e-5
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_angle_from_normalized() {
+        for_types!(|Wide: WideFloat| {
+            for [a, b] in random_iter::<[Vec2<Wide>; 2]>() {
+                let [a, b] = [a, b].map(|v| v.normalize_or(Vec2::ONE).normalize());
+
+                assert_test_eq!(
+                    a.angle_from_normalized(b),
+                    a.angle_from(b),
+                    abs <= Wide::splat(1e-3)
                 );
             }
         });
