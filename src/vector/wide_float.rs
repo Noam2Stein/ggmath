@@ -243,13 +243,26 @@ macro_rules! items {
             self - self.project_onto_normalized(other)
         }
 
-        /// Returns the reflection of `self` through `normal`.
+        /// Returns the vector reflection of `self` off the surface with normal
+        /// `normal`.
+        ///
+        /// This assumes `normal` can be normalized.
+        #[inline]
+        #[must_use]
+        pub fn reflect_off(self, normal: Self) -> Self {
+            let dot = self.dot(normal);
+            self - normal * ((dot + dot) / normal.length_squared())
+        }
+
+        /// Returns the vector reflection of `self` off the surface with normal
+        /// `normal`.
         ///
         /// This assumes `normal` is normalized.
         #[inline]
         #[must_use]
-        pub fn reflect(self, normal: Self) -> Self {
-            self - normal * ($Wide::splat(2.0) * self.dot(normal))
+        pub fn reflect_off_normalized(self, normal: Self) -> Self {
+            let dot = self.dot(normal);
+            self - normal * (dot + dot)
         }
 
         /// Returns the vector refraction of `self` through `normal` and `eta`.
@@ -827,6 +840,22 @@ macro_rules! items {
         #[must_use]
         pub fn sin_cos(self) -> (Self, Self) {
             specialize!(Vector::<N, $Wide, A>::sin_cos_backend(self))
+        }
+
+        /// Returns the vector reflection of `self` off the surface with normal
+        /// `normal`.
+        ///
+        /// This assumes `normal` is normalized.
+        ///
+        /// This function has been deprecated and replaced by
+        /// [`reflect_off_normalized`].
+        ///
+        /// [`reflect_off_normalized`]: Self::reflect_off_normalized
+        #[inline]
+        #[must_use]
+        #[deprecated(since = "0.18.2", note = "replaced by `reflect_off_normalized`")]
+        pub fn reflect(self, normal: Self) -> Self {
+            self - normal * ($Wide::splat(2.0) * self.dot(normal))
         }
     };
 }
@@ -2670,6 +2699,35 @@ mod tests {
     }
 
     #[test]
+    fn test_reflect_off() {
+        for_types!(|N, Wide: WideFloat| {
+            for [a, b] in random_iter::<[Vector<N, Wide, Unaligned>; 2]>()
+                .flat_map(|[a, b]| [[a, b], [a, b.normalize_or(Vector::ONE).normalize()]])
+            {
+                assert_test_eq_or_panic!(
+                    a.reflect_off(b),
+                    Vector::from_lane_fn(|lane| a.lane(lane).reflect_off(b.lane(lane)))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_reflect_off_normalized() {
+        for_types!(|N, Wide: WideFloat| {
+            for [a, b] in random_iter::<[Vector<N, Wide, Unaligned>; 2]>()
+                .flat_map(|[a, b]| [[a, b], [a, b.normalize_or(Vector::ONE).normalize()]])
+            {
+                assert_test_eq_or_panic!(
+                    a.reflect_off_normalized(b),
+                    Vector::from_lane_fn(|lane| a.lane(lane).reflect_off_normalized(b.lane(lane)))
+                );
+            }
+        });
+    }
+
+    #[test]
+    #[expect(deprecated)]
     fn test_reflect() {
         for_types!(|N, Wide: WideFloat| {
             for [a, b] in random_iter::<[Vector<N, Wide, Unaligned>; 2]>()
