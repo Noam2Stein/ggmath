@@ -195,6 +195,34 @@ where
         half_angle + half_angle
     }
 
+    /// Returns the angle (in radians) transforming `self` into `other` in the
+    /// range `0..2π`.
+    ///
+    /// This assumes `self` and `other` are normalized.
+    ///
+    /// This function takes advantage of the fact that, for any rotor `r`, the
+    /// rotor `-r` represents the same rotation. If `self.dot(other)` is
+    /// positive, this takes the shorter rotational path. If `self.dot(other)`
+    /// is negative, this takes the longer rotational path.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` or `other` are not normalized.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn angle_between_long(self, other: Self) -> T {
+        debug_assert!(
+            self.is_normalized() && other.is_normalized(),
+            "rotors are not normalized: {self:?}.angle_between_long({other:?})"
+        );
+
+        let half_angle = self.dot(other).acos_approx();
+        half_angle + half_angle
+    }
+
     /// Computes the linear interpolation between two rotors, then normalizes
     /// the result.
     ///
