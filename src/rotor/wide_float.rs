@@ -170,6 +170,24 @@ macro_rules! items {
             specialize_3!(Rotor::<N, $Wide, A>::slerp_backend(self, other, t))
         }
 
+        /// Computes the spherical linear interpolation between two rotors.
+        ///
+        /// This assumes `self` and `other` are normalized.
+        ///
+        /// When `t` is `0`, the result is `self`. When `t` is `1`, the result
+        /// is `other`. This interpolates the angle at a constant speed.
+        ///
+        /// This function takes advantage of the fact that, for any rotor `r`,
+        /// the rotor `-r` represents the same rotation. If `self.dot(other)` is
+        /// positive, this takes the shorter rotational path. If
+        /// `self.dot(other)` is negative, this takes the longer rotational
+        /// path.
+        #[inline]
+        #[must_use]
+        pub fn slerp_long(self, other: Self, t: $Wide) -> Self {
+            Self(self.0.slerp_normalized(other.0, t))
+        }
+
         /// Rotates one rotor towards another by at most `max_angle` (in
         /// radians).
         ///
