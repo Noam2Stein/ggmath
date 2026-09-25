@@ -207,9 +207,9 @@ macro_rules! items {
         #[inline]
         #[must_use]
         pub fn project_onto(self, other: Self) -> Self {
-            let other_length_squared_recip = $Wide::ONE / other.length_squared();
+            let other_length_squared = other.length_squared();
 
-            other * self.dot(other) * other_length_squared_recip
+            other * (self.dot(other) / other_length_squared)
         }
 
         /// Returns the vector projection of `self` onto `other`.
