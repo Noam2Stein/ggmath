@@ -188,11 +188,11 @@ bench!(
 bench!(
     reflect,
     ARRAY_LEN,
-    (unaligned, Vec3::<f32>::reflect),
+    (unaligned, Vec3::<f32>::reflect_off_normalized),
     (unaligned_glam, glam::Vec3::reflect),
-    (aligned, Vec3A::<f32>::reflect),
+    (aligned, Vec3A::<f32>::reflect_off_normalized),
     (aligned_glam, glam::Vec3A::reflect),
-    (x4_unaligned, Vec3::<f32x4>::reflect),
+    (x4_unaligned, Vec3::<f32x4>::reflect_off_normalized),
 );
 
 bench!(
