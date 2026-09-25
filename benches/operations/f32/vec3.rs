@@ -26,6 +26,14 @@ bench!(
 );
 
 bench!(
+    angle_between_normalized,
+    ARRAY_LEN,
+    (unaligned, Vec3::<f32>::angle_between_normalized),
+    (aligned, Vec3A::<f32>::angle_between_normalized),
+    (x4_unaligned, Vec3::<f32x4>::angle_between_normalized),
+);
+
+bench!(
     any_orthogonal_vector,
     ARRAY_LEN,
     (unaligned, Vec3::<f32>::any_orthogonal_vector),
@@ -236,6 +244,14 @@ bench!(
 );
 
 bench!(
+    rotate_towards_normalized,
+    ARRAY_LEN,
+    (unaligned, Vec3::<f32>::rotate_towards_normalized),
+    (aligned, Vec3A::<f32>::rotate_towards_normalized),
+    (x4_unaligned, Vec3::<f32x4>::rotate_towards_normalized),
+);
+
+bench!(
     round,
     ARRAY_LEN,
     (unaligned, Vec3::<f32>::round),
@@ -253,6 +269,14 @@ bench!(
     (aligned, Vec3A::<f32>::slerp),
     (aligned_glam, glam::Vec3A::slerp),
     (x4_unaligned, Vec3::<f32x4>::slerp),
+);
+
+bench!(
+    slerp_normalized,
+    ARRAY_LEN,
+    (unaligned, Vec3::<f32>::slerp_normalized),
+    (aligned, Vec3A::<f32>::slerp_normalized),
+    (x4_unaligned, Vec3::<f32x4>::slerp_normalized),
 );
 
 bench!(

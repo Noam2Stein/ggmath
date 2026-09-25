@@ -266,6 +266,34 @@ where
         (self.dot(other) / length_product).acos_approx()
     }
 
+    /// Returns the angle (in radians) between two vectors in the range
+    /// `0..=+π`.
+    ///
+    /// This assumes `self` and `other` are normalized.
+    ///
+    /// # Unspecified precision
+    ///
+    /// The precision of this function is non-deterministic. This means it
+    /// varies by platform, version, and can even differ within the same
+    /// execution from one invocation to the next.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` or `other` are not normalized.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn angle_between_normalized(self, other: Self) -> T {
+        debug_assert!(
+            self.is_normalized() && other.is_normalized(),
+            "vectors are not normalized: {self:?}.angle_between_normalized({other:?})"
+        );
+
+        self.dot(other).acos_approx()
+    }
+
     /// Computes the linear interpolation between `self` and `other` based on
     /// the value `t`.
     ///
@@ -337,6 +365,32 @@ where
         specialize!(Vector::<N, T, A>::slerp_backend(self, other, t))
     }
 
+    /// Computes the spherical linear interpolation between `self` and `other`
+    /// based on the value `t`.
+    ///
+    /// When `t` is `0`, the result is `self`.  When `t` is `1`, the result
+    /// is `other`. When `t` is outside of the range `0..=1`, the result is
+    /// spherically linearly extrapolated.
+    ///
+    /// This assumes `self` and `other` are normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` or `other` are not normalized.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn slerp_normalized(self, other: Self, t: T) -> Self {
+        debug_assert!(
+            self.is_normalized() && other.is_normalized(),
+            "vectors are not normalized: {self:?}.slerp_normalized({other:?})"
+        );
+
+        specialize!(Vector::<N, T, A>::slerp_normalized_backend(self, other, t))
+    }
+
     /// Rotates `self` towards `target` by at most `max_angle` (in radians).
     ///
     /// When `max_angle` is `0`, the result is `self`. When `max_angle` is equal
@@ -356,6 +410,33 @@ where
     #[track_caller]
     pub fn rotate_towards(self, target: Self, max_angle: T) -> Self {
         specialize!(Vector::<N, T, A>::rotate_towards_backend(
+            self, target, max_angle
+        ))
+    }
+
+    /// Rotates `self` towards `target` by at most `max_angle` (in radians).
+    ///
+    /// When `max_angle` is `0`, the result is `self`. When `max_angle` is equal
+    /// to or greater than `self.angle_between(target)`, the result is `target`.
+    /// When `max_angle` is negative, this rotates towards `-target`.
+    ///
+    /// This assumes `self` and `target` are normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` or `target` are not normalized.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn rotate_towards_normalized(self, target: Self, max_angle: T) -> Self {
+        debug_assert!(
+            self.is_normalized() && target.is_normalized(),
+            "vectors are not normalized: {self:?}.rotate_towards_normalized({target:?}, {max_angle:?})"
+        );
+
+        specialize!(Vector::<N, T, A>::rotate_towards_normalized_backend(
             self, target, max_angle
         ))
     }
@@ -1611,6 +1692,38 @@ where
         angle_between * outer_product.signum()
     }
 
+    /// Returns the angle (in radians) that rotates `self` to `other` in the
+    /// range `-π..=+π`.
+    ///
+    /// This assumes `self` and `other` are normalized.
+    ///
+    /// Equivalent to `other.angle_from_normalized(self)`.
+    ///
+    /// # Unspecified precision
+    ///
+    /// The precision of this function is non-deterministic. This means it
+    /// varies by platform, version, and can even differ within the same
+    /// execution from one invocation to the next.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` or `other` are not normalized.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn angle_to_normalized(self, other: Self) -> T {
+        debug_assert!(
+            self.is_normalized() && other.is_normalized(),
+            "vectors are not normalized: {self:?}.angle_to_normalized({other:?})"
+        );
+
+        let angle_between = self.dot(other).acos_approx();
+        let outer_product = self.x * other.y - self.y * other.x;
+        angle_between * outer_product.signum()
+    }
+
     /// Returns the angle (in radians) that rotates `other` to `self` in the
     /// range `-π..=+π`.
     ///
@@ -1657,6 +1770,38 @@ where
         angle_between * outer_product.signum()
     }
 
+    /// Returns the angle (in radians) that rotates `other` to `self` in the
+    /// range `-π..=+π`.
+    ///
+    /// This assumes `self` and `other` are normalized.
+    ///
+    /// Equivalent to `other.angle_to_normalized(self)`.
+    ///
+    /// # Unspecified precision
+    ///
+    /// The precision of this function is non-deterministic. This means it
+    /// varies by platform, version, and can even differ within the same
+    /// execution from one invocation to the next.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` or `other` are not normalized.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn angle_from_normalized(self, other: Self) -> T {
+        debug_assert!(
+            self.is_normalized() && other.is_normalized(),
+            "vectors are not normalized: {self:?}.angle_from_normalized({other:?})"
+        );
+
+        let angle_between = self.dot(other).acos_approx();
+        let outer_product = other.x * self.y - other.y * self.x;
+        angle_between * outer_product.signum()
+    }
+
     /// Rotates a 2D vector by an angle (in radians) rotating `+X` to `+Y`.
     ///
     /// # Unspecified precision
@@ -1695,6 +1840,12 @@ where
 
     #[track_caller]
     #[inline(always)]
+    fn slerp_normalized_backend(self, other: Self, t: T) -> Self {
+        self.rotate(self.angle_to_normalized(other) * t)
+    }
+
+    #[track_caller]
+    #[inline(always)]
     fn rotate_towards_backend(self, target: Self, max_angle: T) -> Self {
         let self_length = self.length();
         let target_length = target.length();
@@ -1709,6 +1860,22 @@ where
         }
 
         let target_angle = (self.dot(target) / self_length / target_length).acos_approx();
+        let angle_sign = self.perp_dot(target).signum();
+        let angle = if max_angle < target_angle - T::PI {
+            target_angle - T::PI
+        } else if max_angle > target_angle {
+            target_angle
+        } else {
+            max_angle
+        } * angle_sign;
+
+        self.rotate(angle)
+    }
+
+    #[track_caller]
+    #[inline(always)]
+    fn rotate_towards_normalized_backend(self, target: Self, max_angle: T) -> Self {
+        let target_angle = self.dot(target).acos_approx();
         let angle_sign = self.perp_dot(target).signum();
         let angle = if max_angle < target_angle - T::PI {
             target_angle - T::PI
@@ -1878,6 +2045,33 @@ where
 
     #[track_caller]
     #[inline(always)]
+    fn slerp_normalized_backend(self, other: Self, t: T) -> Self {
+        let angle_cos = self.dot(other);
+
+        // If `angle_cos` is close to `1` or `-1` or is NaN the normal
+        // calculation breaks down.
+        if angle_cos.abs() < T::as_from(1.0 - 3e-7) {
+            let angle = angle_cos.acos_approx();
+            let angle_sin = angle.sin();
+            let self_factor = (angle * (T::ONE - t)).sin();
+            let other_factor = (angle * t).sin();
+
+            (self * self_factor + other * other_factor) / angle_sin
+        } else if angle_cos.is_sign_negative() {
+            // Vectors are almost parallel in opposing directions.
+
+            let axis = self.any_orthogonal_vector().normalize();
+            let rotation = Rotor::<3, T, A>::from_axis_angle(axis, t * T::PI);
+
+            self * rotation
+        } else {
+            // Vectors are almost parallel in the same direction.
+            self.lerp(other, t)
+        }
+    }
+
+    #[track_caller]
+    #[inline(always)]
     fn rotate_towards_backend(self, target: Self, max_angle: T) -> Self {
         // Ported from `https://github.com/bitshifter/glam-rs`.
 
@@ -1894,6 +2088,25 @@ where
         }
 
         let target_angle = (self.dot(target) / (self_length * target_length)).acos_approx();
+        let angle = if max_angle < target_angle - T::PI {
+            target_angle - T::PI
+        } else if max_angle > target_angle {
+            target_angle
+        } else {
+            max_angle
+        };
+        let axis = self
+            .cross(target)
+            .try_normalize()
+            .unwrap_or_else(|| self.any_orthonormal_vector());
+
+        self * Rotor::<3, T, A>::from_axis_angle(axis, angle)
+    }
+
+    #[track_caller]
+    #[inline(always)]
+    fn rotate_towards_normalized_backend(self, target: Self, max_angle: T) -> Self {
+        let target_angle = self.dot(target).acos_approx();
         let angle = if max_angle < target_angle - T::PI {
             target_angle - T::PI
         } else if max_angle > target_angle {
@@ -1982,6 +2195,33 @@ where
 
     #[track_caller]
     #[inline(always)]
+    fn slerp_normalized_backend(self, other: Self, t: T) -> Self {
+        let angle_cos = self.dot(other);
+
+        // If `angle_cos` is close to `1` or `-1` or is NaN the normal
+        // calculation breaks down.
+        if angle_cos.abs() < T::as_from(1.0 - 3e-7) {
+            let angle = angle_cos.acos_approx();
+            let angle_sin = angle.sin();
+            let t1 = (angle * (T::ONE - t)).sin();
+            let t2 = (angle * t).sin();
+
+            (self * t1 + other * t2) / angle_sin
+        } else if angle_cos.is_sign_negative() {
+            // Vectors are almost parallel in opposing directions.
+
+            let axis = self.any_orthogonal_vector().normalize();
+            let (sin, cos) = (t * T::PI).sin_cos();
+
+            self * cos + axis * sin
+        } else {
+            // Vectors are almost parallel in the same direction.
+            self.lerp(other, t)
+        }
+    }
+
+    #[track_caller]
+    #[inline(always)]
     fn rotate_towards_backend(self, target: Self, max_angle: T) -> Self {
         let self_length = self.length();
         let target_length = target.length();
@@ -2029,6 +2269,39 @@ where
         } else {
             // Vectors are almost parallel in the same direction.
             target / target_length * self_length
+        }
+    }
+
+    #[track_caller]
+    #[inline(always)]
+    fn rotate_towards_normalized_backend(self, target: Self, max_angle: T) -> Self {
+        let target_angle_cos = self.dot(target);
+        let target_angle = target_angle_cos.acos_approx();
+        let angle = if max_angle < target_angle - T::PI {
+            target_angle - T::PI
+        } else if max_angle > target_angle {
+            target_angle
+        } else {
+            max_angle
+        };
+
+        // If `target_angle_cos` is close to `1` or `-1` or is NaN the
+        // normal calculation breaks down.
+        if target_angle_cos.abs() <= T::as_from(1.0 - 3e-7) {
+            let self_factor = (target_angle - angle).sin();
+            let target_factor = angle.sin();
+
+            (self * self_factor + target * target_factor).normalize()
+        } else if target_angle_cos.is_sign_negative() {
+            // Vectors are almost parallel in opposing directions.
+
+            let axis = self.any_orthogonal_vector().normalize();
+            let (sin, cos) = angle.sin_cos();
+
+            self * cos + axis * sin
+        } else {
+            // Vectors are almost parallel in the same direction.
+            target
         }
     }
 
@@ -2635,6 +2908,18 @@ mod tests {
     }
 
     #[test]
+    fn test_slerp_normalized() {
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for ([a, b], t) in random_iter::<([Vector<N, T, A>; 2], T)>() {
+                let [a, b] = [a, b].map(|v| v.normalize_or(Vector::ONE).normalize());
+                let t = t % 10.0;
+
+                assert_test_eq!(a.slerp_normalized(b, t), a.slerp(b, t), abs <= 1e-2);
+            }
+        });
+    }
+
+    #[test]
     fn test_rotate_towards() {
         for_types!(|N, T: PrimitiveFloat, A| {
             for max_angle in [0.0, 1.0, -1.0, 1.5, -1.5, 4.0, -4.0, 10.0, -1.0] {
@@ -2698,6 +2983,28 @@ mod tests {
                         Vector::ZERO
                     );
                 }
+            }
+        });
+    }
+
+    #[test]
+    fn test_rotate_towards_normalized() {
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for ([vector, target], max_angle) in random_iter::<([Vector<N, T, A>; 2], T)>() {
+                let [vector, target] =
+                    [vector, target].map(|v| v.normalize_or(Vector::ONE).normalize());
+                let max_angle = if max_angle.is_finite() {
+                    max_angle % 20.0
+                } else {
+                    0.0
+                };
+
+                assert_test_eq!(
+                    vector.rotate_towards_normalized(target, max_angle),
+                    vector.rotate_towards(target, max_angle),
+                    abs <= 1e-2,
+                    0.0 = -0.0
+                );
             }
         });
     }
@@ -3028,6 +3335,21 @@ mod tests {
                         * 1e-5
                 );
                 assert!((0.0..=T::TAU / 2.0).contains(&vector.angle_between(other)));
+            }
+        });
+    }
+
+    #[test]
+    fn test_angle_between_normalized() {
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for [a, b] in random_iter::<[Vector<N, T, A>; 2]>() {
+                let [a, b] = [a, b].map(|v| v.normalize_or(Vector::ONE).normalize());
+
+                assert_test_eq!(
+                    a.angle_between_normalized(b),
+                    a.angle_between(b),
+                    abs <= 1e-3
+                );
             }
         });
     }
@@ -3445,10 +3767,32 @@ mod tests {
     }
 
     #[test]
+    fn test_angle_to_normalized() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for [a, b] in random_iter::<[Vector<2, T, A>; 2]>() {
+                let [a, b] = [a, b].map(|v| v.normalize_or(Vector::ONE).normalize());
+
+                assert_test_eq!(a.angle_to_normalized(b), a.angle_to(b), abs <= 1e-3);
+            }
+        });
+    }
+
+    #[test]
     fn test_angle_from() {
         for_types!(|T: PrimitiveFloat, A| {
             for [start, end] in random_iter::<[Vector<2, T, A>; 2]>() {
                 assert_panic_test_eq!(end.angle_from(start), start.angle_to(end));
+            }
+        });
+    }
+
+    #[test]
+    fn test_angle_from_normalized() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for [a, b] in random_iter::<[Vector<2, T, A>; 2]>() {
+                let [a, b] = [a, b].map(|v| v.normalize_or(Vector::ONE).normalize());
+
+                assert_test_eq!(a.angle_from_normalized(b), a.angle_from(b), abs <= 1e-3);
             }
         });
     }

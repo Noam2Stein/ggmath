@@ -133,6 +133,22 @@ macro_rules! items {
                 .acos_approx()
         }
 
+        /// Returns the angle (in radians) between two vectors in the range
+        /// `0..=+π`.
+        ///
+        /// This assumes `self` and `other` are normalized.
+        ///
+        /// # Unspecified precision
+        ///
+        /// The precision of this function is non-deterministic. This means it
+        /// varies by platform, version, and can even differ within the same
+        /// execution from one invocation to the next.
+        #[inline]
+        #[must_use]
+        pub fn angle_between_normalized(self, other: Self) -> $Wide {
+            self.dot(other).acos_approx()
+        }
+
         /// Computes the linear interpolation between `self` and `other` based
         /// on the value `t`.
         ///
@@ -184,6 +200,22 @@ macro_rules! items {
             specialize!(Vector::<N, $Wide, A>::slerp_backend(self, other, t))
         }
 
+        /// Computes the spherical linear interpolation between `self` and
+        /// `other` based on the value `t`.
+        ///
+        /// When `t` is `0`, the result is `self`.  When `t` is `1`, the result
+        /// is `other`. When `t` is outside of the range `0..=1`, the result is
+        /// spherically linearly extrapolated.
+        ///
+        /// This assumes `self` and `other` are normalized.
+        #[inline]
+        #[must_use]
+        pub fn slerp_normalized(self, other: Self, t: $Wide) -> Self {
+            specialize!(Vector::<N, $Wide, A>::slerp_normalized_backend(
+                self, other, t
+            ))
+        }
+
         /// Rotates `self` towards `target` by at most `max_angle` (in radians).
         ///
         /// When `max_angle` is `0`, the result is `self`. When `max_angle` is
@@ -197,6 +229,22 @@ macro_rules! items {
         #[must_use]
         pub fn rotate_towards(self, target: Self, max_angle: $Wide) -> Self {
             specialize!(Vector::<N, $Wide, A>::rotate_towards_backend(
+                self, target, max_angle
+            ))
+        }
+
+        /// Rotates `self` towards `target` by at most `max_angle` (in radians).
+        ///
+        /// When `max_angle` is `0`, the result is `self`. When `max_angle` is
+        /// equal to or greater than `self.angle_between(target)`, the result is
+        /// `target`. When `max_angle` is negative, this rotates towards
+        /// `-target`.
+        ///
+        /// This assumes `self` and `target` are normalized.
+        #[inline]
+        #[must_use]
+        pub fn rotate_towards_normalized(self, target: Self, max_angle: $Wide) -> Self {
+            specialize!(Vector::<N, $Wide, A>::rotate_towards_normalized_backend(
                 self, target, max_angle
             ))
         }
@@ -892,6 +940,26 @@ macro_rules! items_2 {
             self.angle_between(other) * outer_product.signum()
         }
 
+        /// Returns the angle (in radians) that rotates `self` to `other` in the
+        /// range `-π..=+π`.
+        ///
+        /// This assumes `self` and `other` are normalized.
+        ///
+        /// Equivalent to `other.angle_from_normalized(self)`.
+        ///
+        /// # Unspecified precision
+        ///
+        /// The precision of this function is non-deterministic. This means it
+        /// varies by platform, version, and can even differ within the same
+        /// execution from one invocation to the next.
+        #[inline]
+        #[must_use]
+        pub fn angle_to_normalized(self, other: Self) -> $Wide {
+            let angle_between = self.dot(other).acos_approx();
+            let outer_product = self.x * other.y - self.y * other.x;
+            angle_between * outer_product.signum()
+        }
+
         /// Returns the angle (in radians) that rotates `other` to `self` in the
         /// range `-π..=+π`.
         ///
@@ -910,6 +978,26 @@ macro_rules! items_2 {
         pub fn angle_from(self, other: Self) -> $Wide {
             let outer_product = (other.x * self.y) - (other.y * self.x);
             self.angle_between(other) * outer_product.signum()
+        }
+
+        /// Returns the angle (in radians) that rotates `other` to `self` in the
+        /// range `-π..=+π`.
+        ///
+        /// This assumes `self` and `other` are normalized.
+        ///
+        /// Equivalent to `other.angle_to_normalized(self)`.
+        ///
+        /// # Unspecified precision
+        ///
+        /// The precision of this function is non-deterministic. This means it
+        /// varies by platform, version, and can even differ within the same
+        /// execution from one invocation to the next.
+        #[inline]
+        #[must_use]
+        pub fn angle_from_normalized(self, other: Self) -> $Wide {
+            let angle_between = self.dot(other).acos_approx();
+            let outer_product = other.x * self.y - other.y * self.x;
+            angle_between * outer_product.signum()
         }
 
         /// Rotates a 2D vector by an angle (in radians) rotating `+X` to `+Y`.
@@ -1276,6 +1364,11 @@ macro_rules! impl_items {
             }
 
             #[inline(always)]
+            fn slerp_normalized_backend(self, other: Self, t: $Wide) -> Self {
+                self.rotate(self.angle_to(other) * t)
+            }
+
+            #[inline(always)]
             fn rotate_towards_backend(self, target: Self, max_angle: $Wide) -> Self {
                 let self_length = self.length();
                 let target_length = target.length();
@@ -1294,6 +1387,20 @@ macro_rules! impl_items {
                 ) * angle_sign;
 
                 self.simd_eq(Self::ZERO).select(self, self.rotate(angle))
+            }
+
+            #[inline(always)]
+            fn rotate_towards_normalized_backend(self, target: Self, max_angle: $Wide) -> Self {
+                let target_angle = self.dot(target).acos_approx();
+                let angle_sign = self.perp_dot(target).signum();
+                let angle = (max_angle.simd_lt(target_angle - $Wide::PI)).select(
+                    target_angle - $Wide::PI,
+                    max_angle
+                        .simd_gt(target_angle)
+                        .select(target_angle, max_angle),
+                ) * angle_sign;
+
+                self.rotate(angle)
             }
 
             #[inline(always)]
@@ -1553,6 +1660,38 @@ macro_rules! impl_items {
             }
 
             #[inline(always)]
+            fn slerp_normalized_backend(self, other: Self, t: $Wide) -> Self {
+                let angle_cos = self.dot(other);
+
+                // If `angle_cos` is close to `1` or `-1` or is NaN the normal
+                // calculation breaks down.
+
+                angle_cos.abs().simd_lt($Wide::splat(1.0 - 3e-7)).select(
+                    {
+                        let angle = angle_cos.acos_approx();
+                        let angle_sin = angle.sin();
+                        let self_factor = (angle * ($Wide::ONE - t)).sin();
+                        let other_factor = (angle * t).sin();
+
+                        (self * self_factor + other * other_factor) / angle_sin
+                    },
+                    angle_cos.is_sign_negative().select(
+                        {
+                            // Vectors are almost parallel in opposing directions.
+
+                            let axis = self.any_orthogonal_vector().normalize();
+                            let rotation =
+                                Rotor::<3, $Wide, A>::from_axis_angle(axis, t * $Wide::PI);
+
+                            self * rotation
+                        },
+                        // Vectors are almost parallel in the same direction.
+                        self.lerp(other, t),
+                    ),
+                )
+            }
+
+            #[inline(always)]
             fn rotate_towards_backend(self, target: Self, max_angle: $Wide) -> Self {
                 // Ported from `https://github.com/bitshifter/glam-rs`.
 
@@ -1578,6 +1717,22 @@ macro_rules! impl_items {
                     self,
                     self * Rotor::<3, $Wide, A>::from_axis_angle(axis, angle),
                 )
+            }
+
+            #[inline(always)]
+            fn rotate_towards_normalized_backend(self, target: Self, max_angle: $Wide) -> Self {
+                let target_angle = self.dot(target).acos_approx();
+                let angle = max_angle.simd_lt(target_angle - $Wide::PI).select(
+                    target_angle - $Wide::PI,
+                    max_angle
+                        .simd_gt(target_angle)
+                        .select(target_angle, max_angle),
+                );
+                let axis = self
+                    .cross(target)
+                    .normalize_or(self.any_orthonormal_vector());
+
+                self * Rotor::<3, $Wide, A>::from_axis_angle(axis, angle)
             }
 
             #[inline(always)]
@@ -1882,6 +2037,36 @@ macro_rules! impl_items {
             }
 
             #[inline(always)]
+            fn slerp_normalized_backend(self, other: Self, t: $Wide) -> Self {
+                let angle_cos = self.dot(other);
+
+                // If `angle_cos` is close to `1` or `-1` or is NaN the normal
+                // calculation breaks down.
+                angle_cos.abs().simd_lt($Wide::splat(1.0 - 3e-7)).select(
+                    {
+                        let angle = angle_cos.acos_approx();
+                        let angle_sin = angle.sin();
+                        let t1 = (angle * ($Wide::ONE - t)).sin();
+                        let t2 = (angle * t).sin();
+
+                        (self * t1 + other * t2) / angle_sin
+                    },
+                    angle_cos.is_sign_negative().select(
+                        {
+                            // Vectors are almost parallel in opposing directions.
+
+                            let axis = self.any_orthogonal_vector().normalize();
+                            let (sin, cos) = (t * $Wide::PI).sin_cos();
+
+                            self * cos + axis * sin
+                        },
+                        // Vectors are almost parallel in the same direction.
+                        self.lerp(other, t),
+                    ),
+                )
+            }
+
+            #[inline(always)]
             fn rotate_towards_backend(self, target: Self, max_angle: $Wide) -> Self {
                 // Ported from `https://github.com/bitshifter/glam-rs`.
 
@@ -1938,6 +2123,41 @@ macro_rules! impl_items {
                     );
 
                 (self.simd_eq(Self::ZERO) | angle.simd_eq($Wide::ZERO)).select(self, result)
+            }
+
+            #[inline(always)]
+            fn rotate_towards_normalized_backend(self, target: Self, max_angle: $Wide) -> Self {
+                let target_angle_cos = self.dot(target);
+                let target_angle = target_angle_cos.acos_approx();
+                let angle = max_angle.simd_lt(target_angle - $Wide::PI).select(
+                    target_angle - $Wide::PI,
+                    max_angle
+                        .simd_gt(target_angle)
+                        .select(target_angle, max_angle),
+                );
+
+                // If `target_angle_cos` is close to `1` or `-1` or is NaN the
+                // normal calculation breaks down.
+                target_angle_cos.abs().simd_le(1.0 - 3e-7).select(
+                    {
+                        let self_factor = (target_angle - angle).sin();
+                        let target_factor = angle.sin();
+
+                        (self * self_factor + target * target_factor).normalize()
+                    },
+                    target_angle_cos.is_sign_negative().select(
+                        {
+                            // Vectors are almost parallel in opposing directions.
+
+                            let axis = self.any_orthogonal_vector().normalize();
+                            let (sin, cos) = angle.sin_cos();
+
+                            self * cos + axis * sin
+                        },
+                        // Vectors are almost parallel in the same direction.
+                        target,
+                    ),
+                )
             }
 
             #[inline(always)]
@@ -2461,6 +2681,22 @@ mod tests {
     }
 
     #[test]
+    fn test_slerp_normalized() {
+        for_types!(|N, Wide: WideFloat| {
+            for ([a, b], t) in random_iter::<([Vector<N, Wide, Unaligned>; 2], Wide)>() {
+                let [a, b] = [a, b].map(|v| v.normalize_or(Vector::ONE).normalize());
+                let t = t % 10.0;
+
+                assert_test_eq!(
+                    a.slerp_normalized(b, t),
+                    a.slerp(b, t),
+                    abs <= Wide::splat(1e-2)
+                );
+            }
+        });
+    }
+
+    #[test]
     fn test_rotate_towards() {
         for_types!(|N, Wide: WideFloat| {
             for ([vector, target], max_delta) in
@@ -2480,6 +2716,26 @@ mod tests {
                     abs <= vector.length().max(target.length()) * 1e-3 + 1e-3,
                     0.0 = -0.0,
                     "  vector: {vector:?}\n  target: {target:?}\nmax_delta: {max_delta:?}"
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_rotate_towards_normalized() {
+        for_types!(|N, Wide: WideFloat| {
+            for ([vector, target], max_angle) in
+                random_iter::<([Vector<N, Wide, Unaligned>; 2], Wide)>()
+            {
+                let [vector, target] =
+                    [vector, target].map(|v| v.normalize_or(Vector::ONE).normalize());
+                let max_angle = (max_angle % 20.0) & max_angle.is_finite();
+
+                assert_test_eq!(
+                    vector.rotate_towards_normalized(target, max_angle),
+                    vector.rotate_towards(target, max_angle),
+                    abs <= Wide::splat(1e-2),
+                    0.0 = -0.0
                 );
             }
         });
@@ -2641,6 +2897,21 @@ mod tests {
                         a.lane(lane).angle_between(b.lane(lane))
                     })),
                     abs <= a.angle_between(b) * 1e-3 + 1e-3
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_angle_between_normalized() {
+        for_types!(|N, Wide: WideFloat| {
+            for [a, b] in random_iter::<[Vector<N, Wide, Unaligned>; 2]>() {
+                let [a, b] = [a, b].map(|v| v.normalize_or(Vector::ONE).normalize());
+
+                assert_test_eq!(
+                    a.angle_between_normalized(b),
+                    a.angle_between(b),
+                    abs <= Wide::splat(1e-3)
                 );
             }
         });
@@ -2844,6 +3115,21 @@ mod tests {
     }
 
     #[test]
+    fn test_angle_to_normalized() {
+        for_types!(|Wide: WideFloat| {
+            for [a, b] in random_iter::<[Vec2<Wide>; 2]>() {
+                let [a, b] = [a, b].map(|v| v.normalize_or(Vec2::ONE).normalize());
+
+                assert_test_eq!(
+                    a.angle_to_normalized(b),
+                    a.angle_to(b),
+                    abs <= Wide::splat(1e-3)
+                );
+            }
+        });
+    }
+
+    #[test]
     fn test_angle_from() {
         for_types!(|Wide: WideFloat| {
             for [a, b] in random_iter::<[Vec2<Wide>; 2]>() {
@@ -2853,6 +3139,21 @@ mod tests {
                         .lane(lane)
                         .angle_from(b.lane(lane)))),
                     abs <= a.angle_from(b).abs() * 1e-5 + 1e-5
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_angle_from_normalized() {
+        for_types!(|Wide: WideFloat| {
+            for [a, b] in random_iter::<[Vec2<Wide>; 2]>() {
+                let [a, b] = [a, b].map(|v| v.normalize_or(Vec2::ONE).normalize());
+
+                assert_test_eq!(
+                    a.angle_from_normalized(b),
+                    a.angle_from(b),
+                    abs <= Wide::splat(1e-3)
                 );
             }
         });

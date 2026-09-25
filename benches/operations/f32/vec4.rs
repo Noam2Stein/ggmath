@@ -168,6 +168,14 @@ bench!(
 );
 
 bench!(
+    rotate_towards_normalized,
+    ARRAY_LEN,
+    (unaligned, Vec4::<f32>::rotate_towards_normalized),
+    (aligned, Vec4A::<f32>::rotate_towards_normalized),
+    (x4_unaligned, Vec4::<f32x4>::rotate_towards_normalized),
+);
+
+bench!(
     round,
     ARRAY_LEN,
     (unaligned, Vec4::<f32>::round),
@@ -192,6 +200,14 @@ bench!(
     (aligned, Vec4A::<f32>::slerp),
     // This function is not in `glam`.
     (x4_unaligned, Vec4::<f32x4>::slerp),
+);
+
+bench!(
+    slerp_normalized,
+    ARRAY_LEN,
+    (unaligned, Vec4::<f32>::slerp_normalized),
+    (aligned, Vec4A::<f32>::slerp_normalized),
+    (x4_unaligned, Vec4::<f32x4>::slerp_normalized),
 );
 
 bench!(
