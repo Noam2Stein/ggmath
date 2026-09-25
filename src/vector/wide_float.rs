@@ -265,11 +265,18 @@ macro_rules! items {
             self - normal * (dot + dot)
         }
 
-        /// Returns the reflection of `self` through `normal`.
+        /// Returns the vector reflection of `self` off the surface with
+        /// `normal`.
         ///
         /// This assumes `normal` is normalized.
+        ///
+        /// This function has been deprecated and replaced by
+        /// [`reflect_off_normalized`].
+        ///
+        /// [`reflect_off_normalized`]: Self::reflect_off_normalized
         #[inline]
         #[must_use]
+        #[deprecated(since = "0.18.2", note = "replaced by `reflect_off_normalized`")]
         pub fn reflect(self, normal: Self) -> Self {
             self - normal * ($Wide::splat(2.0) * self.dot(normal))
         }
@@ -2720,6 +2727,7 @@ mod tests {
     }
 
     #[test]
+    #[expect(deprecated)]
     fn test_reflect() {
         for_types!(|N, Wide: WideFloat| {
             for [a, b] in random_iter::<[Vector<N, Wide, Unaligned>; 2]>()
