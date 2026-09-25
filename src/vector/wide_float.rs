@@ -243,7 +243,7 @@ macro_rules! items {
             self - self.project_onto_normalized(other)
         }
 
-        /// Returns the vector reflection of `self` off the surface with
+        /// Returns the vector reflection of `self` off the surface with normal
         /// `normal`.
         ///
         /// This assumes `normal` can be normalized.
@@ -254,7 +254,7 @@ macro_rules! items {
             self - normal * ((dot + dot) / normal.length_squared())
         }
 
-        /// Returns the vector reflection of `self` off the surface with
+        /// Returns the vector reflection of `self` off the surface with normal
         /// `normal`.
         ///
         /// This assumes `normal` is normalized.
@@ -842,7 +842,7 @@ macro_rules! items {
             specialize!(Vector::<N, $Wide, A>::sin_cos_backend(self))
         }
 
-        /// Returns the vector reflection of `self` off the surface with
+        /// Returns the vector reflection of `self` off the surface with normal
         /// `normal`.
         ///
         /// This assumes `normal` is normalized.

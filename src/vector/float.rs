@@ -452,7 +452,8 @@ where
         self - other * self.dot(other)
     }
 
-    /// Returns the vector reflection of `self` off the surface with `normal`.
+    /// Returns the vector reflection of `self` off the surface with normal
+    /// `normal`.
     ///
     /// This assumes `normal` can be normalized.
     ///
@@ -476,7 +477,8 @@ where
         self - normal * ((dot + dot) / normal_length_squared)
     }
 
-    /// Returns the vector reflection of `self` off the surface with `normal`.
+    /// Returns the vector reflection of `self` off the surface with normal
+    /// `normal`.
     ///
     /// This assumes `normal` is normalized.
     ///
@@ -1519,7 +1521,8 @@ where
         specialize!(<T as FloatVectorBackend<N, A>>::sin_cos(self))
     }
 
-    /// Returns the vector reflection of `self` off the surface with `normal`.
+    /// Returns the vector reflection of `self` off the surface with normal
+    /// `normal`.
     ///
     /// This assumes `normal` is normalized.
     ///
