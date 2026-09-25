@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#102](https://github.com/Noam2Stein/ggmath/pull/102): Replace
   `Vector::reflect` with `reflect_off` and `reflect_off_normalized`
 
+- [#103](https://github.com/Noam2Stein/ggmath/pull/103): Improve the precision
+  and efficiency of `Vector::project_onto` and `Vector::reject_from`
+
 ## [0.18.1] - 2026-09-16
 
 ### Added
