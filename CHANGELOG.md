@@ -15,6 +15,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#103](https://github.com/Noam2Stein/ggmath/pull/103): Improve the precision
   and efficiency of `Vector::project_onto` and `Vector::reject_from`
 
+- [#104](https://github.com/Noam2Stein/ggmath/pull/104): Add normalized variants
+  of appropriate vector functions: `angle_between_normalized`,
+  `angle_to_normalized`, `angle_from_normalized`, `_normalizedslerp_normalized`,
+  `rotate_towards_normalized`
+
 ## [0.18.1] - 2026-09-16
 
 ### Added
