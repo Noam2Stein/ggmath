@@ -133,6 +133,22 @@ macro_rules! items {
                 .acos_approx()
         }
 
+        /// Returns the angle (in radians) between two vectors in the range
+        /// `0..=+π`.
+        ///
+        /// This assumes `self` and `other` are normalized.
+        ///
+        /// # Unspecified precision
+        ///
+        /// The precision of this function is non-deterministic. This means it
+        /// varies by platform, version, and can even differ within the same
+        /// execution from one invocation to the next.
+        #[inline]
+        #[must_use]
+        pub fn angle_between_normalized(self, other: Self) -> $Wide {
+            self.dot(other).acos_approx()
+        }
+
         /// Computes the linear interpolation between `self` and `other` based
         /// on the value `t`.
         ///
@@ -2641,6 +2657,21 @@ mod tests {
                         a.lane(lane).angle_between(b.lane(lane))
                     })),
                     abs <= a.angle_between(b) * 1e-3 + 1e-3
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_angle_between_normalized() {
+        for_types!(|N, Wide: WideFloat| {
+            for [a, b] in random_iter::<[Vector<N, Wide, Unaligned>; 2]>() {
+                let [a, b] = [a, b].map(|v| v.normalize_or(Vector::ONE).normalize());
+
+                assert_test_eq!(
+                    a.angle_between_normalized(b),
+                    a.angle_between(b),
+                    abs <= Wide::splat(1e-3)
                 );
             }
         });

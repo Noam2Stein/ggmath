@@ -26,6 +26,14 @@ bench!(
 );
 
 bench!(
+    angle_between_normalized,
+    ARRAY_LEN,
+    (unaligned, Vec3::<f32>::angle_between_normalized),
+    (aligned, Vec3A::<f32>::angle_between_normalized),
+    (x4_unaligned, Vec3::<f32x4>::angle_between_normalized),
+);
+
+bench!(
     any_orthogonal_vector,
     ARRAY_LEN,
     (unaligned, Vec3::<f32>::any_orthogonal_vector),

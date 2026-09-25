@@ -266,6 +266,34 @@ where
         (self.dot(other) / length_product).acos_approx()
     }
 
+    /// Returns the angle (in radians) between two vectors in the range
+    /// `0..=+π`.
+    ///
+    /// This assumes `self` and `other` are normalized.
+    ///
+    /// # Unspecified precision
+    ///
+    /// The precision of this function is non-deterministic. This means it
+    /// varies by platform, version, and can even differ within the same
+    /// execution from one invocation to the next.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` or `other` are not normalized.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn angle_between_normalized(self, other: Self) -> T {
+        debug_assert!(
+            self.is_normalized() && other.is_normalized(),
+            "vectors are not normalized: {self:?}.angle_between_normalized({other:?})"
+        );
+
+        self.dot(other).acos_approx()
+    }
+
     /// Computes the linear interpolation between `self` and `other` based on
     /// the value `t`.
     ///
@@ -3028,6 +3056,21 @@ mod tests {
                         * 1e-5
                 );
                 assert!((0.0..=T::TAU / 2.0).contains(&vector.angle_between(other)));
+            }
+        });
+    }
+
+    #[test]
+    fn test_angle_between_normalized() {
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for [a, b] in random_iter::<[Vector<N, T, A>; 2]>() {
+                let [a, b] = [a, b].map(|v| v.normalize_or(Vector::ONE).normalize());
+
+                assert_test_eq!(
+                    a.angle_between_normalized(b),
+                    a.angle_between(b),
+                    abs <= 1e-3
+                );
             }
         });
     }
