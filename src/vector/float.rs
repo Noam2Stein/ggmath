@@ -414,6 +414,33 @@ where
         ))
     }
 
+    /// Rotates `self` towards `target` by at most `max_angle` (in radians).
+    ///
+    /// When `max_angle` is `0`, the result is `self`. When `max_angle` is equal
+    /// to or greater than `self.angle_between(target)`, the result is `target`.
+    /// When `max_angle` is negative, this rotates towards `-target`.
+    ///
+    /// This assumes `self` and `target` are normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` or `target` are not normalized.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn rotate_towards_normalized(self, target: Self, max_angle: T) -> Self {
+        debug_assert!(
+            self.is_normalized() && target.is_normalized(),
+            "vectors are not normalized: {self:?}.rotate_towards_normalized({target:?}, {max_angle:?})"
+        );
+
+        specialize!(Vector::<N, T, A>::rotate_towards_normalized_backend(
+            self, target, max_angle
+        ))
+    }
+
     /// Returns the vector projection of `self` onto `other`.
     ///
     /// This assumes `other` is not the zero vector.
@@ -1845,6 +1872,22 @@ where
         self.rotate(angle)
     }
 
+    #[track_caller]
+    #[inline(always)]
+    fn rotate_towards_normalized_backend(self, target: Self, max_angle: T) -> Self {
+        let target_angle = self.dot(target).acos_approx();
+        let angle_sign = self.perp_dot(target).signum();
+        let angle = if max_angle < target_angle - T::PI {
+            target_angle - T::PI
+        } else if max_angle > target_angle {
+            target_angle
+        } else {
+            max_angle
+        } * angle_sign;
+
+        self.rotate(angle)
+    }
+
     #[inline(always)]
     fn any_orthogonal_vector_backend(self) -> Self {
         self.perp()
@@ -2062,6 +2105,25 @@ where
 
     #[track_caller]
     #[inline(always)]
+    fn rotate_towards_normalized_backend(self, target: Self, max_angle: T) -> Self {
+        let target_angle = self.dot(target).acos_approx();
+        let angle = if max_angle < target_angle - T::PI {
+            target_angle - T::PI
+        } else if max_angle > target_angle {
+            target_angle
+        } else {
+            max_angle
+        };
+        let axis = self
+            .cross(target)
+            .try_normalize()
+            .unwrap_or_else(|| self.any_orthonormal_vector());
+
+        self * Rotor::<3, T, A>::from_axis_angle(axis, angle)
+    }
+
+    #[track_caller]
+    #[inline(always)]
     fn any_orthogonal_vector_backend(self) -> Self {
         // Ported from https://github.com/bitshifter/glam-rs.
 
@@ -2207,6 +2269,39 @@ where
         } else {
             // Vectors are almost parallel in the same direction.
             target / target_length * self_length
+        }
+    }
+
+    #[track_caller]
+    #[inline(always)]
+    fn rotate_towards_normalized_backend(self, target: Self, max_angle: T) -> Self {
+        let target_angle_cos = self.dot(target);
+        let target_angle = target_angle_cos.acos_approx();
+        let angle = if max_angle < target_angle - T::PI {
+            target_angle - T::PI
+        } else if max_angle > target_angle {
+            target_angle
+        } else {
+            max_angle
+        };
+
+        // If `target_angle_cos` is close to `1` or `-1` or is NaN the
+        // normal calculation breaks down.
+        if target_angle_cos.abs() <= T::as_from(1.0 - 3e-7) {
+            let self_factor = (target_angle - angle).sin();
+            let target_factor = angle.sin();
+
+            (self * self_factor + target * target_factor).normalize()
+        } else if target_angle_cos.is_sign_negative() {
+            // Vectors are almost parallel in opposing directions.
+
+            let axis = self.any_orthogonal_vector().normalize();
+            let (sin, cos) = angle.sin_cos();
+
+            self * cos + axis * sin
+        } else {
+            // Vectors are almost parallel in the same direction.
+            target
         }
     }
 
@@ -2888,6 +2983,28 @@ mod tests {
                         Vector::ZERO
                     );
                 }
+            }
+        });
+    }
+
+    #[test]
+    fn test_rotate_towards_normalized() {
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for ([vector, target], max_angle) in random_iter::<([Vector<N, T, A>; 2], T)>() {
+                let [vector, target] =
+                    [vector, target].map(|v| v.normalize_or(Vector::ONE).normalize());
+                let max_angle = if max_angle.is_finite() {
+                    max_angle % 20.0
+                } else {
+                    0.0
+                };
+
+                assert_test_eq!(
+                    vector.rotate_towards_normalized(target, max_angle),
+                    vector.rotate_towards(target, max_angle),
+                    abs <= 1e-2,
+                    0.0 = -0.0
+                );
             }
         });
     }

@@ -233,6 +233,22 @@ macro_rules! items {
             ))
         }
 
+        /// Rotates `self` towards `target` by at most `max_angle` (in radians).
+        ///
+        /// When `max_angle` is `0`, the result is `self`. When `max_angle` is
+        /// equal to or greater than `self.angle_between(target)`, the result is
+        /// `target`. When `max_angle` is negative, this rotates towards
+        /// `-target`.
+        ///
+        /// This assumes `self` and `target` are normalized.
+        #[inline]
+        #[must_use]
+        pub fn rotate_towards_normalized(self, target: Self, max_angle: $Wide) -> Self {
+            specialize!(Vector::<N, $Wide, A>::rotate_towards_normalized_backend(
+                self, target, max_angle
+            ))
+        }
+
         /// Returns the vector projection of `self` onto `other`.
         ///
         /// This assumes `other` is not the zero vector.
@@ -1374,6 +1390,21 @@ macro_rules! impl_items {
             }
 
             #[inline(always)]
+            fn rotate_towards_normalized_backend(self, target: Self, max_angle: $Wide) -> Self {
+                let target_angle = self.dot(target).acos_approx();
+                let angle_sign = self.perp_dot(target).signum();
+                let angle = (max_angle.simd_lt(target_angle - $Wide::PI)).select(
+                    target_angle - $Wide::PI,
+                    max_angle
+                        .simd_gt(target_angle)
+                        .select(target_angle, max_angle)
+                        * angle_sign,
+                );
+
+                self.rotate(angle)
+            }
+
+            #[inline(always)]
             fn any_orthogonal_vector_backend(self) -> Self {
                 self.perp()
             }
@@ -1687,6 +1718,22 @@ macro_rules! impl_items {
                     self,
                     self * Rotor::<3, $Wide, A>::from_axis_angle(axis, angle),
                 )
+            }
+
+            #[inline(always)]
+            fn rotate_towards_normalized_backend(self, target: Self, max_angle: $Wide) -> Self {
+                let target_angle = self.dot(target).acos_approx();
+                let angle = max_angle.simd_lt(target_angle - $Wide::PI).select(
+                    target_angle - $Wide::PI,
+                    max_angle
+                        .simd_gt(target_angle)
+                        .select(target_angle, max_angle),
+                );
+                let axis = self
+                    .cross(target)
+                    .normalize_or(self.any_orthonormal_vector());
+
+                self * Rotor::<3, $Wide, A>::from_axis_angle(axis, angle)
             }
 
             #[inline(always)]
@@ -2077,6 +2124,41 @@ macro_rules! impl_items {
                     );
 
                 (self.simd_eq(Self::ZERO) | angle.simd_eq($Wide::ZERO)).select(self, result)
+            }
+
+            #[inline(always)]
+            fn rotate_towards_normalized_backend(self, target: Self, max_angle: $Wide) -> Self {
+                let target_angle_cos = self.dot(target);
+                let target_angle = target_angle_cos.acos_approx();
+                let angle = max_angle.simd_lt(target_angle - $Wide::PI).select(
+                    target_angle - $Wide::PI,
+                    max_angle
+                        .simd_gt(target_angle)
+                        .select(target_angle, max_angle),
+                );
+
+                // If `target_angle_cos` is close to `1` or `-1` or is NaN the
+                // normal calculation breaks down.
+                target_angle_cos.abs().simd_le(1.0 - 3e-7).select(
+                    {
+                        let self_factor = (target_angle - angle).sin();
+                        let target_factor = angle.sin();
+
+                        (self * self_factor + target * target_factor).normalize()
+                    },
+                    target_angle_cos.is_sign_negative().select(
+                        {
+                            // Vectors are almost parallel in opposing directions.
+
+                            let axis = self.any_orthogonal_vector().normalize();
+                            let (sin, cos) = angle.sin_cos();
+
+                            self * cos + axis * sin
+                        },
+                        // Vectors are almost parallel in the same direction.
+                        target,
+                    ),
+                )
             }
 
             #[inline(always)]
@@ -2635,6 +2717,26 @@ mod tests {
                     abs <= vector.length().max(target.length()) * 1e-3 + 1e-3,
                     0.0 = -0.0,
                     "  vector: {vector:?}\n  target: {target:?}\nmax_delta: {max_delta:?}"
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_rotate_towards_normalized() {
+        for_types!(|N, Wide: WideFloat| {
+            for ([vector, target], max_angle) in
+                random_iter::<([Vector<N, Wide, Unaligned>; 2], Wide)>()
+            {
+                let [vector, target] =
+                    [vector, target].map(|v| v.normalize_or(Vector::ONE).normalize());
+                let max_angle = (max_angle % 20.0) & max_angle.is_finite();
+
+                assert_test_eq!(
+                    vector.rotate_towards_normalized(target, max_angle),
+                    vector.rotate_towards(target, max_angle),
+                    abs <= Wide::splat(1e-2),
+                    0.0 = -0.0
                 );
             }
         });

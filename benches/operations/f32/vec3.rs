@@ -244,6 +244,14 @@ bench!(
 );
 
 bench!(
+    rotate_towards_normalized,
+    ARRAY_LEN,
+    (unaligned, Vec3::<f32>::rotate_towards_normalized),
+    (aligned, Vec3A::<f32>::rotate_towards_normalized),
+    (x4_unaligned, Vec3::<f32x4>::rotate_towards_normalized),
+);
+
+bench!(
     round,
     ARRAY_LEN,
     (unaligned, Vec3::<f32>::round),

@@ -126,6 +126,13 @@ bench!(
 );
 
 bench!(
+    rotate_towards_normalized,
+    ARRAY_LEN,
+    (unaligned, Vec2::<f32>::rotate_towards_normalized),
+    (x4_unaligned, Vec2::<f32x4>::rotate_towards_normalized),
+);
+
+bench!(
     slerp,
     ARRAY_LEN,
     (unaligned, Vec2::<f32>::slerp),
