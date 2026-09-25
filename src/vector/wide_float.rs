@@ -243,6 +243,28 @@ macro_rules! items {
             self - self.project_onto_normalized(other)
         }
 
+        /// Returns the vector reflection of `self` off the surface with
+        /// `normal`.
+        ///
+        /// This assumes `normal` can be normalized.
+        #[inline]
+        #[must_use]
+        pub fn reflect_off(self, normal: Self) -> Self {
+            let dot = self.dot(normal);
+            self - normal * ((dot + dot) / normal.length_squared())
+        }
+
+        /// Returns the vector reflection of `self` off the surface with
+        /// `normal`.
+        ///
+        /// This assumes `normal` is normalized.
+        #[inline]
+        #[must_use]
+        pub fn reflect_off_normalized(self, normal: Self) -> Self {
+            let dot = self.dot(normal);
+            self - normal * (dot + dot)
+        }
+
         /// Returns the reflection of `self` through `normal`.
         ///
         /// This assumes `normal` is normalized.
@@ -2664,6 +2686,34 @@ mod tests {
                 assert_test_eq_or_panic!(
                     a.reject_from_normalized(b),
                     Vector::from_lane_fn(|lane| a.lane(lane).reject_from_normalized(b.lane(lane)))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_reflect_off() {
+        for_types!(|N, Wide: WideFloat| {
+            for [a, b] in random_iter::<[Vector<N, Wide, Unaligned>; 2]>()
+                .flat_map(|[a, b]| [[a, b], [a, b.normalize_or(Vector::ONE).normalize()]])
+            {
+                assert_test_eq_or_panic!(
+                    a.reflect_off(b),
+                    Vector::from_lane_fn(|lane| a.lane(lane).reflect_off(b.lane(lane)))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_reflect_off_normalized() {
+        for_types!(|N, Wide: WideFloat| {
+            for [a, b] in random_iter::<[Vector<N, Wide, Unaligned>; 2]>()
+                .flat_map(|[a, b]| [[a, b], [a, b.normalize_or(Vector::ONE).normalize()]])
+            {
+                assert_test_eq_or_panic!(
+                    a.reflect_off_normalized(b),
+                    Vector::from_lane_fn(|lane| a.lane(lane).reflect_off_normalized(b.lane(lane)))
                 );
             }
         });

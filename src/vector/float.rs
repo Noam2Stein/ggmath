@@ -452,6 +452,52 @@ where
         self - other * self.dot(other)
     }
 
+    /// Returns the vector reflection of `self` off the surface with `normal`.
+    ///
+    /// This assumes `normal` can be normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `normal` cannot be normalized.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn reflect_off(self, normal: Self) -> Self {
+        let normal_length_squared = normal.length_squared();
+
+        debug_assert!(
+            normal_length_squared.recip().is_finite(),
+            "`normal` cannot be normalized: {self:?}.reflect_off({normal:?})"
+        );
+
+        let dot = self.dot(normal);
+        self - normal * ((dot + dot) / normal_length_squared)
+    }
+
+    /// Returns the vector reflection of `self` off the surface with `normal`.
+    ///
+    /// This assumes `normal` is normalized.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `normal` is not normalized.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn reflect_off_normalized(self, normal: Self) -> Self {
+        debug_assert!(
+            normal.is_normalized(),
+            "`normal` is not normalized: {self:?}.reflect_off_normalized({normal:?})"
+        );
+
+        let dot = self.dot(normal);
+        self - normal * (dot + dot)
+    }
+
     /// Returns the reflection of `self` through `normal`.
     ///
     /// This assumes `normal` is normalized.
@@ -3094,6 +3140,73 @@ mod tests {
             );
             assert_debug_panic!(
                 Vector::<4, T, A>::new(4.0, 0.0, 0.0, 0.0).reject_from_normalized(Vector::ONE)
+            );
+        });
+    }
+
+    #[test]
+    fn test_reflect_off() {
+        for_types!(|T: PrimitiveFloat, A| {
+            assert_test_eq!(
+                Vector::<2, T, A>::new(3.0, 2.0).reflect_off(Vector::ONE),
+                Vector::<2, T, A>::new(-2.0, -3.0),
+                abs <= 1e-5
+            );
+            assert_test_eq!(
+                Vector::<3, T, A>::new(3.0, 2.0, 4.0).reflect_off(Vector::ONE),
+                Vector::<3, T, A>::new(-3.0, -4.0, -2.0),
+                abs <= 1e-5
+            );
+            assert_test_eq!(
+                Vector::<4, T, A>::new(3.0, 2.0, 4.0, 5.0).reflect_off(Vector::ONE),
+                Vector::<4, T, A>::new(-4.0, -5.0, -3.0, -2.0),
+                abs <= 1e-5
+            );
+
+            assert_debug_panic!(
+                Vector::<2, T, A>::new(3.0, 2.0).reflect_off(Vector::<2, T, A>::ZERO)
+            );
+            assert_debug_panic!(
+                Vector::<3, T, A>::new(3.0, 2.0, 4.0).reflect_off(Vector::<3, T, A>::ZERO)
+            );
+            assert_debug_panic!(
+                Vector::<4, T, A>::new(3.0, 2.0, 4.0, 5.0).reflect_off(Vector::<4, T, A>::ZERO)
+            );
+        });
+    }
+
+    #[test]
+    fn test_reflect_off_normalized() {
+        for_types!(|T: PrimitiveFloat, A| {
+            assert_test_eq!(
+                Vector::<2, T, A>::new(3.0, 2.0)
+                    .reflect_off_normalized(Vector::<2, T, A>::ONE.normalize()),
+                Vector::<2, T, A>::new(-2.0, -3.0),
+                abs <= 1e-5
+            );
+            assert_test_eq!(
+                Vector::<3, T, A>::new(3.0, 2.0, 4.0)
+                    .reflect_off_normalized(Vector::<3, T, A>::ONE.normalize()),
+                Vector::<3, T, A>::new(-3.0, -4.0, -2.0),
+                abs <= 1e-5
+            );
+            assert_test_eq!(
+                Vector::<4, T, A>::new(3.0, 2.0, 4.0, 5.0)
+                    .reflect_off_normalized(Vector::<4, T, A>::ONE.normalize()),
+                Vector::<4, T, A>::new(-4.0, -5.0, -3.0, -2.0),
+                abs <= 1e-5
+            );
+
+            assert_debug_panic!(
+                Vector::<2, T, A>::new(3.0, 2.0).reflect_off_normalized(Vector::<2, T, A>::ONE)
+            );
+            assert_debug_panic!(
+                Vector::<3, T, A>::new(3.0, 2.0, 4.0)
+                    .reflect_off_normalized(Vector::<3, T, A>::ONE)
+            );
+            assert_debug_panic!(
+                Vector::<4, T, A>::new(3.0, 2.0, 4.0, 5.0)
+                    .reflect_off_normalized(Vector::<4, T, A>::ONE)
             );
         });
     }
