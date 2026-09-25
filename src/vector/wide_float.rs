@@ -1397,9 +1397,8 @@ macro_rules! impl_items {
                     target_angle - $Wide::PI,
                     max_angle
                         .simd_gt(target_angle)
-                        .select(target_angle, max_angle)
-                        * angle_sign,
-                );
+                        .select(target_angle, max_angle),
+                ) * angle_sign;
 
                 self.rotate(angle)
             }
