@@ -206,6 +206,31 @@ macro_rules! items {
             angle.simd_le(1e-4).select(target, self.slerp(target, t))
         }
 
+        /// Rotates one rotor towards another by at most `max_angle` (in
+        /// radians).
+        ///
+        /// This assumes `self` and `other` are normalized, and `max_angle`
+        /// is positive.
+        ///
+        /// When `max_angle` is `0`, the result is `self`. When `max_angle` is
+        /// equal to or greater than `self.angle_between_long(target)`, the
+        /// result is `target`.
+        ///
+        /// This function takes advantage of the fact that, for any rotor `r`,
+        /// the rotor `-r` represents the same rotation. If `self.dot(other)` is
+        /// positive, this takes the shorter rotational path. If
+        /// `self.dot(other)` is negative, this takes the longer rotational
+        /// path.
+        #[inline]
+        #[must_use]
+        pub fn rotate_towards_long(self, target: Self, max_angle: $Wide) -> Self {
+            let angle = self.angle_between_long(target);
+            angle.simd_le(1e-4).select(target, {
+                let t = (max_angle / angle).clamp(-$Wide::ONE, $Wide::ONE);
+                self.slerp_long(target, t)
+            })
+        }
+
         /// Returns the length/magnitude of a rotor.
         #[inline]
         #[must_use]
@@ -994,6 +1019,32 @@ mod tests {
                     Rotor3::from_lane_fn(|lane| rotor
                         .lane(lane)
                         .rotate_towards(target.lane(lane), max_angle.to_array()[lane])),
+                    abs <= rotor.length().max(target.length()) * 1e-3 + 1e-3
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_rotate_towards_long() {
+        for_types!(|Wide: WideFloat| {
+            for ([rotor, target], max_angle) in
+                random_iter::<([Rotor3<Wide>; 2], Wide)>().flat_map(|(rotor_target, max_angle)| {
+                    [
+                        (
+                            rotor_target
+                                .map(|r| r.length().simd_lt(1e4).select(r, Rotor3::IDENTITY)),
+                            max_angle,
+                        ),
+                        (rotor_target.map(|r| r.normalize()), max_angle),
+                    ]
+                })
+            {
+                assert_test_eq_or_panic!(
+                    rotor.rotate_towards_long(target, max_angle),
+                    Rotor3::from_lane_fn(|lane| rotor
+                        .lane(lane)
+                        .rotate_towards_long(target.lane(lane), max_angle.to_array()[lane])),
                     abs <= rotor.length().max(target.length()) * 1e-3 + 1e-3
                 );
             }

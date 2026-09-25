@@ -342,6 +342,44 @@ where
         }
     }
 
+    /// Rotates one rotor towards another by at most `max_angle` (in radians).
+    ///
+    /// This assumes `self` and `other` are normalized, and `max_angle` is
+    /// positive.
+    ///
+    /// When `max_angle` is `0`, the result is `self`. When `max_angle` is equal
+    /// to or greater than `self.angle_between_long(target)`, the result is
+    /// `target`.
+    ///
+    /// This function takes advantage of the fact that, for any rotor `r`, the
+    /// rotor `-r` represents the same rotation. If `self.dot(other)` is
+    /// positive, this takes the shorter rotational path. If `self.dot(other)`
+    /// is negative, this takes the longer rotational path.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` or `other` are not normalized, or if `max_angle` is
+    /// negative.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn rotate_towards_long(self, target: Self, max_angle: T) -> Self {
+        debug_assert!(
+            self.is_normalized() && target.is_normalized() && max_angle >= T::ZERO,
+            "rotors are not normalized, or `max_angle` is negative: {self:?}.rotate_towards_long({target:?}, {max_angle:?})"
+        );
+
+        let angle = self.angle_between_long(target);
+        if angle <= T::as_from(1e-4) {
+            target
+        } else {
+            let t = (max_angle / angle).clamp(T::NEG_ONE, T::ONE);
+            self.slerp_long(target, t)
+        }
+    }
+
     /// Returns the length/magnitude of a rotor.
     #[inline]
     #[must_use]
@@ -1346,6 +1384,64 @@ mod tests {
                         abs <= 1e-3,
                         0.0 = -0.0,
                         rotor = -rotor
+                    );
+                }
+            }
+        });
+    }
+
+    #[test]
+    fn test_rotate_towards_long() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for ([rotor, target], max_angle) in random_iter::<([Rotor<3, T, A>; 2], T)>() {
+                let [rotor, target] =
+                    [rotor, target].map(|r| r.normalize_or(Rotor::IDENTITY).normalize());
+                let max_angle = if max_angle.is_finite() {
+                    (max_angle % 20.0).abs()
+                } else {
+                    0.0
+                };
+
+                assert_test_eq!(
+                    rotor.rotate_towards_long(target * rotor.dot(target).signum(), max_angle),
+                    rotor.rotate_towards(target, max_angle),
+                    abs <= 1e-3,
+                    0.0 = -0.0,
+                    rotor = -rotor
+                );
+            }
+            for [rotor, target] in random_iter::<[Rotor<3, T, A>; 2]>() {
+                let [rotor, target] =
+                    [rotor, target].map(|r| r.normalize_or(Rotor::IDENTITY).normalize());
+
+                assert_test_eq!(
+                    rotor.rotate_towards_long(target, 0.0),
+                    rotor,
+                    abs <= 1e-3,
+                    0.0 = -0.0
+                );
+                assert_test_eq!(
+                    rotor.rotate_towards_long(target, rotor.angle_between_long(target)),
+                    target,
+                    abs <= 1e-3,
+                    0.0 = -0.0
+                );
+                assert_test_eq!(
+                    rotor.rotate_towards_long(target, rotor.angle_between_long(target) * 1.5),
+                    target,
+                    abs <= 1e-3,
+                    0.0 = -0.0
+                );
+
+                for max_angle in [0.25, 0.5, 0.75] {
+                    assert_test_eq!(
+                        rotor.rotate_towards_long(
+                            target,
+                            rotor.angle_between_long(target) * max_angle
+                        ),
+                        rotor.slerp_long(target, max_angle),
+                        abs <= 1e-3,
+                        0.0 = -0.0
                     );
                 }
             }
