@@ -1,6 +1,6 @@
 [package]
 name = "ggmath"
-version = "0.18.1"
+version = "0.18.2"
 autobenches = false
 categories = ["game-development", "graphics", "mathematics", "no-std"]
 edition = "2024"
