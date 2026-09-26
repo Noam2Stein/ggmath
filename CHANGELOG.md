@@ -14,6 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `angle_to_normalized`, `angle_from_normalized`, `slerp_normalized`,
   `rotate_towards_normalized`
 
+- [#106](https://github.com/Noam2Stein/ggmath/pull/106): Add rotor functions
+  involving longer rotational paths: `angle_between_long`, `slerp_long`,
+  `rotate_towards_long`
+
 ### Changed
 
 - [#102](https://github.com/Noam2Stein/ggmath/pull/102): Replace
