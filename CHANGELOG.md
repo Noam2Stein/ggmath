@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.18.2] - 2026-09-26
+
 ### Added
 
 - [#104](https://github.com/Noam2Stein/ggmath/pull/104): Add normalized variants
@@ -848,7 +850,8 @@ functionality can start being added.
 
 This version completely rewrote the crate.
 
-[unreleased]: https://github.com/Noam2Stein/ggmath/compare/v0.18.1...HEAD
+[unreleased]: https://github.com/Noam2Stein/ggmath/compare/v0.18.2...HEAD
+[0.18.2]: https://github.com/Noam2Stein/ggmath/compare/v0.18.1...v0.18.2
 [0.18.1]: https://github.com/Noam2Stein/ggmath/compare/v0.18.0...v0.18.1
 [0.18.0]: https://github.com/Noam2Stein/ggmath/compare/v0.17.1...v0.18.0
 [0.17.1]: https://github.com/Noam2Stein/ggmath/compare/v0.17.0...v0.17.1
