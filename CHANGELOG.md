@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- [#110](https://github.com/Noam2Stein/ggmath/pull/110): Rename
+  `Rotor::from/to/as/as_mut_raw_vector` to `Rotor::from/to/as/as_mut_vector`
+  (remove the word `raw`)
+
 ## [0.18.2] - 2026-09-26
 
 ### Added
