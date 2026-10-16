@@ -205,6 +205,51 @@ where
     /// elements directly. Instead, use higher level helper functions.
     #[inline]
     #[must_use]
+    pub const fn from_vector(vector: Vector<4, T, A>) -> Self {
+        Self(vector)
+    }
+
+    /// Converts a 3D rotor to an element vector `(yz, zx, xy, s)`.
+    ///
+    /// Unless you are familiar with rotor/quaternion math, avoid using rotor
+    /// elements directly. Instead, use higher level helper functions.
+    #[inline]
+    #[must_use]
+    pub const fn to_vector(self) -> Vector<4, T, A> {
+        self.0
+    }
+
+    /// Returns a reference to a 3D rotor element vector `(yz, zx, xy, s)`.
+    ///
+    /// Unless you are familiar with rotor/quaternion math, avoid using rotor
+    /// elements directly. Instead, use higher level helper functions.
+    #[inline]
+    #[must_use]
+    pub const fn as_vector(&self) -> &Vector<4, T, A> {
+        &self.0
+    }
+
+    /// Returns a mutable reference to a 3D rotor element vector
+    /// `(yz, zx, xy, s)`.
+    ///
+    /// Unless you are familiar with rotor/quaternion math, avoid using rotor
+    /// elements directly. Instead, use higher level helper functions.
+    #[inline]
+    #[must_use]
+    pub const fn as_mut_vector(&mut self) -> &mut Vector<4, T, A> {
+        &mut self.0
+    }
+
+    /// Creates a 3D rotor from an element vector `(yz, zx, xy, s)`.
+    ///
+    /// Note that a rotor is meant to be normalized, but this function does not
+    /// enforce that.
+    ///
+    /// Unless you are familiar with rotor/quaternion math, avoid using rotor
+    /// elements directly. Instead, use higher level helper functions.
+    #[inline]
+    #[must_use]
+    #[deprecated(since = "0.18.3", note = "renamed to `from_vector`")]
     pub const fn from_raw_vector(vector: Vector<4, T, A>) -> Self {
         Self(vector)
     }
@@ -215,6 +260,7 @@ where
     /// elements directly. Instead, use higher level helper functions.
     #[inline]
     #[must_use]
+    #[deprecated(since = "0.18.3", note = "renamed to `to_vector`")]
     pub const fn to_raw_vector(self) -> Vector<4, T, A> {
         self.0
     }
@@ -225,6 +271,7 @@ where
     /// elements directly. Instead, use higher level helper functions.
     #[inline]
     #[must_use]
+    #[deprecated(since = "0.18.3", note = "renamed to `as_vector`")]
     pub const fn as_raw_vector(&self) -> &Vector<4, T, A> {
         &self.0
     }
@@ -236,6 +283,7 @@ where
     /// elements directly. Instead, use higher level helper functions.
     #[inline]
     #[must_use]
+    #[deprecated(since = "0.18.3", note = "renamed to `as_mut_vector`")]
     pub const fn as_mut_raw_vector(&mut self) -> &mut Vector<4, T, A> {
         &mut self.0
     }
