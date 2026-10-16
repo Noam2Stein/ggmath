@@ -1954,7 +1954,7 @@ mod tests {
                     assert_test_eq!(
                         Rotor::<3, T, A>::from_euler(order, result.0, result.1, result.2),
                         rotor,
-                        abs <= rotor.to_raw_vector().abs() * 1e-3 + 1e-2,
+                        abs <= rotor.to_vector().abs() * 1e-3 + 1e-2,
                         0.0 = -0.0,
                         rotor = -rotor
                     );
