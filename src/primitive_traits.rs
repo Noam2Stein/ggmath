@@ -53,7 +53,7 @@ pub trait PrimitiveFloat:
     + One
     + NegOne
     + EqTest
-    + PrimitiveFloatUtils<Bits = <Self as PrimitiveFloat>::Bits>
+    + PrimitiveFloatUtils
     + FloatVectorBackend<2, Aligned>
     + FloatVectorBackend<3, Aligned>
     + FloatVectorBackend<4, Aligned>
@@ -163,7 +163,7 @@ pub trait PrimitiveSigned:
     + PrimitiveInteger
     + Neg<Output = Self>
     + NegOne
-    + PrimitiveSignedUtils<Unsigned = <Self as PrimitiveSigned>::Unsigned>
+    + PrimitiveSignedUtils
     + SignedVectorBackend<2, Aligned>
     + SignedVectorBackend<3, Aligned>
     + SignedVectorBackend<4, Aligned>

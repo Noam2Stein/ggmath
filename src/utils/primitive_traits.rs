@@ -1,13 +1,9 @@
 #[cfg(feature = "libm")]
 use libm::Libm;
 
-use crate::PrimitiveUnsigned;
-
 /// An internal trait that wraps primitive-float functions used in generic
 /// contexts.
 pub(crate) trait PrimitiveFloatUtils: Sized {
-    type Bits: PrimitiveUnsigned;
-
     const MIN: Self;
 
     const MAX: Self;
@@ -127,8 +123,6 @@ pub(crate) trait PrimitiveIntegerUtils: Sized {
 /// An internal trait that wraps primitive-signed-integer functions used in
 /// generic contexts.
 pub(crate) trait PrimitiveSignedUtils: Sized {
-    type Unsigned: PrimitiveUnsigned;
-
     fn wrapping_abs(self) -> Self;
 
     fn signum(self) -> Self;
@@ -143,8 +137,6 @@ pub(crate) trait PrimitiveSignedUtils: Sized {
 macro_rules! impl_float {
     ($T:ident, $UnsignedT:ident) => {
         impl PrimitiveFloatUtils for $T {
-            type Bits = $UnsignedT;
-
             const MIN: Self = Self::MIN;
 
             const MAX: Self = Self::MAX;
@@ -568,8 +560,6 @@ impl_integer!(usize);
 macro_rules! impl_signed {
     ($T:ident, $UnsignedT:ident) => {
         impl PrimitiveSignedUtils for $T {
-            type Unsigned = $UnsignedT;
-
             #[inline(always)]
             fn wrapping_abs(self) -> Self {
                 self.wrapping_abs()

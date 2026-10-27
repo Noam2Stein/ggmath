@@ -1,7 +1,5 @@
 use crate::{Alignment, Dim, PrimitiveUnsigned, TwoThreeOrFour, Vector, utils::transmute_generic};
 
-type Signed<T> = <T as PrimitiveUnsigned>::Signed;
-
 impl<const N: usize, T, A: Alignment> Vector<N, T, A>
 where
     Dim<N>: TwoThreeOrFour,
@@ -16,14 +14,14 @@ where
     /// [`as`]: https://rust-for-c-programmers.com/ch16/16_2_primitive_casting_with_as.html
     #[inline]
     #[must_use]
-    pub const fn cast_signed(self) -> Vector<N, Signed<T>, A> {
-        if const { size_of::<Vector<N, T, A>>() == size_of::<Vector<N, Signed<T>, A>>() } {
+    pub const fn cast_signed(self) -> Vector<N, T::Signed, A> {
+        if const { size_of::<Vector<N, T, A>>() == size_of::<Vector<N, T::Signed, A>>() } {
             // SAFETY: Both types accept all bit-patterns.
-            unsafe { transmute_generic::<Vector<N, T, A>, Vector<N, Signed<T>, A>>(self) }
+            unsafe { transmute_generic::<Vector<N, T, A>, Vector<N, T::Signed, A>>(self) }
         } else {
             // SAFETY: Both types accept all bit-patterns.
             Vector::from_array(unsafe {
-                transmute_generic::<[T; N], [Signed<T>; N]>(self.to_array())
+                transmute_generic::<[T; N], [T::Signed; N]>(self.to_array())
             })
         }
     }

@@ -6,8 +6,6 @@ use crate::{
     utils::{specialize, transmute_generic},
 };
 
-type Bits<T> = <T as PrimitiveFloat>::Bits;
-
 impl<const N: usize, T, A: Alignment> Vector<N, T, A>
 where
     Dim<N>: TwoThreeOrFour,
@@ -675,14 +673,14 @@ where
     /// [`as`]: https://rust-for-c-programmers.com/ch16/16_2_primitive_casting_with_as.html
     #[inline]
     #[must_use]
-    pub const fn from_bits(value: Vector<N, Bits<T>, A>) -> Self {
-        if const { size_of::<Vector<N, T, A>>() == size_of::<Vector<N, Bits<T>, A>>() } {
+    pub const fn from_bits(value: Vector<N, T::Bits, A>) -> Self {
+        if const { size_of::<Vector<N, T, A>>() == size_of::<Vector<N, T::Bits, A>>() } {
             // SAFETY: Both types accept all bit-patterns.
-            unsafe { transmute_generic::<Vector<N, Bits<T>, A>, Vector<N, T, A>>(value) }
+            unsafe { transmute_generic::<Vector<N, T::Bits, A>, Vector<N, T, A>>(value) }
         } else {
             // SAFETY: Both types accept all bit-patterns.
             Vector::from_array(unsafe {
-                transmute_generic::<[Bits<T>; N], [T; N]>(value.to_array())
+                transmute_generic::<[T::Bits; N], [T; N]>(value.to_array())
             })
         }
     }
@@ -695,14 +693,14 @@ where
     /// [`as`]: https://rust-for-c-programmers.com/ch16/16_2_primitive_casting_with_as.html
     #[inline]
     #[must_use]
-    pub const fn to_bits(self) -> Vector<N, Bits<T>, A> {
-        if const { size_of::<Vector<N, T, A>>() == size_of::<Vector<N, Bits<T>, A>>() } {
+    pub const fn to_bits(self) -> Vector<N, T::Bits, A> {
+        if const { size_of::<Vector<N, T, A>>() == size_of::<Vector<N, T::Bits, A>>() } {
             // SAFETY: Both types accept all bit-patterns.
-            unsafe { transmute_generic::<Vector<N, T, A>, Vector<N, Bits<T>, A>>(self) }
+            unsafe { transmute_generic::<Vector<N, T, A>, Vector<N, T::Bits, A>>(self) }
         } else {
             // SAFETY: Both types accept all bit-patterns.
             Vector::from_array(unsafe {
-                transmute_generic::<[T; N], [Bits<T>; N]>(self.to_array())
+                transmute_generic::<[T; N], [T::Bits; N]>(self.to_array())
             })
         }
     }
