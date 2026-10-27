@@ -91,12 +91,6 @@ pub(crate) trait PrimitiveFloatUtils: Sized {
 /// An internal trait that wraps primitive-integer functions used in generic
 /// contexts.
 pub(crate) trait PrimitiveIntegerUtils: Sized {
-    fn checked_add(self, rhs: Self) -> Option<Self>;
-
-    fn checked_sub(self, rhs: Self) -> Option<Self>;
-
-    fn checked_mul(self, rhs: Self) -> Option<Self>;
-
     fn checked_div(self, rhs: Self) -> Option<Self>;
 
     fn checked_rem(self, rhs: Self) -> Option<Self>;
@@ -484,21 +478,6 @@ impl_float!(f64, u64);
 macro_rules! impl_integer {
     ($T:ident) => {
         impl PrimitiveIntegerUtils for $T {
-            #[inline(always)]
-            fn checked_add(self, rhs: Self) -> Option<Self> {
-                self.checked_add(rhs)
-            }
-
-            #[inline(always)]
-            fn checked_sub(self, rhs: Self) -> Option<Self> {
-                self.checked_sub(rhs)
-            }
-
-            #[inline(always)]
-            fn checked_mul(self, rhs: Self) -> Option<Self> {
-                self.checked_mul(rhs)
-            }
-
             #[inline(always)]
             fn checked_div(self, rhs: Self) -> Option<Self> {
                 self.checked_div(rhs)

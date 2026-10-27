@@ -158,21 +158,24 @@ where
     #[inline]
     #[must_use]
     pub fn checked_add(self, rhs: Self) -> Option<Self> {
-        specialize!(<T as IntegerVectorBackend<N, A>>::checked_add(self, rhs))
+        let (result, overflow) = self.overflowing_add(rhs);
+        (!overflow.any()).then_some(result)
     }
 
     /// Computes `self - rhs`, returning `None` if overflow occured.
     #[inline]
     #[must_use]
     pub fn checked_sub(self, rhs: Self) -> Option<Self> {
-        specialize!(<T as IntegerVectorBackend<N, A>>::checked_sub(self, rhs))
+        let (result, overflow) = self.overflowing_sub(rhs);
+        (!overflow.any()).then_some(result)
     }
 
     /// Computes `self * rhs`, returning `None` if overflow occured.
     #[inline]
     #[must_use]
     pub fn checked_mul(self, rhs: Self) -> Option<Self> {
-        specialize!(<T as IntegerVectorBackend<N, A>>::checked_mul(self, rhs))
+        let (result, overflow) = self.overflowing_mul(rhs);
+        (!overflow.any()).then_some(result)
     }
 
     /// Computes `self / rhs`, returning `None` if overflow or division

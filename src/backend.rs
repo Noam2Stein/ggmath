@@ -357,21 +357,6 @@ where
 
     fn min_element(vector: Vector<N, Self, A>) -> Self;
 
-    fn checked_add(
-        vector: Vector<N, Self, A>,
-        rhs: Vector<N, Self, A>,
-    ) -> Option<Vector<N, Self, A>>;
-
-    fn checked_sub(
-        vector: Vector<N, Self, A>,
-        rhs: Vector<N, Self, A>,
-    ) -> Option<Vector<N, Self, A>>;
-
-    fn checked_mul(
-        vector: Vector<N, Self, A>,
-        rhs: Vector<N, Self, A>,
-    ) -> Option<Vector<N, Self, A>>;
-
     fn checked_div(
         vector: Vector<N, Self, A>,
         rhs: Vector<N, Self, A>,
@@ -2394,39 +2379,6 @@ where
     }
 
     #[inline]
-    fn checked_add(
-        vector: Vector<2, Self, A>,
-        rhs: Vector<2, Self, A>,
-    ) -> Option<Vector<2, Self, A>> {
-        Some(Vector::<2, Self, A>::new(
-            vector.x.checked_add(rhs.x)?,
-            vector.y.checked_add(rhs.y)?,
-        ))
-    }
-
-    #[inline]
-    fn checked_sub(
-        vector: Vector<2, Self, A>,
-        rhs: Vector<2, Self, A>,
-    ) -> Option<Vector<2, Self, A>> {
-        Some(Vector::<2, Self, A>::new(
-            vector.x.checked_sub(rhs.x)?,
-            vector.y.checked_sub(rhs.y)?,
-        ))
-    }
-
-    #[inline]
-    fn checked_mul(
-        vector: Vector<2, Self, A>,
-        rhs: Vector<2, Self, A>,
-    ) -> Option<Vector<2, Self, A>> {
-        Some(Vector::<2, Self, A>::new(
-            vector.x.checked_mul(rhs.x)?,
-            vector.y.checked_mul(rhs.y)?,
-        ))
-    }
-
-    #[inline]
     fn checked_div(
         vector: Vector<2, Self, A>,
         rhs: Vector<2, Self, A>,
@@ -2603,42 +2555,6 @@ where
     #[inline]
     fn min_element(vector: Vector<3, Self, A>) -> Self {
         vector.x.min(vector.y).min(vector.z)
-    }
-
-    #[inline]
-    fn checked_add(
-        vector: Vector<3, Self, A>,
-        rhs: Vector<3, Self, A>,
-    ) -> Option<Vector<3, Self, A>> {
-        Some(Vector::<3, Self, A>::new(
-            vector.x.checked_add(rhs.x)?,
-            vector.y.checked_add(rhs.y)?,
-            vector.z.checked_add(rhs.z)?,
-        ))
-    }
-
-    #[inline]
-    fn checked_sub(
-        vector: Vector<3, Self, A>,
-        rhs: Vector<3, Self, A>,
-    ) -> Option<Vector<3, Self, A>> {
-        Some(Vector::<3, Self, A>::new(
-            vector.x.checked_sub(rhs.x)?,
-            vector.y.checked_sub(rhs.y)?,
-            vector.z.checked_sub(rhs.z)?,
-        ))
-    }
-
-    #[inline]
-    fn checked_mul(
-        vector: Vector<3, Self, A>,
-        rhs: Vector<3, Self, A>,
-    ) -> Option<Vector<3, Self, A>> {
-        Some(Vector::<3, Self, A>::new(
-            vector.x.checked_mul(rhs.x)?,
-            vector.y.checked_mul(rhs.y)?,
-            vector.z.checked_mul(rhs.z)?,
-        ))
     }
 
     #[inline]
@@ -2849,45 +2765,6 @@ where
     #[inline]
     fn min_element(vector: Vector<4, Self, A>) -> Self {
         vector.x.min(vector.y).min(vector.z.min(vector.w))
-    }
-
-    #[inline]
-    fn checked_add(
-        vector: Vector<4, Self, A>,
-        rhs: Vector<4, Self, A>,
-    ) -> Option<Vector<4, Self, A>> {
-        Some(Vector::<4, Self, A>::new(
-            vector.x.checked_add(rhs.x)?,
-            vector.y.checked_add(rhs.y)?,
-            vector.z.checked_add(rhs.z)?,
-            vector.w.checked_add(rhs.w)?,
-        ))
-    }
-
-    #[inline]
-    fn checked_sub(
-        vector: Vector<4, Self, A>,
-        rhs: Vector<4, Self, A>,
-    ) -> Option<Vector<4, Self, A>> {
-        Some(Vector::<4, Self, A>::new(
-            vector.x.checked_sub(rhs.x)?,
-            vector.y.checked_sub(rhs.y)?,
-            vector.z.checked_sub(rhs.z)?,
-            vector.w.checked_sub(rhs.w)?,
-        ))
-    }
-
-    #[inline]
-    fn checked_mul(
-        vector: Vector<4, Self, A>,
-        rhs: Vector<4, Self, A>,
-    ) -> Option<Vector<4, Self, A>> {
-        Some(Vector::<4, Self, A>::new(
-            vector.x.checked_mul(rhs.x)?,
-            vector.y.checked_mul(rhs.y)?,
-            vector.z.checked_mul(rhs.z)?,
-            vector.w.checked_mul(rhs.w)?,
-        ))
     }
 
     #[inline]
