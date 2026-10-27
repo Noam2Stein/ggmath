@@ -172,7 +172,7 @@ pub trait PrimitiveSigned:
     + SignedVectorBackend<4, Unaligned>
 {
     /// The unsigned integer type with equal width.
-    type Unsigned: PrimitiveUnsigned;
+    type Unsigned: PrimitiveUnsigned<Signed = Self>;
 }
 
 /// A trait for all primitive unsigned integer types.
@@ -189,7 +189,7 @@ pub trait PrimitiveSigned:
 #[expect(private_bounds)]
 pub trait PrimitiveUnsigned: Sealed + PrimitiveInteger {
     /// The signed integer type with equal width.
-    type Signed: PrimitiveSigned;
+    type Signed: PrimitiveSigned<Unsigned = Self>;
 }
 
 impl PrimitiveFloat for f32 {
