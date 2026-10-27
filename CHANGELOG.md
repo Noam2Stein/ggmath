@@ -19,6 +19,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `<T as PrimitiveUnsigned>::Signed::Unsigned` equals `T` and that
   `<T as PrimitiveSigned>::Unsigned::Signed` equals `T`
 
+### Documentation
+
+- [#113](https://github.com/Noam2Stein/ggmath/pull/113): Simplify primitive API
+  signatures such that `<T as PrimitiveFloat>::Bits` becomes `T::Bits`,
+  `<T as PrimitiveSigned>::Unsigned` becomes `T::Unsigned` and
+  `<T as PrimitiveUnsigned>::Signed` becomes `T::Signed`
+
 ## [0.18.2] - 2026-09-26
 
 ### Added
