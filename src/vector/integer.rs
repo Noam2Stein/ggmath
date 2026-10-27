@@ -1,5 +1,5 @@
 use crate::{
-    Alignment, Dim, PrimitiveInteger, TwoThreeOrFour, Vector, backend::IntegerVectorBackend,
+    Alignment, Dim, Mask, PrimitiveInteger, TwoThreeOrFour, Vector, backend::IntegerVectorBackend,
     utils::specialize,
 };
 
@@ -271,6 +271,53 @@ where
     #[track_caller]
     pub fn wrapping_rem(self, rhs: Self) -> Self {
         specialize!(<T as IntegerVectorBackend<N, A>>::wrapping_rem(self, rhs))
+    }
+
+    /// TODO
+    #[inline]
+    #[must_use]
+    pub fn overflowing_add(self, rhs: Self) -> (Self, Mask<N, T, A>) {
+        specialize!(<T as IntegerVectorBackend<N, A>>::overflowing_add(
+            self, rhs
+        ))
+    }
+
+    /// TODO
+    #[inline]
+    #[must_use]
+    pub fn overflowing_sub(self, rhs: Self) -> (Self, Mask<N, T, A>) {
+        specialize!(<T as IntegerVectorBackend<N, A>>::overflowing_sub(
+            self, rhs
+        ))
+    }
+
+    /// TODO
+    #[inline]
+    #[must_use]
+    pub fn overflowing_mul(self, rhs: Self) -> (Self, Mask<N, T, A>) {
+        specialize!(<T as IntegerVectorBackend<N, A>>::overflowing_mul(
+            self, rhs
+        ))
+    }
+
+    /// TODO
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn overflowing_div(self, rhs: Self) -> (Self, Mask<N, T, A>) {
+        specialize!(<T as IntegerVectorBackend<N, A>>::overflowing_div(
+            self, rhs
+        ))
+    }
+
+    /// TODO
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn overflowing_rem(self, rhs: Self) -> (Self, Mask<N, T, A>) {
+        specialize!(<T as IntegerVectorBackend<N, A>>::overflowing_rem(
+            self, rhs
+        ))
     }
 }
 
