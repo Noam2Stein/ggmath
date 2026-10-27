@@ -40,7 +40,7 @@ macro_rules! conflicting_items {
                 "cannot negate MIN: {self:?}.abs()"
             );
 
-            specialize!(<$T as SignedVectorBackend<N, A>>::wrapping_abs(self))
+            self.wrapping_abs()
         }
 
         /// Returns the signum of the elements of `self`.
@@ -145,6 +145,52 @@ where
                 transmute_generic::<[T; N], [T::Unsigned; N]>(self.to_array())
             })
         }
+    }
+
+    /// TODO
+    #[inline]
+    #[must_use]
+    pub fn unsigned_abs(self) -> Vector<N, T::Unsigned, A> {
+        self.wrapping_abs().cast_unsigned()
+    }
+
+    /// TODO
+    #[inline]
+    #[must_use]
+    pub fn checked_abs(self) -> Option<Self> {
+        let (result, overflow) = self.overflowing_abs();
+        (!overflow.any()).then_some(result)
+    }
+
+    /// TODO
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn strict_abs(self) -> Self {
+        let (result, overflow) = self.overflowing_abs();
+        assert!(!overflow.any(), "attempt to negate with overflow");
+        result
+    }
+
+    /// TODO
+    #[inline]
+    #[must_use]
+    pub fn saturating_abs(self) -> Self {
+        specialize!(<T as SignedVectorBackend<N, A>>::saturating_abs(self))
+    }
+
+    /// TODO
+    #[inline]
+    #[must_use]
+    pub fn wrapping_abs(self) -> Self {
+        specialize!(<T as SignedVectorBackend<N, A>>::wrapping_abs(self))
+    }
+
+    /// TODO
+    #[inline]
+    #[must_use]
+    pub fn overflowing_abs(self) -> (Self, Mask<N, T, A>) {
+        (self.wrapping_abs(), self.eq_mask(Self::splat(T::MIN)))
     }
 }
 

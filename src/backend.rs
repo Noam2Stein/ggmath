@@ -420,6 +420,8 @@ pub(crate) trait SignedVectorBackend<const N: usize, A: Alignment>: Element
 where
     Dim<N>: TwoThreeOrFour,
 {
+    fn saturating_abs(vector: Vector<N, Self, A>) -> Vector<N, Self, A>;
+
     fn wrapping_abs(vector: Vector<N, Self, A>) -> Vector<N, Self, A>;
 
     fn signum(vector: Vector<N, Self, A>) -> Vector<N, Self, A>;
@@ -2964,6 +2966,11 @@ where
     T: PrimitiveSigned + DefaultBackend<2, A>,
 {
     #[inline]
+    fn saturating_abs(vector: Vector<2, Self, A>) -> Vector<2, Self, A> {
+        Vector::<2, T, A>::new(vector.x.saturating_abs(), vector.y.saturating_abs())
+    }
+
+    #[inline]
     fn wrapping_abs(vector: Vector<2, Self, A>) -> Vector<2, Self, A> {
         Vector::<2, T, A>::new(vector.x.wrapping_abs(), vector.y.wrapping_abs())
     }
@@ -2988,6 +2995,15 @@ impl<T, A: Alignment> SignedVectorBackend<3, A> for T
 where
     T: PrimitiveSigned + DefaultBackend<3, A>,
 {
+    #[inline]
+    fn saturating_abs(vector: Vector<3, Self, A>) -> Vector<3, Self, A> {
+        Vector::<3, T, A>::new(
+            vector.x.saturating_abs(),
+            vector.y.saturating_abs(),
+            vector.z.saturating_abs(),
+        )
+    }
+
     #[inline]
     fn wrapping_abs(vector: Vector<3, Self, A>) -> Vector<3, Self, A> {
         Vector::<3, T, A>::new(
@@ -3025,6 +3041,16 @@ impl<T, A: Alignment> SignedVectorBackend<4, A> for T
 where
     T: PrimitiveSigned + DefaultBackend<4, A>,
 {
+    #[inline]
+    fn saturating_abs(vector: Vector<4, Self, A>) -> Vector<4, Self, A> {
+        Vector::<4, T, A>::new(
+            vector.x.saturating_abs(),
+            vector.y.saturating_abs(),
+            vector.z.saturating_abs(),
+            vector.w.saturating_abs(),
+        )
+    }
+
     #[inline]
     fn wrapping_abs(vector: Vector<4, Self, A>) -> Vector<4, Self, A> {
         Vector::<4, T, A>::new(

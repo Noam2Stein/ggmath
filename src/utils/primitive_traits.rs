@@ -91,6 +91,8 @@ pub(crate) trait PrimitiveFloatUtils: Sized {
 /// An internal trait that wraps primitive-integer functions used in generic
 /// contexts.
 pub(crate) trait PrimitiveIntegerUtils: Sized {
+    const MIN: Self;
+
     fn checked_div(self, rhs: Self) -> Option<Self>;
 
     fn checked_rem(self, rhs: Self) -> Option<Self>;
@@ -129,6 +131,8 @@ pub(crate) trait PrimitiveIntegerUtils: Sized {
 /// An internal trait that wraps primitive-signed-integer functions used in
 /// generic contexts.
 pub(crate) trait PrimitiveSignedUtils: Sized {
+    fn saturating_abs(self) -> Self;
+
     fn wrapping_abs(self) -> Self;
 
     fn signum(self) -> Self;
@@ -478,6 +482,8 @@ impl_float!(f64, u64);
 macro_rules! impl_integer {
     ($T:ident) => {
         impl PrimitiveIntegerUtils for $T {
+            const MIN: Self = Self::MIN;
+
             #[inline(always)]
             fn checked_div(self, rhs: Self) -> Option<Self> {
                 self.checked_div(rhs)
@@ -576,6 +582,11 @@ impl_integer!(usize);
 macro_rules! impl_signed {
     ($T:ident, $UnsignedT:ident) => {
         impl PrimitiveSignedUtils for $T {
+            #[inline(always)]
+            fn saturating_abs(self) -> Self {
+                self.saturating_abs()
+            }
+
             #[inline(always)]
             fn wrapping_abs(self) -> Self {
                 self.wrapping_abs()
