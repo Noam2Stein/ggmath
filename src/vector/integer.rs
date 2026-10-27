@@ -191,6 +191,59 @@ where
         specialize!(<T as IntegerVectorBackend<N, A>>::checked_rem(self, rhs))
     }
 
+    /// TODO
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn strict_add(self, rhs: Self) -> Self {
+        let (result, overflow) = self.overflowing_add(rhs);
+        assert!(!overflow.any(), "attempt to add with overflow");
+        result
+    }
+
+    /// TODO
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn strict_sub(self, rhs: Self) -> Self {
+        let (result, overflow) = self.overflowing_sub(rhs);
+        assert!(!overflow.any(), "attempt to subtract with overflow");
+        result
+    }
+
+    /// TODO
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn strict_mul(self, rhs: Self) -> Self {
+        let (result, overflow) = self.overflowing_mul(rhs);
+        assert!(!overflow.any(), "attempt to multiply with overflow");
+        result
+    }
+
+    /// TODO
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn strict_div(self, rhs: Self) -> Self {
+        let (result, overflow) = self.overflowing_div(rhs);
+        assert!(!overflow.any(), "attempt to divide with overflow");
+        result
+    }
+
+    /// TODO
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn strict_rem(self, rhs: Self) -> Self {
+        let (result, overflow) = self.overflowing_rem(rhs);
+        assert!(
+            !overflow.any(),
+            "attempt to calculate the remainder with overflow"
+        );
+        result
+    }
+
     /// Computes `self + rhs`, saturating at the numeric bounds instead of
     /// overflowing.
     #[inline]
