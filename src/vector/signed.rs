@@ -182,6 +182,20 @@ where
     /// TODO
     #[inline]
     #[must_use]
+    pub fn wrapping_add_unsigned(self, rhs: Vector<N, T::Unsigned, A>) -> Self {
+        self.wrapping_add(rhs.cast_signed())
+    }
+
+    /// TODO
+    #[inline]
+    #[must_use]
+    pub fn wrapping_sub_unsigned(self, rhs: Vector<N, T::Unsigned, A>) -> Self {
+        self.wrapping_sub(rhs.cast_signed())
+    }
+
+    /// TODO
+    #[inline]
+    #[must_use]
     pub fn wrapping_abs(self) -> Self {
         specialize!(<T as SignedVectorBackend<N, A>>::wrapping_abs(self))
     }

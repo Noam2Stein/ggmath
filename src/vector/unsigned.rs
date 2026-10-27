@@ -25,6 +25,20 @@ where
             })
         }
     }
+
+    /// TODO
+    #[inline]
+    #[must_use]
+    pub fn wrapping_add_signed(self, rhs: Vector<N, T::Signed, A>) -> Self {
+        self.wrapping_add(rhs.cast_unsigned())
+    }
+
+    /// TODO
+    #[inline]
+    #[must_use]
+    pub fn wrapping_sub_signed(self, rhs: Vector<N, T::Signed, A>) -> Self {
+        self.wrapping_sub(rhs.cast_unsigned())
+    }
 }
 
 #[cfg(test)]
