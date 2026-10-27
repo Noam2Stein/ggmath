@@ -118,6 +118,18 @@ pub(crate) trait PrimitiveIntegerUtils: Sized {
     fn wrapping_div(self, rhs: Self) -> Self;
 
     fn wrapping_rem(self, rhs: Self) -> Self;
+
+    fn overflowing_add(self, rhs: Self) -> (Self, bool);
+
+    fn overflowing_sub(self, rhs: Self) -> (Self, bool);
+
+    fn overflowing_mul(self, rhs: Self) -> (Self, bool);
+
+    #[track_caller]
+    fn overflowing_div(self, rhs: Self) -> (Self, bool);
+
+    #[track_caller]
+    fn overflowing_rem(self, rhs: Self) -> (Self, bool);
 }
 
 /// An internal trait that wraps primitive-signed-integer functions used in
@@ -540,6 +552,31 @@ macro_rules! impl_integer {
             #[inline(always)]
             fn wrapping_rem(self, rhs: Self) -> Self {
                 self.wrapping_rem(rhs)
+            }
+
+            #[inline(always)]
+            fn overflowing_add(self, rhs: Self) -> (Self, bool) {
+                self.overflowing_add(rhs)
+            }
+
+            #[inline(always)]
+            fn overflowing_sub(self, rhs: Self) -> (Self, bool) {
+                self.overflowing_sub(rhs)
+            }
+
+            #[inline(always)]
+            fn overflowing_mul(self, rhs: Self) -> (Self, bool) {
+                self.overflowing_mul(rhs)
+            }
+
+            #[inline(always)]
+            fn overflowing_div(self, rhs: Self) -> (Self, bool) {
+                self.overflowing_div(rhs)
+            }
+
+            #[inline(always)]
+            fn overflowing_rem(self, rhs: Self) -> (Self, bool) {
+                self.overflowing_rem(rhs)
             }
         }
     };

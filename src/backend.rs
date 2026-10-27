@@ -402,6 +402,33 @@ where
 
     #[track_caller]
     fn wrapping_rem(vector: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>;
+
+    fn overflowing_add(
+        vector: Vector<N, Self, A>,
+        rhs: Vector<N, Self, A>,
+    ) -> (Vector<N, Self, A>, Mask<N, Self, A>);
+
+    fn overflowing_sub(
+        vector: Vector<N, Self, A>,
+        rhs: Vector<N, Self, A>,
+    ) -> (Vector<N, Self, A>, Mask<N, Self, A>);
+
+    fn overflowing_mul(
+        vector: Vector<N, Self, A>,
+        rhs: Vector<N, Self, A>,
+    ) -> (Vector<N, Self, A>, Mask<N, Self, A>);
+
+    #[track_caller]
+    fn overflowing_div(
+        vector: Vector<N, Self, A>,
+        rhs: Vector<N, Self, A>,
+    ) -> (Vector<N, Self, A>, Mask<N, Self, A>);
+
+    #[track_caller]
+    fn overflowing_rem(
+        vector: Vector<N, Self, A>,
+        rhs: Vector<N, Self, A>,
+    ) -> (Vector<N, Self, A>, Mask<N, Self, A>);
 }
 
 pub(crate) trait SignedVectorBackend<const N: usize, A: Alignment>: Element
@@ -2477,6 +2504,73 @@ where
     fn wrapping_rem(vector: Vector<2, Self, A>, rhs: Vector<2, Self, A>) -> Vector<2, Self, A> {
         Vector::<2, Self, A>::new(vector.x.wrapping_rem(rhs.x), vector.y.wrapping_rem(rhs.y))
     }
+
+    #[inline]
+    fn overflowing_add(
+        vector: Vector<2, Self, A>,
+        rhs: Vector<2, Self, A>,
+    ) -> (Vector<2, Self, A>, Mask<2, Self, A>) {
+        let (result_x, overflow_x) = vector.x.overflowing_add(rhs.x);
+        let (result_y, overflow_y) = vector.y.overflowing_add(rhs.y);
+        (
+            Vector::<2, Self, A>::new(result_x, result_y),
+            Mask::<2, Self, A>::new(overflow_x, overflow_y),
+        )
+    }
+
+    #[inline]
+    fn overflowing_sub(
+        vector: Vector<2, Self, A>,
+        rhs: Vector<2, Self, A>,
+    ) -> (Vector<2, Self, A>, Mask<2, Self, A>) {
+        let (result_x, overflow_x) = vector.x.overflowing_sub(rhs.x);
+        let (result_y, overflow_y) = vector.y.overflowing_sub(rhs.y);
+        (
+            Vector::<2, Self, A>::new(result_x, result_y),
+            Mask::<2, Self, A>::new(overflow_x, overflow_y),
+        )
+    }
+
+    #[inline]
+    fn overflowing_mul(
+        vector: Vector<2, Self, A>,
+        rhs: Vector<2, Self, A>,
+    ) -> (Vector<2, Self, A>, Mask<2, Self, A>) {
+        let (result_x, overflow_x) = vector.x.overflowing_mul(rhs.x);
+        let (result_y, overflow_y) = vector.y.overflowing_mul(rhs.y);
+        (
+            Vector::<2, Self, A>::new(result_x, result_y),
+            Mask::<2, Self, A>::new(overflow_x, overflow_y),
+        )
+    }
+
+    #[inline]
+    #[track_caller]
+    fn overflowing_div(
+        vector: Vector<2, Self, A>,
+        rhs: Vector<2, Self, A>,
+    ) -> (Vector<2, Self, A>, Mask<2, Self, A>) {
+        let (result_x, overflow_x) = vector.x.overflowing_div(rhs.x);
+        let (result_y, overflow_y) = vector.y.overflowing_div(rhs.y);
+        (
+            Vector::<2, Self, A>::new(result_x, result_y),
+            Mask::<2, Self, A>::new(overflow_x, overflow_y),
+        )
+    }
+
+    #[inline]
+    #[track_caller]
+    fn overflowing_rem(
+        vector: Vector<2, Self, A>,
+        rhs: Vector<2, Self, A>,
+    ) -> (Vector<2, Self, A>, Mask<2, Self, A>) {
+        let (result_x, overflow_x) = vector.x.overflowing_rem(rhs.x);
+        let (result_y, overflow_y) = vector.y.overflowing_rem(rhs.y);
+        (
+            Vector::<2, Self, A>::new(result_x, result_y),
+            Mask::<2, Self, A>::new(overflow_x, overflow_y),
+        )
+    }
 }
 
 impl<T, A: Alignment> IntegerVectorBackend<3, A> for T
@@ -2649,6 +2743,76 @@ where
             vector.x.wrapping_rem(rhs.x),
             vector.y.wrapping_rem(rhs.y),
             vector.z.wrapping_rem(rhs.z),
+        )
+    }
+
+    #[inline]
+    fn overflowing_add(
+        vector: Vector<3, Self, A>,
+        rhs: Vector<3, Self, A>,
+    ) -> (Vector<3, Self, A>, Mask<3, Self, A>) {
+        let (result_x, overflow_x) = vector.x.overflowing_add(rhs.x);
+        let (result_y, overflow_y) = vector.y.overflowing_add(rhs.y);
+        let (result_z, overflow_z) = vector.z.overflowing_add(rhs.z);
+        (
+            Vector::<3, Self, A>::new(result_x, result_y, result_z),
+            Mask::<3, Self, A>::new(overflow_x, overflow_y, overflow_z),
+        )
+    }
+
+    #[inline]
+    fn overflowing_sub(
+        vector: Vector<3, Self, A>,
+        rhs: Vector<3, Self, A>,
+    ) -> (Vector<3, Self, A>, Mask<3, Self, A>) {
+        let (result_x, overflow_x) = vector.x.overflowing_sub(rhs.x);
+        let (result_y, overflow_y) = vector.y.overflowing_sub(rhs.y);
+        let (result_z, overflow_z) = vector.z.overflowing_sub(rhs.z);
+        (
+            Vector::<3, Self, A>::new(result_x, result_y, result_z),
+            Mask::<3, Self, A>::new(overflow_x, overflow_y, overflow_z),
+        )
+    }
+
+    #[inline]
+    fn overflowing_mul(
+        vector: Vector<3, Self, A>,
+        rhs: Vector<3, Self, A>,
+    ) -> (Vector<3, Self, A>, Mask<3, Self, A>) {
+        let (result_x, overflow_x) = vector.x.overflowing_mul(rhs.x);
+        let (result_y, overflow_y) = vector.y.overflowing_mul(rhs.y);
+        let (result_z, overflow_z) = vector.z.overflowing_mul(rhs.z);
+        (
+            Vector::<3, Self, A>::new(result_x, result_y, result_z),
+            Mask::<3, Self, A>::new(overflow_x, overflow_y, overflow_z),
+        )
+    }
+
+    #[inline]
+    fn overflowing_div(
+        vector: Vector<3, Self, A>,
+        rhs: Vector<3, Self, A>,
+    ) -> (Vector<3, Self, A>, Mask<3, Self, A>) {
+        let (result_x, overflow_x) = vector.x.overflowing_div(rhs.x);
+        let (result_y, overflow_y) = vector.y.overflowing_div(rhs.y);
+        let (result_z, overflow_z) = vector.z.overflowing_div(rhs.z);
+        (
+            Vector::<3, Self, A>::new(result_x, result_y, result_z),
+            Mask::<3, Self, A>::new(overflow_x, overflow_y, overflow_z),
+        )
+    }
+
+    #[inline]
+    fn overflowing_rem(
+        vector: Vector<3, Self, A>,
+        rhs: Vector<3, Self, A>,
+    ) -> (Vector<3, Self, A>, Mask<3, Self, A>) {
+        let (result_x, overflow_x) = vector.x.overflowing_rem(rhs.x);
+        let (result_y, overflow_y) = vector.y.overflowing_rem(rhs.y);
+        let (result_z, overflow_z) = vector.z.overflowing_rem(rhs.z);
+        (
+            Vector::<3, Self, A>::new(result_x, result_y, result_z),
+            Mask::<3, Self, A>::new(overflow_x, overflow_y, overflow_z),
         )
     }
 }
@@ -2839,6 +3003,81 @@ where
             vector.y.wrapping_rem(rhs.y),
             vector.z.wrapping_rem(rhs.z),
             vector.w.wrapping_rem(rhs.w),
+        )
+    }
+
+    #[inline]
+    fn overflowing_add(
+        vector: Vector<4, Self, A>,
+        rhs: Vector<4, Self, A>,
+    ) -> (Vector<4, Self, A>, Mask<4, Self, A>) {
+        let (result_x, overflow_x) = vector.x.overflowing_add(rhs.x);
+        let (result_y, overflow_y) = vector.y.overflowing_add(rhs.y);
+        let (result_z, overflow_z) = vector.z.overflowing_add(rhs.z);
+        let (result_w, overflow_w) = vector.w.overflowing_add(rhs.w);
+        (
+            Vector::<4, Self, A>::new(result_x, result_y, result_z, result_w),
+            Mask::<4, Self, A>::new(overflow_x, overflow_y, overflow_z, overflow_w),
+        )
+    }
+
+    #[inline]
+    fn overflowing_sub(
+        vector: Vector<4, Self, A>,
+        rhs: Vector<4, Self, A>,
+    ) -> (Vector<4, Self, A>, Mask<4, Self, A>) {
+        let (result_x, overflow_x) = vector.x.overflowing_sub(rhs.x);
+        let (result_y, overflow_y) = vector.y.overflowing_sub(rhs.y);
+        let (result_z, overflow_z) = vector.z.overflowing_sub(rhs.z);
+        let (result_w, overflow_w) = vector.w.overflowing_sub(rhs.w);
+        (
+            Vector::<4, Self, A>::new(result_x, result_y, result_z, result_w),
+            Mask::<4, Self, A>::new(overflow_x, overflow_y, overflow_z, overflow_w),
+        )
+    }
+
+    #[inline]
+    fn overflowing_mul(
+        vector: Vector<4, Self, A>,
+        rhs: Vector<4, Self, A>,
+    ) -> (Vector<4, Self, A>, Mask<4, Self, A>) {
+        let (result_x, overflow_x) = vector.x.overflowing_mul(rhs.x);
+        let (result_y, overflow_y) = vector.y.overflowing_mul(rhs.y);
+        let (result_z, overflow_z) = vector.z.overflowing_mul(rhs.z);
+        let (result_w, overflow_w) = vector.w.overflowing_mul(rhs.w);
+        (
+            Vector::<4, Self, A>::new(result_x, result_y, result_z, result_w),
+            Mask::<4, Self, A>::new(overflow_x, overflow_y, overflow_z, overflow_w),
+        )
+    }
+
+    #[inline]
+    fn overflowing_div(
+        vector: Vector<4, Self, A>,
+        rhs: Vector<4, Self, A>,
+    ) -> (Vector<4, Self, A>, Mask<4, Self, A>) {
+        let (result_x, overflow_x) = vector.x.overflowing_div(rhs.x);
+        let (result_y, overflow_y) = vector.y.overflowing_div(rhs.y);
+        let (result_z, overflow_z) = vector.z.overflowing_div(rhs.z);
+        let (result_w, overflow_w) = vector.w.overflowing_div(rhs.w);
+        (
+            Vector::<4, Self, A>::new(result_x, result_y, result_z, result_w),
+            Mask::<4, Self, A>::new(overflow_x, overflow_y, overflow_z, overflow_w),
+        )
+    }
+
+    #[inline]
+    fn overflowing_rem(
+        vector: Vector<4, Self, A>,
+        rhs: Vector<4, Self, A>,
+    ) -> (Vector<4, Self, A>, Mask<4, Self, A>) {
+        let (result_x, overflow_x) = vector.x.overflowing_rem(rhs.x);
+        let (result_y, overflow_y) = vector.y.overflowing_rem(rhs.y);
+        let (result_z, overflow_z) = vector.z.overflowing_rem(rhs.z);
+        let (result_w, overflow_w) = vector.w.overflowing_rem(rhs.w);
+        (
+            Vector::<4, Self, A>::new(result_x, result_y, result_z, result_w),
+            Mask::<4, Self, A>::new(overflow_x, overflow_y, overflow_z, overflow_w),
         )
     }
 }
