@@ -13,6 +13,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `Rotor::from/to/as/as_mut_raw_vector` to `Rotor::from/to/as/as_mut_vector`
   (remove the word `raw`)
 
+### Fixed
+
+- [#112](https://github.com/Noam2Stein/ggmath/pull/112): Guarantee that
+  `<T as PrimitiveUnsigned>::Signed::Unsigned` equals `T` and that
+  `<T as PrimitiveSigned>::Unsigned::Signed` equals `T`
+
 ## [0.18.2] - 2026-09-26
 
 ### Added
