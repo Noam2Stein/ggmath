@@ -4,8 +4,6 @@ use crate::{
     utils::{specialize, transmute_generic},
 };
 
-type Unsigned<T> = <T as PrimitiveSigned>::Unsigned;
-
 /// Contains signed-integer vector items that cannot be part of the generic
 /// implementation, because their names conflict with float vector items.
 ///
@@ -137,14 +135,14 @@ where
     /// [`as`]: https://rust-for-c-programmers.com/ch16/16_2_primitive_casting_with_as.html
     #[inline]
     #[must_use]
-    pub const fn cast_unsigned(self) -> Vector<N, Unsigned<T>, A> {
-        if const { size_of::<Vector<N, T, A>>() == size_of::<Vector<N, Unsigned<T>, A>>() } {
+    pub const fn cast_unsigned(self) -> Vector<N, T::Unsigned, A> {
+        if const { size_of::<Vector<N, T, A>>() == size_of::<Vector<N, T::Unsigned, A>>() } {
             // SAFETY: Both types accept all bit-patterns.
-            unsafe { transmute_generic::<Vector<N, T, A>, Vector<N, Unsigned<T>, A>>(self) }
+            unsafe { transmute_generic::<Vector<N, T, A>, Vector<N, T::Unsigned, A>>(self) }
         } else {
             // SAFETY: Both types accept all bit-patterns.
             Vector::from_array(unsafe {
-                transmute_generic::<[T; N], [Unsigned<T>; N]>(self.to_array())
+                transmute_generic::<[T; N], [T::Unsigned; N]>(self.to_array())
             })
         }
     }
